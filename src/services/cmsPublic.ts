@@ -112,10 +112,23 @@ const LAYOUTS: ProductLayout[] = [
   "T Shape",
 ];
 
+/**
+ * Normalize a layout/category value for comparison so that admin-entered
+ * forms like "u-shape", "U_Shape", "u shape" or "U Shape" all resolve to
+ * the same canonical key ("u-shape"). This fixes category filtering (and
+ * SEO category URLs like /products/u-shape) not matching products whose
+ * CMS category was saved as a hyphenated slug instead of the display label.
+ */
+function normalizeLayoutKey(value: string): string {
+  return String(value || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[\s_-]+/g, "-");
+}
+
 function mapLayout(category: string): ProductLayout {
-  const match = LAYOUTS.find(
-    (l) => l.toLowerCase() === String(category || "").toLowerCase()
-  );
+  const target = normalizeLayoutKey(category);
+  const match = LAYOUTS.find((l) => normalizeLayoutKey(l) === target);
   return match || "Modern";
 }
 
