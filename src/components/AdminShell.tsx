@@ -21,34 +21,137 @@ import {
   Handshake,
   MapPin,
   Settings,
+  Inbox,
+  Wrench,
 } from "lucide-react";
 import { useAdminAuth } from "@/lib/AdminAuthContext";
 import type { SiteId } from "@/services/adminAPI";
 import { clsx } from "clsx";
+import {
+  ADMIN_SECTION_EVENT,
+  VARSOVIA_NAV_EVENT,
+  readAdminSectionFromUrl,
+  readVarsoviaNavFromUrl,
+  writeAdminSectionToUrl,
+  writeVarsoviaNav,
+  type VarsoviaNavDetail,
+} from "@/lib/adminSectionNav";
 
-const THAILAND_NAV = [
-  { href: "/", label: "Home Page", icon: Home },
-  { href: "/products", label: "Products", icon: Package },
-  { href: "/gallery", label: "Gallery", icon: Images },
-  { href: "/blogs", label: "Blogs", icon: FileText },
-  { href: "/privacy", label: "Privacy Policy", icon: Shield },
-  { href: "/terms", label: "Terms & Conditions", icon: ScrollText },
-  { href: "/users", label: "Users", icon: Users },
+const THAILAND_NAV: {
+  href: string;
+  label: string;
+  icon: typeof Home;
+  section?: string;
+  group?: "pages" | "admin";
+}[] = [
+  // Same order as the public website navigation + pages
+  { href: "/", label: "Home Page", icon: Home, group: "pages" },
+  { href: "/products", label: "Products", icon: Package, group: "pages" },
+  { href: "/categories", label: "Categories", icon: FolderKanban, group: "pages" },
+  { href: "/gallery", label: "Gallery", icon: Images, group: "pages" },
+  { href: "/blogs", label: "Blogs", icon: FileText, group: "pages" },
+  { href: "/?section=catalogue", label: "Catalogue", icon: BookOpen, section: "catalogue", group: "pages" },
+  { href: "/faqs", label: "FAQs", icon: MessageCircleQuestion, group: "pages" },
+  { href: "/?section=contactPage", label: "Contact Page", icon: MapPin, section: "contactPage", group: "pages" },
+  { href: "/privacy", label: "Privacy Policy", icon: Shield, group: "pages" },
+  { href: "/terms", label: "Terms & Conditions", icon: ScrollText, group: "pages" },
+  // Admin tools
+  { href: "/contacts", label: "Contact Inbox", icon: Inbox, group: "admin" },
+  { href: "/users", label: "Users", icon: Users, group: "admin" },
 ];
 
-const VARSOVIA_NAV = [
-  { href: "/varsovia?resource=site", resource: "site", label: "Site Settings", icon: Settings },
-  { href: "/varsovia?resource=products", resource: "products", label: "Products", icon: Package },
-  { href: "/varsovia?resource=projects", resource: "projects", label: "Interior Projects", icon: FolderKanban },
-  { href: "/varsovia?resource=blogs", resource: "blogs", label: "Blogs", icon: FileText },
-  { href: "/varsovia?resource=faqs", resource: "faqs", label: "FAQs", icon: MessageCircleQuestion },
-  { href: "/varsovia?resource=testimonials", resource: "testimonials", label: "Testimonials", icon: Star },
-  { href: "/varsovia?resource=catalogues", resource: "catalogues", label: "Catalogues", icon: BookOpen },
-  { href: "/varsovia?resource=showcases", resource: "showcases", label: "Showcases", icon: Images },
-  { href: "/varsovia?resource=team-members", resource: "team-members", label: "Team", icon: BriefcaseBusiness },
-  { href: "/varsovia?resource=partners", resource: "partners", label: "Partners", icon: Handshake },
-  { href: "/varsovia?resource=showrooms", resource: "showrooms", label: "Showrooms", icon: MapPin },
+const VARSOVIA_NAV: {
+  href: string;
+  label: string;
+  icon: typeof Home;
+  resource?: string;
+  section?: string;
+  group: "pages" | "admin";
+}[] = [
+  // Same order as Varsovia public nav + home content sources
+  { href: "/varsovia?resource=site", resource: "site", label: "Home Page", icon: Home, group: "pages" },
+  { href: "/varsovia?resource=projects", resource: "projects", label: "Interior", icon: FolderKanban, group: "pages" },
+  { href: "/varsovia?resource=catalogues", resource: "catalogues", label: "Free Catalogue", icon: BookOpen, group: "pages" },
+  { href: "/varsovia?resource=showcases", resource: "showcases", label: "Showcase", icon: Images, group: "pages" },
+  {
+    href: "/varsovia?resource=site&section=aboutPage",
+    resource: "site",
+    section: "aboutPage",
+    label: "About",
+    icon: BookOpen,
+    group: "pages",
+  },
+  { href: "/varsovia?resource=team-members", resource: "team-members", label: "Team", icon: BriefcaseBusiness, group: "pages" },
+  { href: "/varsovia?resource=blogs", resource: "blogs", label: "Blog", icon: FileText, group: "pages" },
+  {
+    href: "/varsovia?resource=site&section=qualitySale",
+    resource: "site",
+    section: "qualitySale",
+    label: "Quality After Sales",
+    icon: Wrench,
+    group: "pages",
+  },
+  { href: "/varsovia?resource=faqs", resource: "faqs", label: "FAQs", icon: MessageCircleQuestion, group: "pages" },
+  {
+    href: "/varsovia?resource=site&section=contact",
+    resource: "site",
+    section: "contact",
+    label: "Contact",
+    icon: MapPin,
+    group: "pages",
+  },
+  { href: "/varsovia?resource=products", resource: "products", label: "Products", icon: Package, group: "pages" },
+  { href: "/varsovia?resource=testimonials", resource: "testimonials", label: "Testimonials", icon: Star, group: "pages" },
+  { href: "/varsovia?resource=partners", resource: "partners", label: "Partners", icon: Handshake, group: "pages" },
+  { href: "/varsovia?resource=showrooms", resource: "showrooms", label: "Showrooms", icon: MapPin, group: "pages" },
+  // Site chrome / admin tools
+  {
+    href: "/varsovia?resource=site&section=brand",
+    resource: "site",
+    section: "brand",
+    label: "Brand & Flags",
+    icon: Settings,
+    group: "admin",
+  },
+  {
+    href: "/varsovia?resource=site&section=navigation",
+    resource: "site",
+    section: "navigation",
+    label: "Navigation",
+    icon: Settings,
+    group: "admin",
+  },
+  {
+    href: "/varsovia?resource=site&section=footer",
+    resource: "site",
+    section: "footer",
+    label: "Footer",
+    icon: Settings,
+    group: "admin",
+  },
+  {
+    href: "/varsovia?resource=site&section=interior",
+    resource: "site",
+    section: "interior",
+    label: "Interior Mode",
+    icon: FolderKanban,
+    group: "admin",
+  },
 ];
+
+/** Home Site Settings sections — used so "Home Page" stays active while editing home blocks */
+const VARSOVIA_HOME_SECTIONS = new Set([
+  "hero",
+  "about",
+  "stats",
+  "featured",
+  "catalogue",
+  "products",
+  "testimonials",
+  "coreStrengths",
+  "partners",
+  "contact",
+]);
 
 const SITES: { id: SiteId; name: string }[] = [
   { id: "thailand-kitchen", name: "Thailand Kitchen" },
@@ -83,9 +186,38 @@ function AdminShellContent({
   const searchParams = useSearchParams();
   const { user, logout, siteId, setSiteId } = useAdminAuth();
   const isVarsovia = siteId === "varsovia-kitchen";
-  const nav = isVarsovia ? VARSOVIA_NAV : THAILAND_NAV;
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
+  const [homeSection, setHomeSection] = useState<string | null>(null);
+  const [varsoviaNav, setVarsoviaNav] = useState<VarsoviaNavDetail>(() =>
+    readVarsoviaNavFromUrl()
+  );
+
+  useEffect(() => {
+    setHomeSection(readAdminSectionFromUrl());
+    const onSection = (event: Event) => {
+      const key = (event as CustomEvent<string>).detail;
+      setHomeSection(key === "hero" ? null : key);
+    };
+    window.addEventListener(ADMIN_SECTION_EVENT, onSection);
+    return () => window.removeEventListener(ADMIN_SECTION_EVENT, onSection);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!pathname.startsWith("/varsovia")) return;
+    setVarsoviaNav(readVarsoviaNavFromUrl());
+    const onNav = (event: Event) => {
+      const detail = (event as CustomEvent<VarsoviaNavDetail>).detail;
+      if (detail?.resource) setVarsoviaNav(detail);
+    };
+    const onPop = () => setVarsoviaNav(readVarsoviaNavFromUrl());
+    window.addEventListener(VARSOVIA_NAV_EVENT, onNav);
+    window.addEventListener("popstate", onPop);
+    return () => {
+      window.removeEventListener(VARSOVIA_NAV_EVENT, onNav);
+      window.removeEventListener("popstate", onPop);
+    };
+  }, [pathname]);
 
   useEffect(() => {
     if (isVarsovia && !pathname.startsWith("/varsovia")) {
@@ -115,13 +247,16 @@ function AdminShellContent({
     };
   }, [profileOpen]);
 
-  /** Unknown resources fall back to Site Settings, matching the Varsovia page. */
-  const requestedResource = searchParams.get("resource") || "site";
+  /** Prefer soft-nav state; fall back to URL search params on first paint. */
+  const requestedResource =
+    varsoviaNav.resource || searchParams.get("resource") || "site";
   const activeResource = VARSOVIA_NAV.some(
     (item) => item.resource === requestedResource
   )
     ? requestedResource
     : "site";
+  const currentSection =
+    varsoviaNav.section ?? searchParams.get("section");
 
   /** Site Settings is a long form: pin the sidebar/header and scroll the form itself. */
   const lockShellHeight = pathname === "/varsovia" && activeResource === "site";
@@ -135,13 +270,61 @@ function AdminShellContent({
     };
   }, [lockShellHeight]);
 
-  const isActive = (item: { href: string; resource?: string }) => {
+  const isActive = (item: {
+    href: string;
+    resource?: string;
+    section?: string;
+  }) => {
     if (item.resource) {
-      return pathname === "/varsovia" && activeResource === item.resource;
+      if (pathname !== "/varsovia" || activeResource !== item.resource) {
+        return false;
+      }
+      if (item.section) {
+        return currentSection === item.section;
+      }
+      // Home Page: resource=site with no section, or a home section
+      if (item.resource === "site") {
+        return !currentSection || VARSOVIA_HOME_SECTIONS.has(currentSection);
+      }
+      return true;
     }
-    return item.href === "/"
-      ? pathname === "/"
-      : pathname.startsWith(item.href);
+    if (item.section) {
+      return pathname === "/" && homeSection === item.section;
+    }
+    if (item.href === "/") {
+      return pathname === "/" && !homeSection;
+    }
+    const pathOnly = item.href.split("?")[0];
+    return pathname.startsWith(pathOnly);
+  };
+
+  const openNavItem = (
+    event: React.MouseEvent,
+    item: { href: string; section?: string; resource?: string }
+  ) => {
+    // Varsovia: stay on /varsovia and swap resource/section without Next navigation
+    if (isVarsovia && item.resource) {
+      if (pathname.startsWith("/varsovia")) {
+        event.preventDefault();
+        writeVarsoviaNav(item.resource, item.section || null);
+        return;
+      }
+      return; // allow Link to land on /varsovia?...
+    }
+
+    // Thailand: same-page home section picks — no Suspense flicker
+    if (item.section) {
+      if (pathname === "/") {
+        event.preventDefault();
+        writeAdminSectionToUrl(item.section);
+        return;
+      }
+      return; // allow Link to navigate to /?section=...
+    }
+    if (item.href === "/" && pathname === "/") {
+      event.preventDefault();
+      writeAdminSectionToUrl(null);
+    }
   };
 
   const changeSite = (next: SiteId) => {
@@ -179,24 +362,100 @@ function AdminShellContent({
             lockShellHeight && "min-h-0 overflow-y-auto"
           )}
         >
-          {nav.map((item) => {
-            const { href, label, icon: Icon } = item;
-            return (
-            <Link
-              key={href}
-              href={href}
-              className={clsx(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-                isActive(item)
-                  ? "bg-[#EEF0F3] text-[#1A2332]"
-                  : "text-[#5C6370] hover:bg-[#F5F6F8] hover:text-[#1A2332]"
-              )}
-            >
-              <Icon className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />
-              {label}
-            </Link>
-            );
-          })}
+          {!isVarsovia ? (
+            <>
+              <p className="px-3 pb-1 pt-1 text-[10px] font-bold tracking-[0.14em] uppercase text-[#9CA3AF]">
+                Website pages
+              </p>
+              {THAILAND_NAV.filter((i) => i.group === "pages").map((item) => {
+                const { href, label, icon: Icon } = item;
+                return (
+                  <Link
+                    key={`${href}-${label}`}
+                    href={href}
+                    onClick={(e) => openNavItem(e, item)}
+                    className={clsx(
+                      "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                      isActive(item)
+                        ? "bg-[#EEF0F3] text-[#1A2332]"
+                        : "text-[#5C6370] hover:bg-[#F5F6F8] hover:text-[#1A2332]"
+                    )}
+                  >
+                    <Icon className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />
+                    {label}
+                  </Link>
+                );
+              })}
+              <p className="px-3 pb-1 pt-4 text-[10px] font-bold tracking-[0.14em] uppercase text-[#9CA3AF]">
+                Admin
+              </p>
+              {THAILAND_NAV.filter((i) => i.group === "admin").map((item) => {
+                const { href, label, icon: Icon } = item;
+                return (
+                  <Link
+                    key={`${href}-${label}`}
+                    href={href}
+                    className={clsx(
+                      "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                      isActive(item)
+                        ? "bg-[#EEF0F3] text-[#1A2332]"
+                        : "text-[#5C6370] hover:bg-[#F5F6F8] hover:text-[#1A2332]"
+                    )}
+                  >
+                    <Icon className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />
+                    {label}
+                  </Link>
+                );
+              })}
+            </>
+          ) : (
+            <>
+              <p className="px-3 pb-1 pt-1 text-[10px] font-bold tracking-[0.14em] uppercase text-[#9CA3AF]">
+                Website pages
+              </p>
+              {VARSOVIA_NAV.filter((i) => i.group === "pages").map((item) => {
+                const { href, label, icon: Icon } = item;
+                return (
+                  <Link
+                    key={`${href}-${label}`}
+                    href={href}
+                    onClick={(e) => openNavItem(e, item)}
+                    className={clsx(
+                      "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                      isActive(item)
+                        ? "bg-[#EEF0F3] text-[#1A2332]"
+                        : "text-[#5C6370] hover:bg-[#F5F6F8] hover:text-[#1A2332]"
+                    )}
+                  >
+                    <Icon className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />
+                    {label}
+                  </Link>
+                );
+              })}
+              <p className="px-3 pb-1 pt-4 text-[10px] font-bold tracking-[0.14em] uppercase text-[#9CA3AF]">
+                Site chrome
+              </p>
+              {VARSOVIA_NAV.filter((i) => i.group === "admin").map((item) => {
+                const { href, label, icon: Icon } = item;
+                return (
+                  <Link
+                    key={`${href}-${label}`}
+                    href={href}
+                    onClick={(e) => openNavItem(e, item)}
+                    className={clsx(
+                      "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                      isActive(item)
+                        ? "bg-[#EEF0F3] text-[#1A2332]"
+                        : "text-[#5C6370] hover:bg-[#F5F6F8] hover:text-[#1A2332]"
+                    )}
+                  >
+                    <Icon className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />
+                    {label}
+                  </Link>
+                );
+              })}
+            </>
+          )}
         </nav>
 
         <button
@@ -284,7 +543,9 @@ function AdminShellContent({
             lockShellHeight ? "min-h-0 overflow-auto" : "overflow-auto"
           )}
         >
-          {children}
+          <div key={pathname} className="tk-admin-panel-swap">
+            {children}
+          </div>
         </main>
       </div>
     </div>

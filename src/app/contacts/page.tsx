@@ -14,7 +14,6 @@ import {
   Calendar,
 } from "lucide-react";
 import { toast } from "sonner";
-import AdminShell from "@/components/AdminShell";
 import { useAdminAuth } from "@/lib/AdminAuthContext";
 import {
   deleteContact,
@@ -85,8 +84,8 @@ export default function AdminContactsPage() {
   };
 
   return (
-    <AdminShell title="Contact Enquiries">
-      <div className="space-y-4">
+    <>
+    <div className="space-y-4">
         <div className="flex flex-wrap items-center gap-3 justify-between">
           <div className="relative flex-1 min-w-[220px] max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9CA3AF]" />
@@ -294,7 +293,7 @@ export default function AdminContactsPage() {
           </div>
         </div>
       ) : null}
-    </AdminShell>
+    </>
   );
 }
 

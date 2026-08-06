@@ -10,7 +10,6 @@ import {
   ChevronDown,
   CloudUpload,
   Contact,
-  Eye,
   FileDown,
   FolderKanban,
   Globe2,
@@ -30,15 +29,12 @@ import {
   Share2,
   Sparkles,
   Trash2,
-  Type,
   Upload,
   Wrench,
   X,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import { clsx } from "clsx";
 import { toast } from "sonner";
-import AdminShell from "@/components/AdminShell";
 import MediaUpload from "@/components/MediaUpload";
 import { mergeVarsoviaSiteDefaults, VARSOVIA_SITE_DEFAULTS } from "./siteDefaults";
 import {
@@ -47,11 +43,20 @@ import {
 } from "@/services/adminAPI";
 import { toPublicMediaUrl } from "@/lib/publicMediaUrl";
 import {
+  ADMIN_SECTION_EVENT,
+  VARSOVIA_NAV_EVENT,
+  readAdminSectionFromUrl,
+  readVarsoviaNavFromUrl,
+  writeVarsoviaNav,
+  type VarsoviaNavDetail,
+} from "@/lib/adminSectionNav";
+import {
   createVarsoviaRecord,
   deleteVarsoviaRecord,
   getVarsoviaSite,
   listVarsoviaRecords,
   localizedValue,
+  pickVarsoviaSiteUpdate,
   updateVarsoviaRecord,
   updateVarsoviaSite,
   varsoviaErrorMessage,
@@ -60,6 +65,11 @@ import {
   type VarsoviaRecord,
   type VarsoviaResource,
 } from "@/services/varsoviaAPI";
+import {
+  SITE_SECTIONS,
+  isSiteSectionId,
+  type SiteSection,
+} from "./siteSections";
 
 type MediaKind = "image" | "icon" | "pdf";
 type FieldType =
@@ -127,293 +137,6 @@ const VISIBLE_FIELD: Field = {
   label: "Visible on website",
   type: "boolean",
 };
-
-type SiteSection = {
-  id: string;
-  title: string;
-  description: string;
-  fields: Field[];
-  icon: LucideIcon;
-};
-
-const SITE_SECTIONS: SiteSection[] = [
-  {
-    id: "hero",
-    title: "Hero Banner",
-    description: "Main headline & hero CTA",
-    icon: ImageIcon,
-    fields: [
-      { key: "heroEyebrow", label: "Hero Eyebrow", localized: true },
-      { key: "heroHeadline", label: "Hero Headline", localized: true },
-      { key: "heroSubtitle", label: "Hero Subtitle", localized: true, type: "textarea" },
-      { key: "heroImage", label: "Hero Image URL", media: "image" },
-      { key: "heroPrimaryCtaLabel", label: "Primary CTA Label", localized: true },
-      { key: "heroPrimaryCtaHref", label: "Primary CTA Link" },
-      { key: "heroSecondaryCtaLabel", label: "Secondary CTA Label", localized: true },
-      { key: "heroSecondaryCtaHref", label: "Secondary CTA Link" },
-    ],
-  },
-  {
-    id: "about",
-    title: "About",
-    description: "Brand story & about page copy",
-    icon: BookOpen,
-    fields: [
-      { key: "aboutTitle", label: "About Title", localized: true },
-      { key: "aboutSubtitle", label: "About Subtitle", localized: true },
-      { key: "aboutCtaLabel", label: "About CTA Label", localized: true },
-      { key: "aboutCtaHref", label: "About CTA Link" },
-      { key: "aboutPageTitle", label: "About Page Title", localized: true },
-      { key: "aboutValuesSectionTitle", label: "About Values Section Title", localized: true },
-      { key: "aboutValuesSectionSubtitle", label: "About Values Section Subtitle", localized: true },
-      { key: "aboutStoryTitle", label: "About Story Title", localized: true },
-      { key: "aboutProcessTitle", label: "About Process Title", localized: true },
-      { key: "aboutProcessSubtitle", label: "About Process Subtitle", localized: true },
-      { key: "aboutText", label: "About Text", localized: true, type: "textarea" },
-      { key: "aboutIntro", label: "About Intro", localized: true, type: "textarea" },
-      { key: "aboutStory", label: "About Story", localized: true, type: "textarea" },
-      { key: "aboutHeroSubtitle", label: "About Hero Subtitle", localized: true },
-      { key: "aboutImages", label: "About Images", type: "string-list", media: "image" },
-    ],
-  },
-  {
-    id: "stats",
-    title: "Statistics",
-    description: "Counters, vision & process",
-    icon: BarChart3,
-    fields: [
-      { key: "stats", label: "Statistics", type: "stats-list" },
-      { key: "statsImage", label: "Statistics Image URL", media: "image" },
-      { key: "vision.title", label: "Vision Title", localized: true },
-      { key: "vision.text", label: "Vision Text", localized: true, type: "textarea" },
-      { key: "mission.title", label: "Mission Title", localized: true },
-      { key: "mission.text", label: "Mission Text", localized: true, type: "textarea" },
-      { key: "values.title", label: "Values Title", localized: true },
-      { key: "values.text", label: "Values Text", localized: true, type: "textarea" },
-      { key: "processSteps", label: "Process Steps", type: "process-list" },
-    ],
-  },
-  {
-    id: "products",
-    title: "Products",
-    description: "Products section heading & CTA",
-    icon: Package,
-    fields: [
-      { key: "productsTitle", label: "Products Section Title", localized: true },
-      { key: "productsSubtitle", label: "Products Section Subtitle", localized: true },
-      { key: "productsItemCtaLabel", label: "Product Card CTA Label", localized: true },
-      { key: "productsCtaLabel", label: "Products Section CTA Label", localized: true },
-      { key: "productsCtaHref", label: "Products Section CTA Link" },
-    ],
-  },
-  {
-    id: "catalogue",
-    title: "Free Catalogue",
-    description: "Catalogue heading & cover wording",
-    icon: FileDown,
-    fields: [
-      { key: "catalogueTitle", label: "Catalogue Section Title", localized: true },
-      { key: "catalogueSubtitle", label: "Catalogue Section Subtitle", localized: true },
-      { key: "catalogueYear", label: "Catalogue Cover Year", localized: true },
-      { key: "catalogueCoverTitle", label: "Catalogue Cover Title", localized: true },
-      { key: "catalogueDownloadLabel", label: "Catalogue Download Label", localized: true },
-    ],
-  },
-  {
-    id: "projects",
-    title: "Featured Projects",
-    description: "Projects heading & call-to-action",
-    icon: FolderKanban,
-    fields: [
-      { key: "projectsTitle", label: "Projects Section Title", localized: true },
-      { key: "projectsSubtitle", label: "Projects Section Subtitle", localized: true },
-      { key: "projectsCtaLabel", label: "Projects CTA Label", localized: true },
-      { key: "projectsCtaHref", label: "Projects CTA Link" },
-    ],
-  },
-  {
-    id: "testimonials",
-    title: "Testimonials",
-    description: "Testimonials section heading",
-    icon: MessageSquareQuote,
-    fields: [
-      { key: "testimonialsTitle", label: "Testimonials Section Title", localized: true },
-      { key: "testimonialsSubtitle", label: "Testimonials Section Subtitle", localized: true },
-    ],
-  },
-  {
-    id: "coreStrengths",
-    title: "Core Strengths",
-    description: "Strength cards & heading",
-    icon: Sparkles,
-    fields: [
-      { key: "coreStrengthsTitle", label: "Core Strengths Title", localized: true },
-      { key: "coreStrengthsSubtitle", label: "Core Strengths Subtitle", localized: true },
-      { key: "coreStrengths", label: "Core Strengths", type: "strength-list" },
-    ],
-  },
-  {
-    id: "partners",
-    title: "Global Partners",
-    description: "Partners section heading",
-    icon: Globe2,
-    fields: [
-      { key: "partnersTitle", label: "Partners Section Title", localized: true },
-      { key: "partnersSubtitle", label: "Partners Section Subtitle", localized: true },
-    ],
-  },
-  {
-    id: "contact",
-    title: "Contact",
-    description: "Contact details, gallery & form fields",
-    icon: Contact,
-    fields: [
-      { key: "contactTitle", label: "Contact Section Title", localized: true },
-      { key: "contactSubtitle", label: "Contact Section Subtitle", localized: true },
-      { key: "contactImages", label: "Contact Images", type: "string-list", media: "image" },
-      { key: "phone", label: "Phone" },
-      { key: "email", label: "Email" },
-      { key: "address", label: "Address", localized: true, type: "textarea" },
-      { key: "contactPhone", label: "Footer Contact Phone" },
-      { key: "mobileWhatsapp", label: "Footer Mobile / WhatsApp Number" },
-      {
-        key: "inquiryForm",
-        label: "Contact Form Fields",
-        type: "inquiry-form",
-      },
-    ],
-  },
-  {
-    id: "sectionVisibility",
-    title: "Section Visibility",
-    description: "Show or hide homepage sections",
-    icon: Eye,
-    fields: [
-      { key: "sectionVisibility.hero", label: "Show Hero", type: "boolean" },
-      { key: "sectionVisibility.about", label: "Show About", type: "boolean" },
-      { key: "sectionVisibility.stats", label: "Show Statistics", type: "boolean" },
-      { key: "sectionVisibility.products", label: "Show Products", type: "boolean" },
-      { key: "sectionVisibility.catalogues", label: "Show Catalogues", type: "boolean" },
-      { key: "sectionVisibility.projects", label: "Show Projects", type: "boolean" },
-      { key: "sectionVisibility.testimonials", label: "Show Testimonials", type: "boolean" },
-      { key: "sectionVisibility.coreStrengths", label: "Show Core Strengths", type: "boolean" },
-      { key: "sectionVisibility.partners", label: "Show Partners", type: "boolean" },
-      { key: "sectionVisibility.contact", label: "Show Contact", type: "boolean" },
-    ],
-  },
-  {
-    id: "footer",
-    title: "Footer & Social",
-    description: "Footer bio, offices & social links",
-    icon: Share2,
-    fields: [
-      { key: "footerBio", label: "Footer Description", localized: true, type: "textarea" },
-      { key: "socialLinks.whatsapp", label: "WhatsApp URL" },
-      { key: "socialLinks.instagram", label: "Instagram URL" },
-      { key: "socialLinks.x", label: "X URL" },
-      { key: "socialLinks.facebook", label: "Facebook URL" },
-      { key: "whatsappUrl", label: "Footer WhatsApp Link" },
-      { key: "facebookUrl", label: "Footer Facebook Link" },
-      { key: "footerOffices", label: "Footer Offices", type: "office-list" },
-      {
-        key: "footerNavigation",
-        label: "Footer Navigation",
-        type: "footer-nav",
-      },
-    ],
-  },
-  {
-    id: "teamPage",
-    title: "Team Page",
-    description: "Team copy, stats & design tools",
-    icon: BriefcaseBusiness,
-    fields: [
-      { key: "teamPage.heroTitle", label: "Team Page Hero Title", localized: true },
-      { key: "teamPage.heroSubtitle", label: "Team Page Hero Subtitle", localized: true },
-      { key: "teamPage.intro", label: "Team Page Intro", localized: true, type: "textarea" },
-      { key: "teamPage.designTitle", label: "Design Team Title", localized: true },
-      { key: "teamPage.designBody", label: "Design Team Body", localized: true, type: "textarea" },
-      { key: "teamPage.architectTitle", label: "Architect Team Title", localized: true },
-      { key: "teamPage.architectBody", label: "Architect Team Body", localized: true, type: "textarea" },
-      { key: "teamPage.toolsTitle", label: "Design Tools Title", localized: true },
-      { key: "teamPage.toolsBody", label: "Design Tools Body", localized: true, type: "textarea" },
-      { key: "teamPage.stats", label: "Team Page Stats", type: "stats-list" },
-      { key: "teamPage.tools", label: "Design Tools", type: "tool-list" },
-    ],
-  },
-  {
-    id: "qualitySale",
-    title: "Quality After Sales",
-    description: "Support steps, gallery & FAQs",
-    icon: Wrench,
-    fields: [
-      { key: "qualitySale.heroTitle", label: "Quality Sale Hero Title", localized: true },
-      { key: "qualitySale.heroSubtitle", label: "Quality Sale Hero Subtitle", localized: true },
-      { key: "qualitySale.heroBody", label: "Quality Sale Hero Body", localized: true, type: "textarea" },
-      { key: "qualitySale.supportTitle", label: "Quality Sale Support Title", localized: true },
-      { key: "qualitySale.supportSubtitle", label: "Quality Sale Support Subtitle", localized: true },
-      { key: "qualitySale.faqTitle", label: "Quality Sale FAQ Title", localized: true },
-      { key: "qualitySale.faqSubtitle", label: "Quality Sale FAQ Subtitle", localized: true },
-      { key: "qualitySale.gallery", label: "Quality Sale Gallery", type: "string-list", media: "image" },
-      { key: "qualitySale.steps", label: "Quality Sale Steps", type: "process-list" },
-      { key: "qualitySale.faqs", label: "Quality Sale FAQs", type: "faq-list" },
-    ],
-  },
-  {
-    id: "showcase",
-    title: "Showcase",
-    description: "Tab headings & subtitles",
-    icon: Images,
-    fields: [
-      { key: "showcaseMeta", label: "Showcase Tab Meta", type: "showcase-meta-list" },
-    ],
-  },
-  {
-    id: "navigation",
-    title: "Navigation & Search",
-    description: "Header menu & search pages",
-    icon: Navigation,
-    fields: [
-      {
-        key: "mainNavigation",
-        label: "Main Navigation (JSON)",
-        type: "json",
-      },
-      { key: "searchPages", label: "Search Result Pages", type: "search-page-list" },
-    ],
-  },
-  {
-    id: "sectionCopy",
-    title: "Section Headings",
-    description: "Override homepage section titles",
-    icon: Type,
-    fields: [
-      { key: "sectionCopy.products.title", label: "Products Heading", localized: true },
-      { key: "sectionCopy.products.subtitle", label: "Products Subheading", localized: true },
-      { key: "sectionCopy.partners.title", label: "Partners Heading", localized: true },
-      { key: "sectionCopy.partners.subtitle", label: "Partners Subheading", localized: true },
-      { key: "sectionCopy.coreStrengths.title", label: "Core Strengths Heading", localized: true },
-      { key: "sectionCopy.coreStrengths.subtitle", label: "Core Strengths Subheading", localized: true },
-    ],
-  },
-  {
-    id: "interior",
-    title: "Interior Catalogue",
-    description: "CMS vs hybrid project source",
-    icon: LayoutGrid,
-    fields: [
-      {
-        key: "interiorCatalogMode",
-        label: "Interior Catalogue Source",
-        type: "select",
-        options: [
-          { value: "hybrid", label: "Hybrid — sample projects + CMS projects" },
-          { value: "api", label: "CMS only — show just my projects" },
-        ],
-      },
-    ],
-  },
-];
 
 const CONFIGS: Record<VarsoviaResource, ResourceConfig> = {
   products: {
@@ -674,13 +397,7 @@ function errorMessage(error: unknown) {
 
 export default function VarsoviaManagerPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-[#F4F5F7] p-8 text-sm text-[#6B7280]">
-          Loading Varsovia CMS…
-        </div>
-      }
-    >
+    <Suspense fallback={null}>
       <VarsoviaManagerContent />
     </Suspense>
   );
@@ -688,14 +405,34 @@ export default function VarsoviaManagerPage() {
 
 function VarsoviaManagerContent() {
   const search = useSearchParams();
-  const requested = search.get("resource") || "site";
+  const [nav, setNav] = useState<VarsoviaNavDetail>(() => ({
+    resource: search.get("resource") || "site",
+    section: search.get("section"),
+  }));
+
+  useEffect(() => {
+    setNav(readVarsoviaNavFromUrl());
+    const onNav = (event: Event) => {
+      const detail = (event as CustomEvent<VarsoviaNavDetail>).detail;
+      if (detail?.resource) setNav(detail);
+    };
+    const onPop = () => setNav(readVarsoviaNavFromUrl());
+    window.addEventListener(VARSOVIA_NAV_EVENT, onNav);
+    window.addEventListener("popstate", onPop);
+    return () => {
+      window.removeEventListener(VARSOVIA_NAV_EVENT, onNav);
+      window.removeEventListener("popstate", onPop);
+    };
+  }, []);
+
+  const requested = nav.resource || "site";
   const active =
     requested === "site" || RESOURCE_IDS.includes(requested as VarsoviaResource)
       ? requested
       : "site";
 
   return (
-    <AdminShell title="Varsovia Kitchen CMS">
+    <div key={active} className="tk-admin-panel-swap h-full min-h-0">
       {active === "site" ? (
         <SiteSettings />
       ) : active === "testimonials" ? (
@@ -713,7 +450,7 @@ function VarsoviaManagerContent() {
       ) : (
         <ResourceManager resource={active as VarsoviaResource} />
       )}
-    </AdminShell>
+    </div>
   );
 }
 
@@ -734,11 +471,37 @@ function isVarsoviaSectionComplete(
 }
 
 function SiteSettings() {
+  const search = useSearchParams();
+  const sectionParam = search.get("section");
   const [content, setContent] = useState<Record<string, unknown>>({});
   const [locale, setLocale] = useState<LocaleCode>("en");
-  const [active, setActive] = useState(SITE_SECTIONS[0]?.id || "hero");
+  const [active, setActive] = useState(() =>
+    isSiteSectionId(sectionParam) ? String(sectionParam) : SITE_SECTIONS[0]?.id || "hero"
+  );
   const [loadingContent, setLoadingContent] = useState(false);
   const [savingContent, setSavingContent] = useState(false);
+  const savedPayloadRef = useRef("");
+
+  // Deep-link once + sidebar/rail picks via soft nav (no Next router flicker).
+  useEffect(() => {
+    const fromUrl = readAdminSectionFromUrl();
+    if (isSiteSectionId(fromUrl)) setActive(String(fromUrl));
+    else if (!fromUrl) setActive("hero");
+
+    const onSection = (event: Event) => {
+      const key = (event as CustomEvent<string>).detail;
+      if (isSiteSectionId(key)) setActive(String(key));
+      else if (!key || key === "hero") setActive("hero");
+    };
+    window.addEventListener(ADMIN_SECTION_EVENT, onSection);
+    return () => window.removeEventListener(ADMIN_SECTION_EVENT, onSection);
+  }, []);
+
+  const selectSection = (id: string) => {
+    if (id === active) return;
+    setActive(id);
+    writeVarsoviaNav("site", id === "hero" ? null : id);
+  };
 
   const loadContent = useCallback(async () => {
     setLoadingContent(true);
@@ -746,7 +509,9 @@ function SiteSettings() {
       const loaded = normalizeRecord(
         (await getVarsoviaSite()) as VarsoviaRecord
       );
-      setContent(mergeVarsoviaSiteDefaults(loaded));
+      const merged = mergeVarsoviaSiteDefaults(loaded);
+      setContent(merged);
+      savedPayloadRef.current = JSON.stringify(pickVarsoviaSiteUpdate(merged));
     } catch (error) {
       toast.error(errorMessage(error));
     } finally {
@@ -773,12 +538,21 @@ function SiteSettings() {
   };
 
   const saveContent = async () => {
+    const nextPayload = pickVarsoviaSiteUpdate(content);
+    const nextSerialized = JSON.stringify(nextPayload);
+    if (nextSerialized === savedPayloadRef.current) {
+      toast.message("No changes to save");
+      return;
+    }
+
     setSavingContent(true);
     try {
       const updated = await updateVarsoviaSite(content);
-      setContent(
-        mergeVarsoviaSiteDefaults(normalizeRecord(updated as VarsoviaRecord))
+      const merged = mergeVarsoviaSiteDefaults(
+        normalizeRecord(updated as VarsoviaRecord)
       );
+      setContent(merged);
+      savedPayloadRef.current = JSON.stringify(pickVarsoviaSiteUpdate(merged));
       toast.success("Varsovia website content updated");
     } catch (error) {
       toast.error(errorMessage(error));
@@ -861,11 +635,25 @@ function SiteSettings() {
                 const selected = active === section.id;
                 const ok = isVarsoviaSectionComplete(section, content, locale);
                 const Icon = section.icon;
+                const prev = SITE_SECTIONS[SITE_SECTIONS.indexOf(section) - 1];
+                const showGroup =
+                  !prev || prev.group !== section.group;
+                const groupLabel =
+                  section.group === "home"
+                    ? "Home page (site order)"
+                    : section.group === "pages"
+                      ? "Other pages"
+                      : "Site chrome";
                 return (
                   <li key={section.id}>
+                    {showGroup ? (
+                      <p className="bg-[#F8F9FB] px-4 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-[#9CA3AF]">
+                        {groupLabel}
+                      </p>
+                    ) : null}
                     <button
                       type="button"
-                      onClick={() => setActive(section.id)}
+                      onClick={() => selectSection(section.id)}
                       className={clsx(
                         "flex w-full items-start gap-3 px-4 py-3 text-left transition-colors",
                         selected
@@ -1391,10 +1179,10 @@ function TeamInlineEditor() {
         normalized.teamPage && typeof normalized.teamPage === "object"
           ? (normalized.teamPage as Record<string, unknown>)
           : {};
-      setPageTitle(localizedValue(teamPage.heroTitle, "en") || "Our Team");
+      setPageTitle(localizedValue(teamPage.heroTitle, locale) || "Our Team");
       setSubtitle(
-        localizedValue(teamPage.heroSubtitle, "en") ||
-          "The creative minds behind every beautiful space"
+        localizedValue(teamPage.heroSubtitle, locale) ||
+          "THE CREATIVE MINDS BEHIND EVERY BEAUTIFUL SPACE"
       );
       setUpdatedLabel(String(normalized.teamUpdatedLabel ?? ""));
       setDrafts(rows.map((item, index) => toTeamDraft(item, index)));
@@ -1403,7 +1191,7 @@ function TeamInlineEditor() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
     void load();
@@ -1466,17 +1254,16 @@ function TeamInlineEditor() {
 
       await updateVarsoviaSite({
         ...siteSnapshot,
-        teamUpdatedLabel: updatedLabel.trim(),
         teamPage: {
           ...existingTeamPage,
           heroTitle: writeLocalizedField(
             existingTeamPage.heroTitle,
-            "en",
+            locale,
             pageTitle.trim()
           ),
           heroSubtitle: writeLocalizedField(
             existingTeamPage.heroSubtitle,
-            "en",
+            locale,
             subtitle.trim()
           ),
         },
@@ -1744,11 +1531,20 @@ function PartnersInlineEditor() {
         normalizeRecord(site as VarsoviaRecord)
       );
       setSiteSnapshot(normalized);
+      const partnersCopy =
+        normalized.sectionCopy &&
+        typeof normalized.sectionCopy === "object" &&
+        (normalized.sectionCopy as Record<string, unknown>).partners &&
+        typeof (normalized.sectionCopy as Record<string, unknown>).partners ===
+          "object"
+          ? ((normalized.sectionCopy as Record<string, unknown>)
+              .partners as Record<string, unknown>)
+          : {};
       setPageTitle(
-        localizedValue(normalized.partnersTitle, "en") || "Our Global Partners"
+        localizedValue(partnersCopy.title, locale) || "Our Global Partners"
       );
       setSubtitle(
-        localizedValue(normalized.partnersSubtitle, "en") ||
+        localizedValue(partnersCopy.subtitle, locale) ||
           "Powered by trusted brands from around the world"
       );
       setUpdatedLabel(String(normalized.partnersUpdatedLabel ?? ""));
@@ -1758,7 +1554,7 @@ function PartnersInlineEditor() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
     void load();
@@ -1814,19 +1610,34 @@ function PartnersInlineEditor() {
 
     try {
       setSaving(true);
+      const existingSectionCopy =
+        siteSnapshot.sectionCopy && typeof siteSnapshot.sectionCopy === "object"
+          ? { ...(siteSnapshot.sectionCopy as Record<string, unknown>) }
+          : {};
+      const existingPartners =
+        existingSectionCopy.partners &&
+        typeof existingSectionCopy.partners === "object"
+          ? { ...(existingSectionCopy.partners as Record<string, unknown>) }
+          : {};
+
       await updateVarsoviaSite({
         ...siteSnapshot,
-        partnersUpdatedLabel: updatedLabel.trim(),
-        partnersTitle: writeLocalizedField(
-          siteSnapshot.partnersTitle,
-          "en",
-          pageTitle.trim()
-        ),
-        partnersSubtitle: writeLocalizedField(
-          siteSnapshot.partnersSubtitle,
-          "en",
-          subtitle.trim()
-        ),
+        sectionCopy: {
+          ...existingSectionCopy,
+          partners: {
+            ...existingPartners,
+            title: writeLocalizedField(
+              existingPartners.title,
+              locale,
+              pageTitle.trim()
+            ),
+            subtitle: writeLocalizedField(
+              existingPartners.subtitle,
+              locale,
+              subtitle.trim()
+            ),
+          },
+        },
       });
 
       for (let index = 0; index < drafts.length; index += 1) {
@@ -2059,7 +1870,21 @@ function toShowcaseDraft(item?: VarsoviaRecord, index = 0): ShowcaseDraft {
 }
 
 function ShowcasesInlineEditor() {
+  const SHOWCASE_META_TABS = [
+    "All",
+    "Home case",
+    "North America",
+    "South America",
+    "Africa",
+    "Commercial Project",
+    "Europe",
+    "Australia",
+    "Middle East",
+    "Asia",
+  ] as const;
+
   const [drafts, setDrafts] = useState<ShowcaseDraft[]>([]);
+  const [metaTab, setMetaTab] = useState<(typeof SHOWCASE_META_TABS)[number]>("All");
   const [pageTitle, setPageTitle] = useState("Our Showcase");
   const [subtitle, setSubtitle] = useState("Every Space, Every Story");
   const [updatedLabel, setUpdatedLabel] = useState("");
@@ -2067,6 +1892,23 @@ function ShowcasesInlineEditor() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [locale, setLocale] = useState<LocaleCode>("en");
+
+  const applyMetaFields = useCallback(
+    (snapshot: Record<string, unknown>, tab: string, loc: LocaleCode) => {
+      const meta = Array.isArray(snapshot.showcaseMeta)
+        ? (snapshot.showcaseMeta as Record<string, unknown>[])
+        : [];
+      const entry =
+        meta.find((row) => String(row.tabKey ?? "") === tab) ||
+        (tab === "All" ? meta[0] : undefined);
+      setPageTitle(localizedValue(entry?.title, loc) || (tab === "All" ? "Our Showcase" : tab));
+      setSubtitle(
+        localizedValue(entry?.subtitle, loc) ||
+          (tab === "All" ? "Every Space, Every Story" : "")
+      );
+    },
+    []
+  );
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -2077,16 +1919,7 @@ function ShowcasesInlineEditor() {
       ]);
       const normalized = mergeVarsoviaSiteDefaults(normalizeRecord(site as VarsoviaRecord));
       setSiteSnapshot(normalized);
-
-      const meta = Array.isArray(normalized.showcaseMeta)
-        ? (normalized.showcaseMeta as Record<string, unknown>[])
-        : [];
-      const allMeta =
-        meta.find((entry) => String(entry.tabKey ?? "") === "All") || meta[0];
-      setPageTitle(localizedValue(allMeta?.title, "en") || "Our Showcase");
-      setSubtitle(
-        localizedValue(allMeta?.subtitle, "en") || "Every Space, Every Story"
-      );
+      applyMetaFields(normalized, metaTab, locale);
       setUpdatedLabel(String(normalized.showcaseUpdatedLabel ?? ""));
       setDrafts(rows.map((item, index) => toShowcaseDraft(item, index)));
     } catch (error) {
@@ -2094,11 +1927,19 @@ function ShowcasesInlineEditor() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [applyMetaFields, locale]); // tab switches use applyMetaFields; locale refresh reloads lists
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  // When only the tab changes, refresh headings from the already-loaded snapshot
+  useEffect(() => {
+    if (!Object.keys(siteSnapshot).length) return;
+    applyMetaFields(siteSnapshot, metaTab, locale);
+    // intentionally omit locale/siteSnapshot — locale change reloads via `load`
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [metaTab]);
 
   const updateDraft = (clientKey: string, patch: Partial<ShowcaseDraft>) => {
     setDrafts((prev) =>
@@ -2156,27 +1997,26 @@ function ShowcasesInlineEditor() {
         : [];
       let metaUpdated = false;
       const nextMeta = existingMeta.map((entry) => {
-        if (String(entry.tabKey ?? "") !== "All") return entry;
+        if (String(entry.tabKey ?? "") !== metaTab) return entry;
         metaUpdated = true;
         return {
           ...entry,
-          title: writeLocalizedField(entry.title, "en", pageTitle.trim()),
-          subtitle: writeLocalizedField(entry.subtitle, "en", subtitle.trim()),
+          title: writeLocalizedField(entry.title, locale, pageTitle.trim()),
+          subtitle: writeLocalizedField(entry.subtitle, locale, subtitle.trim()),
         };
       });
       if (!metaUpdated) {
-        nextMeta.unshift({
-          tabKey: "All",
-          title: emptyLocalized(pageTitle.trim()),
-          subtitle: emptyLocalized(subtitle.trim()),
-          order: 0,
+        nextMeta.push({
+          tabKey: metaTab,
+          title: writeLocalizedField(undefined, locale, pageTitle.trim()),
+          subtitle: writeLocalizedField(undefined, locale, subtitle.trim()),
+          order: nextMeta.length,
         });
       }
 
       await updateVarsoviaSite({
         ...siteSnapshot,
         showcaseMeta: nextMeta,
-        showcaseUpdatedLabel: updatedLabel.trim(),
       });
 
       for (let index = 0; index < drafts.length; index += 1) {
@@ -2223,7 +2063,7 @@ function ShowcasesInlineEditor() {
               Showcases Management
             </h2>
             <p className="mt-0.5 text-xs text-[#6B7280]">
-              Manage showcase page sections and metadata
+              Manage showcase page headings (drives /showcase) and project cards
             </p>
           </div>
         </div>
@@ -2255,6 +2095,25 @@ function ShowcasesInlineEditor() {
             </button>
           ))}
         </div>
+
+        <label className="block text-xs font-semibold text-[#5C6370]">
+          Showcase tab headings
+          <select
+            value={metaTab}
+            onChange={(event) => {
+              const next = event.target.value as (typeof SHOWCASE_META_TABS)[number];
+              setMetaTab(next);
+              applyMetaFields(siteSnapshot, next, locale);
+            }}
+            className={fieldClass}
+          >
+            {SHOWCASE_META_TABS.map((tab) => (
+              <option key={tab} value={tab}>
+                {tab}
+              </option>
+            ))}
+          </select>
+        </label>
 
         <div className="grid gap-4 md:grid-cols-2">
           <label className="block text-xs font-semibold text-[#5C6370]">
@@ -4504,13 +4363,13 @@ function FieldControl({
                   }
                 />
                 <SmallInput
-                  label="Image URL (optional)"
-                  value={String(entry.image ?? "")}
+                  label="Icon / image URL"
+                  value={String(entry.icon ?? entry.image ?? "")}
                   media="image"
                   onChange={(next) =>
                     onChange(
                       steps.map((current, i) =>
-                        i === index ? { ...current, image: next } : current
+                        i === index ? { ...current, icon: next, image: undefined } : current
                       )
                     )
                   }
@@ -4542,7 +4401,7 @@ function FieldControl({
             onClick={() =>
               onChange([
                 ...steps,
-                { step: "", title: { en: "" }, text: { en: "" }, image: "" },
+                { step: "", title: { en: "" }, text: { en: "" }, icon: "" },
               ])
             }
             className="inline-flex items-center gap-2 rounded-lg border border-dashed border-[#B9C0CA] px-3 py-2 text-xs font-semibold text-[#5C6370]"
@@ -5530,12 +5389,26 @@ function FieldControl({
                   }
                 />
                 <SmallInput
-                  label="Icon key (compass|cpu|layers|box)"
-                  value={String(entry.icon ?? "")}
+                  label="Image URL"
+                  value={String(entry.image ?? "")}
+                  media="image"
                   onChange={(next) =>
                     onChange(
                       tools.map((current, i) =>
-                        i === index ? { ...current, icon: next } : current
+                        i === index ? { ...current, image: next } : current
+                      )
+                    )
+                  }
+                />
+                <SmallInput
+                  label="Order"
+                  value={String(entry.order ?? index + 1)}
+                  onChange={(next) =>
+                    onChange(
+                      tools.map((current, i) =>
+                        i === index
+                          ? { ...current, order: Number(next) || 0 }
+                          : current
                       )
                     )
                   }
@@ -5546,7 +5419,10 @@ function FieldControl({
           <button
             type="button"
             onClick={() =>
-              onChange([...tools, { name: { en: "" }, icon: "compass" }])
+              onChange([
+                ...tools,
+                { name: { en: "" }, image: "", order: tools.length + 1 },
+              ])
             }
             className="inline-flex items-center gap-2 rounded-lg border border-dashed border-[#B9C0CA] px-3 py-2 text-xs font-semibold text-[#5C6370]"
           >

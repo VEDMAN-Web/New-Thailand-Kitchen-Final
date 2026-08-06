@@ -1,7 +1,21 @@
 import axios from "axios";
 
-const raw = process.env.NEXT_PUBLIC_API_URL?.trim() || "http://localhost:5000/api";
-const baseURL = raw.replace(/\/+$/, "") || "http://localhost:5000/api";
+/**
+ * Always use same-origin `/api` in the browser so Next rewrites proxy to BACKEND_URL.
+ * Never point NEXT_PUBLIC_API_URL at Varsovia or http://localhost:5000 (causes CORS).
+ */
+function resolveApiBaseUrl() {
+  const raw = process.env.NEXT_PUBLIC_API_URL?.trim() || "/api";
+  const cleaned = raw.replace(/\/+$/, "") || "/api";
+  // Guard: absolute URLs in the client cause CORS; force same-origin proxy instead.
+  if (typeof window !== "undefined" && /^https?:\/\//i.test(cleaned)) {
+    console.warn(
+      `[adminAPI] Ignoring absolute NEXT_PUBLIC_API_URL (${cleaned}); using /api same-origin proxy.`,
+    );
+    return "/api";
+  }
+  return cleaned;
+}
 
 export type SiteId = "thailand-kitchen" | "varsovia-kitchen";
 
@@ -20,12 +34,13 @@ export type SiteInfo = {
 };
 
 const adminApi = axios.create({
-  baseURL,
+  baseURL: "/api",
   headers: { "Content-Type": "application/json" },
   timeout: 12000,
 });
 
 adminApi.interceptors.request.use((config) => {
+  config.baseURL = resolveApiBaseUrl();
   if (typeof window !== "undefined") {
     const token = localStorage.getItem("admin_token");
     if (token) {
@@ -67,8 +82,8 @@ export async function resetHome(siteId: SiteId) {
 
 export type CategoryItem = {
   _id: string;
-  title: string;
-  description: string;
+  title: LocalizedCmsText;
+  description: LocalizedCmsText;
   image: string;
   icon?: string;
 };
@@ -80,7 +95,12 @@ export async function listCategories(siteId: SiteId) {
 
 export async function createCategory(
   siteId: SiteId,
-  body: { title: string; description?: string; image?: string }
+  body: {
+    title: LocalizedCmsText;
+    description?: LocalizedCmsText;
+    image?: string;
+    icon?: string;
+  }
 ) {
   const { data } = await adminApi.post(`/cms/${siteId}/categories`, body);
   return data;
@@ -89,7 +109,12 @@ export async function createCategory(
 export async function updateCategory(
   siteId: SiteId,
   id: string,
-  body: { title: string; description?: string; image?: string }
+  body: {
+    title: LocalizedCmsText;
+    description?: LocalizedCmsText;
+    image?: string;
+    icon?: string;
+  }
 ) {
   const { data } = await adminApi.put(`/cms/${siteId}/categories/${id}`, body);
   return data;
@@ -100,21 +125,30 @@ export async function deleteCategory(siteId: SiteId, id: string) {
   return data;
 }
 
+export type LocalizedCmsText = string | Partial<Record<"en" | "th" | "pl", string>>;
+
 export type ProductItem = {
   _id: string;
-  title: string;
+  title: LocalizedCmsText;
   slug: string;
-  subtitle?: string;
-  productType?: string;
-  sectionTag?: string;
-  description: string;
+  subtitle?: LocalizedCmsText;
+  productType?: LocalizedCmsText;
+  sectionTag?: LocalizedCmsText;
+  description: LocalizedCmsText;
   image: string;
   icon?: string;
   gallery?: string[];
   pdfUrl?: string;
-  featureHighlights?: { title: string; description: string }[];
-  category: string;
+  featureHighlights?: {
+    title: LocalizedCmsText;
+    description: LocalizedCmsText;
+  }[];
+  category: LocalizedCmsText;
   featured: boolean;
+  finish?: LocalizedCmsText;
+  material?: LocalizedCmsText;
+  style?: LocalizedCmsText;
+  color?: LocalizedCmsText;
 };
 
 export async function listProducts(siteId: SiteId) {
@@ -263,16 +297,16 @@ export async function deleteBlog(siteId: SiteId, id: string) {
 }
 
 export type LegalSection = {
-  title: string;
-  body: string;
+  title: LocalizedCmsText;
+  body: LocalizedCmsText;
 };
 
 export type LegalPage = {
   _id: string;
-  title: string;
-  subtitle?: string;
-  updatedLabel?: string;
-  content: string;
+  title: LocalizedCmsText;
+  subtitle?: LocalizedCmsText;
+  updatedLabel?: LocalizedCmsText;
+  content: LocalizedCmsText;
   sections?: LegalSection[];
   type: string;
 };
@@ -286,10 +320,10 @@ export async function updateLegal(
   siteId: SiteId,
   type: "privacy" | "terms",
   body: {
-    title: string;
-    subtitle?: string;
-    updatedLabel?: string;
-    content?: string;
+    title: LocalizedCmsText;
+    subtitle?: LocalizedCmsText;
+    updatedLabel?: LocalizedCmsText;
+    content?: LocalizedCmsText;
     sections?: LegalSection[];
   }
 ) {
@@ -392,7 +426,7 @@ export async function uploadMedia(
 
 export type GalleryCmsItem = {
   _id: string;
-  title: string;
+  title: LocalizedCmsText;
   image: string;
   filter: string;
   tall?: boolean;
@@ -467,8 +501,8 @@ export async function deleteCatalogue(siteId: SiteId, id: string) {
 
 export type FaqCmsItem = {
   _id: string;
-  question: string;
-  answer: string;
+  question: string | Record<string, string>;
+  answer: string | Record<string, string>;
   sortOrder?: number;
 };
 

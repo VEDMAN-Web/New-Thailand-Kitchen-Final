@@ -3,7 +3,6 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
-import AdminShell from "@/components/AdminShell";
 import { useAdminAuth } from "@/lib/AdminAuthContext";
 import {
   createUser,
@@ -69,8 +68,8 @@ export default function AdminUsersPage() {
   };
 
   return (
-    <AdminShell title="User Management">
-      <div className="flex justify-end mb-6">
+    <>
+    <div className="flex justify-end mb-6">
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -194,6 +193,6 @@ export default function AdminUsersPage() {
           </form>
         </div>
       )}
-    </AdminShell>
+    </>
   );
 }

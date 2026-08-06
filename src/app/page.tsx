@@ -17,91 +17,183 @@ import {
   HelpCircle,
   Contact,
   Plus,
+  Package,
+  Newspaper,
+  MessageCircleQuestion,
+  MapPin,
+  Settings,
 } from "lucide-react";
 import { toast } from "sonner";
-import AdminShell from "@/components/AdminShell";
 import MediaUpload from "@/components/MediaUpload";
 import HeroVideoUpload from "@/components/HeroVideoUpload";
 import { useAdminAuth } from "@/lib/AdminAuthContext";
 import { getHome, resetHome, updateHome } from "@/services/adminAPI";
 import { clsx } from "clsx";
+import LocaleTabs from "@/components/LocaleTabs";
+import {
+  localizedValue,
+  writeLocalized,
+  type LocaleCode,
+  type LocalizedText,
+} from "@/lib/localized";
+import {
+  ADMIN_SECTION_EVENT,
+  readAdminSectionFromUrl,
+  writeAdminSectionToUrl,
+} from "@/lib/adminSectionNav";
 
 type Sections = Record<string, any>;
 
+type SectionGroup = "chrome" | "home" | "pages";
+
 const SECTION_META = [
+  // —— Site-wide (navbar lives on every page) ——
+  {
+    key: "siteChrome",
+    title: "Navbar & SEO",
+    desc: "Top nav links, consultation CTA & SEO meta",
+    icon: Settings,
+    group: "chrome" as SectionGroup,
+  },
+  // —— Homepage scroll order (top → bottom) ——
   {
     key: "hero",
-    title: "Hero Banner",
-    desc: "Main headline & hero CTA",
+    title: "01 · Hero Banner",
+    desc: "Homepage hero video, headline & CTA",
     icon: ImageIcon,
-  },
-  {
-    key: "statistics",
-    title: "Statistics",
-    desc: "3 key numerical metrics",
-    icon: BarChart3,
-  },
-  {
-    key: "advantages",
-    title: "Our Advantages",
-    desc: "3 feature cards",
-    icon: Sparkles,
-  },
-  {
-    key: "story",
-    title: "Our Story",
-    desc: "Brand story narrative",
-    icon: BookOpen,
-  },
-  {
-    key: "transition",
-    title: "Transition Banner",
-    desc: "4 pillar process highlights",
-    icon: Layers,
-  },
-  {
-    key: "testimonials",
-    title: "Testimonials",
-    desc: "Customer reviews & ratings",
-    icon: MessageSquareQuote,
-  },
-  {
-    key: "catalogue",
-    title: "Free Catalogue",
-    desc: "Downloadable PDF catalogs",
-    icon: FileDown,
+    group: "home" as SectionGroup,
   },
   {
     key: "partners",
-    title: "Global Partners",
-    desc: "Brand partner logos",
+    title: "02 · Brand Partners",
+    desc: "Logo marquee under the hero",
     icon: Globe2,
+    group: "home" as SectionGroup,
+  },
+  {
+    key: "story",
+    title: "03 · Our Story",
+    desc: "About / crafted with passion block",
+    icon: BookOpen,
+    group: "home" as SectionGroup,
+  },
+  {
+    key: "transition",
+    title: "04 · Craft Pillars",
+    desc: "Four process highlights under Our Story",
+    icon: Layers,
+    group: "home" as SectionGroup,
+  },
+  {
+    key: "productsPage",
+    title: "05 · Products Band",
+    desc: "Home “Our Products” heading + Products page hero",
+    icon: Package,
+    group: "home" as SectionGroup,
+  },
+  {
+    key: "testimonials",
+    title: "06 · Testimonials",
+    desc: "Customer reviews section",
+    icon: MessageSquareQuote,
+    group: "home" as SectionGroup,
+  },
+  {
+    key: "statistics",
+    title: "07 · Statistics",
+    desc: "Key numerical metrics strip",
+    icon: BarChart3,
+    group: "home" as SectionGroup,
+  },
+  {
+    key: "advantages",
+    title: "08 · Premium Features",
+    desc: "Why Choose Us feature cards",
+    icon: Sparkles,
+    group: "home" as SectionGroup,
+  },
+  {
+    key: "catalogue",
+    title: "09 · Free Catalogue",
+    desc: "Catalogue section + /catalogue page PDFs",
+    icon: FileDown,
+    group: "home" as SectionGroup,
   },
   {
     key: "faq",
-    title: "FAQ Section",
-    desc: "Frequently asked questions",
+    title: "10 · Home FAQ",
+    desc: "First 5 FAQs above Get in Touch",
     icon: HelpCircle,
+    group: "home" as SectionGroup,
   },
   {
     key: "footer",
-    title: "Footer & Contact",
-    desc: "Address, email & social links",
+    title: "11 · Footer",
+    desc: "Logo, link columns, contact & social",
     icon: Contact,
+    group: "home" as SectionGroup,
+  },
+  // —— Other website pages (same order as main nav: Blog → Contact → FAQ) ——
+  {
+    key: "blogPage",
+    title: "Blog Page",
+    desc: "Blog hero, share links & related heading",
+    icon: Newspaper,
+    group: "pages" as SectionGroup,
+  },
+  {
+    key: "contactPage",
+    title: "Contact Page",
+    desc: "Contact hero, locations & craft image",
+    icon: MapPin,
+    group: "pages" as SectionGroup,
+  },
+  {
+    key: "faqPage",
+    title: "FAQ Page",
+    desc: "FAQ page hero video & titles",
+    icon: MessageCircleQuestion,
+    group: "pages" as SectionGroup,
   },
 ] as const;
+
+const SECTION_GROUPS: { id: SectionGroup; label: string }[] = [
+  { id: "chrome", label: "Site-wide" },
+  { id: "home", label: "Homepage (top → bottom)" },
+  { id: "pages", label: "Other pages" },
+];
+
+const SECTION_KEYS = SECTION_META.map((m) => m.key) as readonly string[];
+
+function isSectionKey(value: string | null | undefined): value is string {
+  return Boolean(value && SECTION_KEYS.includes(value));
+}
 
 function Field({
   label,
   value,
   onChange,
   multiline,
+  locale,
+  shared,
 }: {
   label: string;
-  value: string;
-  onChange: (v: string) => void;
+  value: string | LocalizedText;
+  onChange: (v: any) => void;
   multiline?: boolean;
+  locale?: LocaleCode;
+  shared?: boolean;
 }) {
+  const useLocale = Boolean(locale) && !shared;
+  const display = useLocale
+    ? localizedValue(value, locale!)
+    : typeof value === "string"
+      ? value
+      : localizedValue(value, "en");
+  const handle = (raw: string) => {
+    if (useLocale) onChange(writeLocalized(value, locale!, raw));
+    else onChange(raw);
+  };
   const cls =
     "w-full rounded-lg border border-[#E2E5EA] bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A2332]/15 focus:border-[#1A2332]";
   return (
@@ -112,15 +204,15 @@ function Field({
       {multiline ? (
         <textarea
           rows={4}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
+          value={display}
+          onChange={(e) => handle(e.target.value)}
           className={cls + " resize-y"}
         />
       ) : (
         <input
           type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
+          value={display}
+          onChange={(e) => handle(e.target.value)}
           className={cls}
         />
       )}
@@ -129,6 +221,15 @@ function Field({
 }
 
 function isSectionComplete(key: string, sections: Sections): boolean {
+  if (key === "siteChrome") {
+    const nav = sections?.nav;
+    const seo = sections?.seo;
+    return Boolean(
+      (nav?.links?.length || localizedValue(nav?.consultationLabel, "en")) &&
+        (localizedValue(seo?.title, "en") ||
+          localizedValue(seo?.description, "en"))
+    );
+  }
   const s = sections?.[key];
   if (!s) return false;
   switch (key) {
@@ -157,7 +258,15 @@ function isSectionComplete(key: string, sections: Sections): boolean {
     case "faq":
       return Array.isArray(s.items) && s.items.length >= 1;
     case "footer":
-      return Boolean(s.email || s.address || s.phone);
+      return Boolean(s.email || s.address || s.phone || s.logoUrl);
+    case "productsPage":
+      return Boolean(localizedValue(s.title, "en") || s.videoUrl || localizedValue(s.label, "en") || localizedValue(s.homeTitle, "en"));
+    case "blogPage":
+      return Boolean(localizedValue(s.title, "en") || s.videoUrl || localizedValue(s.eyebrow, "en"));
+    case "faqPage":
+      return Boolean(localizedValue(s.title, "en") || s.videoUrl || localizedValue(s.eyebrow, "en"));
+    case "contactPage":
+      return Boolean(localizedValue(s.title, "en") || s.email || s.phone || s.videoUrl);
     default:
       return true;
   }
@@ -169,9 +278,28 @@ export default function AdminHomePage() {
   const [active, setActive] = useState<string>("hero");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [locale, setLocale] = useState<LocaleCode>("en");
+
+  // Read deep-link once on mount + listen for sidebar section picks (no Next navigation).
+  useEffect(() => {
+    const fromUrl = readAdminSectionFromUrl();
+    if (isSectionKey(fromUrl)) setActive(fromUrl);
+
+    const onSection = (event: Event) => {
+      const key = (event as CustomEvent<string>).detail;
+      if (isSectionKey(key)) setActive(key);
+    };
+    window.addEventListener(ADMIN_SECTION_EVENT, onSection);
+    return () => window.removeEventListener(ADMIN_SECTION_EVENT, onSection);
+  }, []);
+
+  const selectSection = (key: string) => {
+    if (key === active) return;
+    setActive(key);
+    writeAdminSectionToUrl(key);
+  };
 
   const load = useCallback(async () => {
-    setLoading(true);
     try {
       const res = await getHome(siteId);
       setSections(res.home.sections || {});
@@ -183,7 +311,8 @@ export default function AdminHomePage() {
   }, [siteId]);
 
   useEffect(() => {
-    load();
+    setLoading(true);
+    void load();
   }, [load]);
 
   const doneCount = useMemo(
@@ -221,12 +350,12 @@ export default function AdminHomePage() {
     }
   };
 
-  const activeMeta = SECTION_META.find((m) => m.key === active)!;
+  const activeMeta = SECTION_META.find((m) => m.key === active) || SECTION_META[1];
   const complete = isSectionComplete(active, sections);
+  const showInitialLoader = loading && Object.keys(sections).length === 0;
 
   return (
-    <AdminShell title="Home Management">
-      <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <span className="text-xs font-bold tracking-[0.1em] uppercase text-[#5C6370]">
@@ -259,59 +388,89 @@ export default function AdminHomePage() {
           </div>
         </div>
 
-        {loading ? (
+        {showInitialLoader ? (
           <p className="text-sm text-[#6B7280]">Loading sections…</p>
         ) : (
           <div className="grid grid-cols-1 xl:grid-cols-[340px_1fr] gap-5 items-start">
             <div className="bg-white rounded-xl border border-[#E8EAED] overflow-hidden">
               <div className="px-4 py-3 border-b border-[#E8EAED] flex items-center justify-between">
                 <span className="text-[11px] font-bold tracking-[0.12em] uppercase text-[#5C6370]">
-                  Website Sections
+                  Same order as website
                 </span>
                 <span className="text-xs font-semibold text-[#16A34A]">
                   {doneCount}/{SECTION_META.length} Done
                 </span>
               </div>
               <ul className="divide-y divide-[#F0F1F3]">
-                {SECTION_META.map(({ key, title, desc, icon: Icon }) => {
-                  const selected = active === key;
-                  const ok = isSectionComplete(key, sections);
+                {SECTION_GROUPS.map((group) => {
+                  const items = SECTION_META.filter((m) => m.group === group.id);
+                  if (!items.length) return null;
                   return (
-                    <li key={key}>
-                      <button
-                        type="button"
-                        onClick={() => setActive(key)}
-                        className={clsx(
-                          "w-full text-left px-4 py-3 flex items-start gap-3 transition-colors",
-                          selected
-                            ? "bg-[#F3F4F6] border-l-[3px] border-l-[#1A2332]"
-                            : "border-l-[3px] border-l-transparent hover:bg-[#F9FAFB]"
-                        )}
-                      >
-                        <div className="mt-0.5 w-8 h-8 rounded-lg bg-[#EEF0F3] flex items-center justify-center shrink-0">
-                          <Icon className="w-4 h-4 text-[#1A2332]" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-semibold text-[#1A2332]">{title}</p>
-                          <p className="text-xs text-[#6B7280] mt-0.5 truncate">{desc}</p>
-                        </div>
-                        {ok && (
-                          <span className="mt-1 w-5 h-5 rounded-full bg-[#22C55E] flex items-center justify-center shrink-0">
-                            <Check className="w-3 h-3 text-white" strokeWidth={3} />
-                          </span>
-                        )}
-                      </button>
+                    <li key={group.id} className="list-none">
+                      <div className="px-4 py-2 bg-[#F8F9FB] border-b border-[#F0F1F3]">
+                        <p className="text-[10px] font-bold tracking-[0.14em] uppercase text-[#9CA3AF]">
+                          {group.label}
+                        </p>
+                      </div>
+                      <ul className="divide-y divide-[#F0F1F3]">
+                        {items.map(({ key, title, desc, icon: Icon }) => {
+                          const selected = active === key;
+                          const ok = isSectionComplete(key, sections);
+                          return (
+                            <li key={key}>
+                              <button
+                                type="button"
+                                onClick={() => selectSection(key)}
+                                className={clsx(
+                                  "w-full text-left px-4 py-3 flex items-start gap-3 transition-colors",
+                                  selected
+                                    ? "bg-[#F3F4F6] border-l-[3px] border-l-[#1A2332]"
+                                    : "border-l-[3px] border-l-transparent hover:bg-[#F9FAFB]"
+                                )}
+                              >
+                                <div className="mt-0.5 w-8 h-8 rounded-lg bg-[#EEF0F3] flex items-center justify-center shrink-0">
+                                  <Icon className="w-4 h-4 text-[#1A2332]" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-sm font-semibold text-[#1A2332]">
+                                    {title}
+                                  </p>
+                                  <p className="text-xs text-[#6B7280] mt-0.5 truncate">
+                                    {desc}
+                                  </p>
+                                </div>
+                                {ok && (
+                                  <span className="mt-1 w-5 h-5 rounded-full bg-[#22C55E] flex items-center justify-center shrink-0">
+                                    <Check
+                                      className="w-3 h-3 text-white"
+                                      strokeWidth={3}
+                                    />
+                                  </span>
+                                )}
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </ul>
                     </li>
                   );
                 })}
               </ul>
             </div>
 
-            <div className="bg-white rounded-xl border border-[#E8EAED] p-5 lg:p-6">
+            <div className="bg-white rounded-xl border border-[#E8EAED] p-5 lg:p-6 tk-admin-panel-swap">
               <div className="flex items-start justify-between gap-3 mb-6">
                 <div>
-                  <h2 className="text-lg font-bold text-[#1A2332]">{activeMeta.title}</h2>
+                  <h2 className="text-lg font-bold text-[#1A2332]">
+                    {activeMeta.title}
+                  </h2>
                   <p className="text-sm text-[#6B7280] mt-0.5">{activeMeta.desc}</p>
+                  <p className="text-xs text-[#94A3B8] mt-2">
+                    Switch language to edit Thai or Polish copy.
+                  </p>
+                  <div className="mt-3">
+                    <LocaleTabs locale={locale} onChange={setLocale} />
+                  </div>
                 </div>
                 {complete && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-[#DCFCE7] text-[#166534] text-xs font-semibold px-2.5 py-1">
@@ -323,8 +482,23 @@ export default function AdminHomePage() {
 
               <SectionEditor
                 sectionKey={active}
-                data={sections[active] || {}}
-                onChange={(next) => patch(active, next)}
+                locale={locale}
+                data={
+                  active === "siteChrome"
+                    ? { nav: sections.nav || {}, seo: sections.seo || {} }
+                    : sections[active] || {}
+                }
+                onChange={(next) => {
+                  if (active === "siteChrome") {
+                    setSections((prev) => ({
+                      ...prev,
+                      nav: next.nav || {},
+                      seo: next.seo || {},
+                    }));
+                    return;
+                  }
+                  patch(active, next);
+                }}
               />
 
               <div className="mt-8 flex items-center gap-2 pt-5 border-t border-[#E8EAED]">
@@ -340,7 +514,12 @@ export default function AdminHomePage() {
                 <button
                   type="button"
                   onClick={async () => {
-                    if (!confirm("Reload this page from server (discard unsaved)?")) return;
+                    if (
+                      !confirm(
+                        "Reload this page from server (discard unsaved)?"
+                      )
+                    )
+                      return;
                     await load();
                     toast.message("Reloaded from server");
                   }}
@@ -353,8 +532,7 @@ export default function AdminHomePage() {
             </div>
           </div>
         )}
-      </div>
-    </AdminShell>
+    </div>
   );
 }
 
@@ -375,31 +553,37 @@ function SectionEditor({
   sectionKey,
   data,
   onChange,
+  locale,
 }: {
   sectionKey: string;
   data: any;
   onChange: (next: any) => void;
+  locale: LocaleCode;
 }) {
   if (sectionKey === "hero") {
     return (
       <div className="space-y-4">
         <Field
+          locale={locale}
           label="Subtitle"
           value={data.subtitle || ""}
           onChange={(v) => onChange({ ...data, subtitle: v })}
         />
         <Field
+          locale={locale}
           label="Title"
           value={data.title || ""}
           onChange={(v) => onChange({ ...data, title: v })}
         />
         <Field
+          locale={locale}
           label="Description"
           multiline
           value={data.description || ""}
           onChange={(v) => onChange({ ...data, description: v })}
         />
         <Field
+          locale={locale}
           label="Button Text"
           value={data.buttonText || ""}
           onChange={(v) => onChange({ ...data, buttonText: v })}
@@ -418,6 +602,122 @@ function SectionEditor({
     );
   }
 
+  if (sectionKey === "siteChrome") {
+    const nav = data.nav || {};
+    const seo = data.seo || {};
+    const links = Array.isArray(nav.links) ? nav.links : [];
+    return (
+      <div className="space-y-6">
+        <div className="space-y-4">
+          <p className="text-xs font-bold uppercase tracking-wide text-[#334155]">
+            Navigation
+          </p>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <Field
+              locale={locale}
+              label="Consultation button"
+              value={nav.consultationLabel || ""}
+              onChange={(v) =>
+                onChange({ ...data, nav: { ...nav, consultationLabel: v } })
+              }
+            />
+            <Field
+              locale={locale}
+              label="Search placeholder"
+              value={nav.searchPlaceholder || ""}
+              onChange={(v) =>
+                onChange({ ...data, nav: { ...nav, searchPlaceholder: v } })
+              }
+            />
+          </div>
+          {links.map((link: any, i: number) => (
+            <div
+              key={i}
+              className="rounded-xl border border-[#E8EAED] p-4 grid sm:grid-cols-[1fr_1fr_auto] gap-3 items-end"
+            >
+              <Field
+                locale={locale}
+                label={`Link label #${i + 1}`}
+                value={link.label || ""}
+                onChange={(v) => {
+                  const next = [...links];
+                  next[i] = { ...link, label: v };
+                  onChange({ ...data, nav: { ...nav, links: next } });
+                }}
+              />
+              <Field
+                locale={locale}
+                shared
+                label="Href"
+                value={link.href || ""}
+                onChange={(v) => {
+                  const next = [...links];
+                  next[i] = { ...link, href: v };
+                  onChange({ ...data, nav: { ...nav, links: next } });
+                }}
+              />
+              <button
+                type="button"
+                className="text-xs text-red-600 pb-3"
+                onClick={() =>
+                  onChange({
+                    ...data,
+                    nav: {
+                      ...nav,
+                      links: links.filter((_: any, idx: number) => idx !== i),
+                    },
+                  })
+                }
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+          <AddItemButton
+            label="Add nav link"
+            onClick={() =>
+              onChange({
+                ...data,
+                nav: {
+                  ...nav,
+                  links: [...links, { label: "", href: "/" }],
+                },
+              })
+            }
+          />
+        </div>
+        <div className="space-y-4 border-t border-[#E8EAED] pt-5">
+          <p className="text-xs font-bold uppercase tracking-wide text-[#334155]">
+            SEO
+          </p>
+          <Field
+            locale={locale}
+            label="Page title"
+            value={seo.title || ""}
+            onChange={(v) => onChange({ ...data, seo: { ...seo, title: v } })}
+          />
+          <Field
+            locale={locale}
+            label="Meta description"
+            multiline
+            value={seo.description || ""}
+            onChange={(v) =>
+              onChange({ ...data, seo: { ...seo, description: v } })
+            }
+          />
+          <MediaUpload
+            label="OG image (optional)"
+            kind="image"
+            value={seo.ogImage || ""}
+            onChange={(v) =>
+              onChange({ ...data, seo: { ...seo, ogImage: v } })
+            }
+          />
+        </div>
+      </div>
+    );
+  }
+
   if (sectionKey === "statistics") {
     const items = data.items || [];
     return (
@@ -428,6 +728,7 @@ function SectionEditor({
             className="rounded-xl border border-[#E8EAED] p-4 grid sm:grid-cols-3 gap-3"
           >
             <Field
+              locale={locale}
               label={`Stat #${i + 1} Label`}
               value={item.label || ""}
               onChange={(v) => {
@@ -437,6 +738,8 @@ function SectionEditor({
               }}
             />
             <Field
+              locale={locale}
+              shared
               label="Value"
               value={item.value || ""}
               onChange={(v) => {
@@ -447,6 +750,8 @@ function SectionEditor({
             />
             <div className="space-y-2">
               <Field
+                locale={locale}
+                shared
                 label="Suffix"
                 value={item.suffix || ""}
                 onChange={(v) => {
@@ -487,6 +792,25 @@ function SectionEditor({
     const items = data.items || [];
     return (
       <div className="space-y-4">
+        <div className="rounded-xl border border-[#E8EAED] bg-[#F8FAFC] p-4 space-y-3">
+          <p className="text-xs font-bold uppercase tracking-wide text-[#334155]">
+            Home section heading
+          </p>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <Field
+              locale={locale}
+              label="Eyebrow"
+              value={data.eyebrow || ""}
+              onChange={(v) => onChange({ ...data, eyebrow: v })}
+            />
+            <Field
+              locale={locale}
+              label="Title"
+              value={data.title || ""}
+              onChange={(v) => onChange({ ...data, title: v })}
+            />
+          </div>
+        </div>
         {items.map((item: any, i: number) => (
           <div key={i} className="rounded-xl border border-[#E8EAED] p-4 space-y-3">
             <div className="flex items-center justify-between gap-2">
@@ -512,6 +836,7 @@ function SectionEditor({
               </button>
             </div>
             <Field
+              locale={locale}
               label="Title"
               value={item.title || ""}
               onChange={(v) => {
@@ -521,6 +846,7 @@ function SectionEditor({
               }}
             />
             <Field
+              locale={locale}
               label="Description"
               multiline
               value={item.description || ""}
@@ -559,16 +885,19 @@ function SectionEditor({
     return (
       <div className="space-y-4">
         <Field
+          locale={locale}
           label="Title"
           value={data.title || ""}
           onChange={(v) => onChange({ ...data, title: v })}
         />
         <Field
+          locale={locale}
           label="Subtitle"
           value={data.subtitle || ""}
           onChange={(v) => onChange({ ...data, subtitle: v })}
         />
         <Field
+          locale={locale}
           label="Description"
           multiline
           value={data.description || ""}
@@ -614,6 +943,7 @@ function SectionEditor({
                 </button>
               </div>
               <Field
+                locale={locale}
                 label="Pillar Title"
                 value={item.title || ""}
                 onChange={(v) => {
@@ -623,6 +953,7 @@ function SectionEditor({
                 }}
               />
               <Field
+                locale={locale}
                 label="Pillar Description"
                 multiline
                 value={item.description || ""}
@@ -662,6 +993,25 @@ function SectionEditor({
     const items = data.items || [];
     return (
       <div className="space-y-4">
+        <div className="rounded-xl border border-[#E8EAED] bg-[#F8FAFC] p-4 space-y-3">
+          <p className="text-xs font-bold uppercase tracking-wide text-[#334155]">
+            Home section heading
+          </p>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <Field
+              locale={locale}
+              label="Eyebrow"
+              value={data.eyebrow || ""}
+              onChange={(v) => onChange({ ...data, eyebrow: v })}
+            />
+            <Field
+              locale={locale}
+              label="Title"
+              value={data.title || ""}
+              onChange={(v) => onChange({ ...data, title: v })}
+            />
+          </div>
+        </div>
         {items.map((item: any, i: number) => (
           <div key={i} className="rounded-xl border border-[#E8EAED] p-4 space-y-3">
             <div className="flex justify-end">
@@ -679,6 +1029,7 @@ function SectionEditor({
               </button>
             </div>
             <Field
+              locale={locale}
               label="Name"
               value={item.name || ""}
               onChange={(v) => {
@@ -688,6 +1039,7 @@ function SectionEditor({
               }}
             />
             <Field
+              locale={locale}
               label="Role"
               value={item.role || ""}
               onChange={(v) => {
@@ -697,6 +1049,7 @@ function SectionEditor({
               }}
             />
             <Field
+              locale={locale}
               label="Quote"
               multiline
               value={item.quote || ""}
@@ -717,6 +1070,7 @@ function SectionEditor({
               }}
             />
             <Field
+              locale={locale}
               label="Rating (1-5)"
               value={String(item.rating ?? 5)}
               onChange={(v) => {
@@ -747,6 +1101,25 @@ function SectionEditor({
     const items = data.items || [];
     return (
       <div className="space-y-4">
+        <div className="rounded-xl border border-[#E8EAED] bg-[#F8FAFC] p-4 space-y-3">
+          <p className="text-xs font-bold uppercase tracking-wide text-[#334155]">
+            Home section heading
+          </p>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <Field
+              locale={locale}
+              label="Eyebrow"
+              value={data.eyebrow || ""}
+              onChange={(v) => onChange({ ...data, eyebrow: v })}
+            />
+            <Field
+              locale={locale}
+              label="Title"
+              value={data.title || ""}
+              onChange={(v) => onChange({ ...data, title: v })}
+            />
+          </div>
+        </div>
         {items.map((item: any, i: number) => (
           <div key={i} className="rounded-xl border border-[#E8EAED] p-4 space-y-3">
             <div className="flex justify-between">
@@ -768,6 +1141,7 @@ function SectionEditor({
             </div>
             <div className="grid sm:grid-cols-2 gap-3">
               <Field
+                locale={locale}
                 label="Title"
                 value={item.title || ""}
                 onChange={(v) => {
@@ -777,6 +1151,7 @@ function SectionEditor({
                 }}
               />
               <Field
+                locale={locale}
                 label="Category"
                 value={item.category || ""}
                 onChange={(v) => {
@@ -808,6 +1183,7 @@ function SectionEditor({
             />
             <div className="grid sm:grid-cols-2 gap-3">
               <Field
+                locale={locale}
                 label="Legacy file name (optional)"
                 value={item.fileName || ""}
                 onChange={(v) => {
@@ -817,6 +1193,8 @@ function SectionEditor({
                 }}
               />
               <Field
+                locale={locale}
+                shared
                 label="Download name"
                 value={item.downloadName || ""}
                 onChange={(v) => {
@@ -872,6 +1250,7 @@ function SectionEditor({
               </button>
             </div>
             <Field
+              locale={locale}
               label={`Partner #${i + 1} Name`}
               value={item.name || ""}
               onChange={(v) => {
@@ -909,6 +1288,24 @@ function SectionEditor({
     const items = data.items || [];
     return (
       <div className="space-y-4">
+        <p className="text-xs text-[#6B7280] rounded-lg bg-[#F8FAFC] border border-[#E8EAED] px-3 py-2">
+          These FAQs appear on the <strong>homepage</strong> above Get in Touch
+          (first <strong>5</strong> items only). Use <strong>View all FAQs</strong> on
+          the site to open the full /faq page. Dedicated FAQs under{" "}
+          <strong>FAQs</strong> in the sidebar still power /faq when any exist.
+        </p>
+        <Field
+          locale={locale}
+          label="Eyebrow"
+          value={data.eyebrow || ""}
+          onChange={(v) => onChange({ ...data, eyebrow: v })}
+        />
+        <Field
+          locale={locale}
+          label="Section title"
+          value={data.title || ""}
+          onChange={(v) => onChange({ ...data, title: v })}
+        />
         {items.map((item: any, i: number) => (
           <div key={i} className="rounded-xl border border-[#E8EAED] p-4 space-y-3">
             <div className="flex justify-end">
@@ -926,6 +1323,7 @@ function SectionEditor({
               </button>
             </div>
             <Field
+              locale={locale}
               label={`Question #${i + 1}`}
               value={item.question || ""}
               onChange={(v) => {
@@ -935,6 +1333,7 @@ function SectionEditor({
               }}
             />
             <Field
+              locale={locale}
               label="Answer"
               multiline
               value={item.answer || ""}
@@ -959,39 +1358,446 @@ function SectionEditor({
     );
   }
 
-  if (sectionKey === "footer") {
+  if (sectionKey === "productsPage") {
+    return (
+      <div className="space-y-4">
+        <div className="rounded-xl border border-[#E8EAED] bg-[#F8FAFC] p-4 space-y-3">
+          <p className="text-xs font-bold uppercase tracking-wide text-[#334155]">
+            Homepage “Our Products” band (scroll order 05)
+          </p>
+          <Field
+            locale={locale}
+            label="Eyebrow"
+            value={data.homeEyebrow || ""}
+            onChange={(v) => onChange({ ...data, homeEyebrow: v })}
+          />
+          <Field
+            locale={locale}
+            label="Title"
+            value={data.homeTitle || ""}
+            onChange={(v) => onChange({ ...data, homeTitle: v })}
+          />
+          <Field
+            locale={locale}
+            label="CTA label"
+            value={data.homeCta || ""}
+            onChange={(v) => onChange({ ...data, homeCta: v })}
+          />
+        </div>
+        <p className="text-xs font-bold uppercase tracking-wide text-[#334155] pt-2">
+          Products page hero (/products)
+        </p>
+        <Field
+          locale={locale}
+          label="Eyebrow / Label"
+          value={data.label || ""}
+          onChange={(v) => onChange({ ...data, label: v })}
+        />
+        <Field
+          locale={locale}
+          label="Title"
+          value={data.title || ""}
+          onChange={(v) => onChange({ ...data, title: v })}
+        />
+        <HeroVideoUpload
+          value={data.videoUrl || ""}
+          onChange={(v) => onChange({ ...data, videoUrl: v })}
+        />
+      </div>
+    );
+  }
+
+  if (sectionKey === "blogPage") {
+    const shareLinks = Array.isArray(data.shareLinks) ? data.shareLinks : [];
     return (
       <div className="space-y-4">
         <Field
+          locale={locale}
+          label="Eyebrow"
+          value={data.eyebrow || ""}
+          onChange={(v) => onChange({ ...data, eyebrow: v })}
+        />
+        <Field
+          locale={locale}
+          label="Title"
+          value={data.title || ""}
+          onChange={(v) => onChange({ ...data, title: v })}
+        />
+        <HeroVideoUpload
+          value={data.videoUrl || ""}
+          onChange={(v) => onChange({ ...data, videoUrl: v })}
+        />
+        <Field
+          locale={locale}
+          label="Related articles heading"
+          value={data.relatedTitle || ""}
+          onChange={(v) => onChange({ ...data, relatedTitle: v })}
+        />
+        <div className="space-y-3 border-t border-[#E8EAED] pt-4">
+          <p className="text-xs font-bold uppercase tracking-wide text-[#334155]">
+            Share links
+          </p>
+          {shareLinks.map((link: any, i: number) => (
+            <div
+              key={i}
+              className="rounded-xl border border-[#E8EAED] p-4 grid sm:grid-cols-[1fr_1fr_auto] gap-3 items-end"
+            >
+              <Field
+                locale={locale}
+                label="Label"
+                value={link.label || ""}
+                onChange={(v) => {
+                  const next = [...shareLinks];
+                  next[i] = { ...link, label: v };
+                  onChange({ ...data, shareLinks: next });
+                }}
+              />
+              <Field
+                locale={locale}
+                label="URL"
+                value={link.href || ""}
+                onChange={(v) => {
+                  const next = [...shareLinks];
+                  next[i] = { ...link, href: v };
+                  onChange({ ...data, shareLinks: next });
+                }}
+              />
+              <button
+                type="button"
+                className="text-xs text-red-600 pb-3"
+                onClick={() =>
+                  onChange({
+                    ...data,
+                    shareLinks: shareLinks.filter(
+                      (_: any, idx: number) => idx !== i
+                    ),
+                  })
+                }
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+          <AddItemButton
+            label="Add share link"
+            onClick={() =>
+              onChange({
+                ...data,
+                shareLinks: [...shareLinks, { label: "", href: "" }],
+              })
+            }
+          />
+        </div>
+      </div>
+    );
+  }
+
+  if (sectionKey === "faqPage") {
+    return (
+      <div className="space-y-4">
+        <Field
+          locale={locale}
+          label="Eyebrow"
+          value={data.eyebrow || ""}
+          onChange={(v) => onChange({ ...data, eyebrow: v })}
+        />
+        <Field
+          locale={locale}
+          label="Title"
+          value={data.title || ""}
+          onChange={(v) => onChange({ ...data, title: v })}
+        />
+        <HeroVideoUpload
+          value={data.videoUrl || ""}
+          onChange={(v) => onChange({ ...data, videoUrl: v })}
+        />
+      </div>
+    );
+  }
+
+  if (sectionKey === "contactPage") {
+    const locations = Array.isArray(data.locations) ? data.locations : [];
+    return (
+      <div className="space-y-4">
+        <div className="grid sm:grid-cols-2 gap-3">
+          <Field
+            locale={locale}
+            label="Hero title"
+            value={data.title || ""}
+            onChange={(v) => onChange({ ...data, title: v })}
+          />
+          <Field
+            locale={locale}
+            label="Hero title accent"
+            value={data.titleAccent || ""}
+            onChange={(v) => onChange({ ...data, titleAccent: v })}
+          />
+        </div>
+        <Field
+          locale={locale}
+          label="Hero description"
+          multiline
+          value={data.description || ""}
+          onChange={(v) => onChange({ ...data, description: v })}
+        />
+        <HeroVideoUpload
+          value={data.videoUrl || ""}
+          onChange={(v) => onChange({ ...data, videoUrl: v })}
+        />
+        <MediaUpload
+          label="Craft / side image"
+          kind="image"
+          value={data.craftImage || ""}
+          onChange={(v) => onChange({ ...data, craftImage: v })}
+        />
+        <div className="grid sm:grid-cols-2 gap-3">
+          <Field
+            locale={locale}
+            shared
+            label="Email"
+            value={data.email || ""}
+            onChange={(v) => onChange({ ...data, email: v })}
+          />
+          <Field
+            locale={locale}
+            shared
+            label="Phone"
+            value={data.phone || ""}
+            onChange={(v) => onChange({ ...data, phone: v })}
+          />
+        </div>
+        {locations.map((loc: any, i: number) => (
+          <div key={i} className="rounded-xl border border-[#E8EAED] p-4 space-y-3">
+            <div className="flex justify-between items-center">
+              <p className="text-xs font-semibold text-[#5C6370]">
+                Location #{i + 1}
+              </p>
+              <button
+                type="button"
+                className="text-xs text-red-600"
+                onClick={() =>
+                  onChange({
+                    ...data,
+                    locations: locations.filter((_: any, idx: number) => idx !== i),
+                  })
+                }
+              >
+                Remove
+              </button>
+            </div>
+            <Field
+              locale={locale}
+              label="Title"
+              value={loc.title || ""}
+              onChange={(v) => {
+                const next = [...locations];
+                next[i] = { ...loc, title: v };
+                onChange({ ...data, locations: next });
+              }}
+            />
+            <Field
+              locale={locale}
+              label="Address"
+              multiline
+              value={loc.address || ""}
+              onChange={(v) => {
+                const next = [...locations];
+                next[i] = { ...loc, address: v };
+                onChange({ ...data, locations: next });
+              }}
+            />
+          </div>
+        ))}
+        <AddItemButton
+          label="Add location"
+          onClick={() =>
+            onChange({
+              ...data,
+              locations: [...locations, { title: "", address: "" }],
+            })
+          }
+        />
+      </div>
+    );
+  }
+
+  if (sectionKey === "footer") {
+    const homeLinks = Array.isArray(data.homeLinks) ? data.homeLinks : [];
+    const productLinks = Array.isArray(data.productLinks)
+      ? data.productLinks
+      : [];
+    return (
+      <div className="space-y-4">
+        <MediaUpload
+          label="Footer logo"
+          kind="image"
+          value={data.logoUrl || ""}
+          onChange={(v) => onChange({ ...data, logoUrl: v })}
+        />
+        <Field
+          locale={locale}
+          label="Tagline (optional)"
+          value={data.tagline || ""}
+          onChange={(v) => onChange({ ...data, tagline: v })}
+        />
+        <Field
+          locale={locale}
           label="Address"
           value={data.address || ""}
           onChange={(v) => onChange({ ...data, address: v })}
         />
         <Field
+          locale={locale}
+          shared
           label="Email"
           value={data.email || ""}
           onChange={(v) => onChange({ ...data, email: v })}
         />
         <Field
+          locale={locale}
+          shared
           label="Phone"
           value={data.phone || ""}
           onChange={(v) => onChange({ ...data, phone: v })}
         />
         <div className="grid sm:grid-cols-3 gap-3">
           <Field
+            locale={locale}
+            shared
             label="Facebook"
             value={data.facebook || ""}
             onChange={(v) => onChange({ ...data, facebook: v })}
           />
           <Field
+            locale={locale}
+            shared
             label="Instagram"
             value={data.instagram || ""}
             onChange={(v) => onChange({ ...data, instagram: v })}
           />
           <Field
+            locale={locale}
             label="LINE"
             value={data.line || ""}
             onChange={(v) => onChange({ ...data, line: v })}
+          />
+        </div>
+        <div className="space-y-3 border-t border-[#E8EAED] pt-4">
+          <Field
+            locale={locale}
+            label="Home column title"
+            value={data.homeColumnTitle || ""}
+            onChange={(v) => onChange({ ...data, homeColumnTitle: v })}
+          />
+          {homeLinks.map((link: any, i: number) => (
+            <div
+              key={i}
+              className="rounded-xl border border-[#E8EAED] p-4 grid sm:grid-cols-[1fr_1fr_auto] gap-3 items-end"
+            >
+              <Field
+                locale={locale}
+                label="Label"
+                value={link.label || ""}
+                onChange={(v) => {
+                  const next = [...homeLinks];
+                  next[i] = { ...link, label: v };
+                  onChange({ ...data, homeLinks: next });
+                }}
+              />
+              <Field
+                locale={locale}
+                shared
+                label="Href"
+                value={link.href || ""}
+                onChange={(v) => {
+                  const next = [...homeLinks];
+                  next[i] = { ...link, href: v };
+                  onChange({ ...data, homeLinks: next });
+                }}
+              />
+              <button
+                type="button"
+                className="text-xs text-red-600 pb-3"
+                onClick={() =>
+                  onChange({
+                    ...data,
+                    homeLinks: homeLinks.filter(
+                      (_: any, idx: number) => idx !== i
+                    ),
+                  })
+                }
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+          <AddItemButton
+            label="Add home link"
+            onClick={() =>
+              onChange({
+                ...data,
+                homeLinks: [...homeLinks, { label: "", href: "/" }],
+              })
+            }
+          />
+        </div>
+        <div className="space-y-3 border-t border-[#E8EAED] pt-4">
+          <Field
+            locale={locale}
+            label="Product column title"
+            value={data.productColumnTitle || ""}
+            onChange={(v) => onChange({ ...data, productColumnTitle: v })}
+          />
+          {productLinks.map((link: any, i: number) => (
+            <div
+              key={i}
+              className="rounded-xl border border-[#E8EAED] p-4 grid sm:grid-cols-[1fr_1fr_auto] gap-3 items-end"
+            >
+              <Field
+                locale={locale}
+                label="Label"
+                value={link.label || ""}
+                onChange={(v) => {
+                  const next = [...productLinks];
+                  next[i] = { ...link, label: v };
+                  onChange({ ...data, productLinks: next });
+                }}
+              />
+              <Field
+                locale={locale}
+                shared
+                label="Href"
+                value={link.href || ""}
+                onChange={(v) => {
+                  const next = [...productLinks];
+                  next[i] = { ...link, href: v };
+                  onChange({ ...data, productLinks: next });
+                }}
+              />
+              <button
+                type="button"
+                className="text-xs text-red-600 pb-3"
+                onClick={() =>
+                  onChange({
+                    ...data,
+                    productLinks: productLinks.filter(
+                      (_: any, idx: number) => idx !== i
+                    ),
+                  })
+                }
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+          <AddItemButton
+            label="Add product link"
+            onClick={() =>
+              onChange({
+                ...data,
+                productLinks: [...productLinks, { label: "", href: "/" }],
+              })
+            }
           />
         </div>
       </div>

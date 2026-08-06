@@ -31,6 +31,31 @@ function thailandBase() {
   return `${raw.replace(/\/+$/, "").replace(/\/api$/i, "")}/api`;
 }
 
+function mediaPublicBase() {
+  return (
+    process.env.NEXT_PUBLIC_UPLOAD_PUBLIC_URL ||
+    process.env.NEXT_PUBLIC_MEDIA_BASE_URL ||
+    ""
+  )
+    .trim()
+    .replace(/\/+$/, "");
+}
+
+function toAbsoluteUploadUrl(url: string): string {
+  const value = String(url || "").trim();
+  if (!value) return value;
+  if (/^https?:\/\//i.test(value)) return value;
+  const path = value.startsWith("/") ? value : `/${value}`;
+  const base = mediaPublicBase();
+  if (base) return `${base}${path}`;
+  // Fall back to Thailand API origin so Varsovia can load the asset
+  try {
+    return `${new URL(thailandBase()).origin}${path}`;
+  } catch {
+    return path;
+  }
+}
+
 async function isAuthenticated(request: NextRequest) {
   const authorization = request.headers.get("authorization");
   if (!authorization) return false;
@@ -46,27 +71,81 @@ async function isAuthenticated(request: NextRequest) {
   }
 }
 
+/**
+ * Varsovia API has no /media store. Upload via Thailand Kitchen API (JWT),
+ * then return absolute URLs suitable for the Varsovia public site.
+ */
+async function proxyMediaToThailand(request: NextRequest) {
+  const authorization = request.headers.get("authorization") || "";
+  const contentType = request.headers.get("content-type") || "";
+  const body = await request.arrayBuffer();
+
+  try {
+    const upstream = await fetch(`${thailandBase()}/upload`, {
+      method: "POST",
+      headers: {
+        Authorization: authorization,
+        ...(contentType ? { "Content-Type": contentType } : {}),
+      },
+      body,
+      cache: "no-store",
+      signal: AbortSignal.timeout(120_000),
+    });
+
+    const json = (await upstream.json().catch(() => null)) as {
+      success?: boolean;
+      message?: string;
+      file?: { url?: string; [key: string]: unknown };
+    } | null;
+
+    if (!upstream.ok || !json?.file?.url) {
+      return Response.json(
+        {
+          success: false,
+          data: null,
+          error: {
+            code: "UPLOAD_FAILED",
+            message:
+              json?.message ||
+              "Media upload failed. Ensure Thailand Kitchen backend is running.",
+          },
+        },
+        { status: upstream.status || 502 }
+      );
+    }
+
+    const file = {
+      ...json.file,
+      url: toAbsoluteUploadUrl(String(json.file.url)),
+    };
+
+    // Varsovia admin client expects envelope { success, data: { file } }
+    return Response.json(
+      { success: true, data: { file } },
+      { status: upstream.status === 201 ? 201 : 200 }
+    );
+  } catch {
+    return Response.json(
+      {
+        success: false,
+        data: null,
+        error: {
+          code: "UPLOAD_FAILED",
+          message:
+            "Cannot reach Thailand Kitchen upload API. Start the backend on port 5000.",
+        },
+      },
+      { status: 502 }
+    );
+  }
+}
+
 async function proxy(
   request: NextRequest,
   context: { params: Promise<{ path: string[] }> }
 ) {
   if (!(await isAuthenticated(request))) {
     return Response.json({ message: "Unauthorized" }, { status: 401 });
-  }
-
-  const method = request.method.toUpperCase();
-  const isRead = method === "GET" || method === "HEAD";
-
-  // Server-side only — same pattern as Thailand Kitchen (no UI key prompt).
-  const adminKey = process.env.VARSOVIA_ADMIN_KEY?.trim() || "";
-  if (!adminKey && !isRead) {
-    return Response.json(
-      {
-        message:
-          "VARSOVIA_ADMIN_KEY is not configured on the admin server. Add it to admin/.env.local (must match Varsovia backend ADMIN_KEY).",
-      },
-      { status: 503 }
-    );
   }
 
   const { path = [] } = await context.params;
@@ -77,20 +156,44 @@ async function proxy(
     );
   }
 
+  // Media: Thailand upload (Varsovia has no /api/media)
+  if (path[0] === "media") {
+    if (request.method.toUpperCase() !== "POST") {
+      return Response.json({ message: "Method not allowed" }, { status: 405 });
+    }
+    return proxyMediaToThailand(request);
+  }
+
+  const adminKey = process.env.VARSOVIA_ADMIN_KEY?.trim() || "";
+  if (!adminKey) {
+    return Response.json(
+      {
+        message:
+          "VARSOVIA_ADMIN_KEY is not configured. Add it to admin/.env.local — must match Varsovia backend ADMIN_KEY.",
+      },
+      { status: 503 }
+    );
+  }
+
+  const method = request.method.toUpperCase();
+  const isRead = method === "GET" || method === "HEAD";
+
   const safePath = path.map(encodeURIComponent).join("/");
   const target = new URL(`${apiBase()}/${safePath}`);
   request.nextUrl.searchParams.forEach((value, key) => {
     target.searchParams.append(key, value);
   });
+  // Full multilingual CMS payloads
+  if (isRead && !target.searchParams.has("cms")) {
+    target.searchParams.set("cms", "1");
+  }
 
   const headers = new Headers({ Accept: "application/json" });
-  if (adminKey) headers.set("x-admin-key", adminKey);
+  headers.set("x-admin-key", adminKey);
   const contentType = request.headers.get("content-type");
   if (contentType) headers.set("content-type", contentType);
 
   const body = isRead ? undefined : await request.arrayBuffer();
-
-  // Render free instances cold start slowly; allow a long first request
   const timeout = AbortSignal.timeout(90_000);
 
   try {
@@ -110,12 +213,12 @@ async function proxy(
       },
     });
   } catch {
-    const target = apiBase();
-    const isLocal = /localhost|127\.0\.0\.1/i.test(target);
+    const targetHost = apiBase();
+    const isLocal = /localhost|127\.0\.0\.1/i.test(targetHost);
     return Response.json(
       {
         message: isLocal
-          ? `Cannot reach Varsovia API at ${target}. Start the Varsovia backend (port 5001) and try again.`
+          ? `Cannot reach Varsovia API at ${targetHost}. Start the Varsovia backend and try again.`
           : "Cannot reach Varsovia API. The Render instance may still be waking up — try again.",
       },
       { status: 502 }

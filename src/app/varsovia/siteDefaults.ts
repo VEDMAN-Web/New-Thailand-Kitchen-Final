@@ -38,6 +38,24 @@ export const VARSOVIA_SITE_DEFAULTS: SiteRecord = {
     "/home/about-3.jpg",
     "/home/featured-project/feature-5.jpg",
   ],
+  aboutStoryImages: [
+    "/home/featured-project/feature-1.jpg",
+    "/home/featured-project/feature-2.jpg",
+    "/home/about-3.jpg",
+    "/home/featured-project/feature-4.jpg",
+  ],
+
+  localeFlags: {
+    en: "/en.png",
+    th: "/th.png",
+    pl: "/pl.png",
+  },
+
+  designTools: [
+    { name: en("CAXA"), image: "/team/design-tools/caxa.svg", order: 1 },
+    { name: en("AUTO CAD"), image: "/team/design-tools/autocad.svg", order: 2 },
+    { name: en("3D MAX"), image: "/team/design-tools/3dmax.svg", order: 3 },
+  ],
 
   stats: [
     { value: en("+12"), label: en("Years Experience") },
@@ -398,21 +416,23 @@ export const VARSOVIA_SITE_DEFAULTS: SiteRecord = {
 
   teamPage: {
     heroTitle: en("Our Team"),
-    heroSubtitle: en("The creative minds behind every beautiful space"),
+    heroSubtitle: en("THE CREATIVE MINDS BEHIND EVERY BEAUTIFUL SPACE"),
     intro: en(
-      "We have dedicated teams serving retail customers, commercial project contractors, and whole-house clients. Each group brings deep expertise in its field, working together to deliver an excellent experience from first consultation through final installation."
+      "We have 3 sales teams respectively serving retail customers, commercial project contractors and franchisers. Inside each team, different sales representatives are responsible for different countries and regions. We are experts in our respective fields in order to meet different type customers' needs. 3 sales teams come together in a collaborative effort to provide an excellent experience for our customer."
     ),
     designTitle: en("Professional Design Team"),
+    designEyebrow: en("Italian design team"),
     designBody: en(
-      "Our design team combines international aesthetics with practical functionality — researching global trends, refining every layout, and creating visualizations that help you see your space before installation begins."
+      "Varsovia Design collaborates with Italian designers and suppliers to enhance our global competency. We combine updated aesthetics with functionality to create exciting spaces tailored to our clients' wishes and bring lasting living pleasure."
     ),
     architectTitle: en("Architect / Engineers"),
+    architectEyebrow: en("Technical & structural team"),
     architectBody: en(
       "Our architect and engineering team ensures structural integrity, precise technical drawings, and seamless coordination between design intent and on-site execution."
     ),
-    toolsTitle: en("Professional Design Tools"),
+    toolsTitle: en("Professional design tool"),
     toolsBody: en(
-      "Industry-leading software supports every stage of our design process — from technical drawings and spatial planning to photorealistic 3D renders."
+      "Professional design tools are adopted to assist for perfect art effect, including CAXA, CAD, 3D MAX, KD MAX, etc."
     ),
     stats: [
       { value: en("100+"), label: en("Successful Projects Completed") },
@@ -420,12 +440,6 @@ export const VARSOVIA_SITE_DEFAULTS: SiteRecord = {
         value: en("03"),
         label: en("Years of Excellence in Interior Solutions"),
       },
-    ],
-    tools: [
-      { name: en("CAXA"), icon: "compass" },
-      { name: en("AUTOCAD"), icon: "cpu" },
-      { name: en("3D MAX"), icon: "layers" },
-      { name: en("KD MAX"), icon: "box" },
     ],
   },
 
@@ -437,76 +451,50 @@ export const VARSOVIA_SITE_DEFAULTS: SiteRecord = {
     heroBody: en(
       "We believe exceptional interior design extends well beyond project completion. Varsovia offers reliable after-sales support, maintenance guidance, and prompt assistance — keeping your interiors looking and performing at their best for years to come."
     ),
+    feature1Title: en("95.1% Efficiency of Formaldehyde Purification"),
+    feature2Title: en("82.4% Purification Effect of Formaldehyde Lasting"),
+    feature3Title: en("Long-Lasting Mold Resistance Level 0"),
+    feature4Title: en("24 Hours Continuous Air Purification"),
     supportTitle: en("Support Process"),
-    supportSubtitle: en("How it works"),
+    supportSubtitle: en("HOW IT'S WORK"),
+    step1Title: en("Contact Us"),
+    step1Desc: en("Reach out through phone, email, or our support form."),
+    step2Title: en("Issue Assessment"),
+    step2Desc: en("Our team reviews your request and identifies the best solution."),
+    step3Title: en("Service Scheduling"),
+    step3Desc: en("A convenient service appointment is arranged."),
+    step4Title: en("Resolution"),
+    step4Desc: en("Our experts complete the required service efficiently and professionally."),
     faqTitle: en("FAQ"),
-    faqSubtitle: en("Questions & answers"),
-    gallery: [
-      "/quality-sale/support-1.jpg",
-      "/quality-sale/support-2.jpg",
-      "/quality-sale/support-3.jpg",
-      "/quality-sale/support-4.jpg",
-    ],
-    steps: [
-      {
-        step: "01",
-        title: en("Book Appointment"),
-        text: en(
-          "Schedule a visit with our after-sales team at your convenience."
-        ),
-        image: "/quality-sale/support-1.jpg",
-      },
-      {
-        step: "02",
-        title: en("Checking"),
-        text: en(
-          "Our specialists inspect the issue and assess the best course of action."
-        ),
-        image: "/quality-sale/support-2.jpg",
-      },
-      {
-        step: "03",
-        title: en("Repair & Cleaning"),
-        text: en(
-          "We carry out repairs, adjustments, or deep cleaning as needed."
-        ),
-        image: "/quality-sale/support-3.jpg",
-      },
-      {
-        step: "04",
-        title: en("Finish"),
-        text: en(
-          "Final quality check ensures your space is restored to perfect condition."
-        ),
-        image: "/quality-sale/support-4.jpg",
-      },
-    ],
-    faqs: [
-      {
-        question: en("Is my project covered under warranty?"),
-        answer: en(
-          "Yes — Varsovia Design provides warranty coverage on materials and workmanship. Specific terms depend on your project scope and will be shared in your project agreement."
-        ),
-      },
-      {
-        question: en("How can I request after-sales support?"),
-        answer: en(
-          "Reach us through the contact page, email, or phone. Our team will log your request and schedule a visit at the earliest convenience."
-        ),
-      },
-      {
-        question: en("Do you provide maintenance services?"),
-        answer: en(
-          "We offer scheduled maintenance and check-ups for modular kitchens, wardrobes, and fitted furniture to keep everything in top condition."
-        ),
-      },
-      {
-        question: en("What happens if my warranty period has expired?"),
-        answer: en(
-          "We still provide full support — our team can assist with paid service visits, spare parts, and upgrade recommendations."
-        ),
-      },
-    ],
+    faqSubtitle: en("QUESTIONS & ANSWER"),
+    faq1Q: en("Is my project covered under warranty?"),
+    faq1A: en(
+      "Yes. Warranty coverage depends on the products and materials used. Our team will explain all warranty details during project handover."
+    ),
+    faq2Q: en("How can I request after-sales support?"),
+    faq2A: en(
+      "Reach us through the contact page, email, or phone. Our team will log your request and schedule a visit at the earliest convenience."
+    ),
+    faq3Q: en("Do you provide maintenance services?"),
+    faq3A: en(
+      "We offer scheduled maintenance and check-ups for modular kitchens, wardrobes, and fitted furniture to keep everything in top condition."
+    ),
+    faq4Q: en("Can I request upgrades after project completion?"),
+    faq4A: en(
+      "Yes — we can help you plan upgrades and refreshes after your project is complete, from hardware swaps to layout enhancements."
+    ),
+    support1Image: "/quality-sale/support-illustration-1.png",
+    support2Image: "/quality-sale/support-illustration-2.png",
+    support3Image: "/quality-sale/support-illustration-3.png",
+    support4Image: "/quality-sale/support-illustration-4.png",
+    feature1Image: "/home/featured-project/feature-1.jpg",
+    feature1ImageAlt: en("Premium kitchen cabinetry detail"),
+    feature2Image: "/home/featured-project/feature-2.jpg",
+    feature2ImageAlt: en("Living room finish and texture"),
+    feature3Image: "/home/featured-project/feature-3.jpg",
+    feature3ImageAlt: en("Bedroom wardrobe craftsmanship"),
+    feature4Image: "/home/featured-project/feature-4.jpg",
+    feature4ImageAlt: en("Bathroom vanity and stone surface"),
   },
 
   showcaseMeta: [

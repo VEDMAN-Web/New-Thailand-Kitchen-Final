@@ -3,9 +3,17 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { Images, Pencil, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
-import AdminShell from "@/components/AdminShell";
+import LocaleTabs from "@/components/LocaleTabs";
 import MediaUpload from "@/components/MediaUpload";
 import { useAdminAuth } from "@/lib/AdminAuthContext";
+import {
+  asLocalizedForm,
+  emptyLocalized,
+  localizedValue,
+  writeLocalized,
+  type LocaleCode,
+  type LocalizedText,
+} from "@/lib/localized";
 import {
   createGalleryItem,
   deleteGalleryItem,
@@ -16,25 +24,46 @@ import {
   type GalleryCmsItem,
 } from "@/services/adminAPI";
 
-const FILTERS = [
-  "Layout & Space",
-  "Storage",
-  "Style & Color",
-  "Materials",
-] as const;
+const DEFAULT_FILTERS: { id: string; label: LocalizedText }[] = [
+  { id: "All", label: asLocalizedForm("All") },
+  { id: "Layout & Space", label: asLocalizedForm("Layout & Space") },
+  { id: "Storage", label: asLocalizedForm("Storage") },
+  { id: "Style & Color", label: asLocalizedForm("Style & Color") },
+  { id: "Materials", label: asLocalizedForm("Materials") },
+];
 
-const empty = {
-  title: "",
+type GalleryForm = {
+  title: LocalizedText;
+  image: string;
+  filter: string;
+  tall: boolean;
+  wide: boolean;
+  sortOrder: number;
+};
+
+const emptyForm: GalleryForm = {
+  title: emptyLocalized(),
   image: "",
   filter: "Style & Color",
   tall: false,
   wide: false,
+  sortOrder: 0,
 };
 
-const emptyHero = {
-  eyebrow: "",
-  title: "",
-  description: "",
+type HeroForm = {
+  eyebrow: LocalizedText;
+  title: LocalizedText;
+  description: LocalizedText;
+  collage1: string;
+  collage2: string;
+  collage3: string;
+  collage4: string;
+};
+
+const emptyHero: HeroForm = {
+  eyebrow: emptyLocalized(),
+  title: emptyLocalized(),
+  description: emptyLocalized(),
   collage1: "",
   collage2: "",
   collage3: "",
@@ -46,11 +75,13 @@ export default function AdminGalleryPage() {
   const [items, setItems] = useState<GalleryCmsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingHero, setSavingHero] = useState(false);
-  const [hero, setHero] = useState(emptyHero);
+  const [hero, setHero] = useState<HeroForm>(emptyHero);
+  const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [sections, setSections] = useState<Record<string, unknown>>({});
   const [modal, setModal] = useState<"create" | "edit" | null>(null);
   const [editing, setEditing] = useState<GalleryCmsItem | null>(null);
-  const [form, setForm] = useState(empty);
+  const [form, setForm] = useState<GalleryForm>(emptyForm);
+  const [locale, setLocale] = useState<LocaleCode>("en");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -63,21 +94,29 @@ export default function AdminGalleryPage() {
       const nextSections = homeRes.home?.sections || {};
       setSections(nextSections);
       const gp = (nextSections.galleryPage || {}) as {
-        eyebrow?: string;
-        title?: string;
-        description?: string;
+        eyebrow?: unknown;
+        title?: unknown;
+        description?: unknown;
         collage?: string[];
+        filters?: { id?: string; label?: unknown }[];
       };
       const collage = gp.collage || [];
       setHero({
-        eyebrow: gp.eyebrow || "",
-        title: gp.title || "",
-        description: gp.description || "",
+        eyebrow: asLocalizedForm(gp.eyebrow),
+        title: asLocalizedForm(gp.title),
+        description: asLocalizedForm(gp.description),
         collage1: collage[0] || "",
         collage2: collage[1] || "",
         collage3: collage[2] || "",
         collage4: collage[3] || "",
       });
+      const nextFilters = (gp.filters || [])
+        .map((f) => ({
+          id: String(f.id || "").trim(),
+          label: asLocalizedForm(f.label || f.id || ""),
+        }))
+        .filter((f) => f.id);
+      setFilters(nextFilters.length ? nextFilters : DEFAULT_FILTERS);
     } catch {
       toast.error("Failed to load gallery");
     } finally {
@@ -90,8 +129,8 @@ export default function AdminGalleryPage() {
   }, [load]);
 
   const saveHero = async () => {
-    if (!hero.title.trim()) {
-      toast.error("Gallery heading is required");
+    if (!localizedValue(hero.title, "en").trim()) {
+      toast.error("English gallery heading is required");
       return;
     }
     setSavingHero(true);
@@ -108,10 +147,16 @@ export default function AdminGalleryPage() {
       const next = {
         ...sections,
         galleryPage: {
-          eyebrow: hero.eyebrow.trim(),
-          title: hero.title.trim(),
-          description: hero.description.trim(),
+          eyebrow: asLocalizedForm(hero.eyebrow),
+          title: asLocalizedForm(hero.title),
+          description: asLocalizedForm(hero.description),
           collage,
+          filters: filters
+            .map((f) => ({
+              id: f.id.trim(),
+              label: asLocalizedForm(f.label, f.id.trim()),
+            }))
+            .filter((f) => f.id),
         },
       };
       await updateHome(siteId, next);
@@ -125,20 +170,23 @@ export default function AdminGalleryPage() {
   };
 
   const openCreate = () => {
-    setForm(empty);
+    setForm(emptyForm);
     setEditing(null);
+    setLocale("en");
     setModal("create");
   };
 
   const openEdit = (item: GalleryCmsItem) => {
     setEditing(item);
     setForm({
-      title: item.title,
+      title: asLocalizedForm(item.title),
       image: item.image,
       filter: item.filter || "Style & Color",
       tall: Boolean(item.tall),
       wide: Boolean(item.wide),
+      sortOrder: Number(item.sortOrder) || 0,
     });
+    setLocale("en");
     setModal("edit");
   };
 
@@ -149,11 +197,15 @@ export default function AdminGalleryPage() {
       return;
     }
     try {
+      const payload = {
+        ...form,
+        title: asLocalizedForm(form.title),
+      };
       if (modal === "create") {
-        await createGalleryItem(siteId, form);
+        await createGalleryItem(siteId, payload);
         toast.success("Gallery item created");
       } else if (editing) {
-        await updateGalleryItem(siteId, editing._id, form);
+        await updateGalleryItem(siteId, editing._id, payload);
         toast.success("Gallery item updated");
       }
       setModal(null);
@@ -164,7 +216,7 @@ export default function AdminGalleryPage() {
   };
 
   const onDelete = async (item: GalleryCmsItem) => {
-    if (!confirm(`Delete "${item.title}"?`)) return;
+    if (!confirm(`Delete "${localizedValue(item.title, "en")}"?`)) return;
     try {
       await deleteGalleryItem(siteId, item._id);
       toast.success("Deleted");
@@ -175,18 +227,20 @@ export default function AdminGalleryPage() {
   };
 
   return (
-    <AdminShell title="Gallery Management">
-      <div className="space-y-6">
+    <>
+    <div className="space-y-6">
         <div className="bg-white rounded-xl border border-[#E8EAED] p-5 space-y-4">
-          <div className="flex items-start justify-between gap-3">
+          <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <h2 className="text-base font-bold text-[#1A2332]">
                 Gallery Page Content
               </h2>
               <p className="text-xs text-[#6B7280] mt-1">
-                Heading, paragraph and hero collage shown on the website gallery
-                page.
+                Heading, paragraph and hero collage — edit per language.
               </p>
+              <div className="mt-3">
+                <LocaleTabs locale={locale} onChange={setLocale} />
+              </div>
             </div>
             <button
               type="button"
@@ -200,32 +254,48 @@ export default function AdminGalleryPage() {
 
           <div className="grid md:grid-cols-2 gap-3">
             <label className="block text-xs font-semibold text-[#5C6370]">
-              Eyebrow / Small heading
+              Eyebrow ({locale.toUpperCase()})
               <input
-                value={hero.eyebrow}
-                onChange={(e) => setHero({ ...hero, eyebrow: e.target.value })}
-                placeholder="e.g. The Gallery · Vol. 04"
+                value={localizedValue(hero.eyebrow, locale)}
+                onChange={(e) =>
+                  setHero({
+                    ...hero,
+                    eyebrow: writeLocalized(hero.eyebrow, locale, e.target.value),
+                  })
+                }
                 className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
               />
             </label>
             <label className="block text-xs font-semibold text-[#5C6370]">
-              Main heading *
+              Main heading ({locale.toUpperCase()}) *
               <input
-                value={hero.title}
-                onChange={(e) => setHero({ ...hero, title: e.target.value })}
-                placeholder="Gallery page title"
+                value={localizedValue(hero.title, locale)}
+                onChange={(e) =>
+                  setHero({
+                    ...hero,
+                    title: writeLocalized(hero.title, locale, e.target.value),
+                  })
+                }
                 className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
               />
             </label>
           </div>
 
           <label className="block text-xs font-semibold text-[#5C6370]">
-            Paragraph / Description
+            Description ({locale.toUpperCase()})
             <textarea
               rows={4}
-              value={hero.description}
-              onChange={(e) => setHero({ ...hero, description: e.target.value })}
-              placeholder="Gallery intro paragraph"
+              value={localizedValue(hero.description, locale)}
+              onChange={(e) =>
+                setHero({
+                  ...hero,
+                  description: writeLocalized(
+                    hero.description,
+                    locale,
+                    e.target.value
+                  ),
+                })
+              }
               className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
             />
           </label>
@@ -261,13 +331,54 @@ export default function AdminGalleryPage() {
               />
             </div>
           </div>
+
+          <div className="border-t border-[#E8EAED] pt-4 space-y-3">
+            <p className="text-xs font-semibold text-[#5C6370]">
+              Filter labels ({locale.toUpperCase()})
+            </p>
+            {filters.map((f, i) => (
+              <div
+                key={f.id + i}
+                className="grid sm:grid-cols-[140px_1fr] gap-3"
+              >
+                <label className="block text-xs font-semibold text-[#5C6370]">
+                  Id
+                  <input
+                    value={f.id}
+                    readOnly={f.id === "All"}
+                    onChange={(e) => {
+                      const next = [...filters];
+                      next[i] = { ...f, id: e.target.value };
+                      setFilters(next);
+                    }}
+                    className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal bg-[#F8FAFC]"
+                  />
+                </label>
+                <label className="block text-xs font-semibold text-[#5C6370]">
+                  Label
+                  <input
+                    value={localizedValue(f.label, locale)}
+                    onChange={(e) => {
+                      const next = [...filters];
+                      next[i] = {
+                        ...f,
+                        label: writeLocalized(f.label, locale, e.target.value),
+                      };
+                      setFilters(next);
+                    }}
+                    className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
+                  />
+                </label>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="flex items-center justify-between gap-3">
           <div>
             <h2 className="text-base font-bold text-[#1A2332]">Gallery Images</h2>
             <p className="text-xs text-[#6B7280] mt-1">
-              These images appear in the website gallery grid.
+              Image titles support English / Thai / Polish.
             </p>
           </div>
           <button
@@ -285,7 +396,7 @@ export default function AdminGalleryPage() {
         ) : items.length === 0 ? (
           <div className="bg-white rounded-xl border border-[#E8EAED] p-10 text-center text-[#6B7280]">
             <Images className="w-8 h-8 mx-auto mb-3 opacity-40" />
-            No gallery images yet. Upload from admin to show on the website.
+            No gallery images yet.
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -297,17 +408,13 @@ export default function AdminGalleryPage() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={item.image || "/products/Kitchen1.png"}
-                  alt={item.title}
+                  alt={localizedValue(item.title, "en")}
                   className="h-40 w-full object-cover bg-[#F3F4F6]"
-                  onError={(e) => {
-                    const el = e.currentTarget;
-                    if (el.dataset.fallback === "1") return;
-                    el.dataset.fallback = "1";
-                    el.src = "/products/Kitchen1.png";
-                  }}
                 />
                 <div className="p-4">
-                  <p className="font-semibold text-[#1A2332]">{item.title}</p>
+                  <p className="font-semibold text-[#1A2332]">
+                    {localizedValue(item.title, "en")}
+                  </p>
                   <p className="text-xs text-[#6B7280] mt-1">{item.filter}</p>
                   <div className="flex justify-end gap-1 mt-3">
                     <button
@@ -338,36 +445,31 @@ export default function AdminGalleryPage() {
             onSubmit={onSubmit}
             className="w-full max-w-lg bg-white rounded-2xl p-6 space-y-3 max-h-[90vh] overflow-y-auto"
           >
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="font-bold text-lg">
-                {modal === "create" ? "Add Gallery Image" : "Edit Gallery Image"}
-              </h3>
+            <div className="flex justify-between items-center mb-2 gap-3">
+              <div>
+                <h3 className="font-bold text-lg">
+                  {modal === "create" ? "Add Gallery Image" : "Edit Gallery Image"}
+                </h3>
+                <div className="mt-2">
+                  <LocaleTabs locale={locale} onChange={setLocale} />
+                </div>
+              </div>
               <button type="button" onClick={() => setModal(null)}>
                 <X className="w-5 h-5" />
               </button>
             </div>
             <label className="block text-xs font-semibold text-[#5C6370]">
-              Title
+              Title ({locale.toUpperCase()})
               <input
-                required
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                value={localizedValue(form.title, locale)}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    title: writeLocalized(form.title, locale, e.target.value),
+                  })
+                }
                 className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
               />
-            </label>
-            <label className="block text-xs font-semibold text-[#5C6370]">
-              Filter
-              <select
-                value={form.filter}
-                onChange={(e) => setForm({ ...form, filter: e.target.value })}
-                className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
-              >
-                {FILTERS.map((f) => (
-                  <option key={f} value={f}>
-                    {f}
-                  </option>
-                ))}
-              </select>
             </label>
             <MediaUpload
               label="Image"
@@ -375,27 +477,27 @@ export default function AdminGalleryPage() {
               value={form.image}
               onChange={(v) => setForm({ ...form, image: v })}
             />
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={form.tall}
-                onChange={(e) => setForm({ ...form, tall: e.target.checked })}
-              />
-              Tall layout
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={form.wide}
-                onChange={(e) => setForm({ ...form, wide: e.target.checked })}
-              />
-              Wide layout
+            <label className="block text-xs font-semibold text-[#5C6370]">
+              Filter
+              <select
+                value={form.filter}
+                onChange={(e) => setForm({ ...form, filter: e.target.value })}
+                className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
+              >
+                {filters
+                  .filter((f) => f.id !== "All")
+                  .map((f) => (
+                    <option key={f.id} value={f.id}>
+                      {localizedValue(f.label, "en") || f.id}
+                    </option>
+                  ))}
+              </select>
             </label>
             <div className="flex justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setModal(null)}
-                className="rounded-lg border px-4 py-2 text-sm"
+                className="rounded-lg border border-[#E2E5EA] px-4 py-2 text-sm font-semibold"
               >
                 Cancel
               </button>
@@ -409,6 +511,6 @@ export default function AdminGalleryPage() {
           </form>
         </div>
       )}
-    </AdminShell>
+    </>
   );
 }

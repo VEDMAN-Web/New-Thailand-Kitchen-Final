@@ -20,7 +20,6 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
-import AdminShell from "@/components/AdminShell";
 import MediaUpload from "@/components/MediaUpload";
 import { useAdminAuth } from "@/lib/AdminAuthContext";
 import {
@@ -566,8 +565,8 @@ export default function AdminBlogsPage() {
   };
 
   return (
-    <AdminShell title="Blog Content Manager">
-      <div className="space-y-5">
+    <>
+    <div className="space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-3">
             <div className="relative w-[320px] max-w-full">
@@ -1309,6 +1308,6 @@ export default function AdminBlogsPage() {
           </div>
         </div>
       ) : null}
-    </AdminShell>
+    </>
   );
 }

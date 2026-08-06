@@ -13,7 +13,6 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
-import AdminShell from "@/components/AdminShell";
 import { useAdminAuth } from "@/lib/AdminAuthContext";
 import {
   createProduct,
@@ -23,57 +22,80 @@ import {
   type ProductItem,
 } from "@/services/adminAPI";
 import MediaUpload from "@/components/MediaUpload";
+import LocaleTabs from "@/components/LocaleTabs";
+import {
+  asLocalizedForm,
+  emptyLocalized,
+  localizedValue,
+  writeLocalized,
+  type LocaleCode,
+  type LocalizedText,
+} from "@/lib/localized";
 
-type FeatureHighlight = { title: string; description: string };
+type FeatureHighlight = { title: LocalizedText; description: LocalizedText };
 
 type ProductForm = {
-  title: string;
+  title: LocalizedText;
   slug: string;
-  subtitle: string;
-  productType: string;
-  sectionTag: string;
-  description: string;
+  subtitle: LocalizedText;
+  productType: LocalizedText;
+  sectionTag: LocalizedText;
+  description: LocalizedText;
   image: string;
   icon: string;
   gallery: string[];
   pdfUrl: string;
-  category: string;
+  category: LocalizedText;
   featureHighlights: FeatureHighlight[];
   featured: boolean;
+  finish: LocalizedText;
+  material: LocalizedText;
+  style: LocalizedText;
+  color: LocalizedText;
 };
 
 const DEFAULT_FEATURE_HIGHLIGHTS: FeatureHighlight[] = [
   {
-    title: "Matte Obsidian Finish",
-    description:
-      "A deep, light-absorbing lacquer that keeps surfaces calm and fingerprints discreet in daily living.",
+    title: asLocalizedForm("Matte Obsidian Finish"),
+    description: asLocalizedForm(
+      "A deep, light-absorbing lacquer that keeps surfaces calm and fingerprints discreet in daily living."
+    ),
   },
   {
-    title: "Artisanal Gold Hardware",
-    description:
-      "Hand-finished pulls and hinges that catch soft light and complete the dark timber silhouette.",
+    title: asLocalizedForm("Artisanal Gold Hardware"),
+    description: asLocalizedForm(
+      "Hand-finished pulls and hinges that catch soft light and complete the dark timber silhouette."
+    ),
   },
   {
-    title: "Imperial Marble Worktops",
-    description:
-      "Thick stone slabs with natural veining, sealed for lasting kitchen use and a quiet luxury feel.",
+    title: asLocalizedForm("Imperial Marble Worktops"),
+    description: asLocalizedForm(
+      "Thick stone slabs with natural veining, sealed for lasting kitchen use and a quiet luxury feel."
+    ),
   },
 ];
 
 const empty: ProductForm = {
-  title: "",
+  title: emptyLocalized(),
   slug: "",
-  subtitle: "",
-  productType: "",
-  sectionTag: "",
-  description: "",
+  subtitle: emptyLocalized(),
+  productType: emptyLocalized(),
+  sectionTag: emptyLocalized(),
+  description: emptyLocalized(),
   image: "/products/Kitchen2.png",
   icon: "",
   gallery: ["", ""],
   pdfUrl: "",
-  category: "",
-  featureHighlights: DEFAULT_FEATURE_HIGHLIGHTS.map((h) => ({ ...h })),
+  category: emptyLocalized(),
+  featureHighlights: DEFAULT_FEATURE_HIGHLIGHTS.map((h) => ({
+    title: asLocalizedForm(h.title),
+    description: asLocalizedForm(h.description),
+  })),
   featured: false,
+  finish: emptyLocalized(),
+  material: emptyLocalized(),
+  style: emptyLocalized(),
+  color: emptyLocalized(),
 };
 
 export default function AdminProductsPage() {
@@ -87,6 +109,7 @@ export default function AdminProductsPage() {
   const [saveArmed, setSaveArmed] = useState(false);
   const [query, setQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All categories");
+  const [locale, setLocale] = useState<LocaleCode>("en");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -109,37 +132,52 @@ export default function AdminProductsPage() {
     setEditing(null);
     setStep(1);
     setSaveArmed(false);
+    setLocale("en");
     setModal("create");
   };
 
   const openEdit = (item: ProductItem) => {
     const highlights = (item.featureHighlights || [])
       .map((h) => ({
-        title: h.title || "",
-        description: h.description || "",
+        title: asLocalizedForm(h.title),
+        description: asLocalizedForm(h.description),
       }))
-      .filter((h) => h.title.trim() || h.description.trim());
-    const gallery = (item.gallery || []).map((s) => String(s || "").trim()).filter(Boolean);
+      .filter(
+        (h) =>
+          localizedValue(h.title, "en").trim() ||
+          localizedValue(h.description, "en").trim()
+      );
+    const gallery = (item.gallery || [])
+      .map((s) => String(s || "").trim())
+      .filter(Boolean);
     setEditing(item);
     setForm({
-      title: item.title,
+      title: asLocalizedForm(item.title),
       slug: item.slug,
-      subtitle: item.subtitle || "",
-      productType: item.productType || "",
-      sectionTag: item.sectionTag || "",
-      description: item.description,
+      subtitle: asLocalizedForm(item.subtitle),
+      productType: asLocalizedForm(item.productType),
+      sectionTag: asLocalizedForm(item.sectionTag),
+      description: asLocalizedForm(item.description),
       image: item.image,
       icon: item.icon || "",
       gallery: gallery.length ? gallery : ["", ""],
       pdfUrl: item.pdfUrl || "",
-      category: item.category,
+      category: asLocalizedForm(item.category),
       featureHighlights: highlights.length
         ? highlights
-        : DEFAULT_FEATURE_HIGHLIGHTS.map((h) => ({ ...h })),
+        : DEFAULT_FEATURE_HIGHLIGHTS.map((h) => ({
+            title: asLocalizedForm(h.title),
+            description: asLocalizedForm(h.description),
+          })),
       featured: item.featured,
+      finish: asLocalizedForm(item.finish),
+      material: asLocalizedForm(item.material),
+      style: asLocalizedForm(item.style),
+      color: asLocalizedForm(item.color),
     });
     setStep(1);
     setSaveArmed(false);
+    setLocale("en");
     setModal("edit");
   };
 
@@ -152,17 +190,20 @@ export default function AdminProductsPage() {
   const validateStep = (target: 1 | 2 | 3) => {
     if (target === 2) {
       if (
-        !form.title.trim() ||
-        !form.subtitle.trim() ||
-        !form.productType.trim() ||
-        !form.category.trim()
+        !localizedValue(form.title, "en").trim() ||
+        !localizedValue(form.subtitle, "en").trim() ||
+        !localizedValue(form.productType, "en").trim() ||
+        !localizedValue(form.category, "en").trim()
       ) {
         toast.error("Please fill all required fields in Product Identity");
         return false;
       }
     }
     if (target === 3) {
-      if (!form.sectionTag.trim() || !form.description.trim()) {
+      if (
+        !localizedValue(form.sectionTag, "en").trim() ||
+        !localizedValue(form.description, "en").trim()
+      ) {
         toast.error("Please complete Overview Section before next step");
         return false;
       }
@@ -219,25 +260,33 @@ export default function AdminProductsPage() {
 
     const featureHighlights: FeatureHighlight[] = form.featureHighlights
       .map((f) => ({
-        title: f.title.trim(),
-        description: f.description.trim(),
+        title: asLocalizedForm(f.title),
+        description: asLocalizedForm(f.description),
       }))
-      .filter((f) => f.title || f.description);
+      .filter(
+        (f) =>
+          localizedValue(f.title, "en").trim() ||
+          localizedValue(f.description, "en").trim()
+      );
 
     const payload = {
-      title: form.title,
-      slug: form.slug,
-      subtitle: form.subtitle,
-      productType: form.productType,
-      sectionTag: form.sectionTag,
-      description: form.description,
+      title: asLocalizedForm(form.title),
+      slug: form.slug || localizedValue(form.title, "en"),
+      subtitle: asLocalizedForm(form.subtitle),
+      productType: asLocalizedForm(form.productType),
+      sectionTag: asLocalizedForm(form.sectionTag),
+      description: asLocalizedForm(form.description),
       image: form.image,
       icon: form.icon,
       gallery: form.gallery.map((s) => s.trim()).filter(Boolean),
       pdfUrl: form.pdfUrl,
       featureHighlights,
-      category: form.category,
+      category: asLocalizedForm(form.category),
       featured: form.featured,
+      finish: asLocalizedForm(form.finish),
+      material: asLocalizedForm(form.material),
+      style: asLocalizedForm(form.style),
+      color: asLocalizedForm(form.color),
     };
     try {
       if (modal === "create") {
@@ -255,7 +304,7 @@ export default function AdminProductsPage() {
   };
 
   const onDelete = async (item: ProductItem) => {
-    if (!confirm(`Delete "${item.title}"?`)) return;
+    if (!confirm(`Delete "${localizedValue(item.title, "en")}"?`)) return;
     try {
       await deleteProduct(siteId, item._id);
       toast.success("Deleted");
@@ -268,7 +317,8 @@ export default function AdminProductsPage() {
   const categories = useMemo(() => {
     const set = new Set<string>();
     for (const item of items) {
-      if (item.category?.trim()) set.add(item.category.trim());
+      const cat = localizedValue(item.category, "en").trim();
+      if (cat) set.add(cat);
     }
     return ["All categories", ...Array.from(set)];
   }, [items]);
@@ -276,21 +326,25 @@ export default function AdminProductsPage() {
   const filteredItems = useMemo(() => {
     const q = query.trim().toLowerCase();
     return items.filter((item) => {
+      const title = localizedValue(item.title, "en").toLowerCase();
+      const subtitle = localizedValue(item.subtitle, "en").toLowerCase();
+      const productType = localizedValue(item.productType, "en").toLowerCase();
+      const category = localizedValue(item.category, "en");
       const matchesQuery =
         !q ||
-        item.title.toLowerCase().includes(q) ||
+        title.includes(q) ||
         item.slug.toLowerCase().includes(q) ||
-        (item.subtitle || "").toLowerCase().includes(q) ||
-        (item.productType || "").toLowerCase().includes(q);
+        subtitle.includes(q) ||
+        productType.includes(q);
       const matchesCategory =
-        categoryFilter === "All categories" || item.category === categoryFilter;
+        categoryFilter === "All categories" || category === categoryFilter;
       return matchesQuery && matchesCategory;
     });
   }, [items, query, categoryFilter]);
 
   return (
-    <AdminShell title="Product Inventory">
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+    <>
+    <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative w-[270px]">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9CA3AF]" />
@@ -344,7 +398,7 @@ export default function AdminProductsPage() {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={item.image || "/products/Kitchen1.png"}
-                    alt={item.title}
+                    alt={localizedValue(item.title, "en")}
                     className="h-full w-full object-cover"
                     onError={(e) => {
                       const el = e.currentTarget;
@@ -354,23 +408,27 @@ export default function AdminProductsPage() {
                     }}
                   />
                   <span className="absolute left-2 top-2 rounded-md bg-white px-2 py-1 text-[10px] font-semibold text-[#475569]">
-                    {item.category || "Kitchen Layouts"}
+                    {localizedValue(item.category, "en") || "Kitchen Layouts"}
                   </span>
                 </div>
                 <div className="space-y-2 p-4">
                   <h3 className="line-clamp-2 text-base font-semibold text-[#1A2332]">
-                    {item.title}
+                    {localizedValue(item.title, "en")}
                   </h3>
                   <p className="line-clamp-1 text-sm text-[#64748B]">
-                    {item.subtitle || item.productType || "—"}
+                    {localizedValue(item.subtitle, "en") ||
+                      localizedValue(item.productType, "en") ||
+                      "—"}
                   </p>
                   <div className="flex items-center gap-2">
                     <span className="rounded-full bg-[#EEF2F7] px-2 py-0.5 text-xs text-[#475569]">
-                      {item.productType || "—"}
+                      {localizedValue(item.productType, "en") || "—"}
                     </span>
                     <span className="text-[11px] text-[#9CA3AF]">Updated recently</span>
                   </div>
-                  <p className="line-clamp-2 text-xs text-[#475569]">{item.description || "—"}</p>
+                  <p className="line-clamp-2 text-xs text-[#475569]">
+                    {localizedValue(item.description, "en") || "—"}
+                  </p>
                   <div className="flex justify-end gap-1 pt-1">
                     <button
                       type="button"
@@ -400,10 +458,18 @@ export default function AdminProductsPage() {
             onSubmit={onSubmit}
             className="w-full max-w-5xl bg-white rounded-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto"
           >
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="font-bold text-lg">
-                {modal === "create" ? "Add Product" : "Edit Product"}
-              </h3>
+            <div className="flex justify-between items-center mb-2 gap-3">
+              <div>
+                <h3 className="font-bold text-lg">
+                  {modal === "create" ? "Add Product" : "Edit Product"}
+                </h3>
+                <p className="text-xs text-[#94A3B8] mt-1">
+                  Switch language to edit Thai or Polish copy.
+                </p>
+                <div className="mt-2">
+                  <LocaleTabs locale={locale} onChange={setLocale} />
+                </div>
+              </div>
               <button type="button" onClick={closeModal}>
                 <X className="w-5 h-5" />
               </button>
@@ -444,8 +510,8 @@ export default function AdminProductsPage() {
                       Product Name *
                       <input
                         required
-                        value={form.title}
-                        onChange={(e) => setForm({ ...form, title: e.target.value })}
+                        value={localizedValue(form.title, locale)}
+                        onChange={(e) => setForm({ ...form, title: writeLocalized(form.title, locale, e.target.value) })}
                         className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
                       />
                     </label>
@@ -453,8 +519,8 @@ export default function AdminProductsPage() {
                       Subtitle / Tagline *
                       <input
                         required
-                        value={form.subtitle}
-                        onChange={(e) => setForm({ ...form, subtitle: e.target.value })}
+                        value={localizedValue(form.subtitle, locale)}
+                        onChange={(e) => setForm({ ...form, subtitle: writeLocalized(form.subtitle, locale, e.target.value) })}
                         className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
                       />
                     </label>
@@ -469,8 +535,8 @@ export default function AdminProductsPage() {
                       Product Type *
                       <input
                         required
-                        value={form.productType}
-                        onChange={(e) => setForm({ ...form, productType: e.target.value })}
+                        value={localizedValue(form.productType, locale)}
+                        onChange={(e) => setForm({ ...form, productType: writeLocalized(form.productType, locale, e.target.value) })}
                         placeholder="e.g. U Shape, L Shape"
                         className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
                       />
@@ -479,8 +545,8 @@ export default function AdminProductsPage() {
                       Category *
                       <input
                         required
-                        value={form.category}
-                        onChange={(e) => setForm({ ...form, category: e.target.value })}
+                        value={localizedValue(form.category, locale)}
+                        onChange={(e) => setForm({ ...form, category: writeLocalized(form.category, locale, e.target.value) })}
                         className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
                       />
                     </label>
@@ -515,6 +581,52 @@ export default function AdminProductsPage() {
                   previewSize="sm"
                   clearable
                 />
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <label className="block text-xs font-semibold text-[#5C6370]">
+                    Finish
+                    <input
+                      value={localizedValue(form.finish, locale)}
+                      onChange={(e) =>
+                        setForm({ ...form, finish: writeLocalized(form.finish, locale, e.target.value) })
+                      }
+                      placeholder="e.g. Matte lacquer"
+                      className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
+                    />
+                  </label>
+                  <label className="block text-xs font-semibold text-[#5C6370]">
+                    Material
+                    <input
+                      value={localizedValue(form.material, locale)}
+                      onChange={(e) =>
+                        setForm({ ...form, material: writeLocalized(form.material, locale, e.target.value) })
+                      }
+                      placeholder="e.g. Oak veneer"
+                      className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
+                    />
+                  </label>
+                  <label className="block text-xs font-semibold text-[#5C6370]">
+                    Style
+                    <input
+                      value={localizedValue(form.style, locale)}
+                      onChange={(e) =>
+                        setForm({ ...form, style: writeLocalized(form.style, locale, e.target.value) })
+                      }
+                      placeholder="e.g. Contemporary"
+                      className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
+                    />
+                  </label>
+                  <label className="block text-xs font-semibold text-[#5C6370]">
+                    Color
+                    <input
+                      value={localizedValue(form.color, locale)}
+                      onChange={(e) =>
+                        setForm({ ...form, color: writeLocalized(form.color, locale, e.target.value) })
+                      }
+                      placeholder="e.g. Black"
+                      className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
+                    />
+                  </label>
+                </div>
               </div>
             ) : null}
 
@@ -523,8 +635,8 @@ export default function AdminProductsPage() {
                 <label className="block text-xs font-semibold text-[#5C6370]">
                   Section Subhead / Series Tag *
                   <input
-                    value={form.sectionTag}
-                    onChange={(e) => setForm({ ...form, sectionTag: e.target.value })}
+                    value={localizedValue(form.sectionTag, locale)}
+                    onChange={(e) => setForm({ ...form, sectionTag: writeLocalized(form.sectionTag, locale, e.target.value) })}
                     className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
                   />
                 </label>
@@ -532,8 +644,8 @@ export default function AdminProductsPage() {
                   Detailed Description *
                   <textarea
                     rows={5}
-                    value={form.description}
-                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                    value={localizedValue(form.description, locale)}
+                    onChange={(e) => setForm({ ...form, description: writeLocalized(form.description, locale, e.target.value) })}
                     className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
                   />
                 </label>
@@ -617,10 +729,17 @@ export default function AdminProductsPage() {
                       <label className="block text-xs font-semibold text-[#5C6370]">
                         Title
                         <input
-                          value={feature.title}
+                          value={localizedValue(feature.title, locale)}
                           onChange={(e) => {
                             const next = [...form.featureHighlights];
-                            next[index] = { ...feature, title: e.target.value };
+                            next[index] = {
+                              ...feature,
+                              title: writeLocalized(
+                                feature.title,
+                                locale,
+                                e.target.value
+                              ),
+                            };
                             setForm({ ...form, featureHighlights: next });
                           }}
                           placeholder="e.g. Matte Obsidian Finish"
@@ -631,10 +750,17 @@ export default function AdminProductsPage() {
                         Description
                         <textarea
                           rows={3}
-                          value={feature.description}
+                          value={localizedValue(feature.description, locale)}
                           onChange={(e) => {
                             const next = [...form.featureHighlights];
-                            next[index] = { ...feature, description: e.target.value };
+                            next[index] = {
+                              ...feature,
+                              description: writeLocalized(
+                                feature.description,
+                                locale,
+                                e.target.value
+                              ),
+                            };
                             setForm({ ...form, featureHighlights: next });
                           }}
                           placeholder="Short description shown under the title"
@@ -760,6 +886,6 @@ export default function AdminProductsPage() {
           </form>
         </div>
       )}
-    </AdminShell>
+    </>
   );
 }

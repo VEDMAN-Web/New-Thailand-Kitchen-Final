@@ -105,12 +105,92 @@ function unwrapApiList<T>(body: unknown): T[] {
 }
 
 export async function getVarsoviaSite() {
-  const { data } = await varsoviaApi.get("/site");
+  const { data } = await varsoviaApi.get("/site", { params: { cms: 1 } });
   return unwrapApiData<Record<string, unknown>>(data);
 }
 
+/** Only keys accepted by Varsovia `siteUpdate` schema — drops dead admin-only fields. */
+const SITE_UPDATE_KEYS = [
+  "heroEyebrow",
+  "heroHeadline",
+  "heroSubtitle",
+  "heroPrimaryCtaLabel",
+  "heroSecondaryCtaLabel",
+  "heroImage",
+  "heroPrimaryCtaHref",
+  "heroSecondaryCtaHref",
+  "aboutTitle",
+  "aboutText",
+  "aboutIntro",
+  "aboutStory",
+  "aboutHeroSubtitle",
+  "aboutImages",
+  "aboutStoryImages",
+  "brandLogoMark",
+  "brandLogoMarkOnDark",
+  "brandLogoLockup",
+  "brandLogoLockupOnDark",
+  "brandWordmarkLine1",
+  "brandWordmarkLine2",
+  "stats",
+  "statsImage",
+  "vision",
+  "mission",
+  "values",
+  "processSteps",
+  "designTools",
+  "teamPage",
+  "localeFlags",
+  "contactImages",
+  "footerBio",
+  "phone",
+  "email",
+  "address",
+  "mobileWhatsapp",
+  "contactPhone",
+  "facebookUrl",
+  "whatsappUrl",
+  "instagramUrl",
+  "xUrl",
+  "footerOffices",
+  "sectionCopy",
+  "searchPages",
+  "navMenus",
+  "qualitySale",
+  "showcaseMeta",
+  "interiorCatalogMode",
+  "inquiryForm",
+  "mainNavigation",
+  "footerNavigation",
+] as const;
+
+export function pickVarsoviaSiteUpdate(body: Record<string, unknown>) {
+  const out: Record<string, unknown> = {};
+  for (const key of SITE_UPDATE_KEYS) {
+    if (body[key] !== undefined) out[key] = body[key];
+  }
+  // Normalize process step icons (legacy admin used `image`)
+  if (Array.isArray(out.processSteps)) {
+    out.processSteps = (out.processSteps as Record<string, unknown>[]).map((step) => {
+      const icon =
+        typeof step.icon === "string" && step.icon
+          ? step.icon
+          : typeof step.image === "string"
+            ? step.image
+            : "";
+      const { image: _image, ...rest } = step;
+      return { ...rest, icon };
+    });
+  }
+  // Empty email fails Zod .email() — omit blank
+  if (typeof out.email === "string" && !out.email.trim()) {
+    delete out.email;
+  }
+  return out;
+}
+
 export async function updateVarsoviaSite(body: Record<string, unknown>) {
-  const { data } = await varsoviaApi.put("/site", body);
+  const { data } = await varsoviaApi.put("/site", pickVarsoviaSiteUpdate(body));
   return unwrapApiData<Record<string, unknown>>(data);
 }
 

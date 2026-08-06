@@ -1,10 +1,9 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
-import { FolderOpen, Pencil, Plus, Search, Trash2, X } from "lucide-react";
+import { HelpCircle, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import LocaleTabs from "@/components/LocaleTabs";
-import MediaUpload from "@/components/MediaUpload";
 import { useAdminAuth } from "@/lib/AdminAuthContext";
 import {
   asLocalizedForm,
@@ -15,42 +14,40 @@ import {
   type LocalizedText,
 } from "@/lib/localized";
 import {
-  createCategory,
-  deleteCategory,
-  listCategories,
-  updateCategory,
-  type CategoryItem,
+  createFaq,
+  deleteFaq,
+  listFaqs,
+  updateFaq,
+  type FaqCmsItem,
 } from "@/services/adminAPI";
 
-type CategoryForm = {
-  title: LocalizedText;
-  description: LocalizedText;
-  image: string;
-  icon: string;
+type FaqForm = {
+  question: LocalizedText;
+  answer: LocalizedText;
+  sortOrder: number;
 };
 
-export default function AdminCategoriesPage() {
+export default function AdminFaqsPage() {
   const { siteId } = useAdminAuth();
-  const [items, setItems] = useState<CategoryItem[]>([]);
+  const [items, setItems] = useState<FaqCmsItem[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<"create" | "edit" | null>(null);
-  const [editing, setEditing] = useState<CategoryItem | null>(null);
+  const [editing, setEditing] = useState<FaqCmsItem | null>(null);
   const [locale, setLocale] = useState<LocaleCode>("en");
-  const [form, setForm] = useState<CategoryForm>({
-    title: emptyLocalized(),
-    description: emptyLocalized(),
-    image: "",
-    icon: "",
+  const [form, setForm] = useState<FaqForm>({
+    question: emptyLocalized(),
+    answer: emptyLocalized(),
+    sortOrder: 0,
   });
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await listCategories(siteId);
+      const res = await listFaqs(siteId);
       setItems(res.items || []);
     } catch {
-      toast.error("Failed to load categories");
+      toast.error("Failed to load FAQs");
     } finally {
       setLoading(false);
     }
@@ -64,31 +61,29 @@ export default function AdminCategoriesPage() {
     const q = query.trim().toLowerCase();
     if (!q) return items;
     return items.filter((i) => {
-      const title = localizedValue(i.title, "en").toLowerCase();
-      const description = localizedValue(i.description, "en").toLowerCase();
-      return title.includes(q) || description.includes(q);
+      const question = localizedValue(i.question, "en").toLowerCase();
+      const answer = localizedValue(i.answer, "en").toLowerCase();
+      return question.includes(q) || answer.includes(q);
     });
   }, [items, query]);
 
   const openCreate = () => {
     setForm({
-      title: emptyLocalized(),
-      description: emptyLocalized(),
-      image: "/products/Kitchen2.png",
-      icon: "",
+      question: emptyLocalized(),
+      answer: emptyLocalized(),
+      sortOrder: items.length + 1,
     });
     setEditing(null);
     setLocale("en");
     setModal("create");
   };
 
-  const openEdit = (item: CategoryItem) => {
+  const openEdit = (item: FaqCmsItem) => {
     setEditing(item);
     setForm({
-      title: asLocalizedForm(item.title),
-      description: asLocalizedForm(item.description),
-      image: item.image,
-      icon: item.icon || "",
+      question: asLocalizedForm(item.question),
+      answer: asLocalizedForm(item.answer),
+      sortOrder: Number(item.sortOrder) || 0,
     });
     setLocale("en");
     setModal("edit");
@@ -96,23 +91,17 @@ export default function AdminCategoriesPage() {
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!localizedValue(form.title, "en").trim()) {
-      toast.error("English title is required");
+    if (!localizedValue(form.question, "en").trim()) {
+      toast.error("English question is required");
       return;
     }
     try {
-      const payload = {
-        title: asLocalizedForm(form.title),
-        description: asLocalizedForm(form.description),
-        image: form.image,
-        icon: form.icon,
-      };
       if (modal === "create") {
-        await createCategory(siteId, payload);
-        toast.success("Category created");
+        await createFaq(siteId, form);
+        toast.success("FAQ created");
       } else if (editing) {
-        await updateCategory(siteId, editing._id, payload);
-        toast.success("Category updated");
+        await updateFaq(siteId, editing._id, form);
+        toast.success("FAQ updated");
       }
       setModal(null);
       await load();
@@ -121,11 +110,11 @@ export default function AdminCategoriesPage() {
     }
   };
 
-  const onDelete = async (item: CategoryItem) => {
-    const label = localizedValue(item.title, "en");
-    if (!confirm(`Delete category “${label}”?`)) return;
+  const onDelete = async (item: FaqCmsItem) => {
+    const label = localizedValue(item.question, "en").slice(0, 60);
+    if (!confirm(`Delete FAQ “${label}”?`)) return;
     try {
-      await deleteCategory(siteId, item._id);
+      await deleteFaq(siteId, item._id);
       toast.success("Deleted");
       await load();
     } catch {
@@ -142,7 +131,7 @@ export default function AdminCategoriesPage() {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search categories…"
+              placeholder="Search FAQs…"
               className="w-full rounded-xl border border-[#E2E5EA] bg-white pl-10 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A2332]/15"
             />
           </div>
@@ -152,37 +141,38 @@ export default function AdminCategoriesPage() {
             className="inline-flex items-center gap-2 rounded-xl bg-[#1A2332] text-white px-4 py-2.5 text-sm font-semibold"
           >
             <Plus className="w-4 h-4" />
-            Add Category
+            Add FAQ
           </button>
         </div>
 
         <p className="text-xs text-[#6B7280]">
-          Edit English / Thai / Polish category labels like Varsovia.
+          Edit English / Thai / Polish like Varsovia. Dedicated FAQs power the
+          public <code>/faq</code> page.
         </p>
 
         {loading ? (
           <p className="text-sm text-[#6B7280]">Loading…</p>
         ) : filtered.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-[#E2E5EA] bg-white p-12 text-center">
-            <FolderOpen className="w-8 h-8 text-[#9CA3AF] mx-auto mb-3" />
-            <p className="text-sm text-[#6B7280]">No categories yet</p>
+            <HelpCircle className="w-8 h-8 text-[#9CA3AF] mx-auto mb-3" />
+            <p className="text-sm text-[#6B7280]">No FAQs yet</p>
           </div>
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="space-y-3">
             {filtered.map((item) => (
               <div
                 key={item._id}
-                className="rounded-2xl border border-[#E8EAED] bg-white p-4 flex gap-3"
+                className="rounded-2xl border border-[#E8EAED] bg-white p-5 flex gap-4 justify-between"
               >
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0">
                   <p className="font-semibold text-[#1A2332]">
-                    {localizedValue(item.title, "en")}
+                    {localizedValue(item.question, "en")}
                   </p>
                   <p className="mt-1 text-sm text-[#6B7280] line-clamp-2">
-                    {localizedValue(item.description, "en")}
+                    {localizedValue(item.answer, "en")}
                   </p>
                 </div>
-                <div className="flex flex-col gap-1 shrink-0">
+                <div className="flex gap-2 shrink-0">
                   <button
                     type="button"
                     onClick={() => openEdit(item)}
@@ -212,7 +202,7 @@ export default function AdminCategoriesPage() {
           >
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-lg font-semibold text-[#1A2332]">
-                {modal === "create" ? "Add Category" : "Edit Category"}
+                {modal === "create" ? "Add FAQ" : "Edit FAQ"}
               </h2>
               <button type="button" onClick={() => setModal(null)}>
                 <X className="w-5 h-5 text-[#6B7280]" />
@@ -221,14 +211,14 @@ export default function AdminCategoriesPage() {
             <LocaleTabs locale={locale} onChange={setLocale} />
             <div>
               <label className="block text-xs font-semibold text-[#5C6370] mb-1.5">
-                Title ({locale.toUpperCase()})
+                Question ({locale.toUpperCase()})
               </label>
               <input
-                value={localizedValue(form.title, locale)}
+                value={localizedValue(form.question, locale)}
                 onChange={(e) =>
                   setForm((f) => ({
                     ...f,
-                    title: writeLocalized(f.title, locale, e.target.value),
+                    question: writeLocalized(f.question, locale, e.target.value),
                   }))
                 }
                 className="w-full rounded-lg border border-[#E2E5EA] px-3.5 py-2.5 text-sm"
@@ -237,30 +227,36 @@ export default function AdminCategoriesPage() {
             </div>
             <div>
               <label className="block text-xs font-semibold text-[#5C6370] mb-1.5">
-                Description ({locale.toUpperCase()})
+                Answer ({locale.toUpperCase()})
               </label>
               <textarea
-                rows={3}
-                value={localizedValue(form.description, locale)}
+                rows={5}
+                value={localizedValue(form.answer, locale)}
                 onChange={(e) =>
                   setForm((f) => ({
                     ...f,
-                    description: writeLocalized(
-                      f.description,
-                      locale,
-                      e.target.value
-                    ),
+                    answer: writeLocalized(f.answer, locale, e.target.value),
                   }))
                 }
                 className="w-full rounded-lg border border-[#E2E5EA] px-3.5 py-2.5 text-sm resize-y"
               />
             </div>
-            <MediaUpload
-              label="Image"
-              kind="image"
-              value={form.image}
-              onChange={(v) => setForm((f) => ({ ...f, image: v }))}
-            />
+            <div>
+              <label className="block text-xs font-semibold text-[#5C6370] mb-1.5">
+                Sort order
+              </label>
+              <input
+                type="number"
+                value={form.sortOrder}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    sortOrder: Number(e.target.value) || 0,
+                  }))
+                }
+                className="w-full rounded-lg border border-[#E2E5EA] px-3.5 py-2.5 text-sm"
+              />
+            </div>
             <div className="flex justify-end gap-2 pt-2">
               <button
                 type="button"
