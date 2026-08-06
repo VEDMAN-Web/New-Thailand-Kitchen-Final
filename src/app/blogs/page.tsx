@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   BookOpen,
   Calendar,
@@ -382,8 +382,7 @@ export default function AdminBlogsPage() {
     });
   };
 
-  const onSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const saveBlog = async () => {
     if (!validateStep(2) || !validateStep(3)) return;
 
     const bodySections = form.bodySections
@@ -752,10 +751,7 @@ export default function AdminBlogsPage() {
 
       {modal && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <form
-            onSubmit={onSubmit}
-            className="w-full max-w-4xl bg-white rounded-2xl p-6 space-y-4 max-h-[92vh] overflow-y-auto"
-          >
+          <div className="w-full max-w-4xl bg-white rounded-2xl p-6 space-y-4 max-h-[92vh] overflow-y-auto">
             <div className="flex justify-between items-center">
               <h3 className="font-bold text-lg">
                 {modal === "create"
@@ -1190,7 +1186,8 @@ export default function AdminBlogsPage() {
                   </button>
                 ) : (
                   <button
-                    type="submit"
+                    type="button"
+                    onClick={() => void saveBlog()}
                     className="rounded-lg bg-[#1A2332] text-white px-4 py-2 text-sm font-semibold"
                   >
                     {modal === "create" ? "Create Blog" : "Save Blog"}
@@ -1198,7 +1195,7 @@ export default function AdminBlogsPage() {
                 )}
               </div>
             </div>
-          </form>
+          </div>
         </div>
       )}
 

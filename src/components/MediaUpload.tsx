@@ -72,6 +72,25 @@ export default function MediaUpload({
     }
   };
 
+  // Resolve preview URL: handle absolute URLs, /uploads proxy, and relative public assets
+  const resolvePreviewUrl = (url: string): string => {
+    if (!url) return "";
+    const trimmed = url.trim();
+    
+    // Already absolute URL — use as-is
+    if (/^https?:\/\//i.test(trimmed)) {
+      return trimmed;
+    }
+    
+    // Relative paths (starting with /) are now served via next.config.ts rewrites:
+    // - /uploads/* → backend uploads folder
+    // - /brandLogo/*, /products/*, /blog/*, etc. → frontend public folder
+    // So we can use them directly as same-origin paths in the admin panel
+    return trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+  };
+
+  const previewUrl = resolvePreviewUrl(value);
+
   const previewClass =
     previewSize === "lg"
       ? "mt-2 w-full max-h-72 rounded-xl border border-[#E8EAED] object-contain bg-[#F8FAFC]"
@@ -125,12 +144,16 @@ export default function MediaUpload({
         />
       </div>
       {hint ? <p className="mt-1 text-[11px] text-[#9CA3AF]">{hint}</p> : null}
-      {value && kind !== "pdf" ? (
+      {previewUrl && kind !== "pdf" ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={value}
+          src={previewUrl}
           alt=""
           className={clsx(previewClass)}
+          onError={(e) => {
+            // Fallback: if preview fails, hide the broken image
+            e.currentTarget.style.display = "none";
+          }}
         />
       ) : null}
       {value && kind === "pdf" ? (

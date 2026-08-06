@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   CheckCircle2,
   ChevronDown,
@@ -191,20 +191,16 @@ export default function AdminProductsPage() {
     if (target === 2) {
       if (
         !localizedValue(form.title, "en").trim() ||
-        !localizedValue(form.subtitle, "en").trim() ||
         !localizedValue(form.productType, "en").trim() ||
         !localizedValue(form.category, "en").trim()
       ) {
-        toast.error("Please fill all required fields in Product Identity");
+        toast.error("Please fill all required fields in Product Identity (Name, Type, Category)");
         return false;
       }
     }
     if (target === 3) {
-      if (
-        !localizedValue(form.sectionTag, "en").trim() ||
-        !localizedValue(form.description, "en").trim()
-      ) {
-        toast.error("Please complete Overview Section before next step");
+      if (!localizedValue(form.description, "en").trim()) {
+        toast.error("Please add a Detailed Description before continuing");
         return false;
       }
     }
@@ -247,12 +243,7 @@ export default function AdminProductsPage() {
     }
   };
 
-  // Form submit must never save: "Next Step" and "Save" share the same
-  // bottom-right slot, so a single click can mouseup on the new submit button.
-  const onSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    if (step < 3) onNext();
-  };
+  // Navigation is all type="button" — no form submit needed
 
   const saveProduct = async () => {
     if (step !== 3 || !saveArmed) return;
@@ -454,8 +445,7 @@ export default function AdminProductsPage() {
 
       {modal && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <form
-            onSubmit={onSubmit}
+          <div
             className="w-full max-w-5xl bg-white rounded-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto"
           >
             <div className="flex justify-between items-center mb-2 gap-3">
@@ -883,7 +873,7 @@ export default function AdminProductsPage() {
                 </button>
               )}
             </div>
-          </form>
+          </div>
         </div>
       )}
     </>

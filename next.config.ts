@@ -7,6 +7,11 @@ const apiTarget = (
   process.env.BACKEND_URL?.trim() || "http://127.0.0.1:5000"
 ).replace(/\/+$/, "");
 
+// Frontend URL for proxying public static assets (brand logos, product images, etc.)
+const frontendTarget = (
+  process.env.NEXT_PUBLIC_FRONTEND_URL?.trim() || "http://localhost:3000"
+).replace(/\/+$/, "");
+
 // Extra dev hosts (e.g. a rotating ngrok URL), comma-separated in .env.local
 const extraDevOrigins = (process.env.ALLOWED_DEV_ORIGINS || "")
   .split(",")
@@ -47,6 +52,52 @@ const nextConfig: NextConfig = {
       {
         source: "/uploads/:path*",
         destination: `${apiTarget}/uploads/:path*`,
+      },
+      // Proxy frontend public static assets for admin preview
+      // These folders exist in the frontend's /public directory
+      {
+        source: "/brandLogo/:path*",
+        destination: `${frontendTarget}/brandLogo/:path*`,
+      },
+      {
+        source: "/products/:path*",
+        destination: `${frontendTarget}/products/:path*`,
+      },
+      {
+        source: "/blog/:path*",
+        destination: `${frontendTarget}/blog/:path*`,
+      },
+      {
+        source: "/features/:path*",
+        destination: `${frontendTarget}/features/:path*`,
+      },
+      {
+        source: "/catlog/:path*",
+        destination: `${frontendTarget}/catlog/:path*`,
+      },
+      {
+        source: "/slider/:path*",
+        destination: `${frontendTarget}/slider/:path*`,
+      },
+      {
+        source: "/testimonial/:path*",
+        destination: `${frontendTarget}/testimonial/:path*`,
+      },
+      {
+        source: "/product/:path*",
+        destination: `${frontendTarget}/product/:path*`,
+      },
+      {
+        source: "/footer/:path*",
+        destination: `${frontendTarget}/footer/:path*`,
+      },
+      {
+        source: "/icon/:path*",
+        destination: `${frontendTarget}/icon/:path*`,
+      },
+      {
+        source: "/contactUs/:path*",
+        destination: `${frontendTarget}/contactUs/:path*`,
       },
     ];
   },

@@ -5436,6 +5436,12 @@ function FieldControl({
   const wide = field.type === "textarea" || field.type === "json";
 
   if (field.media && field.type !== "boolean" && field.type !== "number") {
+    const urlValue = String(value ?? "").trim();
+    const isPreviewable =
+      Boolean(urlValue) &&
+      field.media !== "pdf" &&
+      !/\.(pdf)$/i.test(urlValue);
+
     return (
       <div className={wide ? "md:col-span-2" : ""}>
         <FieldLabel field={field} />
@@ -5456,6 +5462,23 @@ function FieldControl({
             onUploaded={(url) => onChange(url)}
           />
         </div>
+        {isPreviewable ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={urlValue}
+            alt=""
+            className="mt-2 h-40 w-full max-w-md rounded-lg border border-[#E8EAED] object-contain bg-[#F8FAFC]"
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+            }}
+            onLoad={(e) => {
+              e.currentTarget.style.display = "";
+            }}
+          />
+        ) : null}
+        {urlValue && field.media === "pdf" ? (
+          <p className="mt-2 truncate text-xs text-[#64748B]">{urlValue}</p>
+        ) : null}
       </div>
     );
   }
@@ -5529,6 +5552,12 @@ function SmallInput({
   onChange: (value: string) => void;
   media?: MediaKind;
 }) {
+  const trimmed = value.trim();
+  const isPreviewable =
+    Boolean(trimmed) &&
+    media === "image" &&
+    !/\.(pdf)$/i.test(trimmed);
+
   return (
     <label>
       <span className="mb-1 block text-[11px] font-semibold uppercase text-[#6B7280]">
@@ -5551,6 +5580,20 @@ function SmallInput({
           <InlineUploadButton kind={media} onUploaded={onChange} />
         ) : null}
       </div>
+      {isPreviewable ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={trimmed}
+          alt=""
+          className="mt-2 h-28 w-full rounded-lg border border-[#E8EAED] object-contain bg-[#F8FAFC]"
+          onError={(e) => {
+            e.currentTarget.style.display = "none";
+          }}
+          onLoad={(e) => {
+            e.currentTarget.style.display = "";
+          }}
+        />
+      ) : null}
     </label>
   );
 }
