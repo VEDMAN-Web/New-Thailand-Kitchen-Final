@@ -21,23 +21,29 @@ export default function ProductDetailGallery({ product }: Props) {
   return (
     <section className="pt-12 sm:pt-14 lg:pt-16">
       <div className="group relative w-full h-[280px] sm:h-[380px] md:h-[440px] lg:h-[480px] rounded-[1.75rem] sm:rounded-[2rem] overflow-hidden">
-        {slides.map((slide, index) => (
-          <div
-            key={`${slide.image}-${index}`}
-            className={`absolute inset-0 transition-opacity duration-500 ${
-              index === active ? "opacity-100" : "opacity-0"
-            }`}
-          >
-            <Image
-              src={slide.image}
-              alt={slide.caption}
-              fill
-              priority={index === 0}
-              className="object-cover object-center scale-[1.12] transition-transform duration-[1200ms] ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform group-hover:scale-100"
-              sizes="(max-width: 1152px) 100vw, 1152px"
-            />
-          </div>
-        ))}
+        {slides.map((slide, index) => {
+          const isRemote =
+            slide.image.startsWith("http") ||
+            slide.image.startsWith("/uploads");
+          return (
+            <div
+              key={`${slide.image}-${index}`}
+              className={`absolute inset-0 transition-opacity duration-500 ${
+                index === active ? "opacity-100" : "opacity-0"
+              }`}
+            >
+              <Image
+                src={slide.image}
+                alt={slide.caption}
+                fill
+                priority={index === 0}
+                className="object-cover object-center scale-[1.12] transition-transform duration-[1200ms] ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform group-hover:scale-100"
+                sizes="(max-width: 1152px) 100vw, 1152px"
+                unoptimized={isRemote}
+              />
+            </div>
+          );
+        })}
       </div>
 
       {/* Carousel controls */}

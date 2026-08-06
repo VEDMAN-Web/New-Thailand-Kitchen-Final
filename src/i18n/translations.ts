@@ -13,6 +13,7 @@ export const translations = {
     "nav.english": "English",
     "nav.thai": "Thai",
     "nav.polish": "Polish",
+    "nav.noResults": "No results found",
 
     "home.hero.eyebrow": "Fineline of kitchen",
     "home.hero.title": "Timeless craft of Thai kitchen",
@@ -68,6 +69,7 @@ export const translations = {
     "home.features.3.desc":
       "One passionate team from the first sketch through final installation.",
 
+    "home.catalog.empty": "No catalogues available yet.",
     "home.catalog.eyebrow": "Design Inspiration",
     "home.catalog.title": "Our Latest Catalogue",
     "home.catalog.lockTitle": "Catalogue locked",
@@ -161,6 +163,7 @@ export const translations = {
     "products.card.finish": "Finish",
     "products.card.material": "Material",
     "productDetail.breadcrumb": "Product",
+    "productDetail.narrative.download": "Download brochure",
     "productDetail.contact.eyebrow": "Premium Finishes",
     "productDetail.contact.title": "Contact US",
     "productDetail.contact.formTitle":
@@ -278,6 +281,7 @@ export const translations = {
     "nav.english": "อังกฤษ",
     "nav.thai": "ไทย",
     "nav.polish": "โปแลนด์",
+    "nav.noResults": "ไม่พบผลลัพธ์",
 
     "home.hero.eyebrow": "เส้นบางของครัว",
     "home.hero.title": "งานฝีมือครัวไทยที่เหนือกาลเวลา",
@@ -333,6 +337,7 @@ export const translations = {
     "home.features.3.desc":
       "ทีมเดียวที่หลงใหลในงาน ตั้งแต่ร่างแรกจนติดตั้งเสร็จสมบูรณ์",
 
+    "home.catalog.empty": "ยังไม่มีแคตตาล็อก",
     "home.catalog.eyebrow": "แรงบันดาลใจในการออกแบบ",
     "home.catalog.title": "แคตตาล็อกล่าสุดของเรา",
     "home.catalog.lockTitle": "แคตตาล็อกถูกล็อก",
@@ -425,6 +430,7 @@ export const translations = {
     "products.card.finish": "ผิวสำเร็จ",
     "products.card.material": "วัสดุ",
     "productDetail.breadcrumb": "ผลิตภัณฑ์",
+    "productDetail.narrative.download": "ดาวน์โหลดโบรชัวร์",
     "productDetail.contact.eyebrow": "ผิวสำเร็จพรีเมียม",
     "productDetail.contact.title": "ติดต่อเรา",
     "productDetail.contact.formTitle": "มาออกแบบครัวที่คู่ควรกับเกาะของคุณ",
@@ -540,6 +546,7 @@ export const translations = {
     "nav.english": "Angielski",
     "nav.thai": "Tajski",
     "nav.polish": "Polski",
+    "nav.noResults": "Brak wyników",
 
     "home.hero.eyebrow": "Fine line kuchni",
     "home.hero.title": "Ponadczasowe rzemiosło kuchni tajskiej",
@@ -595,6 +602,7 @@ export const translations = {
     "home.features.3.desc":
       "Jeden zaangażowany zespół od pierwszego szkicu po finalny montaż.",
 
+    "home.catalog.empty": "Brak dostępnych katalogów.",
     "home.catalog.eyebrow": "Inspiracje projektowe",
     "home.catalog.title": "Nasz najnowszy katalog",
     "home.catalog.lockTitle": "Katalog zablokowany",
@@ -689,6 +697,7 @@ export const translations = {
     "products.card.finish": "Wykończenie",
     "products.card.material": "Materiał",
     "productDetail.breadcrumb": "Produkt",
+    "productDetail.narrative.download": "Pobierz broszurę",
     "productDetail.contact.eyebrow": "Wykończenia premium",
     "productDetail.contact.title": "Kontakt",
     "productDetail.contact.formTitle":

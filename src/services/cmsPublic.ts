@@ -171,7 +171,8 @@ function mapCmsProduct(p: CmsProduct, index: number): ProductItem {
     image,
     bestSeller: Boolean(p.featured),
     heroImages,
-    tag: categoryEn || "Collection",
+    // Pass full localized category object so pickCmsText resolves TH/PL in ProductDetailNarrative
+    tag: (p.category as any) || categoryEn || "Collection",
     headline: p.title as any,
     description: (p.description as any) || template.description,
     gallery: galleryImages.map((img) => ({

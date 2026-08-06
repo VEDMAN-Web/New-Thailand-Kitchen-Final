@@ -16,6 +16,8 @@ import {
 } from "../services/cmsPublic";
 import type { ProductItem } from "../component/products/productData";
 
+export type { HomeSections };
+
 type CmsContextValue = {
   sections: HomeSections;
   products: ProductItem[];
@@ -52,15 +54,23 @@ function softSwap(el: HTMLElement | null, commit: () => void) {
   }, 100);
 }
 
-export function CmsProvider({ children }: { children: React.ReactNode }) {
-  const [sections, setSections] = useState<HomeSections>({});
-  const [products, setProducts] = useState<ProductItem[]>([]);
-  const [loading, setLoading] = useState(true);
+export function CmsProvider({
+  children,
+  initialSections,
+  initialProducts,
+}: {
+  children: React.ReactNode;
+  initialSections?: HomeSections;
+  initialProducts?: ProductItem[];
+}) {
+  const [sections, setSections] = useState<HomeSections>(initialSections || {});
+  const [products, setProducts] = useState<ProductItem[]>(initialProducts || []);
+  const [loading, setLoading] = useState(!initialSections && !initialProducts);
   const aliveRef = useRef(true);
   const fadeRef = useRef<HTMLDivElement>(null);
-  const hasDataRef = useRef(false);
-  const sectionsRef = useRef<HomeSections>({});
-  const productsRef = useRef<ProductItem[]>([]);
+  const hasDataRef = useRef(Boolean(initialSections || initialProducts));
+  const sectionsRef = useRef<HomeSections>(initialSections || {});
+  const productsRef = useRef<ProductItem[]>(initialProducts || []);
   const fetchingRef = useRef(false);
 
   const applyData = useCallback(
@@ -115,7 +125,11 @@ export function CmsProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     aliveRef.current = true;
-    void load(true);
+    
+    // If we have initial data, skip the first fetch but still set up polling
+    if (!initialSections && !initialProducts) {
+      void load(true);
+    }
 
     const softRefresh = () => {
       void load(false);
@@ -138,7 +152,7 @@ export function CmsProvider({ children }: { children: React.ReactNode }) {
       document.removeEventListener("visibilitychange", onVisibility);
       window.clearInterval(interval);
     };
-  }, [load]);
+  }, [load, initialSections, initialProducts]);
 
   const refresh = useCallback(async () => {
     await load(false);

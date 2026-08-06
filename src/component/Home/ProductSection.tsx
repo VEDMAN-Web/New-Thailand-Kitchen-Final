@@ -50,6 +50,9 @@ const ProductSection = () => {
           {items.map((product, index) => {
             const isActive = active === index;
             const isIdle = active === null;
+            const isRemote =
+              product.image.startsWith("http") ||
+              product.image.startsWith("/uploads");
 
             return (
               <Link
@@ -74,6 +77,7 @@ const ProductSection = () => {
                       isActive ? "scale-105" : "scale-100"
                     }`}
                     sizes="(max-width: 640px) 100vw, 50vw"
+                    unoptimized={isRemote}
                   />
                 </div>
 

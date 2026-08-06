@@ -6,7 +6,7 @@ import { Cormorant_Garamond, Manrope } from "next/font/google";
 import Providers from "../lib/react-query";
 import Navbar from "../component/navBar";
 import { Toaster } from "sonner";
-import { fetchHomeSections } from "../services/cmsPublic";
+import { fetchHomeSections, fetchMergedProducts } from "../services/cmsPublic";
 import { pickCmsText } from "../lib/cmsText";
 import type { Locale } from "../i18n/translations";
 
@@ -80,6 +80,12 @@ export default async function RootLayout({
   const htmlLang =
     initialLocale === "TH" ? "th" : initialLocale === "PL" ? "pl" : "en";
 
+  // Server-side fetch CMS data to eliminate flicker on initial load
+  const [homeSections, products] = await Promise.all([
+    fetchHomeSections().catch(() => ({})),
+    fetchMergedProducts().catch(() => []),
+  ]);
+
   return (
     <html
       lang={htmlLang}
@@ -91,7 +97,10 @@ export default async function RootLayout({
         <Script id="tk-locale-boot" strategy="beforeInteractive">
           {localeBootScript}
         </Script>
-        <Providers initialLocale={initialLocale}>
+        <Providers
+          initialLocale={initialLocale}
+          initialCmsData={{ sections: homeSections, products }}
+        >
           <Navbar />
           {children}
           <Toaster position="top-right" richColors closeButton />

@@ -137,6 +137,10 @@ export default function BlogDetailView({ post: rawPost }: Props) {
                 priority
                 className="object-cover object-center"
                 sizes="(max-width: 896px) 100vw, 896px"
+                unoptimized={
+                  post.image.startsWith("http") ||
+                  post.image.startsWith("/uploads")
+                }
               />
             </div>
 
@@ -219,6 +223,9 @@ export default function BlogDetailView({ post: rawPost }: Props) {
                         fill
                         className="object-cover"
                         sizes="(max-width: 640px) 100vw, 420px"
+                        unoptimized={
+                          src.startsWith("http") || src.startsWith("/uploads")
+                        }
                       />
                     </div>
                   ))}

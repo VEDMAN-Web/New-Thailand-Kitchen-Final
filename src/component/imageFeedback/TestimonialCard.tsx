@@ -15,6 +15,10 @@ function getInitials(name: string) {
 }
 
 export default function TestimonialCard({ testimonial }: Props) {
+  const isRemoteImage =
+    testimonial.image.startsWith("http") ||
+    testimonial.image.startsWith("/uploads");
+
   return (
     <article className="grid grid-cols-1 sm:grid-cols-[0.9fr_1.1fr] bg-white rounded-[28px] overflow-hidden shadow-[0_18px_50px_rgba(0,0,0,0.08)] h-full">
       {/* Kitchen image */}
@@ -25,6 +29,7 @@ export default function TestimonialCard({ testimonial }: Props) {
           fill
           className="object-cover object-center"
           sizes="(max-width: 640px) 100vw, 40vw"
+          unoptimized={isRemoteImage}
         />
       </div>
 

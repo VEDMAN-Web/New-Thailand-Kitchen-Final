@@ -31,17 +31,21 @@ export default function BrandSlider() {
     <section className="py-12 overflow-hidden ">
       <div className="relative">
         <div className="flex animate-marquee whitespace-nowrap">
-          {loop.map((logo, index) => (
-            <div key={`${logo}-${index}`} className="flex-shrink-0 mx-10 lg:mx-16">
-              <Image
-                src={logo}
-                alt="brand"
-                width={150}
-                height={60}
-                className="object-contain h-14 w-auto grayscale opacity-50"
-              />
-            </div>
-          ))}
+          {loop.map((logo, index) => {
+            const isRemote = logo.startsWith("http") || logo.startsWith("/uploads");
+            return (
+              <div key={`${logo}-${index}`} className="flex-shrink-0 mx-10 lg:mx-16">
+                <Image
+                  src={logo}
+                  alt="brand"
+                  width={150}
+                  height={60}
+                  className="object-contain h-14 w-auto grayscale opacity-50"
+                  unoptimized={isRemote}
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>

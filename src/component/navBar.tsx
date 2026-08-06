@@ -196,7 +196,7 @@ const Navbar = () => {
               : "absolute right-0 top-full mt-2 w-[min(22rem,calc(100vw-2rem))] rounded-2xl border border-black/5 bg-white p-4 shadow-[0_4px_16px_rgba(0,0,0,0.08)] z-50"
           }`}
         >
-          <p className="text-sm text-gray-500">No results found</p>
+        <p className="text-sm text-gray-500">{t("nav.noResults")}</p>
         </div>
       );
     }

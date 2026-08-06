@@ -11,9 +11,13 @@ interface Props {
 }
 
 export default function ProductDetailHero({ product }: Props) {
-  const { locale } = useTranslation();
+  const { t, locale } = useTranslation();
   const name = pickCmsText(product.name, "", locale);
   const [main, sideTop, sideBottom] = product.heroImages;
+
+  function isRemote(src: string) {
+    return src.startsWith("http") || src.startsWith("/uploads");
+  }
 
   return (
     <section className="pt-[80px] sm:pt-[84px]">
@@ -25,7 +29,7 @@ export default function ProductDetailHero({ product }: Props) {
           <span aria-hidden className="text-base font-bold leading-none">
             &lt;
           </span>
-          Product
+          {t("productDetail.breadcrumb")}
         </Link>
         <span className="mx-2 font-bold">/</span>
         <span className="font-bold">{name}</span>
@@ -40,6 +44,7 @@ export default function ProductDetailHero({ product }: Props) {
             priority
             className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-110"
             sizes="(max-width: 1024px) 100vw, 66vw"
+            unoptimized={isRemote(main)}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none" />
           <div className="absolute left-5 right-5 sm:left-8 sm:right-8 bottom-6 sm:bottom-8 text-left pointer-events-none">
@@ -60,6 +65,7 @@ export default function ProductDetailHero({ product }: Props) {
               fill
               className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
               sizes="(max-width: 1024px) 50vw, 33vw"
+              unoptimized={isRemote(sideTop)}
             />
           </div>
           <div className="group relative h-[160px] sm:h-[200px] lg:h-full rounded-[1.5rem] sm:rounded-[1.75rem] overflow-hidden">
@@ -69,6 +75,7 @@ export default function ProductDetailHero({ product }: Props) {
               fill
               className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
               sizes="(max-width: 1024px) 50vw, 33vw"
+              unoptimized={isRemote(sideBottom)}
             />
           </div>
         </div>

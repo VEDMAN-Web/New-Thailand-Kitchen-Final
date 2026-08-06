@@ -11,7 +11,7 @@ interface Props {
 }
 
 export default function ProductDetailNarrative({ product }: Props) {
-  const { locale } = useTranslation();
+  const { t, locale } = useTranslation();
   const icon = product.icon?.trim();
   const pdfUrl = product.pdfUrl?.trim();
   const remoteIcon =
@@ -55,7 +55,7 @@ export default function ProductDetailNarrative({ product }: Props) {
           className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#1A1A1A] text-white px-5 py-2.5 text-sm font-semibold hover:bg-black transition"
         >
           <Download size={16} />
-          Download brochure
+          {t("productDetail.narrative.download")}
         </a>
       ) : null}
     </section>

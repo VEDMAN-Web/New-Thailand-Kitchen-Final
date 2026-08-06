@@ -288,7 +288,7 @@ export default function CatlogSection() {
           >
             {items.length === 0 ? (
               <p className="text-sm text-[#6B6B6B]">
-                No catalogues available yet.
+                {t("home.catalog.empty")}
               </p>
             ) : null}
             {items.map((item, index) => {
