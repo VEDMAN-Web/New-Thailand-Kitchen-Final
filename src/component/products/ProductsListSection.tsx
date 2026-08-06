@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import ProductCard from "./ProductCard";
 import {
   productFilterTabs,
   PRODUCTS_PER_PAGE,
+  tabToSlug,
   type ProductFilterTab,
   type ProductItem,
   type ProductLayout,
@@ -27,10 +28,6 @@ const tabLabelKeys: Record<ProductFilterTab, TranslationKey> = {
   "Best Seller": "products.tab.bestSeller",
 };
 
-function tabToSlug(tab: string) {
-  return tab.toLowerCase().replace(/\s+/g, "-");
-}
-
 function tabFromQuery(
   value: string | null,
   tabs: string[]
@@ -47,12 +44,16 @@ function tabFromQuery(
 
 export default function ProductsListSection({
   initialItems,
+  initialCategory,
 }: {
   initialItems: ProductItem[];
+  /** Category tab pre-selected via a /products/<category> URL (Smart merged route). */
+  initialCategory?: string;
 }) {
   const { t, locale } = useTranslation();
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const [layout, setLayout] = useState<string>("All");
+  const [layout, setLayout] = useState<string>(initialCategory || "All");
   const [page, setPage] = useState(1);
   const [items] = useState<ProductItem[]>(initialItems);
   /** EN id for filter matching + raw CMS title for locale display */
@@ -103,7 +104,11 @@ export default function ProductsListSection({
     return base;
   }, [cmsCategories, items]);
 
+  // Skip legacy ?tab=/?filter= query-string handling when this view was
+  // already given an initialCategory via a /products/<category> URL — the
+  // URL itself is now the source of truth for the selected category.
   useEffect(() => {
+    if (initialCategory) return;
     const fromQuery =
       tabFromQuery(searchParams.get("tab"), filterTabs) ||
       tabFromQuery(searchParams.get("filter"), filterTabs);
@@ -116,7 +121,7 @@ export default function ProductsListSection({
         requestAnimationFrame(() => smoothScrollToId("best-seller"));
       });
     }
-  }, [searchParams, filterTabs]);
+  }, [searchParams, filterTabs, initialCategory]);
 
   const filtered = useMemo(() => {
     let list = [...items];
@@ -169,9 +174,12 @@ export default function ProductsListSection({
               onClick={() => {
                 setLayout(item);
                 setPage(1);
-                const url = new URL(window.location.href);
-                url.searchParams.set("tab", tabToSlug(item));
-                window.history.replaceState({}, "", url.toString());
+                // Real, crawlable category URL (e.g. /products/u-shape) instead of
+                // a query-string — this is what makes category browsing SEO
+                // friendly. "All" goes back to the plain /products listing.
+                const path =
+                  item === "All" ? "/products" : `/products/${tabToSlug(item)}`;
+                router.push(path, { scroll: false });
               }}
               className={`px-5 py-2.5 rounded-full text-sm font-medium transition ${
                 isActive
