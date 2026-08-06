@@ -37,7 +37,17 @@ app.use(
       if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
         return callback(null, true);
       }
-      return callback(null, true); // permissive for separate multi-host deploys
+      // Production: reject unknown origins when CORS_ORIGINS / CLIENT_URL / ADMIN_URL are set
+      if (
+        process.env.NODE_ENV === "production" &&
+        (process.env.CORS_ORIGINS ||
+          process.env.CLIENT_URL ||
+          process.env.ADMIN_URL)
+      ) {
+        return callback(new Error(`CORS blocked for origin: ${origin}`), false);
+      }
+      // Local / unset-env multi-host deploys stay permissive
+      return callback(null, true);
     },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],

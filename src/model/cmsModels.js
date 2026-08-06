@@ -21,8 +21,8 @@ const homePageSchema = new mongoose.Schema(
 const categorySchema = new mongoose.Schema(
   {
     siteId: { type: String, enum: SITE_IDS, required: true, index: true },
-    title: { type: String, required: true, trim: true },
-    description: { type: String, default: "" },
+    title: { type: mongoose.Schema.Types.Mixed, required: true },
+    description: { type: mongoose.Schema.Types.Mixed, default: "" },
     image: { type: String, default: "" },
     icon: { type: String, default: "" },
   },
@@ -32,12 +32,12 @@ const categorySchema = new mongoose.Schema(
 const productSchema = new mongoose.Schema(
   {
     siteId: { type: String, enum: SITE_IDS, required: true, index: true },
-    title: { type: String, required: true, trim: true },
+    title: { type: mongoose.Schema.Types.Mixed, required: true },
     slug: { type: String, required: true, trim: true },
-    subtitle: { type: String, default: "" },
-    productType: { type: String, default: "" },
-    sectionTag: { type: String, default: "" },
-    description: { type: String, default: "" },
+    subtitle: { type: mongoose.Schema.Types.Mixed, default: "" },
+    productType: { type: mongoose.Schema.Types.Mixed, default: "" },
+    sectionTag: { type: mongoose.Schema.Types.Mixed, default: "" },
+    description: { type: mongoose.Schema.Types.Mixed, default: "" },
     image: { type: String, default: "" },
     icon: { type: String, default: "" },
     gallery: { type: [String], default: [] },
@@ -45,14 +45,18 @@ const productSchema = new mongoose.Schema(
     featureHighlights: {
       type: [
         {
-          title: { type: String, default: "" },
-          description: { type: String, default: "" },
+          title: { type: mongoose.Schema.Types.Mixed, default: "" },
+          description: { type: mongoose.Schema.Types.Mixed, default: "" },
         },
       ],
       default: [],
     },
-    category: { type: String, default: "" },
+    category: { type: mongoose.Schema.Types.Mixed, default: "" },
     featured: { type: Boolean, default: false },
+    finish: { type: mongoose.Schema.Types.Mixed, default: "" },
+    material: { type: mongoose.Schema.Types.Mixed, default: "" },
+    style: { type: mongoose.Schema.Types.Mixed, default: "" },
+    color: { type: mongoose.Schema.Types.Mixed, default: "" },
   },
   { timestamps: true }
 );
@@ -125,15 +129,15 @@ const legalPageSchema = new mongoose.Schema(
   {
     siteId: { type: String, enum: SITE_IDS, required: true },
     type: { type: String, enum: ["privacy", "terms"], required: true },
-    title: { type: String, required: true },
-    subtitle: { type: String, default: "" },
-    updatedLabel: { type: String, default: "" },
-    content: { type: String, default: "" },
+    title: { type: mongoose.Schema.Types.Mixed, required: true },
+    subtitle: { type: mongoose.Schema.Types.Mixed, default: "" },
+    updatedLabel: { type: mongoose.Schema.Types.Mixed, default: "" },
+    content: { type: mongoose.Schema.Types.Mixed, default: "" },
     sections: {
       type: [
         {
-          title: { type: String, default: "" },
-          body: { type: String, default: "" },
+          title: { type: mongoose.Schema.Types.Mixed, default: "" },
+          body: { type: mongoose.Schema.Types.Mixed, default: "" },
         },
       ],
       default: [],
@@ -147,7 +151,7 @@ legalPageSchema.index({ siteId: 1, type: 1 }, { unique: true });
 const galleryItemSchema = new mongoose.Schema(
   {
     siteId: { type: String, enum: SITE_IDS, required: true, index: true },
-    title: { type: String, required: true, trim: true },
+    title: { type: mongoose.Schema.Types.Mixed, required: true },
     image: { type: String, required: true, default: "" },
     filter: {
       type: String,
@@ -183,8 +187,8 @@ const catalogueItemSchema = new mongoose.Schema(
 const faqItemSchema = new mongoose.Schema(
   {
     siteId: { type: String, enum: SITE_IDS, required: true, index: true },
-    question: { type: String, required: true, trim: true },
-    answer: { type: String, default: "" },
+    question: { type: mongoose.Schema.Types.Mixed, required: true },
+    answer: { type: mongoose.Schema.Types.Mixed, default: "" },
     sortOrder: { type: Number, default: 0 },
   },
   { timestamps: true }

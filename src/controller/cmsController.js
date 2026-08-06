@@ -1,4 +1,4 @@
-const asyncHandler = require("../utils/asyncHandler");
+﻿const asyncHandler = require("../utils/asyncHandler");
 const {
   SITE_IDS,
   HomePage,
@@ -16,138 +16,12 @@ const SITES = [
   { id: "varsovia-kitchen", name: "Varsovia Kitchen", enabled: true },
 ];
 
-const DEFAULT_HOME_SECTIONS = {
-  hero: {
-    subtitle: "Thailand Kitchens",
-    title: "Craft kitchens with soul",
-    description: "Thai heritage meets modern living",
-    buttonText: "Free Consultation",
-    image: "/products/Kitchen2.png",
-    videoUrl: "",
-  },
-  statistics: {
-    items: [
-      { label: "Years", value: "15", suffix: "+" },
-      { label: "Cities", value: "12", suffix: "" },
-      { label: "Kitchens", value: "800", suffix: "+" },
-    ],
-  },
-  advantages: {
-    items: [
-      {
-        title: "Craftsmanship",
-        description: "Precision joinery and teak soul.",
-        icon: "",
-      },
-      {
-        title: "Custom Design",
-        description: "Layouts tailored to your island home.",
-        icon: "",
-      },
-      {
-        title: "Full Install",
-        description: "From consultation to handover.",
-        icon: "",
-      },
-    ],
-  },
-  story: {
-    title: "Our Story",
-    subtitle: "About Us",
-    description:
-      "We believe in the soul of teak wood and the precision of ancient joining techniques.",
-    image: "/slider/crafted-with-passion.png",
-  },
-  transition: {
-    pillars: [
-      { title: "Consult", description: "Understand your space and lifestyle.", icon: "" },
-      { title: "Design", description: "Plan layouts and materials together.", icon: "" },
-      { title: "Craft", description: "Build with precision and care.", icon: "" },
-      { title: "Install", description: "Deliver and install as one team.", icon: "" },
-    ],
-  },
-  testimonials: {
-    items: [
-      {
-        name: "Sarah M.",
-        role: "Homeowner, Samui",
-        quote: "Beautiful craftsmanship and a smooth install from start to finish.",
-        image: "",
-        rating: 5,
-      },
-    ],
-  },
-  catalogue: {
-    items: [
-      {
-        title: "2026 EDITION",
-        category: "Minimal",
-        image: "/catlog/catlog.png",
-        pdfUrl: "",
-        fileName: "catalogue-minimal.pdf",
-        downloadName: "Thailand-Kitchens-Catalogue-Minimal.pdf",
-      },
-      {
-        title: "2026 EDITION",
-        category: "Classic",
-        image: "/catlog/catlog (1).png",
-        pdfUrl: "",
-        fileName: "catalogue-classic.pdf",
-        downloadName: "Thailand-Kitchens-Catalogue-Classic.pdf",
-      },
-      {
-        title: "2026 EDITION",
-        category: "Modern",
-        image: "/catlog/catlog (2).png",
-        pdfUrl: "",
-        fileName: "catalogue-modern.pdf",
-        downloadName: "Thailand-Kitchens-Catalogue-Modern.pdf",
-      },
-    ],
-  },
-  partners: {
-    logos: [
-      { name: "Partner 1", image: "/brandLogo/first (1).png" },
-      { name: "Partner 2", image: "/brandLogo/first (2).png" },
-      { name: "Partner 3", image: "/brandLogo/first (3).png" },
-      { name: "Partner 4", image: "/brandLogo/first (4).png" },
-      { name: "Partner 5", image: "/brandLogo/first (5).png" },
-      { name: "Partner 6", image: "/brandLogo/first (6).png" },
-    ],
-  },
-  faq: {
-    items: [
-      {
-        question: "How long does a custom kitchen take?",
-        answer: "Typical projects take 8–12 weeks from design sign-off to install.",
-      },
-      {
-        question: "Do you install across Thailand?",
-        answer: "Yes — we primarily serve Pattaya, Samui, and surrounding areas.",
-      },
-    ],
-  },
-  footer: {
-    email: "hi@thailandkitchens.com",
-    phone: "+66 64 683 9777",
-    address: "Pattaya & Samui, Thailand",
-    facebook: "https://www.facebook.com/ThailandKitchens/",
-    instagram: "",
-    line: "",
-  },
-  galleryPage: {
-    eyebrow: "The Gallery · Vol. 04",
-    title: "Kitchens of the island, moments of everyday luxury.",
-    description:
-      "A curated inspiration library of tropical, modern and minimal kitchens crafted by our Samui atelier — filter by style, layout, palette or material and discover your next design.",
-    collage: [
-      "/products/Kitchen2.png",
-      "/products/Kitchen3.png",
-      "/features/image2.png",
-      "/products/Kitchen1.png",
-    ],
-  },
-};
+const {
+  DEFAULT_HOME_SECTIONS,
+  DEFAULT_FEATURE_HIGHLIGHTS,
+  DEFAULT_FAQS,
+  DEFAULT_CATEGORIES,
+} = require("../seed/thailandSiteDefaults");
 
 function assertSite(siteId) {
   return SITE_IDS.includes(siteId);
@@ -161,26 +35,7 @@ function slugify(value) {
     .replace(/^-+|-+$/g, "");
 }
 
-/** Default Features & Details copy shown on the product page */
-const DEFAULT_FEATURE_HIGHLIGHTS = [
-  {
-    title: "Matte Obsidian Finish",
-    description:
-      "A deep, light-absorbing lacquer that keeps surfaces calm and fingerprints discreet in daily living.",
-  },
-  {
-    title: "Artisanal Gold Hardware",
-    description:
-      "Hand-finished pulls and hinges that catch soft light and complete the dark timber silhouette.",
-  },
-  {
-    title: "Imperial Marble Worktops",
-    description:
-      "Thick stone slabs with natural veining, sealed for lasting kitchen use and a quiet luxury feel.",
-  },
-];
-
-/** Website catalogue seed — keeps admin + public site in sync */
+/** Website product seed — keeps admin + public site in sync */
 const DEFAULT_PRODUCTS = [
   {
     title: "Obsidian Bay",
@@ -189,7 +44,7 @@ const DEFAULT_PRODUCTS = [
     productType: "Islands",
     sectionTag: "Core Component",
     description:
-      "Obsidian Bay pairs matte dark cabinetry with warm timber undertones — a quiet, gallery-like presence designed for open-plan living and island entertaining.",
+      "Obsidian Bay pairs matte dark cabinetry with warm timber undertones â€” a quiet, gallery-like presence designed for open-plan living and island entertaining.",
     image: "/products/Kitchen1.png",
     gallery: ["/product/product.png", "/products/Kitchen1.png", "/products/Kitchen2.png"],
     category: "Islands",
@@ -203,7 +58,7 @@ const DEFAULT_PRODUCTS = [
     productType: "Straight",
     sectionTag: "Core Component",
     description:
-      "Teak brings warmth, strength, and quiet richness to every surface — a material that ages with character and elevates the kitchen into a lasting heirloom.",
+      "Teak brings warmth, strength, and quiet richness to every surface â€” a material that ages with character and elevates the kitchen into a lasting heirloom.",
     image: "/products/Kitchen2.png",
     gallery: ["/products/Kitchen2.png", "/products/Kitchen3.png", "/products/Kitchen4.png"],
     category: "Straight",
@@ -217,7 +72,7 @@ const DEFAULT_PRODUCTS = [
     productType: "L Shape",
     sectionTag: "Core Component",
     description:
-      "Teak brings warmth, strength, and quiet richness to every surface — a material that ages with character and elevates the kitchen into a lasting heirloom.",
+      "Teak brings warmth, strength, and quiet richness to every surface â€” a material that ages with character and elevates the kitchen into a lasting heirloom.",
     image: "/products/Kitchen3.png",
     gallery: ["/products/Kitchen3.png", "/products/Kitchen1.png", "/products/Kitchen6.png"],
     category: "L Shape",
@@ -231,7 +86,7 @@ const DEFAULT_PRODUCTS = [
     productType: "U Shape",
     sectionTag: "Core Component",
     description:
-      "Teak brings warmth, strength, and quiet richness to every surface — a material that ages with character and elevates the kitchen into a lasting heirloom.",
+      "Teak brings warmth, strength, and quiet richness to every surface â€” a material that ages with character and elevates the kitchen into a lasting heirloom.",
     image: "/products/Kitchen4.png",
     gallery: ["/products/Kitchen4.png", "/products/Kitchen5.png", "/products/Kitchen2.png"],
     category: "U Shape",
@@ -245,7 +100,7 @@ const DEFAULT_PRODUCTS = [
     productType: "Modern",
     sectionTag: "Core Component",
     description:
-      "Teak brings warmth, strength, and quiet richness to every surface — a material that ages with character and elevates the kitchen into a lasting heirloom.",
+      "Teak brings warmth, strength, and quiet richness to every surface â€” a material that ages with character and elevates the kitchen into a lasting heirloom.",
     image: "/products/Kitchen5.png",
     gallery: ["/products/Kitchen5.png", "/products/Kitchen6.png", "/products/Kitchen1.png"],
     category: "Modern",
@@ -259,7 +114,7 @@ const DEFAULT_PRODUCTS = [
     productType: "T Shape",
     sectionTag: "Core Component",
     description:
-      "Teak brings warmth, strength, and quiet richness to every surface — a material that ages with character and elevates the kitchen into a lasting heirloom.",
+      "Teak brings warmth, strength, and quiet richness to every surface â€” a material that ages with character and elevates the kitchen into a lasting heirloom.",
     image: "/products/Kitchen6.png",
     gallery: ["/products/Kitchen6.png", "/products/Kitchen2.png", "/products/Kitchen3.png"],
     category: "T Shape",
@@ -273,7 +128,7 @@ const DEFAULT_PRODUCTS = [
     productType: "Islands",
     sectionTag: "Core Component",
     description:
-      "Teak brings warmth, strength, and quiet richness to every surface — a material that ages with character and elevates the kitchen into a lasting heirloom.",
+      "Teak brings warmth, strength, and quiet richness to every surface â€” a material that ages with character and elevates the kitchen into a lasting heirloom.",
     image: "/products/Kitchen1.png",
     gallery: ["/products/Kitchen1.png", "/products/Kitchen2.png", "/products/Kitchen3.png"],
     category: "Islands",
@@ -287,7 +142,7 @@ const DEFAULT_PRODUCTS = [
     productType: "Modern",
     sectionTag: "Core Component",
     description:
-      "Teak brings warmth, strength, and quiet richness to every surface — a material that ages with character and elevates the kitchen into a lasting heirloom.",
+      "Teak brings warmth, strength, and quiet richness to every surface â€” a material that ages with character and elevates the kitchen into a lasting heirloom.",
     image: "/products/Kitchen2.png",
     gallery: ["/products/Kitchen2.png", "/products/Kitchen3.png", "/products/Kitchen4.png"],
     category: "Modern",
@@ -301,7 +156,7 @@ const DEFAULT_PRODUCTS = [
     productType: "U Shape",
     sectionTag: "Core Component",
     description:
-      "Teak brings warmth, strength, and quiet richness to every surface — a material that ages with character and elevates the kitchen into a lasting heirloom.",
+      "Teak brings warmth, strength, and quiet richness to every surface â€” a material that ages with character and elevates the kitchen into a lasting heirloom.",
     image: "/products/Kitchen3.png",
     gallery: ["/products/Kitchen3.png", "/products/Kitchen4.png", "/products/Kitchen5.png"],
     category: "U Shape",
@@ -315,7 +170,7 @@ const DEFAULT_PRODUCTS = [
     productType: "L Shape",
     sectionTag: "Core Component",
     description:
-      "Teak brings warmth, strength, and quiet richness to every surface — a material that ages with character and elevates the kitchen into a lasting heirloom.",
+      "Teak brings warmth, strength, and quiet richness to every surface â€” a material that ages with character and elevates the kitchen into a lasting heirloom.",
     image: "/products/Kitchen4.png",
     gallery: ["/products/Kitchen4.png", "/products/Kitchen5.png", "/products/Kitchen6.png"],
     category: "L Shape",
@@ -329,7 +184,7 @@ const DEFAULT_PRODUCTS = [
     productType: "Islands",
     sectionTag: "Core Component",
     description:
-      "Teak brings warmth, strength, and quiet richness to every surface — a material that ages with character and elevates the kitchen into a lasting heirloom.",
+      "Teak brings warmth, strength, and quiet richness to every surface â€” a material that ages with character and elevates the kitchen into a lasting heirloom.",
     image: "/products/Kitchen5.png",
     gallery: ["/products/Kitchen5.png", "/products/Kitchen6.png", "/products/Kitchen1.png"],
     category: "Islands",
@@ -343,7 +198,7 @@ const DEFAULT_PRODUCTS = [
     productType: "Straight",
     sectionTag: "Core Component",
     description:
-      "Teak brings warmth, strength, and quiet richness to every surface — a material that ages with character and elevates the kitchen into a lasting heirloom.",
+      "Teak brings warmth, strength, and quiet richness to every surface â€” a material that ages with character and elevates the kitchen into a lasting heirloom.",
     image: "/products/Kitchen6.png",
     gallery: ["/products/Kitchen6.png", "/products/Kitchen1.png", "/products/Kitchen2.png"],
     category: "Straight",
@@ -408,7 +263,7 @@ async function ensureDefaultProducts(siteId) {
   }
 }
 
-/** Website gallery seed — keeps admin + public gallery in sync */
+/** Website gallery seed â€” keeps admin + public gallery in sync */
 const DEFAULT_GALLERY = [
   {
     title: "Obsidian Island",
@@ -485,6 +340,110 @@ async function ensureDefaultGallery(siteId) {
   );
 }
 
+async function ensureDefaultFaqs(siteId) {
+  const count = await FaqItem.countDocuments({ siteId });
+  if (count > 0) return;
+  await FaqItem.insertMany(
+    DEFAULT_FAQS.map((f) => ({
+      siteId,
+      question: f.question,
+      answer: f.answer,
+      sortOrder: Number(f.sortOrder) || 0,
+    }))
+  );
+}
+
+async function ensureDefaultCategories(siteId) {
+  const count = await Category.countDocuments({ siteId });
+  if (count > 0) return;
+  await Category.insertMany(
+    DEFAULT_CATEGORIES.map((c) => ({
+      siteId,
+      title: c.title,
+      description: c.description || "",
+      image: c.image || "",
+      icon: "",
+    }))
+  );
+}
+
+/**
+ * Fill incomplete home sections from site defaults so admin shows full live content.
+ * Never wipes custom hero/story text — only expands thin arrays / missing keys.
+ */
+function enrichHomeSections(sections) {
+  const defaults = structuredClone(DEFAULT_HOME_SECTIONS);
+  const next = { ...sections };
+
+  if (!Array.isArray(next.testimonials?.items) || next.testimonials.items.length < 3) {
+    next.testimonials = { items: defaults.testimonials.items };
+  }
+  if (!Array.isArray(next.faq?.items) || next.faq.items.length < 8) {
+    next.faq = { items: defaults.faq.items };
+  }
+  if (!Array.isArray(next.catalogue?.items) || next.catalogue.items.length < 4) {
+    next.catalogue = { items: defaults.catalogue.items };
+  }
+  if (!Array.isArray(next.advantages?.items) || next.advantages.items.length < 3) {
+    next.advantages = { items: defaults.advantages.items };
+  }
+  if (!Array.isArray(next.transition?.pillars) || next.transition.pillars.length < 4) {
+    next.transition = { pillars: defaults.transition.pillars };
+  }
+  if (!Array.isArray(next.statistics?.items) || next.statistics.items.length < 3) {
+    next.statistics = { items: defaults.statistics.items };
+  }
+  if (!Array.isArray(next.partners?.logos) || next.partners.logos.length < 6) {
+    next.partners = { logos: defaults.partners.logos };
+  }
+  if (!next.productsPage) {
+    next.productsPage = defaults.productsPage;
+  }
+  if (!next.galleryPage) {
+    next.galleryPage = defaults.galleryPage;
+  }
+  if (!next.blogPage) {
+    next.blogPage = defaults.blogPage;
+  }
+  if (!next.faqPage) {
+    next.faqPage = defaults.faqPage;
+  }
+  if (!next.contactPage) {
+    next.contactPage = defaults.contactPage;
+  }
+  if (!next.nav) {
+    next.nav = defaults.nav;
+  }
+  if (!next.seo) {
+    next.seo = defaults.seo;
+  }
+
+  // Align placeholder seed hero with live marketing copy when still on old defaults
+  const oldHeroTitles = new Set([
+    "Craft kitchens with soul",
+    defaults.hero.title,
+  ]);
+  if (
+    next.hero &&
+    oldHeroTitles.has(String(next.hero.title || "").trim()) &&
+    String(next.hero.title || "").trim() === "Craft kitchens with soul"
+  ) {
+    next.hero = { ...defaults.hero, ...next.hero, ...defaults.hero };
+  }
+
+  return normalizeHomeSections(next);
+}
+
+async function ensureAllSiteDefaults(siteId) {
+  await Promise.all([
+    ensureDefaultProducts(siteId),
+    ensureDefaultBlogs(siteId),
+    ensureDefaultGallery(siteId),
+    ensureDefaultFaqs(siteId),
+    ensureDefaultCategories(siteId),
+  ]);
+}
+
 function asStringArray(value) {
   if (Array.isArray(value)) {
     return value.map((v) => String(v || "").trim()).filter(Boolean);
@@ -498,166 +457,39 @@ function asStringArray(value) {
   return [];
 }
 
+const {
+  normalizeLocalizedHomeSections,
+} = require("../utils/normalizeLocalizedHome");
+const { asLocalized, mergeLocalized, L } = require("../utils/localized");
+
 function asFeatureHighlights(value) {
   if (!Array.isArray(value)) return [];
   return value
     .map((item) => ({
-      title: String(item?.title || "").trim(),
-      description: String(item?.description || "").trim(),
+      title: asLocalized(item?.title),
+      description: asLocalized(item?.description),
     }))
-    .filter((item) => item.title || item.description);
+    .filter(
+      (item) =>
+        item.title.en ||
+        item.title.th ||
+        item.title.pl ||
+        item.description.en ||
+        item.description.th ||
+        item.description.pl
+    );
+}
+
+function localizedTitleEn(value) {
+  const map = asLocalized(value);
+  return map.en || map.th || map.pl || "";
 }
 
 /**
- * Migrate legacy field names + fill empty sections so admin "ready" checks pass
- * and the website always has usable content.
+ * Migrate legacy field names + localize text to {en,th,pl} (Varsovia-style).
  */
 function normalizeHomeSections(raw = {}) {
-  const defaults = structuredClone(DEFAULT_HOME_SECTIONS);
-  const src = raw && typeof raw === "object" ? raw : {};
-
-  const heroSrc = src.hero || {};
-  const hero = {
-    ...defaults.hero,
-    ...heroSrc,
-    buttonText:
-      heroSrc.buttonText || heroSrc.cta || defaults.hero.buttonText,
-    description:
-      heroSrc.description ||
-      heroSrc.subtitle ||
-      defaults.hero.description,
-    subtitle:
-      heroSrc.subtitle && heroSrc.subtitle !== heroSrc.description
-        ? heroSrc.subtitle
-        : heroSrc.eyebrow || defaults.hero.subtitle,
-    title: heroSrc.title || defaults.hero.title,
-    image: heroSrc.image || defaults.hero.image,
-    videoUrl: heroSrc.videoUrl || "",
-  };
-
-  const storySrc = src.story || {};
-  const story = {
-    ...defaults.story,
-    ...storySrc,
-    description:
-      storySrc.description || storySrc.text || defaults.story.description,
-    subtitle: storySrc.subtitle || defaults.story.subtitle,
-    image: storySrc.image || defaults.story.image,
-  };
-
-  const transitionSrc = src.transition || {};
-  const pillarsRaw = Array.isArray(transitionSrc.pillars)
-    ? transitionSrc.pillars
-    : Array.isArray(transitionSrc.items)
-      ? transitionSrc.items
-      : [];
-  const transition = {
-    pillars:
-      pillarsRaw.length > 0
-        ? pillarsRaw.map((p, i) => ({
-            title: p.title || defaults.transition.pillars[i]?.title || "",
-            description:
-              p.description ||
-              defaults.transition.pillars[i]?.description ||
-              "",
-            icon: p.icon || "",
-          }))
-        : defaults.transition.pillars,
-  };
-
-  const partnersSrc = src.partners || {};
-  const logosRaw = Array.isArray(partnersSrc.logos)
-    ? partnersSrc.logos
-    : Array.isArray(partnersSrc.items)
-      ? partnersSrc.items
-      : [];
-  const mappedLogos = logosRaw
-    .map((l) => ({
-      name: l.name || l.title || "Partner",
-      image: String(l.image || l.logo || "").trim(),
-    }))
-    .filter(
-      (l) =>
-        l.image &&
-        !l.image.includes("/brand/brand.png") &&
-        l.image !== "/brand/brand.png"
-    );
-  const partners = {
-    logos: mappedLogos.length > 0 ? mappedLogos : defaults.partners.logos,
-  };
-
-  const statsItems =
-    Array.isArray(src.statistics?.items) && src.statistics.items.length
-      ? src.statistics.items.map((it) => ({
-          label: it.label || "",
-          value: String(it.value || "").replace(/\+$/, "") || it.value || "",
-          suffix:
-            it.suffix != null
-              ? it.suffix
-              : String(it.value || "").endsWith("+")
-                ? "+"
-                : "",
-        }))
-      : defaults.statistics.items;
-
-  const advantagesItems =
-    Array.isArray(src.advantages?.items) && src.advantages.items.length
-      ? src.advantages.items
-      : defaults.advantages.items;
-
-  const testimonialsItems =
-    Array.isArray(src.testimonials?.items) && src.testimonials.items.length
-      ? src.testimonials.items
-      : defaults.testimonials.items;
-
-  const catalogueItems =
-    Array.isArray(src.catalogue?.items) && src.catalogue.items.length
-      ? src.catalogue.items.map((c) => ({
-          title: c.title || "Catalogue",
-          category: c.category || "",
-          image: c.image || "",
-          pdfUrl: c.pdfUrl || "",
-          fileName: c.fileName || "",
-          downloadName: c.downloadName || c.fileName || "",
-        }))
-      : defaults.catalogue.items;
-
-  const faqItems =
-    Array.isArray(src.faq?.items) && src.faq.items.length
-      ? src.faq.items
-      : defaults.faq.items;
-
-  const footerSrc = src.footer || {};
-  const footer = {
-    ...defaults.footer,
-    ...footerSrc,
-  };
-
-  const galleryPageSrc = src.galleryPage || {};
-  const collageRaw = Array.isArray(galleryPageSrc.collage)
-    ? galleryPageSrc.collage.map((c) => String(c || "").trim()).filter(Boolean)
-    : [];
-  const galleryPage = {
-    eyebrow: galleryPageSrc.eyebrow || defaults.galleryPage.eyebrow,
-    title: galleryPageSrc.title || defaults.galleryPage.title,
-    description: galleryPageSrc.description || defaults.galleryPage.description,
-    collage:
-      collageRaw.length > 0 ? collageRaw : defaults.galleryPage.collage,
-  };
-
-  return {
-    hero,
-    statistics: { items: statsItems },
-    advantages: { items: advantagesItems },
-    story,
-    transition,
-    testimonials: { items: testimonialsItems },
-    catalogue: { items: catalogueItems },
-    partners,
-    faq: { items: faqItems },
-    footer,
-    galleryPage,
-  };
+  return normalizeLocalizedHomeSections(raw);
 }
 
 const listSites = asyncHandler(async (_req, res) => {
@@ -670,6 +502,9 @@ const getHome = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: "Invalid site" });
   }
 
+  // Seed related collections so admin lists are never empty vs the live site
+  await ensureAllSiteDefaults(siteId).catch(() => {});
+
   let home = await HomePage.findOne({ siteId });
   if (!home) {
     home = await HomePage.create({
@@ -678,9 +513,9 @@ const getHome = asyncHandler(async (req, res) => {
     });
   }
 
-  const sections = normalizeHomeSections(home.sections || {});
+  const sections = enrichHomeSections(home.sections || {});
 
-  // Persist normalized shape so admin "ready" state stays consistent
+  // Persist enriched/normalized shape so admin shows full site content
   const before = JSON.stringify(home.sections || {});
   const after = JSON.stringify(sections);
   if (before !== after) {
@@ -728,6 +563,7 @@ const listCategories = asyncHandler(async (req, res) => {
   if (!assertSite(siteId)) {
     return res.status(400).json({ success: false, message: "Invalid site" });
   }
+  await ensureDefaultCategories(siteId);
   const items = await Category.find({ siteId }).sort({ createdAt: -1 });
   return res.json({ success: true, items });
 });
@@ -737,10 +573,14 @@ const createCategory = asyncHandler(async (req, res) => {
   if (!assertSite(siteId)) {
     return res.status(400).json({ success: false, message: "Invalid site" });
   }
+  const title = asLocalized(req.body.title);
+  if (!localizedTitleEn(title)) {
+    return res.status(400).json({ success: false, message: "Title required" });
+  }
   const item = await Category.create({
     siteId,
-    title: String(req.body.title || "").trim(),
-    description: String(req.body.description || ""),
+    title,
+    description: asLocalized(req.body.description),
     image: String(req.body.image || ""),
     icon: String(req.body.icon || ""),
   });
@@ -749,12 +589,16 @@ const createCategory = asyncHandler(async (req, res) => {
 
 const updateCategory = asyncHandler(async (req, res) => {
   const { siteId, id } = req.params;
+  const title = asLocalized(req.body.title);
+  if (!localizedTitleEn(title)) {
+    return res.status(400).json({ success: false, message: "Title required" });
+  }
   const item = await Category.findOneAndUpdate(
     { _id: id, siteId },
     {
       $set: {
-        title: String(req.body.title || "").trim(),
-        description: String(req.body.description || ""),
+        title,
+        description: asLocalized(req.body.description),
         image: String(req.body.image || ""),
         icon: String(req.body.icon || ""),
       },
@@ -793,9 +637,10 @@ const createProduct = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: "Invalid site" });
   }
 
-  const title = String(req.body.title || "").trim();
-  const slug = slugify(req.body.slug || title);
-  if (!title || !slug) {
+  const title = asLocalized(req.body.title);
+  const titleEn = localizedTitleEn(title);
+  const slug = slugify(req.body.slug || titleEn);
+  if (!titleEn || !slug) {
     return res
       .status(400)
       .json({ success: false, message: "Title and slug are required" });
@@ -805,17 +650,21 @@ const createProduct = asyncHandler(async (req, res) => {
     siteId,
     title,
     slug,
-    subtitle: String(req.body.subtitle || ""),
-    productType: String(req.body.productType || ""),
-    sectionTag: String(req.body.sectionTag || ""),
-    description: String(req.body.description || ""),
+    subtitle: asLocalized(req.body.subtitle),
+    productType: asLocalized(req.body.productType),
+    sectionTag: asLocalized(req.body.sectionTag),
+    description: asLocalized(req.body.description),
     image: String(req.body.image || ""),
     icon: String(req.body.icon || ""),
     gallery: asStringArray(req.body.gallery),
     pdfUrl: String(req.body.pdfUrl || ""),
     featureHighlights: asFeatureHighlights(req.body.featureHighlights),
-    category: String(req.body.category || ""),
+    category: asLocalized(req.body.category),
     featured: Boolean(req.body.featured),
+    finish: asLocalized(req.body.finish),
+    material: asLocalized(req.body.material),
+    style: asLocalized(req.body.style),
+    color: asLocalized(req.body.color),
   });
 
   return res.status(201).json({ success: true, item });
@@ -823,8 +672,9 @@ const createProduct = asyncHandler(async (req, res) => {
 
 const updateProduct = asyncHandler(async (req, res) => {
   const { siteId, id } = req.params;
-  const title = String(req.body.title || "").trim();
-  const slug = slugify(req.body.slug || title);
+  const title = asLocalized(req.body.title);
+  const titleEn = localizedTitleEn(title);
+  const slug = slugify(req.body.slug || titleEn);
 
   const item = await Product.findOneAndUpdate(
     { _id: id, siteId },
@@ -832,17 +682,21 @@ const updateProduct = asyncHandler(async (req, res) => {
       $set: {
         title,
         slug,
-        subtitle: String(req.body.subtitle || ""),
-        productType: String(req.body.productType || ""),
-        sectionTag: String(req.body.sectionTag || ""),
-        description: String(req.body.description || ""),
+        subtitle: asLocalized(req.body.subtitle),
+        productType: asLocalized(req.body.productType),
+        sectionTag: asLocalized(req.body.sectionTag),
+        description: asLocalized(req.body.description),
         image: String(req.body.image || ""),
         icon: String(req.body.icon || ""),
         gallery: asStringArray(req.body.gallery),
         pdfUrl: String(req.body.pdfUrl || ""),
         featureHighlights: asFeatureHighlights(req.body.featureHighlights),
-        category: String(req.body.category || ""),
+        category: asLocalized(req.body.category),
         featured: Boolean(req.body.featured),
+        finish: asLocalized(req.body.finish),
+        material: asLocalized(req.body.material),
+        style: asLocalized(req.body.style),
+        color: asLocalized(req.body.color),
       },
     },
     { new: true }
@@ -883,12 +737,23 @@ function asBlogTranslations(value) {
     const entry = source[locale] && typeof source[locale] === "object"
       ? source[locale]
       : {};
+    let bodySections = asBodySections(entry.bodySections);
+    // Accept content: string[] from static/seed packs
+    if (!bodySections.length && Array.isArray(entry.content)) {
+      bodySections = entry.content
+        .map((p) => String(p || "").trim())
+        .filter(Boolean)
+        .map((content) => ({ title: "", content, image: "" }));
+    }
+    const highlightTitle = String(
+      entry.highlightTitle || entry.subsectionTitle || ""
+    ).trim();
     acc[locale] = {
       title: String(entry.title || "").trim(),
       excerpt: String(entry.excerpt || "").trim(),
       category: String(entry.category || "").trim(),
-      bodySections: asBodySections(entry.bodySections),
-      highlightTitle: String(entry.highlightTitle || "").trim(),
+      bodySections,
+      highlightTitle,
       highlightText: String(entry.highlightText || "").trim(),
       quote: String(entry.quote || "").trim(),
       quoteAuthor: String(entry.quoteAuthor || "").trim(),
@@ -925,7 +790,7 @@ const DEFAULT_BLOGS = [
       "The Art of Teak: Why Heritage Timber Remains the Ultimate Kitchen Luxury",
     slug: "the-art-of-teak",
     excerpt:
-      "From grain to finish, teak brings warmth, strength, and lasting character to every kitchen we craft—rooted in Thai heritage and modern living.",
+      "From grain to finish, teak brings warmth, strength, and lasting character to every kitchen we craftâ€”rooted in Thai heritage and modern living.",
     category: "Kitchen Design Trends",
     author: "Thailand Kitchen",
     readTime: "8 min",
@@ -936,7 +801,7 @@ const DEFAULT_BLOGS = [
       {
         title: "A Legacy of Resilience",
         content:
-          "Teak has long been prized across Thailand for its natural oils, rich grain, and remarkable resistance to moisture. In the kitchen—where heat, steam, and daily use put materials to the test—this heritage timber still stands as one of the most refined choices available.",
+          "Teak has long been prized across Thailand for its natural oils, rich grain, and remarkable resistance to moisture. In the kitchenâ€”where heat, steam, and daily use put materials to the testâ€”this heritage timber still stands as one of the most refined choices available.",
         image: "",
       },
       {
@@ -959,7 +824,7 @@ const DEFAULT_BLOGS = [
       "Open Concept Living: Designing a Kitchen That Connects the Whole Home",
     slug: "open-concept-kitchen-design",
     excerpt:
-      "An open kitchen can become the heart of family life. Here’s how thoughtful layout and proportion create flow without sacrificing function.",
+      "An open kitchen can become the heart of family life. Hereâ€™s how thoughtful layout and proportion create flow without sacrificing function.",
     category: "Layout & Space",
     author: "Thailand Kitchen",
     readTime: "6 min",
@@ -978,7 +843,7 @@ const DEFAULT_BLOGS = [
     highlightText:
       "Material continuity between kitchen and living spaces helps the home read as one composition, while subtle changes in texture keep each zone distinct.",
     quote:
-      "A kitchen should invite people in—not push them to the edges of the room.",
+      "A kitchen should invite people inâ€”not push them to the edges of the room.",
     quoteAuthor: "Thailand Kitchens Design Studio",
     published: true,
   },
@@ -1005,8 +870,89 @@ const DEFAULT_BLOGS = [
     highlightText:
       "Durable surfaces, thoughtful storage, and calm lighting turn a renovation into a lasting upgrade.",
     quote:
-      "A modern kitchen should feel effortless every morning—and still look considered every evening.",
+      "A modern kitchen should feel effortless every morningâ€”and still look considered every evening.",
     quoteAuthor: "Thailand Kitchen Studio",
+    published: true,
+  },
+  {
+    title: "The Marble Masterclass: Selecting the Perfect Slab",
+    slug: "the-marble-masterclass",
+    excerpt:
+      "Choosing marble is equal parts aesthetics and practicality. Learn how to select a slab that suits cooking style, light, and long-term care.",
+    category: "Material Guides",
+    author: "Thailand Kitchen",
+    readTime: "7 min",
+    publishDate: "2024-04-10",
+    image: "/blog/blogImage (3).jpg",
+    gallery: ["/blog/blogImage (1).jpg", "/blog/blogImage (2).jpg"],
+    bodySections: [
+      {
+        title: "Reading the Stone",
+        content:
+          "Marble brings a quiet luxury to kitchen surfaces—soft veining, cool touch, and timeless presence. Selecting the right slab begins with understanding how you cook and clean.",
+        image: "",
+      },
+    ],
+    highlightTitle: "Reading the Stone",
+    highlightText:
+      "Look carefully at vein movement and colour variation under both daylight and evening lighting.",
+    quote:
+      "Every slab tells a story in its veins—choose the one that feels calm in your light.",
+    quoteAuthor: "Material Specialist",
+    published: true,
+  },
+  {
+    title: "Living in the Heart of the Home: Kitchen as Hub",
+    slug: "living-in-the-heart-of-the-home",
+    excerpt:
+      "Beyond cooking, the kitchen is where daily life gathers. Design choices that welcome people make the space feel alive all day.",
+    category: "Lifestyle",
+    author: "Thailand Kitchen",
+    readTime: "5 min",
+    publishDate: "2024-03-22",
+    image: "/blog/blogImage (1).jpg",
+    gallery: ["/blog/blogImage (2).jpg", "/blog/blogImage (3).jpg"],
+    bodySections: [
+      {
+        title: "Life Around the Island",
+        content:
+          "A kitchen becomes the heart of the home when it invites lingering—morning coffee, homework at the island, and evening conversation after dinner.",
+        image: "",
+      },
+    ],
+    highlightTitle: "Life Around the Island",
+    highlightText:
+      "Comfortable seating, soft lighting, and durable finishes let the kitchen support many moods without feeling fragile.",
+    quote:
+      "The best kitchens hold more than meals—they hold the rhythm of the day.",
+    quoteAuthor: "Thailand Kitchens",
+    published: true,
+  },
+  {
+    title: "Functional Flow: Ergonomics in the Modern Kitchen",
+    slug: "functional-flow-ergonomics",
+    excerpt:
+      "Good kitchens feel effortless because reach, height, and movement are planned with intention—reducing strain while increasing efficiency.",
+    category: "Design Trends",
+    author: "Thailand Kitchen",
+    readTime: "6 min",
+    publishDate: "2024-03-05",
+    image: "/blog/blogImage (2).jpg",
+    gallery: ["/blog/blogImage (1).jpg", "/blog/blogImage (3).jpg"],
+    bodySections: [
+      {
+        title: "Movement Without Friction",
+        content:
+          "Ergonomics transforms everyday cooking. Worktop height, drawer access, and appliance placement determine how natural each task feels.",
+        image: "",
+      },
+    ],
+    highlightTitle: "Movement Without Friction",
+    highlightText:
+      "We design around your height, habits, and most-used tools so the kitchen supports you rather than asking you to adapt.",
+    quote:
+      "When reach and height are right, cooking feels natural—not like work.",
+    quoteAuthor: "Design Studio",
     published: true,
   },
 ];
@@ -1157,48 +1103,120 @@ const deleteBlog = asyncHandler(async (req, res) => {
 
 const DEFAULT_LEGAL = {
   privacy: {
-    title: "PRIVACY POLICY",
-    subtitle: "HOW WE COLLECT, USE, AND PROTECT YOUR PERSONAL INFORMATION.",
-    updatedLabel: "July 2026",
+    title: L("PRIVACY POLICY", "นโยบายความเป็นส่วนตัว", "POLITYKA PRYWATNOŚCI"),
+    subtitle: L(
+      "HOW WE COLLECT, USE, AND PROTECT YOUR PERSONAL INFORMATION.",
+      "วิธีที่เราเก็บรวบรวม ใช้ และปกป้องข้อมูลส่วนบุคคลของคุณ",
+      "JAK ZBIERAMY, UŻYWAMY I CHRONIMY TWOJE DANE OSOBOWE."
+    ),
+    updatedLabel: L("July 2026", "กรกฎาคม 2026", "Lipiec 2026"),
     sections: [
       {
-        title: "Information We Collect",
-        body: "When you request a kitchen consultation, design quote, or contact our support team, we may collect your name, email address, phone number, property address, and project requirements. This information is used solely to provide you with our modular kitchen services.",
+        title: L(
+          "Information We Collect",
+          "ข้อมูลที่เราเก็บรวบรวม",
+          "Informacje, które zbieramy"
+        ),
+        body: L(
+          "When you request a kitchen consultation, design quote, or contact our support team, we may collect your name, email address, phone number, property address, and project requirements. This information is used solely to provide you with our modular kitchen services.",
+          "เมื่อคุณขอคำปรึกษาเรื่องครัว ใบเสนอราคาการออกแบบ หรือติดต่อทีมสนับสนุน เราอาจเก็บชื่อ อีเมล หมายเลขโทรศัพท์ ที่อยู่ทรัพย์สิน และความต้องการของโครงการ ข้อมูลนี้ใช้เพื่อให้บริการครัวโมดูลาร์เท่านั้น",
+          "Gdy prosisz o konsultację kuchenną, wycenę projektu lub kontaktujesz się z naszym zespołem, możemy zbierać imię i nazwisko, e-mail, telefon, adres nieruchomości oraz wymagania projektu. Dane te służą wyłącznie do świadczenia usług kuchni modułowych."
+        ),
       },
       {
-        title: "How We Use Your Information",
-        body: "We use your data to deliver custom modular kitchen designs, coordinate site measurements and installation, and provide project updates. Your information helps us craft kitchens that perfectly match your lifestyle and Thai island home.",
+        title: L(
+          "How We Use Your Information",
+          "วิธีที่เราใช้ข้อมูลของคุณ",
+          "Jak wykorzystujemy Twoje informacje"
+        ),
+        body: L(
+          "We use your data to deliver custom modular kitchen designs, coordinate site measurements and installation, and provide project updates. Your information helps us craft kitchens that perfectly match your lifestyle and Thai island home.",
+          "เราใช้ข้อมูลของคุณเพื่อส่งมอบการออกแบบครัวโมดูลาร์ จัดตารางวัดพื้นที่และติดตั้ง และอัปเดตความคืบหน้าโครงการ ข้อมูลช่วยให้เราสร้างครัวที่เข้ากับไลฟ์สไตล์และบ้านบนเกาะของคุณ",
+          "Wykorzystujemy dane do dostarczania projektów kuchni modułowych, koordynacji pomiarów i montażu oraz aktualizacji projektu. Pomagają one stworzyć kuchnię dopasowaną do Twojego stylu życia i domu na tajskiej wyspie."
+        ),
       },
       {
-        title: "Information Sharing & Security",
-        body: "We do not sell or rent your personal data. Information is only shared with trusted installation partners and hardware suppliers necessary to complete your kitchen project. We implement industry-standard security measures to protect your data.",
+        title: L(
+          "Information Sharing & Security",
+          "การแบ่งปันข้อมูลและความปลอดภัย",
+          "Udostępnianie informacji i bezpieczeństwo"
+        ),
+        body: L(
+          "We do not sell or rent your personal data. Information is only shared with trusted installation partners and hardware suppliers necessary to complete your kitchen project. We implement industry-standard security measures to protect your data.",
+          "เราไม่ขายหรือให้เช่าข้อมูลส่วนบุคคลของคุณ ข้อมูลจะแชร์เฉพาะกับพาร์ทเนอร์ติดตั้งและซัพพลายเออร์ฮาร์ดแวร์ที่จำเป็นเพื่อทำโครงการครัวให้เสร็จ เราใช้มาตรการรักษาความปลอดภัยตามมาตรฐานอุตสาหกรรม",
+          "Nie sprzedajemy ani nie wynajmujemy Twoich danych. Informacje udostępniamy wyłącznie zaufanym partnerom montażowym i dostawcom okucia niezbędnym do realizacji projektu. Stosujemy branżowe środki ochrony danych."
+        ),
       },
       {
-        title: "Your Privacy Rights & Contact",
-        body: "You have the right to access, correct, or delete your personal data at any time. For privacy-related inquiries or to exercise your rights, please contact us at thailandkichens@gmail.com.",
+        title: L(
+          "Your Privacy Rights & Contact",
+          "สิทธิความเป็นส่วนตัวและการติดต่อ",
+          "Twoje prawa do prywatności i kontakt"
+        ),
+        body: L(
+          "You have the right to access, correct, or delete your personal data at any time. For privacy-related inquiries or to exercise your rights, please contact us at thailandkichens@gmail.com.",
+          "คุณมีสิทธิเข้าถึง แก้ไข หรือลบข้อมูลส่วนบุคคลได้ทุกเมื่อ สำหรับคำถามด้านความเป็นส่วนตัวหรือการใช้สิทธิ ติดต่อเราที่ thailandkichens@gmail.com",
+          "Masz prawo w każdej chwili uzyskać dostęp, poprawić lub usunąć swoje dane. W sprawach prywatności lub realizacji praw napisz na thailandkichens@gmail.com."
+        ),
       },
     ],
   },
   terms: {
-    title: "TERMS & CONDITIONS",
-    subtitle: "TERMS OF USE AND SERVICE AGREEMENT FOR OUR KITCHEN SERVICES.",
-    updatedLabel: "July 2026",
+    title: L("TERMS & CONDITIONS", "ข้อกำหนดและเงื่อนไข", "REGULAMIN"),
+    subtitle: L(
+      "TERMS OF USE AND SERVICE AGREEMENT FOR OUR KITCHEN SERVICES.",
+      "ข้อกำหนดการใช้และข้อตกลงบริการสำหรับบริการครัวของเรา",
+      "WARUNKI KORZYSTANIA I UMOWA O ŚWIADCZENIE USŁUG KUCHENNYCH."
+    ),
+    updatedLabel: L("July 2026", "กรกฎาคม 2026", "Lipiec 2026"),
     sections: [
       {
-        title: "Acceptance of Terms",
-        body: "By accessing our website, booking a consultation, or placing an order for a modular kitchen, you agree to be bound by these Terms & Conditions. If you do not agree, please do not use our services.",
+        title: L(
+          "Acceptance of Terms",
+          "การยอมรับข้อกำหนด",
+          "Akceptacja warunków"
+        ),
+        body: L(
+          "By accessing our website, booking a consultation, or placing an order for a modular kitchen, you agree to be bound by these Terms & Conditions. If you do not agree, please do not use our services.",
+          "การเข้าชมเว็บไซต์ การนัดคำปรึกษา หรือการสั่งซื้อครัวโมดูลาร์ ถือว่าคุณยอมรับข้อกำหนดและเงื่อนไขเหล่านี้ หากไม่ยอมรับ กรุณาอย่าใช้บริการของเรา",
+          "Korzystając z witryny, rezerwując konsultację lub składając zamówienie na kuchnię modułową, zgadzasz się na niniejszy Regulamin. Jeśli nie akceptujesz warunków, nie korzystaj z naszych usług."
+        ),
       },
       {
-        title: "Quotations, Orders & Payment Terms",
-        body: "All quotations are valid for 30 days from the date of issue. A deposit is required to commence manufacturing. The remaining balance is due upon completion of manufacturing and prior to delivery/installation, unless otherwise agreed in writing.",
+        title: L(
+          "Quotations, Orders & Payment Terms",
+          "ใบเสนอราคา คำสั่งซื้อ และเงื่อนไขการชำระเงิน",
+          "Wyceny, zamówienia i warunki płatności"
+        ),
+        body: L(
+          "All quotations are valid for 30 days from the date of issue. A deposit is required to commence manufacturing. The remaining balance is due upon completion of manufacturing and prior to delivery/installation, unless otherwise agreed in writing.",
+          "ใบเสนอราคาทุกฉบับมีอายุ 30 วันนับจากวันที่ออก ต้องชำระมัดจำเพื่อเริ่มผลิต ยอดคงเหลือชำระเมื่อผลิตเสร็จและก่อนส่งมอบ/ติดตั้ง เว้นแต่ตกลงเป็นลายลักษณ์อักษรไว้เป็นอย่างอื่น",
+          "Wszystkie wyceny są ważne 30 dni od daty wystawienia. Do rozpoczęcia produkcji wymagana jest zaliczka. Pozostała kwota jest płatna po zakończeniu produkcji i przed dostawą/montażem, chyba że uzgodniono inaczej na piśmie."
+        ),
       },
       {
-        title: "Site Measurement & Installation",
-        body: "Accurate site preparation (including plumbing and electrical readiness) is the client's responsibility unless otherwise contracted. Our technical team will schedule measurements and installation windows in coordination with you.",
+        title: L(
+          "Site Measurement & Installation",
+          "การวัดพื้นที่และการติดตั้ง",
+          "Pomiary na miejscu i montaż"
+        ),
+        body: L(
+          "Accurate site preparation (including plumbing and electrical readiness) is the client's responsibility unless otherwise contracted. Our technical team will schedule measurements and installation windows in coordination with you.",
+          "การเตรียมพื้นที่ให้พร้อม (รวมถึงระบบประปาและไฟฟ้า) เป็นความรับผิดชอบของลูกค้า เว้นแต่ตกลงไว้เป็นอย่างอื่น ทีมเทคนิคจะนัดหมายการวัดและติดตั้งร่วมกับคุณ",
+          "Dokładne przygotowanie miejsca (w tym gotowość instalacji wodno-kanalizacyjnej i elektrycznej) leży po stronie klienta, chyba że umówiono inaczej. Nasz zespół techniczny uzgodni z Tobą terminy pomiarów i montażu."
+        ),
       },
       {
-        title: "Warranty & After-Sales Support",
-        body: "We provide a 10-year structural warranty on HDMR carcase construction and Blum/Hettich hardware (subject to manufacturer terms and fair use). Cosmetic finishes and consumables may carry separate coverage as stated in your order documents.",
+        title: L(
+          "Warranty & After-Sales Support",
+          "การรับประกันและการบริการหลังการขาย",
+          "Gwarancja i wsparcie posprzedażowe"
+        ),
+        body: L(
+          "We provide a 10-year structural warranty on HDMR carcase construction and Blum/Hettich hardware (subject to manufacturer terms and fair use). Cosmetic finishes and consumables may carry separate coverage as stated in your order documents.",
+          "เรารับประกันโครงสร้างโครงตู้ HDMR และฮาร์ดแวร์ Blum/Hettich เป็นเวลา 10 ปี (ตามเงื่อนไขผู้ผลิตและการใช้งานอย่างเหมาะสม) งานตกแต่งผิวและวัสดุสิ้นเปลืองอาจมีการรับประกันแยกตามเอกสารสั่งซื้อ",
+          "Zapewniamy 10-letnią gwarancję konstrukcyjną na korpusy HDMR oraz okucia Blum/Hettich (zgodnie z warunkami producenta i prawidłowym użytkowaniem). Wykończenia i materiały eksploatacyjne mogą mieć osobne warunki określone w dokumentach zamówienia."
+        ),
       },
     ],
   },
@@ -1208,8 +1226,8 @@ function serializeLegalSections(sections) {
   if (!Array.isArray(sections) || !sections.length) return "";
   return sections
     .map((s, i) => {
-      const title = String(s?.title || "").trim();
-      const body = String(s?.body || "").trim();
+      const title = localizedTitleEn(s?.title);
+      const body = localizedTitleEn(s?.body);
       if (!title && !body) return "";
       return `${i + 1}. ${title}\n${body}`.trim();
     })
@@ -1218,7 +1236,10 @@ function serializeLegalSections(sections) {
 }
 
 function parseLegalSectionsFromContent(content) {
-  const text = String(content || "").trim();
+  const text =
+    typeof content === "object" && content
+      ? localizedTitleEn(content)
+      : String(content || "").trim();
   if (!text) return [];
   const parts = text.split(/\n(?=\d+\.\s+)/);
   return parts
@@ -1227,21 +1248,21 @@ function parseLegalSectionsFromContent(content) {
       const match = trimmed.match(/^(?:\d+\.\s*)?([^\n]+)\n?([\s\S]*)$/);
       if (!match) return null;
       return {
-        title: String(match[1] || "").trim(),
-        body: String(match[2] || "").trim(),
+        title: asLocalized(String(match[1] || "").trim()),
+        body: asLocalized(String(match[2] || "").trim()),
       };
     })
-    .filter((s) => s && (s.title || s.body));
+    .filter((s) => s && (localizedTitleEn(s.title) || localizedTitleEn(s.body)));
 }
 
 function asLegalSections(value) {
   if (!Array.isArray(value)) return [];
   return value
     .map((s) => ({
-      title: String(s?.title || "").trim(),
-      body: String(s?.body || "").trim(),
+      title: asLocalized(s?.title),
+      body: asLocalized(s?.body),
     }))
-    .filter((s) => s.title || s.body);
+    .filter((s) => localizedTitleEn(s.title) || localizedTitleEn(s.body));
 }
 
 const getLegal = asyncHandler(async (req, res) => {
@@ -1256,36 +1277,64 @@ const getLegal = asyncHandler(async (req, res) => {
     page = await LegalPage.create({
       siteId,
       type,
-      title: defaults.title,
-      subtitle: defaults.subtitle,
-      updatedLabel: defaults.updatedLabel,
-      sections: defaults.sections,
-      content: serializeLegalSections(defaults.sections),
+      title: asLocalized(defaults.title),
+      subtitle: asLocalized(defaults.subtitle),
+      updatedLabel: asLocalized(defaults.updatedLabel),
+      sections: asLegalSections(defaults.sections),
+      content: asLocalized(serializeLegalSections(defaults.sections)),
     });
   } else {
     let dirty = false;
-    if (!String(page.title || "").trim()) {
-      page.title = defaults.title;
+    const nextTitle = mergeLocalized(page.title, defaults.title);
+    const nextSubtitle = mergeLocalized(page.subtitle, defaults.subtitle);
+    const nextUpdated = mergeLocalized(page.updatedLabel, defaults.updatedLabel);
+    if (JSON.stringify(nextTitle) !== JSON.stringify(asLocalized(page.title))) {
+      page.title = nextTitle;
       dirty = true;
     }
-    if (!String(page.subtitle || "").trim()) {
-      page.subtitle = defaults.subtitle;
+    if (
+      JSON.stringify(nextSubtitle) !==
+      JSON.stringify(asLocalized(page.subtitle))
+    ) {
+      page.subtitle = nextSubtitle;
       dirty = true;
     }
-    if (!String(page.updatedLabel || "").trim()) {
-      page.updatedLabel = defaults.updatedLabel;
+    if (
+      JSON.stringify(nextUpdated) !==
+      JSON.stringify(asLocalized(page.updatedLabel))
+    ) {
+      page.updatedLabel = nextUpdated;
       dirty = true;
     }
+
+    let sections;
     if (!Array.isArray(page.sections) || page.sections.length === 0) {
       const fromContent = parseLegalSectionsFromContent(page.content);
-      page.sections = fromContent.length ? fromContent : defaults.sections;
+      sections = fromContent.length
+        ? fromContent
+        : asLegalSections(defaults.sections);
+      dirty = true;
+    } else {
+      sections = page.sections.map((s, i) => ({
+        title: mergeLocalized(s?.title, defaults.sections[i]?.title || ""),
+        body: mergeLocalized(s?.body, defaults.sections[i]?.body || ""),
+      }));
       dirty = true;
     }
-    if (!String(page.content || "").trim()) {
-      page.content = serializeLegalSections(page.sections);
+    page.sections = sections;
+
+    if (!localizedTitleEn(page.content)) {
+      page.content = asLocalized(serializeLegalSections(page.sections));
       dirty = true;
     }
-    if (dirty) await page.save();
+    if (dirty) {
+      page.markModified("sections");
+      page.markModified("title");
+      page.markModified("subtitle");
+      page.markModified("updatedLabel");
+      page.markModified("content");
+      await page.save();
+    }
   }
 
   return res.json({ success: true, page });
@@ -1302,16 +1351,16 @@ const updateLegal = asyncHandler(async (req, res) => {
   if (!sections.length && req.body.content) {
     sections = parseLegalSectionsFromContent(req.body.content);
   }
-  if (!sections.length) sections = defaults.sections;
+  if (!sections.length) sections = asLegalSections(defaults.sections);
 
-  const title =
-    String(req.body.title || "").trim() || defaults.title;
-  const subtitle =
-    String(req.body.subtitle || "").trim() || defaults.subtitle;
-  const updatedLabel =
-    String(req.body.updatedLabel || "").trim() || defaults.updatedLabel;
-  const content =
-    String(req.body.content || "").trim() || serializeLegalSections(sections);
+  const title = asLocalized(req.body.title || defaults.title);
+  const subtitle = asLocalized(req.body.subtitle || defaults.subtitle);
+  const updatedLabel = asLocalized(
+    req.body.updatedLabel || defaults.updatedLabel
+  );
+  const content = asLocalized(
+    req.body.content || serializeLegalSections(sections)
+  );
 
   const page = await LegalPage.findOneAndUpdate(
     { siteId, type },
@@ -1350,7 +1399,7 @@ const createGalleryItem = asyncHandler(async (req, res) => {
   }
   const item = await GalleryItem.create({
     siteId,
-    title: String(req.body.title || "").trim() || "Gallery image",
+    title: asLocalized(req.body.title || "Gallery image"),
     image: String(req.body.image || ""),
     filter: String(req.body.filter || "Style & Color"),
     tall: Boolean(req.body.tall),
@@ -1366,7 +1415,7 @@ const updateGalleryItem = asyncHandler(async (req, res) => {
     { _id: id, siteId },
     {
       $set: {
-        title: String(req.body.title || "").trim() || "Gallery image",
+        title: asLocalized(req.body.title || "Gallery image"),
         image: String(req.body.image || ""),
         filter: String(req.body.filter || "Style & Color"),
         tall: Boolean(req.body.tall),
@@ -1458,6 +1507,7 @@ const listFaqs = asyncHandler(async (req, res) => {
   if (!assertSite(siteId)) {
     return res.status(400).json({ success: false, message: "Invalid site" });
   }
+  await ensureDefaultFaqs(siteId);
   const items = await FaqItem.find({ siteId }).sort({
     sortOrder: 1,
     createdAt: -1,
@@ -1470,14 +1520,14 @@ const createFaq = asyncHandler(async (req, res) => {
   if (!assertSite(siteId)) {
     return res.status(400).json({ success: false, message: "Invalid site" });
   }
-  const question = String(req.body.question || "").trim();
-  if (!question) {
+  const question = asLocalized(req.body.question);
+  if (!localizedTitleEn(question)) {
     return res.status(400).json({ success: false, message: "Question required" });
   }
   const item = await FaqItem.create({
     siteId,
     question,
-    answer: String(req.body.answer || ""),
+    answer: asLocalized(req.body.answer),
     sortOrder: Number(req.body.sortOrder) || 0,
   });
   return res.status(201).json({ success: true, item });
@@ -1485,8 +1535,8 @@ const createFaq = asyncHandler(async (req, res) => {
 
 const updateFaq = asyncHandler(async (req, res) => {
   const { siteId, id } = req.params;
-  const question = String(req.body.question || "").trim();
-  if (!question) {
+  const question = asLocalized(req.body.question);
+  if (!localizedTitleEn(question)) {
     return res.status(400).json({ success: false, message: "Question required" });
   }
   const item = await FaqItem.findOneAndUpdate(
@@ -1494,7 +1544,7 @@ const updateFaq = asyncHandler(async (req, res) => {
     {
       $set: {
         question,
-        answer: String(req.body.answer || ""),
+        answer: asLocalized(req.body.answer),
         sortOrder: Number(req.body.sortOrder) || 0,
       },
     },

@@ -1,4 +1,15 @@
+const dns = require("dns");
 const mongoose = require("mongoose");
+
+// Windows/local DNS often refuses Node SRV lookups for mongodb+srv://
+try {
+  const servers = dns.getServers();
+  if (!servers.includes("8.8.8.8")) {
+    dns.setServers(["8.8.8.8", "1.1.1.1", ...servers]);
+  }
+} catch {
+  /* ignore */
+}
 
 const ConnectDB = async () => {
   try {
@@ -7,7 +18,7 @@ const ConnectDB = async () => {
       throw new Error("MONGO_URI is not defined");
     }
 
-    const options = {};
+    const options = { serverSelectionTimeoutMS: 20000 };
     if (process.env.MONGO_DB_NAME) {
       options.dbName = process.env.MONGO_DB_NAME;
     }

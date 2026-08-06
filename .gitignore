@@ -5,3 +5,7 @@ dist/
 coverage/
 *.log
 uploads/
+.audit-snapshots/
+.audit-*
+*.audit.js
+*.tsbuildinfo
