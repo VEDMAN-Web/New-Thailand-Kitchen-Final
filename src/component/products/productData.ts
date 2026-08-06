@@ -49,8 +49,8 @@ export const productLayouts: ProductLayout[] = [
   "T Shape",
 ];
 
-/** Layout tabs + Best Seller (shown after T Shape) */
-export const productFilterTabs = [...productLayouts, "Best Seller"] as const;
+/** Layout tabs — All + each layout + Best Seller */
+export const productFilterTabs = ["All", ...productLayouts, "Best Seller"] as const;
 export type ProductFilterTab = (typeof productFilterTabs)[number];
 
 export const productHero = {

@@ -17,6 +17,7 @@ import { smoothScrollToId } from "../../lib/smoothScroll";
 import { fetchMergedCategories } from "../../services/cmsPublic";
 
 const tabLabelKeys: Record<ProductFilterTab, TranslationKey> = {
+  All: "gallery.filter.all",
   Modern: "products.tab.modern",
   Islands: "products.tab.islands",
   "U Shape": "products.tab.uShape",
@@ -36,6 +37,7 @@ function tabFromQuery(
 ): string | null {
   if (!value) return null;
   const normalized = value.toLowerCase().replace(/[_\s]+/g, "-");
+  if (normalized === "all") return "All";
   if (normalized === "best-seller" || normalized === "bestseller") {
     return "Best Seller";
   }
@@ -50,7 +52,7 @@ export default function ProductsListSection({
 }) {
   const { t, locale } = useTranslation();
   const searchParams = useSearchParams();
-  const [layout, setLayout] = useState<string>("Modern");
+  const [layout, setLayout] = useState<string>("All");
   const [page, setPage] = useState(1);
   const [items] = useState<ProductItem[]>(initialItems);
   /** EN id for filter matching + raw CMS title for locale display */
@@ -88,7 +90,12 @@ export default function ProductsListSection({
     // Also surface categories present on products but missing from CMS list
     for (const p of items) {
       const cat = (p.layout || p.layoutType || "").trim();
-      if (cat && !known.has(cat.toLowerCase()) && cat.toLowerCase() !== "modern") {
+      if (
+        cat &&
+        !known.has(cat.toLowerCase()) &&
+        cat.toLowerCase() !== "modern" &&
+        cat.toLowerCase() !== "all"
+      ) {
         base.splice(base.length - 1, 0, cat);
         known.add(cat.toLowerCase());
       }
@@ -114,27 +121,25 @@ export default function ProductsListSection({
   const filtered = useMemo(() => {
     let list = [...items];
 
-    if (layout === "Best Seller") {
+    if (layout === "All") {
+      // Show everything — no filter applied
+    } else if (layout === "Best Seller") {
       list = list.filter((item) => item.bestSeller);
-    } else if (layout !== "Modern") {
-      const layoutMatch = productFilterTabs.includes(layout as ProductFilterTab)
-        ? layout !== "Best Seller"
-        : false;
-      if (layoutMatch && layout !== "Modern") {
-        list = list.filter(
-          (item) =>
-            item.layoutType === (layout as ProductLayout) ||
-            item.layout?.toLowerCase() === layout.toLowerCase() ||
-            item.tag?.toLowerCase() === layout.toLowerCase()
-        );
-      } else {
-        list = list.filter(
-          (item) =>
-            item.layout?.toLowerCase() === layout.toLowerCase() ||
-            item.tag?.toLowerCase() === layout.toLowerCase() ||
-            item.layoutType?.toLowerCase() === layout.toLowerCase()
-        );
-      }
+    } else {
+      // All other tabs (Modern, Islands, U Shape, L Shape, Straight, T Shape, custom CMS)
+      // Filter by matching layoutType, layout string, or tag — case-insensitive
+      list = list.filter(
+        (item) =>
+          item.layoutType?.toLowerCase() === layout.toLowerCase() ||
+          item.layout?.toLowerCase() === layout.toLowerCase() ||
+          (typeof item.tag === "string" &&
+            item.tag.toLowerCase() === layout.toLowerCase()) ||
+          (typeof item.tag === "object" &&
+            item.tag !== null &&
+            Object.values(item.tag as Record<string, string>).some(
+              (v) => typeof v === "string" && v.toLowerCase() === layout.toLowerCase()
+            ))
+      );
     }
 
     return list;
