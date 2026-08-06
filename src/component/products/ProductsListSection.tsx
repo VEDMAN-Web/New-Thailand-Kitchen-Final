@@ -12,6 +12,9 @@ import {
 } from "./productData";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import type { TranslationKey } from "../../i18n/translations";
+import { pickCmsText } from "../../lib/cmsText";
+import { smoothScrollToId } from "../../lib/smoothScroll";
+import { fetchMergedCategories } from "../../services/cmsPublic";
 
 const tabLabelKeys: Record<ProductFilterTab, TranslationKey> = {
   Modern: "products.tab.modern",
@@ -23,45 +26,90 @@ const tabLabelKeys: Record<ProductFilterTab, TranslationKey> = {
   "Best Seller": "products.tab.bestSeller",
 };
 
-function tabToSlug(tab: ProductFilterTab) {
+function tabToSlug(tab: string) {
   return tab.toLowerCase().replace(/\s+/g, "-");
 }
 
-function tabFromQuery(value: string | null): ProductFilterTab | null {
+function tabFromQuery(
+  value: string | null,
+  tabs: string[]
+): string | null {
   if (!value) return null;
   const normalized = value.toLowerCase().replace(/[_\s]+/g, "-");
   if (normalized === "best-seller" || normalized === "bestseller") {
     return "Best Seller";
   }
-  const match = productFilterTabs.find(
-    (tab) => tabToSlug(tab) === normalized
-  );
+  const match = tabs.find((tab) => tabToSlug(tab) === normalized);
   return match ?? null;
 }
 
-export default function ProductsListSection({ initialItems }: { initialItems: ProductItem[] }) {
-  const { t } = useTranslation();
+export default function ProductsListSection({
+  initialItems,
+}: {
+  initialItems: ProductItem[];
+}) {
+  const { t, locale } = useTranslation();
   const searchParams = useSearchParams();
-  const [layout, setLayout] = useState<ProductFilterTab>("Modern");
+  const [layout, setLayout] = useState<string>("Modern");
   const [page, setPage] = useState(1);
   const [items] = useState<ProductItem[]>(initialItems);
+  /** EN id for filter matching + raw CMS title for locale display */
+  const [cmsCategories, setCmsCategories] = useState<
+    { id: string; title: unknown }[]
+  >([]);
+
+  useEffect(() => {
+    let alive = true;
+    fetchMergedCategories().then((cats) => {
+      if (!alive) return;
+      setCmsCategories(
+        cats
+          .map((c) => ({
+            id: pickCmsText(c.title, "", "EN"),
+            title: c.title,
+          }))
+          .filter((c) => c.id)
+      );
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const filterTabs = useMemo(() => {
+    const base = [...productFilterTabs] as string[];
+    const known = new Set(base.map((t) => t.toLowerCase()));
+    for (const cat of cmsCategories) {
+      if (!known.has(cat.id.toLowerCase())) {
+        base.splice(base.length - 1, 0, cat.id); // before Best Seller
+        known.add(cat.id.toLowerCase());
+      }
+    }
+    // Also surface categories present on products but missing from CMS list
+    for (const p of items) {
+      const cat = (p.layout || p.layoutType || "").trim();
+      if (cat && !known.has(cat.toLowerCase()) && cat.toLowerCase() !== "modern") {
+        base.splice(base.length - 1, 0, cat);
+        known.add(cat.toLowerCase());
+      }
+    }
+    return base;
+  }, [cmsCategories, items]);
 
   useEffect(() => {
     const fromQuery =
-      tabFromQuery(searchParams.get("tab")) ||
-      tabFromQuery(searchParams.get("filter"));
+      tabFromQuery(searchParams.get("tab"), filterTabs) ||
+      tabFromQuery(searchParams.get("filter"), filterTabs);
     if (fromQuery) {
       setLayout(fromQuery);
       setPage(1);
     }
     if (fromQuery === "Best Seller" || searchParams.get("tab") === "best-seller") {
       requestAnimationFrame(() => {
-        document
-          .getElementById("best-seller")
-          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+        requestAnimationFrame(() => smoothScrollToId("best-seller"));
       });
     }
-  }, [searchParams]);
+  }, [searchParams, filterTabs]);
 
   const filtered = useMemo(() => {
     let list = [...items];
@@ -69,7 +117,24 @@ export default function ProductsListSection({ initialItems }: { initialItems: Pr
     if (layout === "Best Seller") {
       list = list.filter((item) => item.bestSeller);
     } else if (layout !== "Modern") {
-      list = list.filter((item) => item.layoutType === (layout as ProductLayout));
+      const layoutMatch = productFilterTabs.includes(layout as ProductFilterTab)
+        ? layout !== "Best Seller"
+        : false;
+      if (layoutMatch && layout !== "Modern") {
+        list = list.filter(
+          (item) =>
+            item.layoutType === (layout as ProductLayout) ||
+            item.layout?.toLowerCase() === layout.toLowerCase() ||
+            item.tag?.toLowerCase() === layout.toLowerCase()
+        );
+      } else {
+        list = list.filter(
+          (item) =>
+            item.layout?.toLowerCase() === layout.toLowerCase() ||
+            item.tag?.toLowerCase() === layout.toLowerCase() ||
+            item.layoutType?.toLowerCase() === layout.toLowerCase()
+        );
+      }
     }
 
     return list;
@@ -84,10 +149,14 @@ export default function ProductsListSection({ initialItems }: { initialItems: Pr
 
   return (
     <section id="best-seller" className="pb-16 lg:pb-24 pt-10 lg:pt-12 scroll-mt-28">
-      {/* Layout tabs + Best Seller */}
       <div className="flex flex-wrap gap-3">
-        {productFilterTabs.map((item) => {
+        {filterTabs.map((item) => {
           const isActive = layout === item;
+          const cmsCat = cmsCategories.find((c) => c.id === item);
+          const label =
+            item in tabLabelKeys
+              ? t(tabLabelKeys[item as ProductFilterTab])
+              : pickCmsText(cmsCat?.title, item, locale);
           return (
             <button
               key={item}
@@ -105,20 +174,18 @@ export default function ProductsListSection({ initialItems }: { initialItems: Pr
                   : "bg-[#EDE8E1] text-[#1A1A1A] hover:bg-[#E5DFD6]"
               }`}
             >
-              {t(tabLabelKeys[item])}
+              {label}
             </button>
           );
         })}
       </div>
 
-      {/* Count */}
       <div className="mt-8">
         <p className="text-sm text-[#1A1A1A] font-medium">
           {t("products.count", { count: filtered.length })}
         </p>
       </div>
 
-      {/* Grid */}
       {pageItems.length > 0 ? (
         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {pageItems.map((product) => (
@@ -129,7 +196,6 @@ export default function ProductsListSection({ initialItems }: { initialItems: Pr
         <p className="mt-12 text-[#6B6B6B]">{t("products.empty")}</p>
       )}
 
-      {/* Pagination */}
       {totalPages > 1 ? (
         <div className="mt-12 flex items-center justify-center gap-3">
           <button
@@ -139,24 +205,22 @@ export default function ProductsListSection({ initialItems }: { initialItems: Pr
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             className="w-10 h-10 rounded-full text-[#1A1A1A] disabled:opacity-30 hover:bg-[#EDE8E1] transition"
           >
-            ←
+            ‹
           </button>
-
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
             <button
-              key={num}
+              key={n}
               type="button"
-              onClick={() => setPage(num)}
-              className={`w-10 h-10 rounded-full text-sm font-semibold transition ${
-                currentPage === num
-                  ? "bg-[#E0905A] text-white"
+              onClick={() => setPage(n)}
+              className={`w-10 h-10 rounded-full text-sm font-medium transition ${
+                n === currentPage
+                  ? "bg-[#1A1A1A] text-white"
                   : "text-[#1A1A1A] hover:bg-[#EDE8E1]"
               }`}
             >
-              {num}
+              {n}
             </button>
           ))}
-
           <button
             type="button"
             aria-label="Next page"
@@ -164,7 +228,7 @@ export default function ProductsListSection({ initialItems }: { initialItems: Pr
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             className="w-10 h-10 rounded-full text-[#1A1A1A] disabled:opacity-30 hover:bg-[#EDE8E1] transition"
           >
-            →
+            ›
           </button>
         </div>
       ) : null}

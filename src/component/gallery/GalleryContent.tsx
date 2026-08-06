@@ -10,7 +10,12 @@ import {
 } from "./galleryData";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import type { TranslationKey } from "../../i18n/translations";
-import { fetchMergedGallery, type CmsGallery } from "../../services/cmsPublic";
+import {
+  fetchHomeSections,
+  fetchMergedGallery,
+  type CmsGallery,
+} from "../../services/cmsPublic";
+import { pickCmsText } from "../../lib/cmsText";
 
 const categoryKeyMap: Record<GalleryCategory, TranslationKey> = {
   All: "gallery.filter.all",
@@ -20,44 +25,70 @@ const categoryKeyMap: Record<GalleryCategory, TranslationKey> = {
   Materials: "gallery.filter.materials",
 };
 
-function categoryToSlug(cat: GalleryCategory) {
+function categoryToSlug(cat: string) {
   return cat
     .toLowerCase()
     .replace(/\s*&\s*/g, "-")
     .replace(/\s+/g, "-");
 }
 
-function categoryFromQuery(value: string | null): GalleryCategory | null {
-  if (!value) return null;
-  const normalized = value
-    .toLowerCase()
-    .replace(/[_\s]+/g, "-")
-    .replace(/-+/g, "-");
-  return (
-    galleryCategories.find((cat) => categoryToSlug(cat) === normalized) ?? null
-  );
-}
-
 export default function GalleryContent() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const searchParams = useSearchParams();
-  const [active, setActive] = useState<GalleryCategory>("All");
+  const [active, setActive] = useState<string>("All");
   const [itemsAll, setItemsAll] = useState<CmsGallery[]>(galleryItems);
+  const [cmsFilters, setCmsFilters] = useState<
+    { id: string; label: unknown }[]
+  >([]);
 
   useEffect(() => {
     fetchMergedGallery().then((list) => {
       if (list?.length) setItemsAll(list);
     });
+    fetchHomeSections().then((sections) => {
+      const next = ((sections?.galleryPage?.filters || []) as {
+        id?: string;
+        label?: unknown;
+      }[])
+        .map((f) => ({
+          id: String(f.id || "").trim(),
+          label: f.label ?? f.id,
+        }))
+        .filter((f) => f.id);
+      if (next.length) setCmsFilters(next);
+    });
   }, []);
 
+  const filters =
+    cmsFilters.length > 0
+      ? cmsFilters.map((f) => ({
+          id: f.id,
+          label: pickCmsText(
+            f.label,
+            f.id in categoryKeyMap
+              ? t(categoryKeyMap[f.id as GalleryCategory])
+              : f.id,
+            locale
+          ),
+        }))
+      : galleryCategories.map((id) => ({
+          id,
+          label:
+            id in categoryKeyMap
+              ? t(categoryKeyMap[id as GalleryCategory])
+              : id,
+        }));
+
   useEffect(() => {
-    const fromQuery =
-      categoryFromQuery(searchParams.get("tab")) ||
-      categoryFromQuery(searchParams.get("filter"));
-    if (fromQuery) {
-      setActive(fromQuery);
-    }
-  }, [searchParams]);
+    const raw = searchParams.get("tab") || searchParams.get("filter") || "";
+    if (!raw) return;
+    const normalized = raw
+      .toLowerCase()
+      .replace(/[_\s]+/g, "-")
+      .replace(/-+/g, "-");
+    const match = filters.find((f) => categoryToSlug(f.id) === normalized);
+    if (match) setActive(match.id);
+  }, [searchParams, filters]);
 
   const items =
     active === "All"
@@ -67,38 +98,37 @@ export default function GalleryContent() {
   return (
     <section className="pb-16 lg:pb-24">
       <div className="max-w-7xl mx-auto px-6">
-        {/* Filter pills */}
         <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-8 lg:mb-10">
-          {galleryCategories.map((cat) => (
+          {filters.map((cat) => (
             <button
-              key={cat}
+              key={cat.id}
               type="button"
               onClick={() => {
-                setActive(cat);
+                setActive(cat.id);
                 const url = new URL(window.location.href);
-                url.searchParams.set("tab", categoryToSlug(cat));
+                url.searchParams.set("tab", categoryToSlug(cat.id));
                 window.history.replaceState({}, "", url.toString());
               }}
               className={`px-5 py-2.5 rounded-full text-sm font-medium transition-colors ${
-                active === cat
+                active === cat.id
                   ? "bg-[#1A1A1A] text-white"
                   : "text-[#4A4A4A] hover:text-[#1A1A1A]"
               }`}
             >
-              {t(categoryKeyMap[cat])}
+              {cat.label ||
+                (cat.id in categoryKeyMap
+                  ? t(categoryKeyMap[cat.id as GalleryCategory])
+                  : cat.id)}
             </button>
           ))}
         </div>
 
-        {/* Mosaic grid */}
         <div className="grid grid-cols-2 gap-4 sm:gap-5 auto-rows-[150px] sm:auto-rows-[190px] lg:auto-rows-[215px] [grid-auto-flow:dense]">
           {items.map((item, i) => {
             const pos = i % 7;
             const isTall = Boolean(item.tall) || pos === 0 || pos === 4;
             const isWide = Boolean(item.wide) || pos === 6;
 
-            // Scale + translate so pan always moves, even when image aspect
-            // matches the cell (object-position pan can look frozen).
             const panClass =
               isTall || isWide
                 ? "scale-[1.3] origin-left transition-transform duration-[3500ms] ease-linear will-change-transform group-hover:-translate-x-[14%]"
@@ -113,7 +143,7 @@ export default function GalleryContent() {
               >
                 <Image
                   src={item.image}
-                  alt={item.title}
+                  alt={pickCmsText(item.title, "Gallery", locale)}
                   fill
                   className={`object-cover ${panClass}`}
                   sizes={isWide ? "100vw" : "(max-width: 1024px) 50vw, 45vw"}

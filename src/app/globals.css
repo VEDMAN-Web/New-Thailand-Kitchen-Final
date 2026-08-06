@@ -7,6 +7,7 @@
   --charcoal: #1a1a1a;
   --gold: #b38b6d;
   --muted: #6b6b6b;
+  --nav-offset: 88px;
 }
 
 @theme inline {
@@ -20,9 +21,39 @@
   --font-serif: var(--font-cormorant), ui-serif, Georgia, serif;
 }
 
+html {
+  /* Lenis owns wheel smoothing; keep native hash offset for sticky nav */
+  scroll-padding-top: var(--nav-offset);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .animate-marquee,
+  .gallery-scroll-up,
+  .gallery-scroll-down {
+    animation: none !important;
+  }
+}
+
+/* Soft language / CMS content swaps */
+.tk-content-fade {
+  transition: opacity 180ms ease;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
+  /* Prevent horizontal rubber-band flicker on some browsers */
+  overflow-x: clip;
+}
+
+/* Smooth GPU-friendly scrolling containers */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #c8c0b6 transparent;
 }
 
 @keyframes marquee {

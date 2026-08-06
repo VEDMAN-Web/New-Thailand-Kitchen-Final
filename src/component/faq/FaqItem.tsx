@@ -37,7 +37,7 @@ export default function FaqItem({ item }: Props) {
         </span>
 
         <span
-          className={`shrink-0 w-9 h-9 rounded-full border border-[#D8CFC3] flex items-center justify-center text-[#1A1A1A] text-xl leading-none transition-transform duration-300 ${
+          className={`shrink-0 w-9 h-9 rounded-full border border-[#D8CFC3] flex items-center justify-center text-[#1A1A1A] text-xl leading-none transition-transform duration-300 ease-out ${
             open ? "rotate-45 bg-[#E0905A] border-[#E0905A] text-white" : ""
           }`}
         >
@@ -46,13 +46,15 @@ export default function FaqItem({ item }: Props) {
       </button>
 
       <div
-        className={`overflow-hidden transition-all duration-300 ${
-          open ? "max-h-60 pb-6 opacity-100" : "max-h-0 opacity-0"
+        className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
+          open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
         }`}
       >
-        <p className="text-[#6B6B6B] text-sm sm:text-[15px] leading-7 max-w-3xl pr-12">
-          {answer}
-        </p>
+        <div className="overflow-hidden">
+          <p className="text-[#6B6B6B] text-sm sm:text-[15px] leading-7 max-w-3xl pr-12 pb-6">
+            {answer}
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -2,10 +2,23 @@
 
 import { useEffect, useRef } from "react";
 import { useTranslation } from "../../i18n/LanguageProvider";
+import { useCmsSection } from "../../lib/CmsHomeContext";
+import { pickCmsAsset, pickCmsText } from "../../lib/cmsText";
+
+type BlogPageCms = {
+  eyebrow?: string;
+  title?: string;
+  videoUrl?: string;
+};
 
 export default function BlogHero() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const videoRef = useRef<HTMLVideoElement>(null);
+  const cms = useCmsSection<BlogPageCms>("blogPage");
+
+  const eyebrow = pickCmsText(cms?.eyebrow, t("blog.hero.eyebrow"), locale);
+  const title = pickCmsText(cms?.title, t("blog.hero.title"), locale);
+  const videoSrc = pickCmsAsset(cms?.videoUrl, "") || "/blog/Video.mp4";
 
   useEffect(() => {
     const video = videoRef.current;
@@ -14,14 +27,15 @@ export default function BlogHero() {
     video.muted = true;
     video.defaultMuted = true;
     video.play().catch(() => {});
-  }, []);
+  }, [videoSrc]);
 
   return (
     <section className="bg-[#F5F3EF] px-3 pt-[80px] sm:px-4 sm:pt-[84px]">
       <div className="relative w-full h-[300px] sm:h-[360px] md:h-[420px] lg:h-[460px] rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden">
         <video
           ref={videoRef}
-          src="/blog/Video.mp4"
+          key={videoSrc}
+          src={videoSrc}
           autoPlay
           muted
           loop
@@ -37,10 +51,10 @@ export default function BlogHero() {
 
         <div className="absolute inset-0 flex flex-col items-start justify-center text-left px-6 sm:px-10 lg:px-14">
           <p className="text-[#E0905A] text-xs tracking-[0.3em] uppercase font-semibold mb-4">
-            {t("blog.hero.eyebrow")}
+            {eyebrow}
           </p>
           <h1 className="text-white text-4xl sm:text-5xl md:text-6xl font-extrabold leading-none">
-            {t("blog.hero.title")}
+            {title}
           </h1>
         </div>
       </div>

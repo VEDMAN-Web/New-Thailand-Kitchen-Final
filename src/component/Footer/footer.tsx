@@ -11,6 +11,8 @@ import {
 } from "./footerData";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import { useCmsSection } from "../../lib/CmsHomeContext";
+import { pickCmsText } from "../../lib/cmsText";
+import { smoothScrollAfterNav } from "../../lib/smoothScroll";
 
 function SocialIcon({ name }: { name: SocialIconName }) {
   const common = {
@@ -64,42 +66,33 @@ function SocialIcon({ name }: { name: SocialIconName }) {
 }
 
 function scrollToFooterTarget(href: string) {
-  const hash = href.includes("#") ? href.split("#")[1] : "";
-
-  const run = () => {
-    if (hash) {
-      const el = document.getElementById(hash);
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "start" });
-        return;
-      }
-    }
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  // Allow route paint / query updates before scrolling
-  window.setTimeout(run, 50);
-  window.setTimeout(run, 250);
+  smoothScrollAfterNav(href);
 }
 
 export default function Footer() {
   const { t, locale } = useTranslation();
   const router = useRouter();
   const footerCms = useCmsSection<{
-    address?: string;
+    address?: unknown;
     email?: string;
     phone?: string;
     facebook?: string;
     instagram?: string;
     line?: string;
+    logoUrl?: string;
+    tagline?: unknown;
+    homeColumnTitle?: unknown;
+    productColumnTitle?: unknown;
+    homeLinks?: { label?: unknown; href?: string }[];
+    productLinks?: { label?: unknown; href?: string }[];
   }>("footer");
 
-  // CMS address copy is English-only — use i18n for TH/PL.
-  // Email and phone are the same in every language, so they stay on CMS.
-  const address =
-    locale === "EN"
-      ? footerCms?.address || contactInfo[0].text
-      : t("footer.address");
+  // Prefer CMS address when set; otherwise i18n / static.
+  const address = pickCmsText(
+    footerCms?.address,
+    t("footer.address") || contactInfo[0].text,
+    locale
+  );
 
   const contactItems = [
     {
@@ -129,6 +122,56 @@ export default function Footer() {
     return s;
   });
 
+  const logoUrl = footerCms?.logoUrl?.trim() || "/footer/logo.png";
+  const remoteLogo =
+    logoUrl.startsWith("http") || logoUrl.startsWith("/uploads");
+  const tagline = pickCmsText(footerCms?.tagline, t("footer.tagline"), locale);
+  const homeColumnTitle = pickCmsText(
+    footerCms?.homeColumnTitle,
+    t("footer.section.home"),
+    locale
+  );
+  const productColumnTitle = pickCmsText(
+    footerCms?.productColumnTitle,
+    t("footer.section.product"),
+    locale
+  );
+
+  const homeLinksCms = (footerCms?.homeLinks || []).filter(
+    (l) => pickCmsText(l?.label, "", "EN") && l?.href
+  );
+  const productLinksCms = (footerCms?.productLinks || []).filter(
+    (l) => pickCmsText(l?.label, "", "EN") && l?.href
+  );
+  const homeLinks =
+    homeLinksCms.length > 0
+      ? homeLinksCms.map((l, i) => ({
+          label: pickCmsText(
+            l.label,
+            footerLinks.home[i] ? t(footerLinks.home[i].key) : "",
+            locale
+          ),
+          href: l.href || "/",
+        }))
+      : footerLinks.home.map((item) => ({
+          label: t(item.key),
+          href: item.href,
+        }));
+  const productLinks =
+    productLinksCms.length > 0
+      ? productLinksCms.map((l, i) => ({
+          label: pickCmsText(
+            l.label,
+            footerLinks.product[i] ? t(footerLinks.product[i].key) : "",
+            locale
+          ),
+          href: l.href || "/",
+        }))
+      : footerLinks.product.map((item) => ({
+          label: t(item.key),
+          href: item.href,
+        }));
+
   const handleFooterNav = (
     e: React.MouseEvent<HTMLAnchorElement>,
     href: string
@@ -155,14 +198,15 @@ export default function Footer() {
         <div className="grid lg:grid-cols-4 md:grid-cols-2 gap-12 lg:gap-10">
           <div>
             <Image
-              src="/footer/logo.png"
+              src={logoUrl}
               alt="Thailand Kitchens"
               width={150}
               height={60}
+              unoptimized={remoteLogo}
             />
 
             <p className="mt-6 text-white/60 leading-7 text-sm max-w-xs">
-              {t("footer.tagline")}
+              {tagline}
             </p>
 
             <div className="flex gap-3 mt-8">
@@ -187,17 +231,17 @@ export default function Footer() {
 
           <div>
             <h3 className="text-[#B38B6D] text-sm font-semibold tracking-wider uppercase mb-6">
-              {t("footer.section.home")}
+              {homeColumnTitle}
             </h3>
             <ul className="space-y-4">
-              {footerLinks.home.map((item) => (
-                <li key={item.key}>
+              {homeLinks.map((item) => (
+                <li key={`${item.href}-${item.label}`}>
                   <Link
                     href={item.href}
                     onClick={(e) => handleFooterNav(e, item.href)}
                     className="text-white/70 text-sm hover:text-white transition"
                   >
-                    {t(item.key)}
+                    {item.label}
                   </Link>
                 </li>
               ))}
@@ -206,17 +250,17 @@ export default function Footer() {
 
           <div>
             <h3 className="text-[#B38B6D] text-sm font-semibold tracking-wider uppercase mb-6">
-              {t("footer.section.product")}
+              {productColumnTitle}
             </h3>
             <ul className="space-y-4">
-              {footerLinks.product.map((item) => (
-                <li key={item.key}>
+              {productLinks.map((item) => (
+                <li key={`${item.href}-${item.label}`}>
                   <Link
                     href={item.href}
                     onClick={(e) => handleFooterNav(e, item.href)}
                     className="text-white/70 text-sm hover:text-white transition"
                   >
-                    {t(item.key)}
+                    {item.label}
                   </Link>
                 </li>
               ))}

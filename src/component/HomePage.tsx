@@ -11,9 +11,11 @@ import BrandSlider from "./brandLogo/BrandSlider";
 import FeatureSection from "./features/FeatureSection";
 import CatalogSection from "./catlog/CatlogSection";
 import ContactSection from "./contactUs/ContactSection";
+import HomeFaqSection from "./faq/HomeFaqSection";
 import Footer from "./Footer/footer";
 import { useTranslation } from "../i18n/LanguageProvider";
 import { useCmsSection } from "../lib/CmsHomeContext";
+import { pickCmsText } from "../lib/cmsText";
 
 function HomePage() {
   const { t, locale } = useTranslation();
@@ -25,22 +27,78 @@ function HomePage() {
     buttonText?: string;
     videoUrl?: string;
   }>("hero");
+  const productsPage = useCmsSection<{
+    homeEyebrow?: string;
+    homeTitle?: string;
+    homeCta?: string;
+  }>("productsPage");
+  const testimonials = useCmsSection<{
+    eyebrow?: string;
+    title?: string;
+  }>("testimonials");
+  const advantages = useCmsSection<{
+    eyebrow?: string;
+    title?: string;
+  }>("advantages");
+  const catalogue = useCmsSection<{
+    eyebrow?: string;
+    title?: string;
+  }>("catalogue");
 
-  // CMS copy is English-only — use i18n whenever language is not EN
-  const heroSubtitle =
-    locale === "EN" && hero?.subtitle
-      ? hero.subtitle
-      : t("home.hero.eyebrow");
-  const heroTitle =
-    locale === "EN" && hero?.title ? hero.title : t("home.hero.title");
-  const heroDescription =
-    locale === "EN" && hero?.description
-      ? hero.description
-      : t("home.hero.description");
-  const heroCta =
-    locale === "EN" && hero?.buttonText
-      ? hero.buttonText
-      : t("home.hero.cta");
+  // CMS-first on EN. TH/PL prefer i18n so language switch works.
+  const heroSubtitle = pickCmsText(hero?.subtitle, t("home.hero.eyebrow"), locale);
+  const heroTitle = pickCmsText(hero?.title, t("home.hero.title"), locale);
+  const heroDescription = pickCmsText(
+    hero?.description,
+    t("home.hero.description"),
+    locale
+  );
+  const heroCta = pickCmsText(hero?.buttonText, t("home.hero.cta"), locale);
+  const productsEyebrow = pickCmsText(
+    productsPage?.homeEyebrow,
+    t("home.products.eyebrow"),
+    locale
+  );
+  const productsTitle = pickCmsText(
+    productsPage?.homeTitle,
+    t("home.products.title"),
+    locale
+  );
+  const productsCta = pickCmsText(
+    productsPage?.homeCta,
+    t("home.products.cta"),
+    locale
+  );
+  const testimonialsEyebrow = pickCmsText(
+    testimonials?.eyebrow,
+    t("home.testimonials.eyebrow"),
+    locale
+  );
+  const testimonialsTitle = pickCmsText(
+    testimonials?.title,
+    t("home.testimonials.title"),
+    locale
+  );
+  const featuresEyebrow = pickCmsText(
+    advantages?.eyebrow,
+    t("home.features.eyebrow"),
+    locale
+  );
+  const featuresTitle = pickCmsText(
+    advantages?.title,
+    t("home.features.title"),
+    locale
+  );
+  const catalogEyebrow = pickCmsText(
+    catalogue?.eyebrow,
+    t("home.catalog.eyebrow"),
+    locale
+  );
+  const catalogTitle = pickCmsText(
+    catalogue?.title,
+    t("home.catalog.title"),
+    locale
+  );
 
   const heroVideo = (hero?.videoUrl || "").trim() || "/video/2.mp4?v=3";
   const isEmbed =
@@ -148,17 +206,17 @@ function HomePage() {
           <div className="max-w-7xl mx-auto px-6 flex items-end justify-between gap-6">
             <div>
               <p className="text-[#E0905A] text-xs tracking-[0.28em] uppercase font-medium mb-3">
-                {t("home.products.eyebrow")}
+                {productsEyebrow}
               </p>
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-[#1A1A1A]">
-                {t("home.products.title")}
+                {productsTitle}
               </h2>
             </div>
             <Link
               href="/products"
               className="shrink-0 hidden sm:inline-flex gap-2 items-center bg-[#1A1A1A] text-white px-6 py-3 rounded-full text-sm font-medium hover:bg-black transition"
             >
-              {t("home.products.cta")}
+              {productsCta}
               <span aria-hidden>↗</span>
             </Link>
           </div>
@@ -168,10 +226,10 @@ function HomePage() {
         <section className="pt-10 lg:pt-12 pb-10 lg:pb-12">
           <div className="max-w-7xl mx-auto px-6">
             <p className="text-[#E0905A] text-xs tracking-[0.28em] uppercase font-medium mb-3">
-              {t("home.testimonials.eyebrow")}
+              {testimonialsEyebrow}
             </p>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-[#1A1A1A]">
-              {t("home.testimonials.title")}
+              {testimonialsTitle}
             </h2>
           </div>
         </section>
@@ -182,10 +240,10 @@ function HomePage() {
         <section className="pt-10 lg:pt-12 pb-10 lg:pb-12">
           <div className="max-w-7xl mx-auto px-6">
             <p className="text-[#E0905A] text-xs tracking-[0.28em] uppercase font-medium mb-3">
-              {t("home.features.eyebrow")}
+              {featuresEyebrow}
             </p>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-[#1A1A1A]">
-              {t("home.features.title")}
+              {featuresTitle}
             </h2>
           </div>
         </section>
@@ -194,15 +252,16 @@ function HomePage() {
         <section className="pt-10 lg:pt-12 pb-10 lg:pb-12">
           <div className="max-w-7xl mx-auto px-6">
             <p className="text-[#E0905A] text-xs tracking-[0.28em] uppercase font-medium mb-3">
-              {t("home.catalog.eyebrow")}
+              {catalogEyebrow}
             </p>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-[#1A1A1A]">
-              {t("home.catalog.title")}
+              {catalogTitle}
             </h2>
           </div>
         </section>
         <CatalogSection />
 
+        <HomeFaqSection />
         <ContactSection />
         <Footer />
       </div>

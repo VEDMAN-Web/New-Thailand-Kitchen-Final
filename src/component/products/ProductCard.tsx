@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ProductItem } from "./productData";
 import { useTranslation } from "../../i18n/LanguageProvider";
+import { pickCmsText } from "../../lib/cmsText";
 
 interface Props {
   product: ProductItem;
@@ -17,8 +18,12 @@ function normalizedSlug(slug: string) {
 }
 
 export default function ProductCard({ product }: Props) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const slug = normalizedSlug(product.slug);
+  const name = pickCmsText(product.name, "", locale);
+  const layout = pickCmsText(product.layout, product.layout, locale);
+  const finish = pickCmsText(product.finish, "", locale);
+  const material = pickCmsText(product.material, "", locale);
 
   return (
     <article className="bg-white rounded-[1.75rem] overflow-hidden shadow-[0_6px_24px_rgba(0,0,0,0.04)] flex flex-col h-full text-left">
@@ -28,7 +33,7 @@ export default function ProductCard({ product }: Props) {
       >
         <Image
           src={product.image}
-          alt={product.name}
+          alt={name}
           fill
           className="object-cover transition-transform duration-500 hover:scale-105"
           sizes="(max-width: 768px) 100vw, 33vw"
@@ -36,21 +41,21 @@ export default function ProductCard({ product }: Props) {
       </Link>
 
       <div className="p-5 sm:p-6 flex flex-col flex-1">
-        <h3 className="text-xl font-extrabold text-[#1A1A1A]">{product.name}</h3>
-        <p className="mt-1 text-sm text-[#8A8A8A]">{product.layout}</p>
+        <h3 className="text-xl font-extrabold text-[#1A1A1A]">{name}</h3>
+        <p className="mt-1 text-sm text-[#8A8A8A]">{layout}</p>
 
         <div className="mt-5 grid grid-cols-2 gap-4">
           <div>
             <p className="text-[10px] tracking-[0.18em] uppercase text-[#9A9A9A]">
               {t("products.card.finish")}
             </p>
-            <p className="mt-1 text-sm text-[#1A1A1A]">{product.finish}</p>
+            <p className="mt-1 text-sm text-[#1A1A1A]">{finish}</p>
           </div>
           <div>
             <p className="text-[10px] tracking-[0.18em] uppercase text-[#9A9A9A]">
               {t("products.card.material")}
             </p>
-            <p className="mt-1 text-sm text-[#1A1A1A]">{product.material}</p>
+            <p className="mt-1 text-sm text-[#1A1A1A]">{material}</p>
           </div>
         </div>
 

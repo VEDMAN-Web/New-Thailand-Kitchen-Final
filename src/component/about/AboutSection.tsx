@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import { useCmsSection } from "../../lib/CmsHomeContext";
+import { pickCmsAsset, pickCmsText } from "../../lib/cmsText";
 
 export default function AboutSection() {
   const { t, locale } = useTranslation();
@@ -12,23 +13,23 @@ export default function AboutSection() {
     title?: string;
     subtitle?: string;
     description?: string;
+    image?: string;
   }>("story");
   const imageRef = useRef<HTMLDivElement>(null);
   const [imageVisible, setImageVisible] = useState(false);
 
-  // CMS story copy is English-only — use i18n for TH/PL
-  const eyebrow =
-    locale === "EN" && story?.subtitle
-      ? story.subtitle
-      : t("home.about.eyebrow");
-  const sectionTitle =
-    locale === "EN" && story?.title ? story.title : t("home.about.title");
-  const cardTitle =
-    locale === "EN" && story?.title ? story.title : t("home.about.cardTitle");
-  const cardDescription =
-    locale === "EN" && story?.description
-      ? story.description
-      : t("home.about.cardDescription");
+  const eyebrow = pickCmsText(story?.subtitle, t("home.about.eyebrow"), locale);
+  const sectionTitle = pickCmsText(story?.title, t("home.about.title"), locale);
+  const cardTitle = pickCmsText(story?.title, t("home.about.cardTitle"), locale);
+  const cardDescription = pickCmsText(
+    story?.description,
+    t("home.about.cardDescription"),
+    locale
+  );
+  const storyImage =
+    pickCmsAsset(story?.image, "") || "/slider/crafted-with-passion.png";
+  const remoteImage =
+    storyImage.startsWith("http") || storyImage.startsWith("/uploads");
 
   useEffect(() => {
     const el = imageRef.current;
@@ -68,12 +69,13 @@ export default function AboutSection() {
             }`}
           >
             <Image
-              src="/slider/crafted-with-passion.png"
+              src={storyImage}
               alt="Crafted kitchen interior"
               fill
               className="object-cover"
               sizes="(max-width: 1280px) 100vw, 1280px"
               priority
+              unoptimized={remoteImage}
             />
           </div>
 

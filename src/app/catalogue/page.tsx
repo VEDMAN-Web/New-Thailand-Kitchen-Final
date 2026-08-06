@@ -1,14 +1,43 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Download } from "lucide-react";
 import Footer from "../../component/Footer/footer";
 import { useTranslation } from "../../i18n/LanguageProvider";
+import {
+  fetchMergedCatalogues,
+  type CmsCatalogue,
+} from "../../services/cmsPublic";
+import { pickCmsText } from "../../lib/cmsText";
 
 /** Free catalogue page — PDF download without contact form */
 export default function CataloguePage() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
+  const [item, setItem] = useState<CmsCatalogue | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    fetchMergedCatalogues().then((list) => {
+      if (!alive) return;
+      setItem(list[0] || null);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const cover = item?.image || "/catlog/catlog.png";
+  const remoteCover =
+    cover.startsWith("http") || cover.startsWith("/uploads");
+  const title = pickCmsText(item?.title, t("catalogue.fileTitle"), locale);
+  const category = pickCmsText(item?.category, t("catalogue.edition"), locale);
+  const href =
+    item?.pdfUrl ||
+    (item?.pdf ? `/catlog/${item.pdf}` : "/catlog/catalogue.pdf");
+  const downloadName =
+    item?.downloadName || "Thailand-Kitchens-Catalogue.pdf";
 
   return (
     <div className="w-full min-h-screen bg-[#F5F3EF]">
@@ -27,24 +56,27 @@ export default function CataloguePage() {
           <div className="mt-10 mx-auto max-w-md rounded-[1.75rem] overflow-hidden bg-white shadow-[0_12px_40px_rgba(0,0,0,0.06)]">
             <div className="relative w-full aspect-[4/5]">
               <Image
-                src="/catlog/catlog.png"
+                src={cover}
                 alt="Catalogue cover"
                 fill
                 className="object-cover"
                 sizes="(max-width: 768px) 100vw, 448px"
                 priority
+                unoptimized={remoteCover}
               />
             </div>
             <div className="p-6 sm:p-8">
               <p className="text-[11px] tracking-[0.18em] uppercase text-[#E0905A] font-semibold mb-1">
-                {t("catalogue.edition")}
+                {category}
               </p>
               <h2 className="text-lg font-bold uppercase tracking-wide text-[#1A1A1A]">
-                {t("catalogue.fileTitle")}
+                {title}
               </h2>
               <a
-                href="/catlog/catalogue.pdf"
-                download="Thailand-Kitchens-Catalogue.pdf"
+                href={href}
+                download={downloadName}
+                target={href.startsWith("http") ? "_blank" : undefined}
+                rel={href.startsWith("http") ? "noopener noreferrer" : undefined}
                 className="mt-6 inline-flex items-center justify-center gap-2 w-full bg-[#1A1A1A] text-white px-6 py-3.5 rounded-full text-sm font-semibold hover:bg-black transition"
               >
                 <Download size={18} />

@@ -13,6 +13,7 @@ import {
   type CmsCatalogue,
 } from "../../services/cmsPublic";
 import type { ContactData } from "../../types/contactUs";
+import { pickCmsText } from "../../lib/cmsText";
 
 type PendingDownload = {
   id: number;
@@ -63,7 +64,7 @@ function validateGateForm(
 }
 
 export default function CatlogSection() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const [catalogItems, setCatalogItems] = useState<CmsCatalogue[]>(
     products.map((p) => ({ ...p, pdfUrl: "" }))
   );
@@ -294,6 +295,8 @@ export default function CatlogSection() {
               const isActive = active === index;
               const isIdle = active === null;
               const isDownloading = downloadingId === item.id;
+              const title = pickCmsText(item.title, "Catalogue", locale);
+              const category = pickCmsText(item.category, "Catalogue", locale);
 
               return (
                 <div
@@ -311,7 +314,7 @@ export default function CatlogSection() {
                   <div className="relative w-full h-[320px] sm:h-full overflow-hidden rounded-2xl">
                     <Image
                       src={item.image}
-                      alt={item.title}
+                      alt={title}
                       fill
                       className={`object-cover transition-transform duration-700 ease-out ${
                         isActive || isIdle
@@ -333,7 +336,7 @@ export default function CatlogSection() {
                         e.stopPropagation();
                         runDownload(
                           item.id,
-                          item.category,
+                          category,
                           item.downloadName,
                           item.pdf,
                           false,
@@ -361,10 +364,10 @@ export default function CatlogSection() {
                     }`}
                   >
                     <p className="text-[11px] tracking-[0.18em] uppercase text-[#E0905A] font-semibold mb-1">
-                      {item.category}
+                      {category}
                     </p>
                     <p className="text-sm sm:text-base font-bold uppercase tracking-[0.08em] text-[#1A1A1A]">
-                      {item.title}
+                      {title}
                     </p>
                   </div>
                 </div>
@@ -377,7 +380,7 @@ export default function CatlogSection() {
               <button
                 key={item.id}
                 type="button"
-                aria-label={`Show ${item.category} catalogue`}
+                aria-label={`Show ${pickCmsText(item.category, "Catalogue", locale)} catalogue`}
                 onClick={() => setActive(index)}
                 className={`h-2.5 w-2.5 rounded-full border transition-colors duration-300 ${
                   active === index

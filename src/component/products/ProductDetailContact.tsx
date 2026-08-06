@@ -1,12 +1,19 @@
+"use client";
+
 import Image from "next/image";
 import { ProductItem } from "./productData";
 import ProductDetailContactForm from "./ProductDetailContactForm";
+import { useTranslation } from "../../i18n/LanguageProvider";
+import { pickCmsText } from "../../lib/cmsText";
 
 interface Props {
   product: ProductItem;
 }
 
 export default function ProductDetailContact({ product }: Props) {
+  const { locale } = useTranslation();
+  const name = pickCmsText(product.name, "Kitchen", locale);
+
   return (
     <section className="py-16 sm:py-20 lg:py-24">
       <p className="text-[#E0905A] text-xs tracking-[0.28em] uppercase font-medium mb-3">
@@ -27,7 +34,7 @@ export default function ProductDetailContact({ product }: Props) {
         <div className="relative min-h-[320px] sm:min-h-[420px] lg:min-h-full rounded-[1.75rem] sm:rounded-[2rem] overflow-hidden">
           <Image
             src={product.contactImage}
-            alt={`${product.name} kitchen interior`}
+            alt={`${name} kitchen interior`}
             fill
             className="object-cover"
             sizes="(max-width: 1024px) 100vw, 50vw"

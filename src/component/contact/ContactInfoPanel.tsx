@@ -8,6 +8,8 @@ import {
 } from "./contactData";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import type { TranslationKey } from "../../i18n/translations";
+import { useCmsSection } from "../../lib/CmsHomeContext";
+import { pickCmsAsset, pickCmsText } from "../../lib/cmsText";
 
 const contactLabelKeys: Record<string, TranslationKey> = {
   "Email Us": "contact.emailUs",
@@ -17,6 +19,13 @@ const contactLabelKeys: Record<string, TranslationKey> = {
 const locationTitleKeys: Record<number, TranslationKey> = {
   1: "contact.location.pattaya",
   2: "contact.location.samui",
+};
+
+type ContactPageCms = {
+  craftImage?: string;
+  email?: string;
+  phone?: string;
+  locations?: { title?: string; address?: string }[];
 };
 
 function MapPinIcon() {
@@ -91,18 +100,58 @@ function PhoneIcon() {
 }
 
 export default function ContactInfoPanel() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
+  const cms = useCmsSection<ContactPageCms>("contactPage");
+
+  const craftImage =
+    pickCmsAsset(cms?.craftImage, "") || contactCraftImage;
+  const remoteCraft =
+    craftImage.startsWith("http") || craftImage.startsWith("/uploads");
+
+  const cmsLocations = (cms?.locations || []).filter(
+    (loc) =>
+      pickCmsText(loc?.title, "", "EN") || pickCmsText(loc?.address, "", "EN")
+  );
+  const locations =
+    cmsLocations.length > 0
+      ? cmsLocations.map((loc, index) => ({
+          id: index + 1,
+          title: pickCmsText(
+            loc.title,
+            locationTitleKeys[index + 1]
+              ? t(locationTitleKeys[index + 1])
+              : "",
+            locale
+          ),
+          address: pickCmsText(
+            loc.address,
+            contactLocations[index]?.address || "",
+            locale
+          ),
+        }))
+      : contactLocations.map((location) => ({
+          id: location.id,
+          title: t(locationTitleKeys[location.id]),
+          address: location.address,
+        }));
+
+  const email = pickCmsAsset(cms?.email, "") || contactDetails[0].value;
+  const phone = pickCmsAsset(cms?.phone, "") || contactDetails[1].value;
+  const details = [
+    { id: 1, label: "Email Us", value: email, type: "email" as const },
+    { id: 2, label: "Call Us", value: phone, type: "phone" as const },
+  ];
 
   return (
     <div className="flex flex-col h-full pt-2 sm:pt-4 lg:pt-6">
       <div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8">
-          {contactLocations.map((location) => (
+          {locations.map((location) => (
             <div key={location.id} className="flex gap-3 items-start">
               <MapPinIcon />
               <div>
                 <h3 className="text-sm font-bold uppercase tracking-wide text-[#1A1A1A]">
-                  {t(locationTitleKeys[location.id])}
+                  {location.title}
                 </h3>
                 <p className="mt-1 text-sm text-[#6B6B6B] leading-6 whitespace-pre-line">
                   {location.address}
@@ -113,7 +162,7 @@ export default function ContactInfoPanel() {
         </div>
 
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {contactDetails.map((item) => (
+          {details.map((item) => (
             <div key={item.id} className="flex gap-3 items-start">
               {item.type === "email" ? <EmailIcon /> : <PhoneIcon />}
               <div>
@@ -132,11 +181,12 @@ export default function ContactInfoPanel() {
       <div className="mt-auto pt-8 w-full">
         <div className="group relative w-full aspect-[16/9] rounded-[2rem] overflow-hidden">
           <Image
-            src={contactCraftImage}
+            src={craftImage}
             alt="Craftsmanship detail"
             fill
             className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-110"
             sizes="(max-width: 1024px) 100vw, 40vw"
+            unoptimized={remoteCraft}
           />
         </div>
       </div>

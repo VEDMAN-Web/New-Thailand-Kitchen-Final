@@ -82,6 +82,10 @@ export const translations = {
     "home.catalog.downloadError": "Download failed",
     "home.catalog.downloadErrorDesc": "Catalogue PDF file is missing on server.",
 
+    "home.faq.eyebrow": "Common Questions",
+    "home.faq.title": "Frequently Asked Questions",
+    "home.faq.viewAll": "View all FAQs",
+
     "home.contact.eyebrow": "Free Design Consultation",
     "home.contact.title": "Get in Touch",
     "home.contact.formTitle":
@@ -343,6 +347,10 @@ export const translations = {
     "home.catalog.downloadError": "ดาวน์โหลดไม่สำเร็จ",
     "home.catalog.downloadErrorDesc": "ไม่พบไฟล์ PDF แคตตาล็อกบนเซิร์ฟเวอร์",
 
+    "home.faq.eyebrow": "คำถามที่พบบ่อย",
+    "home.faq.title": "คำถามที่พบบ่อย",
+    "home.faq.viewAll": "ดูคำถามทั้งหมด",
+
     "home.contact.eyebrow": "ปรึกษาออกแบบฟรี",
     "home.contact.title": "ติดต่อเรา",
     "home.contact.formTitle": "มาออกแบบครัวที่คู่ควรกับเกาะของคุณ",
@@ -601,6 +609,10 @@ export const translations = {
     "home.catalog.downloading": "Pobieranie…",
     "home.catalog.downloadError": "Pobieranie nie powiodło się",
     "home.catalog.downloadErrorDesc": "Brak pliku PDF katalogu na serwerze.",
+
+    "home.faq.eyebrow": "Częste pytania",
+    "home.faq.title": "Najczęściej zadawane pytania",
+    "home.faq.viewAll": "Zobacz wszystkie FAQ",
 
     "home.contact.eyebrow": "Bezpłatna konsultacja projektowa",
     "home.contact.title": "Skontaktuj się",

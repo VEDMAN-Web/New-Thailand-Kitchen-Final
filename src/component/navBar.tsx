@@ -6,8 +6,10 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslation } from "../i18n/LanguageProvider";
 import type { Locale } from "../i18n/translations";
-import { searchSiteContent } from "./navSearch";
+import { loadNavSearchIndex, searchSiteContent, type NavSearchResult } from "./navSearch";
 import ConsultationEnquiryModal from "./ConsultationEnquiryModal";
+import { useCmsSection } from "../lib/CmsHomeContext";
+import { pickCmsText } from "../lib/cmsText";
 
 const languages = [
   { code: "EN" as const, label: "English", flag: "/en.png" },
@@ -15,15 +17,30 @@ const languages = [
   { code: "PL" as const, label: "Polski", flag: "/poland.svg" },
 ];
 
+const defaultNavLinks = [
+  { href: "/", labelKey: "nav.home" as const },
+  { href: "/products", labelKey: "nav.products" as const },
+  { href: "/gallery", labelKey: "nav.gallery" as const },
+  { href: "/blog", labelKey: "nav.blog" as const },
+  { href: "/contact", labelKey: "nav.contact" as const },
+  { href: "/faq", labelKey: "nav.faq" as const },
+];
+
 const Navbar = () => {
   const pathname = usePathname();
   const router = useRouter();
   const { locale, setLocale, t } = useTranslation();
+  const navCms = useCmsSection<{
+    links?: { label?: string; href?: string }[];
+    consultationLabel?: string;
+    searchPlaceholder?: string;
+  }>("nav");
   const [isOpen, setIsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [enquiryOpen, setEnquiryOpen] = useState(false);
+  const [searchIndex, setSearchIndex] = useState<NavSearchResult[] | null>(null);
   const desktopSearchRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const closeSearchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -31,16 +48,51 @@ const Navbar = () => {
   const selectedLanguage =
     languages.find((l) => l.code === locale) ?? languages[0];
 
-  const navLinks = [
-    { href: "/", label: t("nav.home") },
-    { href: "/products", label: t("nav.products") },
-    { href: "/gallery", label: t("nav.gallery") },
-    { href: "/blog", label: t("nav.blog") },
-    { href: "/contact", label: t("nav.contact") },
-    { href: "/faq", label: t("nav.faq") },
-  ];
+  const cmsLinks = (navCms?.links || []).filter(
+    (l) => l?.href && pickCmsText(l?.label, "", "EN")
+  );
+  const navLinks =
+    cmsLinks.length > 0
+      ? cmsLinks.map((l) => {
+          const fallback = defaultNavLinks.find((d) => d.href === l.href);
+          return {
+            href: l.href || "/",
+            label: pickCmsText(
+              l.label,
+              fallback ? t(fallback.labelKey) : "",
+              locale
+            ),
+          };
+        })
+      : defaultNavLinks.map((l) => ({
+          href: l.href,
+          label: t(l.labelKey),
+        }));
+  const consultationLabel = pickCmsText(
+    navCms?.consultationLabel,
+    t("nav.consultation"),
+    locale
+  );
+  const searchPlaceholder = pickCmsText(
+    navCms?.searchPlaceholder,
+    t("nav.search"),
+    locale
+  );
 
-  const searchResults = useMemo(() => searchSiteContent(search, 8), [search]);
+  useEffect(() => {
+    let alive = true;
+    loadNavSearchIndex().then((index) => {
+      if (alive) setSearchIndex(index);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const searchResults = useMemo(
+    () => searchSiteContent(search, 8, searchIndex || undefined),
+    [search, searchIndex]
+  );
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -245,7 +297,7 @@ const Navbar = () => {
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     onFocus={openSearch}
-                    placeholder={t("nav.search")}
+                    placeholder={searchPlaceholder}
                     className="h-full min-w-0 flex-1 bg-transparent border-0 text-sm text-[#1A1A1A] caret-[#1A1A1A] placeholder:text-gray-400 outline-none"
                   />
                 ) : null}
@@ -327,7 +379,7 @@ const Navbar = () => {
               onClick={() => setEnquiryOpen(true)}
               className="hidden sm:inline-flex items-center bg-white hover:bg-gray-50 text-[#1A1A1A] px-4 lg:px-5 py-2.5 rounded-full font-semibold shadow-[0_4px_16px_rgba(0,0,0,0.08)] transition text-xs sm:text-sm whitespace-nowrap h-[42px]"
             >
-              {t("nav.consultation")}
+              {consultationLabel}
             </button>
 
             <button
@@ -391,7 +443,7 @@ const Navbar = () => {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder={t("nav.search")}
+              placeholder={searchPlaceholder}
               className="w-full rounded-full border border-[#D4C4B0] bg-[#F5F3EF] px-4 py-2.5 text-sm text-[#1A1A1A] caret-[#1A1A1A] placeholder:text-gray-400 outline-none shadow-[0_4px_16px_rgba(0,0,0,0.08)]"
             />
             <SearchResultsList mobile />
@@ -432,7 +484,7 @@ const Navbar = () => {
             }}
             className="sm:hidden mt-2 bg-[#1A1A1A] text-white px-5 py-3 rounded-full font-semibold text-center"
           >
-            {t("nav.consultation")}
+            {consultationLabel}
           </button>
         </nav>
       </div>

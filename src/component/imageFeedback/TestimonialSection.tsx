@@ -10,23 +10,45 @@ import TestimonialCard from "./TestimonialCard";
 import { useCmsSection } from "../../lib/CmsHomeContext";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import type { TranslationKey } from "../../i18n/translations";
+import { pickCmsText } from "../../lib/cmsText";
 
 export default function TestimonialSection() {
   const { t, locale } = useTranslation();
   const cms = useCmsSection<{
-    items?: { name?: string; role?: string; quote?: string; image?: string }[];
+    items?: {
+      name?: string;
+      role?: string;
+      quote?: string;
+      image?: string;
+      rating?: number;
+    }[];
   }>("testimonials");
 
   const cmsItems = (cms?.items || [])
-    .filter((i) => i?.name && i?.quote)
-    .map((item, index) => ({
-      id: 1000 + index,
-      image: item.image || "/testimonial/image1.png",
-      name: item.name || "",
-      role: item.role || "",
-      rating: 5,
-      review: item.quote || "",
-    }));
+    .filter((i) => pickCmsText(i?.name, "", "EN") && pickCmsText(i?.quote, "", "EN"))
+    .map((item, index) => {
+      const ratingNum = Number(item.rating);
+      const rating =
+        Number.isFinite(ratingNum) && ratingNum > 0
+          ? Math.min(5, Math.max(1, Math.round(ratingNum)))
+          : 5;
+      return {
+        id: 1000 + index,
+        image: item.image || "/testimonial/image1.png",
+        name: pickCmsText(item.name, "", locale),
+        role: pickCmsText(
+          item.role,
+          t(`home.testimonials.${index + 1}.role` as TranslationKey),
+          locale
+        ),
+        rating,
+        review: pickCmsText(
+          item.quote,
+          t(`home.testimonials.${index + 1}.review` as TranslationKey),
+          locale
+        ),
+      };
+    });
 
   const localizedFallback = testimonials.map((item) => ({
     ...item,
@@ -34,9 +56,7 @@ export default function TestimonialSection() {
     review: t(`home.testimonials.${item.id}.review` as TranslationKey),
   }));
 
-  // CMS testimonials are English-only — use translated fallbacks for TH/PL
-  const list =
-    locale === "EN" && cmsItems.length > 0 ? cmsItems : localizedFallback;
+  const list = cmsItems.length > 0 ? cmsItems : localizedFallback;
 
   return (
     <section className="pb-10 lg:pb-12">

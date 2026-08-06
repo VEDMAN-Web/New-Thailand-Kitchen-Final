@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "../i18n/LanguageProvider";
 import type { TranslationKey } from "../i18n/translations";
 import { useCmsSection } from "../lib/CmsHomeContext";
+import { pickCmsText } from "../lib/cmsText";
 
 const defaultStats = [
   {
@@ -89,23 +90,31 @@ export default function StatsSection() {
   }>("statistics");
 
   const stats = useMemo(() => {
-    const items = cmsStats?.items?.filter((i) => i?.label || i?.value) || [];
+    const items =
+      cmsStats?.items?.filter(
+        (i) => pickCmsText(i?.label, "", "EN") || i?.value
+      ) || [];
     if (!items.length) return defaultStats;
 
     return items.map((item, index) => {
       const numeric = parseInt(String(item.value || "").replace(/[^\d]/g, ""), 10);
       const to = Number.isFinite(numeric) ? numeric : 0;
+      const titleKey =
+        defaultStats[index]?.titleKey ||
+        ("home.stats.years" as TranslationKey);
       return {
-        titleKey:
-          defaultStats[index]?.titleKey ||
-          ("home.stats.years" as TranslationKey),
+        titleKey,
         from: Math.max(0, Math.floor(to * 0.1)),
         to,
-        suffix: item.suffix || "",
-        label: item.label || "",
+        suffix: String(
+          item.suffix != null && typeof item.suffix !== "object"
+            ? item.suffix
+            : ""
+        ),
+        label: pickCmsText(item.label, t(titleKey), locale),
       };
     });
-  }, [cmsStats]);
+  }, [cmsStats, locale, t]);
 
   useEffect(() => {
     const el = sectionRef.current;
@@ -183,7 +192,7 @@ export default function StatsSection() {
                 />
               </p>
               <p className="mt-2 text-sm md:text-base text-white/55">
-                {locale === "EN" && item.label ? item.label : t(item.titleKey)}
+                {item.label ? item.label : t(item.titleKey)}
               </p>
             </div>
           ))}

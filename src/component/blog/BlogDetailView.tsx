@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { BlogPost, getRelatedPosts } from "./blogData";
@@ -12,23 +13,86 @@ import {
   formatReadTime,
   localizePost,
 } from "./blogI18n";
+import {
+  fetchHomeSections,
+  fetchMergedBlogs,
+} from "../../services/cmsPublic";
+import { pickCmsText } from "../../lib/cmsText";
 
 interface Props {
   post: BlogPost;
 }
 
-const shareLinks = [
-  { icon: "/footer/facebook.png", label: "Facebook", href: "https://www.facebook.com/ThailandKitchens/" },
+const defaultShareLinks = [
+  {
+    icon: "/footer/facebook.png",
+    label: "Facebook",
+    href: "https://www.facebook.com/ThailandKitchens/",
+  },
   { icon: "/footer/instagram.png", label: "Instagram", href: "#" },
   { icon: "/footer/x.png", label: "X", href: "#" },
   { icon: "/footer/whatsapp.png", label: "WhatsApp", href: "#" },
 ];
 
+const shareIconByLabel: Record<string, string> = {
+  facebook: "/footer/facebook.png",
+  instagram: "/footer/instagram.png",
+  x: "/footer/x.png",
+  twitter: "/footer/x.png",
+  whatsapp: "/footer/whatsapp.png",
+};
+
 export default function BlogDetailView({ post: rawPost }: Props) {
   const { t, locale } = useTranslation();
   const post = localizePost(rawPost, locale);
-  const related = getRelatedPosts(post.slug, 2);
+  const [related, setRelated] = useState<BlogPost[]>(() =>
+    getRelatedPosts(post.slug, 2)
+  );
+  const [shareLinks, setShareLinks] = useState(defaultShareLinks);
+  const [relatedTitle, setRelatedTitle] = useState(t("blog.detail.related"));
   const gallery = post.gallery ?? [post.image, post.image];
+
+  useEffect(() => {
+    let alive = true;
+    Promise.all([fetchMergedBlogs(), fetchHomeSections()]).then(
+      ([blogs, sections]) => {
+        if (!alive) return;
+        const blogPage = (sections?.blogPage || {}) as {
+          relatedTitle?: unknown;
+          shareLinks?: { label?: unknown; href?: string }[];
+        };
+        setRelatedTitle(
+          pickCmsText(blogPage.relatedTitle, t("blog.detail.related"), locale)
+        );
+        const cmsShares = (blogPage.shareLinks || [])
+          .map((l) => {
+            const label = pickCmsText(l?.label, "", locale);
+            const key = label.toLowerCase();
+            return {
+              label,
+              href: l.href || "#",
+              icon: shareIconByLabel[key] || "/footer/facebook.png",
+            };
+          })
+          .filter((l) => l.label);
+        if (cmsShares.length) setShareLinks(cmsShares);
+
+        const pool = blogs.length ? blogs : [];
+        const others = pool.filter((b) => b.slug !== post.slug);
+        const sameCategory = others.filter(
+          (b) => b.category === post.category
+        );
+        const picked = (sameCategory.length ? sameCategory : others).slice(
+          0,
+          2
+        );
+        if (picked.length) setRelated(picked);
+      }
+    );
+    return () => {
+      alive = false;
+    };
+  }, [post.slug, post.category, t, locale]);
 
   const [intro, ...remaining] = post.content;
   const afterQuote = remaining.slice(1);
@@ -38,9 +102,7 @@ export default function BlogDetailView({ post: rawPost }: Props) {
     <div className="w-full bg-[#F5F3EF]">
       <article className="pt-[80px] sm:pt-[84px] pb-16 lg:pb-24">
         <div className="max-w-7xl mx-auto px-6">
-          {/* Centered article column */}
           <div className="max-w-4xl mx-auto">
-            {/* Header */}
             <div className="text-left">
               <p className="text-sm text-[#8A8A8A] mb-5">
                 <Link href="/blog" className="hover:text-[#1A1A1A] transition">
@@ -67,7 +129,6 @@ export default function BlogDetailView({ post: rawPost }: Props) {
               </p>
             </div>
 
-            {/* Featured image */}
             <div className="relative mt-10 lg:mt-12 w-full h-[240px] sm:h-[340px] md:h-[420px] rounded-[1.75rem] overflow-hidden">
               <Image
                 src={post.image}
@@ -79,7 +140,6 @@ export default function BlogDetailView({ post: rawPost }: Props) {
               />
             </div>
 
-            {/* Body + share rail */}
             <div className="mt-12 lg:mt-16 flex items-start gap-8 lg:gap-10">
               <aside className="hidden lg:flex flex-col gap-3 shrink-0 pt-1">
                 {shareLinks.map((item) => (
@@ -87,6 +147,12 @@ export default function BlogDetailView({ post: rawPost }: Props) {
                     key={item.label}
                     href={item.href}
                     aria-label={item.label}
+                    target={item.href.startsWith("http") ? "_blank" : undefined}
+                    rel={
+                      item.href.startsWith("http")
+                        ? "noopener noreferrer"
+                        : undefined
+                    }
                     className="w-10 h-10 rounded-full bg-[#EDE8E1] flex items-center justify-center hover:bg-[#E0905A]/25 transition"
                   >
                     <Image
@@ -161,7 +227,6 @@ export default function BlogDetailView({ post: rawPost }: Props) {
             </div>
           </div>
 
-          {/* Related journal — same centered width as article */}
           <div className="mt-20 lg:mt-28 max-w-4xl mx-auto">
             <p className="text-[#E0905A] text-xs tracking-[0.22em] uppercase font-semibold mb-3">
               {t("blog.detail.continue")}
@@ -169,7 +234,7 @@ export default function BlogDetailView({ post: rawPost }: Props) {
 
             <div className="flex items-end justify-between gap-6 mb-10">
               <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1A1A1A]">
-                {t("blog.detail.related")}
+                {relatedTitle}
               </h2>
               <Link
                 href="/blog"

@@ -5,26 +5,37 @@ import { featureData } from "./featureData";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import type { TranslationKey } from "../../i18n/translations";
 import { useCmsSection } from "../../lib/CmsHomeContext";
+import { pickCmsText } from "../../lib/cmsText";
 
 export default function FeatureSection() {
   const { t, locale } = useTranslation();
   const advantages = useCmsSection<{
-    items?: { title?: string; description?: string }[];
+    items?: { title?: string; description?: string; icon?: string }[];
   }>("advantages");
-  const cmsItems = advantages?.items?.filter((i) => i?.title) || [];
+  const cmsItems =
+    advantages?.items?.filter((i) => pickCmsText(i?.title, "", "EN")) || [];
 
-  // CMS copy is English-only — fall back to i18n for other languages
   const items =
-    locale === "EN" && cmsItems.length > 0
+    cmsItems.length > 0
       ? cmsItems.map((item, index) => ({
           id: index + 1,
-          title: item.title || "",
-          description: item.description || "",
+          title: pickCmsText(
+            item.title,
+            t(`home.features.${index + 1}.title` as TranslationKey),
+            locale
+          ),
+          description: pickCmsText(
+            item.description,
+            t(`home.features.${index + 1}.desc` as TranslationKey),
+            locale
+          ),
+          icon: item.icon || "",
         }))
       : featureData.map((item) => ({
           id: item.id,
           title: t(`home.features.${item.id}.title` as TranslationKey),
           description: t(`home.features.${item.id}.desc` as TranslationKey),
+          icon: "",
         }));
 
   return (
@@ -37,6 +48,7 @@ export default function FeatureSection() {
               item={{
                 title: item.title,
                 description: item.description,
+                icon: item.icon,
               }}
             />
           ))}

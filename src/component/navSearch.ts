@@ -1,3 +1,10 @@
+import {
+  fetchMergedBlogs,
+  fetchMergedCatalogues,
+  fetchMergedGallery,
+  fetchMergedProducts,
+} from "../services/cmsPublic";
+import { pickCmsText } from "../lib/cmsText";
 import { productItems } from "./products/productData";
 import { blogPosts } from "./blog/blogData";
 import { galleryItems } from "./gallery/galleryData";
@@ -71,25 +78,33 @@ function toProductHref(slug: string) {
   return clean ? `/products/${encodeURIComponent(clean)}` : "/products";
 }
 
-function buildSearchIndex(): NavSearchResult[] {
-  const products: NavSearchResult[] = productItems.map((p) => ({
+function buildIndexFromCms(data: {
+  products: Awaited<ReturnType<typeof fetchMergedProducts>>;
+  blogs: Awaited<ReturnType<typeof fetchMergedBlogs>>;
+  gallery: Awaited<ReturnType<typeof fetchMergedGallery>>;
+  catalogues: Awaited<ReturnType<typeof fetchMergedCatalogues>>;
+}): NavSearchResult[] {
+  const products: NavSearchResult[] = data.products.map((p) => ({
     id: `product-${p.id}`,
-    title: p.name,
+    title: pickCmsText(p.name, "", "EN"),
     description: [
-      p.description,
-      p.headline,
-      p.layout,
-      p.style,
-      p.material,
-      p.finish,
-      p.color,
-      ...p.features.map((f) => `${f.title} ${f.description}`),
+      pickCmsText(p.description, "", "EN"),
+      pickCmsText(p.headline, "", "EN"),
+      pickCmsText(p.layout, "", "EN"),
+      pickCmsText(p.style, "", "EN"),
+      pickCmsText(p.material, "", "EN"),
+      pickCmsText(p.finish, "", "EN"),
+      pickCmsText(p.color, "", "EN"),
+      ...p.features.map(
+        (f) =>
+          `${pickCmsText(f.title as unknown, "", "EN")} ${pickCmsText(f.description as unknown, "", "EN")}`
+      ),
     ].join(" "),
     href: toProductHref(p.slug),
     type: "Product",
   }));
 
-  const blogs: NavSearchResult[] = blogPosts.map((b) => ({
+  const blogs: NavSearchResult[] = data.blogs.map((b) => ({
     id: `blog-${b.id}`,
     title: b.title,
     description: [b.excerpt, b.category, b.filter, ...b.content].join(" "),
@@ -97,35 +112,87 @@ function buildSearchIndex(): NavSearchResult[] {
     type: "Blog",
   }));
 
-  const gallery: NavSearchResult[] = galleryItems.map((g) => ({
+  const gallery: NavSearchResult[] = data.gallery.map((g) => ({
     id: `gallery-${g.id}`,
-    title: g.title,
+    title: pickCmsText(g.title, "Gallery", "EN"),
     description: `${g.filter} kitchen gallery inspiration`,
     href: "/gallery",
     type: "Gallery",
   }));
 
-  const catalogues: NavSearchResult[] = catalogProducts.slice(0, 3).map((c) => ({
-    id: `catalog-${c.id}`,
-    title: `${c.category} Catalogue`,
-    description: `${c.title} — download our ${c.category.toLowerCase()} kitchen catalogue.`,
-    href: "/catalogue",
-    type: "Catalogue",
-  }));
+  const catalogues: NavSearchResult[] = data.catalogues.slice(0, 6).map((c) => {
+    const category = pickCmsText(c.category, "Catalogue", "EN");
+    const title = pickCmsText(c.title, "Catalogue", "EN");
+    return {
+      id: `catalog-${c.id}`,
+      title: `${category} Catalogue`,
+      description: `${title} — download our ${category.toLowerCase()} kitchen catalogue.`,
+      href: "/catalogue",
+      type: "Catalogue",
+    };
+  });
 
   return [...pageItems, ...products, ...blogs, ...gallery, ...catalogues];
 }
 
-const SEARCH_INDEX = buildSearchIndex();
+/** Sync fallback if CMS has not loaded yet */
+function buildStaticIndex(): NavSearchResult[] {
+  return buildIndexFromCms({
+    products: productItems,
+    blogs: blogPosts,
+    gallery: galleryItems,
+    catalogues: catalogProducts.map((p) => ({ ...p, pdfUrl: "" })),
+  });
+}
 
-export function searchSiteContent(query: string, limit = 8): NavSearchResult[] {
+let cachedIndex: NavSearchResult[] | null = null;
+let loadPromise: Promise<NavSearchResult[]> | null = null;
+
+export async function loadNavSearchIndex(): Promise<NavSearchResult[]> {
+  if (cachedIndex) return cachedIndex;
+  if (loadPromise) return loadPromise;
+
+  loadPromise = Promise.all([
+    fetchMergedProducts(),
+    fetchMergedBlogs(),
+    fetchMergedGallery(),
+    fetchMergedCatalogues(),
+  ])
+    .then(([products, blogs, gallery, catalogues]) => {
+      cachedIndex = buildIndexFromCms({ products, blogs, gallery, catalogues });
+      return cachedIndex;
+    })
+    .catch(() => {
+      cachedIndex = buildStaticIndex();
+      return cachedIndex;
+    })
+    .finally(() => {
+      loadPromise = null;
+    });
+
+  return loadPromise;
+}
+
+export function searchSiteContent(
+  query: string,
+  limit = 8,
+  index?: NavSearchResult[]
+): NavSearchResult[] {
   const q = query.trim().toLowerCase();
   if (!q) return [];
 
   const terms = q.split(/\s+/).filter(Boolean);
+  const source = index?.length ? index : cachedIndex || buildStaticIndex();
 
-  return SEARCH_INDEX.filter((item) => {
-    const haystack = `${item.title} ${item.description} ${item.type}`.toLowerCase();
-    return terms.every((term) => haystack.includes(term));
-  }).slice(0, limit);
+  return source
+    .filter((item) => {
+      const haystack = `${item.title} ${item.description} ${item.type}`.toLowerCase();
+      return terms.every((term) => haystack.includes(term));
+    })
+    .slice(0, limit);
+}
+
+/** Bust cache after admin publishes (optional future hook). */
+export function invalidateNavSearchIndex() {
+  cachedIndex = null;
 }

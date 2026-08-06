@@ -3,12 +3,16 @@
 import Image from "next/image";
 import { useState } from "react";
 import { ProductItem } from "./productData";
+import { useTranslation } from "../../i18n/LanguageProvider";
+import { pickCmsText } from "../../lib/cmsText";
 
 interface Props {
   product: ProductItem;
 }
 
 export default function ProductDetailFeatures({ product }: Props) {
+  const { locale } = useTranslation();
+  const name = pickCmsText(product.name, "", locale);
   const images = (product.detailImages || []).filter(Boolean);
   const [active, setActive] = useState(0);
 
@@ -25,24 +29,32 @@ export default function ProductDetailFeatures({ product }: Props) {
     <section className="pt-16 sm:pt-20 lg:pt-24 pb-4">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center">
         <ul className="space-y-8 sm:space-y-10">
-          {product.features.map((feature) => (
-            <li key={feature.title} className="flex gap-4 sm:gap-5">
-              <span
-                className="mt-1 shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-[#E0905A] flex items-center justify-center"
-                aria-hidden
-              >
-                <span className="w-2 h-2 rounded-full bg-[#E0905A]" />
-              </span>
-              <div>
-                <h3 className="text-lg sm:text-xl font-extrabold text-[#1A1A1A]">
-                  {feature.title}
-                </h3>
-                <p className="mt-2 text-sm sm:text-[15px] text-[#6B6B6B] leading-7 max-w-md">
-                  {feature.description}
-                </p>
-              </div>
-            </li>
-          ))}
+          {product.features.map((feature, index) => {
+            const title = pickCmsText(feature.title as any, "", locale);
+            const description = pickCmsText(
+              feature.description as any,
+              "",
+              locale
+            );
+            return (
+              <li key={`${title}-${index}`} className="flex gap-4 sm:gap-5">
+                <span
+                  className="mt-1 shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-[#E0905A] flex items-center justify-center"
+                  aria-hidden
+                >
+                  <span className="w-2 h-2 rounded-full bg-[#E0905A]" />
+                </span>
+                <div>
+                  <h3 className="text-lg sm:text-xl font-extrabold text-[#1A1A1A]">
+                    {title}
+                  </h3>
+                  <p className="mt-2 text-sm sm:text-[15px] text-[#6B6B6B] leading-7 max-w-md">
+                    {description}
+                  </p>
+                </div>
+              </li>
+            );
+          })}
         </ul>
 
         {primary ? (
@@ -52,7 +64,7 @@ export default function ProductDetailFeatures({ product }: Props) {
                 <Image
                   key={primary}
                   src={primary}
-                  alt={`${product.name} finish detail`}
+                  alt={`${name} finish detail`}
                   fill
                   className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                   sizes="(max-width: 1024px) 45vw, 22vw"
@@ -63,7 +75,7 @@ export default function ProductDetailFeatures({ product }: Props) {
                   <Image
                     key={secondary}
                     src={secondary}
-                    alt={`${product.name} material detail`}
+                    alt={`${name} material detail`}
                     fill
                     className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                     sizes="(max-width: 1024px) 30vw, 15vw"

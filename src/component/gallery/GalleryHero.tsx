@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { galleryHero } from "./galleryData";
 import { useTranslation } from "../../i18n/LanguageProvider";
-import { fetchHomeSections } from "../../services/cmsPublic";
+import { useCmsSection } from "../../lib/CmsHomeContext";
+import { pickCmsText } from "../../lib/cmsText";
 
 const FRAME =
   "relative w-full h-[180px] sm:h-[200px] lg:h-[220px] shrink-0 rounded-[1.5rem] sm:rounded-[1.75rem] overflow-hidden";
@@ -99,32 +100,15 @@ type GalleryPageCms = {
 
 export default function GalleryHero() {
   const { t, locale } = useTranslation();
-  const [cms, setCms] = useState<GalleryPageCms | null>(null);
+  const cms = useCmsSection<GalleryPageCms>("galleryPage");
 
-  useEffect(() => {
-    let alive = true;
-    fetchHomeSections().then((sections) => {
-      if (!alive) return;
-      setCms((sections?.galleryPage as GalleryPageCms) || null);
-    });
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  const useCmsCopy = locale === "EN";
-  const eyebrow =
-    useCmsCopy && cms?.eyebrow?.trim()
-      ? cms.eyebrow.trim()
-      : t("gallery.hero.eyebrow");
-  const title =
-    useCmsCopy && cms?.title?.trim()
-      ? cms.title.trim()
-      : t("gallery.hero.title");
-  const description =
-    useCmsCopy && cms?.description?.trim()
-      ? cms.description.trim()
-      : t("gallery.hero.description");
+  const eyebrow = pickCmsText(cms?.eyebrow, t("gallery.hero.eyebrow"), locale);
+  const title = pickCmsText(cms?.title, t("gallery.hero.title"), locale);
+  const description = pickCmsText(
+    cms?.description,
+    t("gallery.hero.description"),
+    locale
+  );
 
   const collage = (cms?.collage || []).filter(Boolean);
   const leftImages =

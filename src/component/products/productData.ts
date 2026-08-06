@@ -36,6 +36,8 @@ export interface ProductItem {
   features: ProductFeature[];
   detailImages: string[];
   contactImage: string;
+  pdfUrl?: string;
+  icon?: string;
 }
 
 export const productLayouts: ProductLayout[] = [

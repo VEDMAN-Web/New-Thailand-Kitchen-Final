@@ -8,7 +8,7 @@ export default function ContactSection() {
   const { t } = useTranslation();
 
   return (
-    <section id="contact" className="pb-16 lg:pb-20 bg-[#F5F3EF] scroll-mt-24">
+    <section id="contact" className="pb-16 lg:pb-20 bg-[#F5F3EF] scroll-mt-28">
       <div className="max-w-7xl mx-auto px-6">
         <p className="text-[#E0905A] text-xs tracking-[0.28em] uppercase font-medium mb-3">
           {t("home.contact.eyebrow")}

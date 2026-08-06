@@ -6,6 +6,7 @@ import Link from "next/link";
 import { products } from "./ProductData";
 import { useCms } from "../../lib/CmsHomeContext";
 import { useTranslation } from "../../i18n/LanguageProvider";
+import { pickCmsText } from "../../lib/cmsText";
 
 function toProductHref(slug: string) {
   const clean = String(slug || "")
@@ -16,16 +17,14 @@ function toProductHref(slug: string) {
 }
 
 const ProductSection = () => {
-  const { t } = useTranslation();
-  const { products: cmsProducts, loading } = useCms();
+  const { t, locale } = useTranslation();
+  const { products: cmsProducts } = useCms();
   const items = useMemo(() => {
-    // Keep UI stable: while CMS is loading, render nothing here.
-    if (loading) return [];
-
+    // Keep prior content visible while CMS loads — no blank / pulse flicker
     if (cmsProducts.length > 0) {
       return cmsProducts.slice(0, 3).map((p) => ({
         id: p.id,
-        title: p.name,
+        title: pickCmsText(p.name, "", locale),
         image: p.image,
         href: toProductHref(p.slug),
       }));
@@ -37,19 +36,9 @@ const ProductSection = () => {
       image: p.image,
       href: "/products",
     }));
-  }, [cmsProducts, loading]);
+  }, [cmsProducts, locale]);
 
   const [active, setActive] = useState<number | null>(null);
-
-  if (loading) {
-    return (
-      <section className="pb-6 lg:pb-8">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="h-[320px] sm:h-[520px] lg:h-[600px] rounded-2xl bg-[#ECE7DF] animate-pulse" />
-        </div>
-      </section>
-    );
-  }
 
   return (
     <section className="pb-6 lg:pb-8">

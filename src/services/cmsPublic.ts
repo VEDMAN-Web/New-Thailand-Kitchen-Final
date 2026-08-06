@@ -64,6 +64,10 @@ type CmsProduct = {
   category: string;
   featured: boolean;
   featureHighlights?: { title?: string; description?: string }[];
+  finish?: string;
+  material?: string;
+  style?: string;
+  color?: string;
 };
 
 type CmsBlogTranslation = {
@@ -122,7 +126,15 @@ function mapCmsProduct(p: CmsProduct, index: number): ProductItem {
     p.gallery && p.gallery.length
       ? p.gallery
       : [image, image, image];
-  const layoutType = mapLayout(p.category);
+  const categoryEn =
+    typeof p.category === "object" && p.category
+      ? String((p.category as any).en || "")
+      : String(p.category || "");
+  const titleEn =
+    typeof p.title === "object" && p.title
+      ? String((p.title as any).en || (p.title as any).th || "")
+      : String(p.title || "");
+  const layoutType = mapLayout(categoryEn);
   const heroImages: [string, string, string] = [
     galleryImages[0] || image,
     galleryImages[1] || galleryImages[0] || image,
@@ -134,28 +146,47 @@ function mapCmsProduct(p: CmsProduct, index: number): ProductItem {
   const features =
     p.featureHighlights
       ?.map((f) => ({
-        title: String(f.title || "").trim(),
-        description: String(f.description || "").trim(),
+        title: f.title as any,
+        description: f.description as any,
       }))
-      .filter((f) => f.title || f.description) || [];
+      .filter((f) => {
+        const t =
+          typeof f.title === "string"
+            ? f.title
+            : String((f.title as any)?.en || "");
+        const d =
+          typeof f.description === "string"
+            ? f.description
+            : String((f.description as any)?.en || "");
+        return Boolean(t || d);
+      }) || [];
 
   return {
     ...template,
     id: 10000 + index,
-    slug: normalizeSlug(p.slug) || normalizeSlug(p.title).replace(/\s+/g, "-"),
-    name: p.title,
-    layout: p.category || layoutType,
+    slug: normalizeSlug(p.slug) || normalizeSlug(titleEn).replace(/\s+/g, "-"),
+    name: p.title as any,
+    layout: categoryEn || layoutType,
     layoutType,
     image,
     bestSeller: Boolean(p.featured),
     heroImages,
-    tag: p.category || "Collection",
-    headline: p.title,
-    description: p.description || template.description,
-    gallery: galleryImages.map((img) => ({ image: img, caption: p.title })),
-    features: features.length ? features : template.features,
+    tag: categoryEn || "Collection",
+    headline: p.title as any,
+    description: (p.description as any) || template.description,
+    gallery: galleryImages.map((img) => ({
+      image: img,
+      caption: titleEn,
+    })),
+    features: features.length ? (features as any) : template.features,
     detailImages,
     contactImage: image,
+    pdfUrl: p.pdfUrl || "",
+    icon: p.icon || "",
+    finish: (p.finish as any) || template.finish,
+    material: (p.material as any) || template.material,
+    style: (p.style as any) || template.style,
+    color: (p.color as any) || template.color,
   };
 }
 
@@ -306,8 +337,9 @@ export async function fetchBlogBySlug(
 
 export type CmsCatalogue = {
   id: number;
-  category: string;
-  title: string;
+  /** Localized map or legacy string — always resolve with pickCmsText before render */
+  category: unknown;
+  title: unknown;
   image: string;
   pdf: string;
   pdfUrl?: string;
@@ -323,12 +355,12 @@ export async function fetchMergedCatalogues(): Promise<CmsCatalogue[]> {
   if (home && Array.isArray(home.catalogue?.items)) {
     return (home.catalogue.items as any[]).map((c, index) => ({
       id: 31000 + index,
-      category: c.category || "Catalogue",
-      title: c.title || "Catalogue",
-      image: c.image || "/catlog/catlog.png",
-      pdf: c.fileName || "",
-      pdfUrl: c.pdfUrl || "",
-      downloadName: c.downloadName || c.fileName || "catalogue.pdf",
+      category: c.category ?? "Catalogue",
+      title: c.title ?? "Catalogue",
+      image: String(c.image || "/catlog/catlog.png"),
+      pdf: String(c.fileName || ""),
+      pdfUrl: String(c.pdfUrl || ""),
+      downloadName: String(c.downloadName || c.fileName || "catalogue.pdf"),
     }));
   }
 
@@ -338,12 +370,12 @@ export async function fetchMergedCatalogues(): Promise<CmsCatalogue[]> {
 
   const fromDedicated = (dedicated?.items || []).map((c, index) => ({
     id: 30000 + index,
-    category: c.category || "Catalogue",
-    title: c.title || "Catalogue",
-    image: c.image || "/catlog/catlog.png",
-    pdf: c.fileName || "",
-    pdfUrl: c.pdfUrl || "",
-    downloadName: c.downloadName || c.fileName || "catalogue.pdf",
+    category: c.category ?? "Catalogue",
+    title: c.title ?? "Catalogue",
+    image: String(c.image || "/catlog/catlog.png"),
+    pdf: String(c.fileName || ""),
+    pdfUrl: String(c.pdfUrl || ""),
+    downloadName: String(c.downloadName || c.fileName || "catalogue.pdf"),
   }));
 
   if (fromDedicated.length) return fromDedicated;
@@ -356,11 +388,13 @@ export async function fetchMergedCatalogues(): Promise<CmsCatalogue[]> {
 
 export type CmsFaq = {
   id: number | string;
-  question: string;
-  answer: string;
+  /** Localized map or legacy string */
+  question: unknown;
+  answer: unknown;
 };
 
 export async function fetchMergedFaqs(): Promise<CmsFaq[]> {
+  // Dedicated FAQs are the source of truth (admin /faqs).
   const dedicated = (await cmsFetch(`/cms/${SITE_ID}/faqs`)) as
     | { items?: any[] }
     | null;
@@ -371,6 +405,7 @@ export async function fetchMergedFaqs(): Promise<CmsFaq[]> {
   }));
   if (fromDedicated.length) return fromDedicated;
 
+  // Fallback: home FAQ section, then empty (FaqSection uses static faqData).
   const home = await fetchHomeSections();
   const homeItems = (home?.faq?.items || []) as any[];
   if (homeItems.length) {
@@ -383,10 +418,41 @@ export async function fetchMergedFaqs(): Promise<CmsFaq[]> {
   return [];
 }
 
+export type CmsCategory = {
+  id: string;
+  /** Localized map `{en,th,pl}` or legacy string */
+  title: unknown;
+  description: unknown;
+  image: string;
+};
+
+function localizedEn(value: unknown): string {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const map = value as { en?: unknown; th?: unknown; pl?: unknown };
+    return String(map.en || map.th || map.pl || "").trim();
+  }
+  return typeof value === "string" ? value.trim() : "";
+}
+
+export async function fetchMergedCategories(): Promise<CmsCategory[]> {
+  const json = (await cmsFetch(`/cms/${SITE_ID}/categories`)) as
+    | { items?: any[] }
+    | null;
+  return (json?.items || [])
+    .map((c) => ({
+      id: String(c._id || localizedEn(c.title) || ""),
+      title: c.title,
+      description: c.description,
+      image: String(c.image || ""),
+    }))
+    .filter((c) => localizedEn(c.title));
+}
+
 export type CmsGallery = {
   id: number | string;
   image: string;
-  title: string;
+  /** Localized map `{en,th,pl}` or legacy string */
+  title: unknown;
   filter: string;
   tall?: boolean;
   wide?: boolean;
@@ -413,11 +479,11 @@ export async function fetchLegalPage(type: "privacy" | "terms") {
   const json = (await cmsFetch(`/cms/${SITE_ID}/legal/${type}`)) as
     | {
         page?: {
-          title?: string;
-          subtitle?: string;
-          updatedLabel?: string;
-          content?: string;
-          sections?: { title?: string; body?: string }[];
+          title?: unknown;
+          subtitle?: unknown;
+          updatedLabel?: unknown;
+          content?: unknown;
+          sections?: { title?: unknown; body?: unknown }[];
         };
       }
     | null;

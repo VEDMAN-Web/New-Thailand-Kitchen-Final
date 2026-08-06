@@ -1,12 +1,25 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { productHero } from "./productData";
 import { useTranslation } from "../../i18n/LanguageProvider";
+import { useCmsSection } from "../../lib/CmsHomeContext";
+import { pickCmsAsset, pickCmsText } from "../../lib/cmsText";
+import { productHero } from "./productData";
+
+type ProductsPageCms = {
+  label?: string;
+  title?: string;
+  videoUrl?: string;
+};
 
 export default function ProductsHero() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const videoRef = useRef<HTMLVideoElement>(null);
+  const cms = useCmsSection<ProductsPageCms>("productsPage");
+
+  const label = pickCmsText(cms?.label, t("products.hero.label"), locale);
+  const title = pickCmsText(cms?.title, t("products.hero.title"), locale);
+  const videoSrc = pickCmsAsset(cms?.videoUrl, "") || productHero.video;
 
   useEffect(() => {
     const video = videoRef.current;
@@ -15,14 +28,15 @@ export default function ProductsHero() {
     video.muted = true;
     video.defaultMuted = true;
     video.play().catch(() => {});
-  }, []);
+  }, [videoSrc]);
 
   return (
     <section className="bg-[#F5F3EF] px-3 pt-[80px] sm:px-4 sm:pt-[84px]">
       <div className="relative w-full h-[300px] sm:h-[360px] md:h-[420px] lg:h-[460px] rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden">
         <video
           ref={videoRef}
-          src={productHero.video}
+          key={videoSrc}
+          src={videoSrc}
           autoPlay
           muted
           loop
@@ -38,10 +52,10 @@ export default function ProductsHero() {
 
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
           <p className="text-white/80 text-xs tracking-[0.28em] uppercase font-medium mb-3">
-            {t("products.hero.label")}
+            {label}
           </p>
           <h1 className="text-white text-4xl sm:text-5xl md:text-6xl font-extrabold leading-none">
-            {t("products.hero.title")}
+            {title}
           </h1>
         </div>
       </div>
