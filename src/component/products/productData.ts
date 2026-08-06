@@ -53,6 +53,33 @@ export const productLayouts: ProductLayout[] = [
 export const productFilterTabs = ["All", ...productLayouts, "Best Seller"] as const;
 export type ProductFilterTab = (typeof productFilterTabs)[number];
 
+/**
+ * Convert a category/tab label into a URL-safe slug, e.g. "U Shape" -> "u-shape".
+ * Shared between the products listing tabs and the /products/[slug] route so
+ * that category browsing gets real, crawlable URLs like /products/u-shape.
+ */
+export function tabToSlug(tab: string): string {
+  return tab.toLowerCase().trim().replace(/\s+/g, "-");
+}
+
+/**
+ * Reverse of tabToSlug: given a URL segment (or query value) and the list of
+ * known tab labels, return the matching tab label, or null if there is no match.
+ */
+export function tabFromSlugValue(
+  value: string | null | undefined,
+  tabs: string[]
+): string | null {
+  if (!value) return null;
+  const normalized = value.toLowerCase().trim().replace(/[_\s]+/g, "-");
+  if (normalized === "all") return "All";
+  if (normalized === "best-seller" || normalized === "bestseller") {
+    return "Best Seller";
+  }
+  const match = tabs.find((tab) => tabToSlug(tab) === normalized);
+  return match ?? null;
+}
+
 export const productHero = {
   label: "Collection",
   title: "Products",
