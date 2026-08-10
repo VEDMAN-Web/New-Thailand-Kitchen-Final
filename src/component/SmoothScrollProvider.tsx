@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { ReactLenis, useLenis } from "lenis/react";
 import "lenis/dist/lenis.css";
 
 function LenisWindowBridge() {
   const lenis = useLenis();
+
+  // Expose lenis on window for external scroll utilities
   useEffect(() => {
     if (!lenis) return;
     const w = window as Window & { __lenis?: typeof lenis };
@@ -14,13 +16,24 @@ function LenisWindowBridge() {
       if (w.__lenis === lenis) delete w.__lenis;
     };
   }, [lenis]);
+
+  // Honor prefers-reduced-motion — stop/start Lenis accordingly
+  useEffect(() => {
+    if (!lenis) return;
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const apply = (reduce: boolean) => {
+      if (reduce) lenis.stop();
+      else lenis.start();
+    };
+    apply(mq.matches);
+    const handler = (e: MediaQueryListEvent) => apply(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, [lenis]);
+
   return null;
 }
 
-/**
- * Varsovia-style universal smooth scrolling (Lenis) on every page.
- * Honors prefers-reduced-motion via Lenis autoToggle.
- */
 export default function SmoothScrollProvider({
   children,
 }: {
@@ -30,17 +43,14 @@ export default function SmoothScrollProvider({
     <ReactLenis
       root
       options={{
-        autoRaf: true,
-        lerp: 0.08,
-        duration: 1.2,
+        lerp: 0.1,
+        duration: 1.0,
         smoothWheel: true,
-        wheelMultiplier: 1,
-        touchMultiplier: 1.35,
-        syncTouch: false,
-        anchors: {
-          offset: -88,
-        },
-        autoToggle: true,
+        wheelMultiplier: 1.0,
+        touchMultiplier: 2.0,
+        infinite: false,
+        orientation: "vertical",
+        gestureOrientation: "vertical",
       }}
     >
       <LenisWindowBridge />

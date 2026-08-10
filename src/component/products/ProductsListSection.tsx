@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import ProductCard from "./ProductCard";
 import {
   productFilterTabs,
-  PRODUCTS_PER_PAGE,
+  PRODUCTS_PER_PAGE,    
   tabToSlug,
   type ProductFilterTab,
   type ProductItem,
@@ -15,7 +15,12 @@ import { useTranslation } from "../../i18n/LanguageProvider";
 import type { TranslationKey } from "../../i18n/translations";
 import { pickCmsText } from "../../lib/cmsText";
 import { smoothScrollToId } from "../../lib/smoothScroll";
-import { fetchMergedCategories } from "../../services/cmsPublic";
+import { fetchMergedCategories, fetchMergedProducts } from "../../services/cmsPublic";
+
+// Only re-fetch in background if data is older than 30 seconds
+const STALE_AFTER_MS = 30_000;
+let cachedProducts: ProductItem[] | null = null;
+let productsCacheTimestamp = 0;
 
 const tabLabelKeys: Record<ProductFilterTab, TranslationKey> = {
   All: "gallery.filter.all",
@@ -55,11 +60,35 @@ export default function ProductsListSection({
   const searchParams = useSearchParams();
   const [layout, setLayout] = useState<string>(initialCategory || "All");
   const [page, setPage] = useState(1);
-  const [items] = useState<ProductItem[]>(initialItems);
-  /** EN id for filter matching + raw CMS title for locale display */
+
+  // Hydrate from module-level cache if fresh, otherwise use SSR data
+  const startItems =
+    cachedProducts && Date.now() - productsCacheTimestamp < STALE_AFTER_MS
+      ? cachedProducts
+      : initialItems;
+
+  const [items, setItems] = useState<ProductItem[]>(startItems);
+  const fetchedRef = useRef(false);
   const [cmsCategories, setCmsCategories] = useState<
     { id: string; title: unknown }[]
   >([]);
+
+  // Re-fetch only when cache is stale (>30s) — not on every mount
+  useEffect(() => {
+    if (cachedProducts && Date.now() - productsCacheTimestamp < STALE_AFTER_MS) return;
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
+
+    fetchMergedProducts()
+      .then((fresh) => {
+        if (fresh.length > 0) {
+          cachedProducts = fresh;
+          productsCacheTimestamp = Date.now();
+          setItems(fresh);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     let alive = true;

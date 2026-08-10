@@ -1,6 +1,7 @@
 "use client";
 
 import HomeContactInput from "./HomeContactInput";
+import PhoneContactInput from "./PhoneContactInput";
 import useContact from "../../hooks/useContact";
 import { useTranslation } from "../../i18n/LanguageProvider";
 
@@ -29,10 +30,11 @@ export default function ContactForm() {
       />
 
       <div className="sm:col-span-2">
-        <HomeContactInput
+        <PhoneContactInput
           label={t("form.phoneWhatsapp")}
           name="phoneNumber"
-          type="tel"
+          phoneCode={formData.phoneCode}
+          onPhoneCodeChange={(code) => handleChange({ target: { name: 'phoneCode', value: code } } as any)}
           value={formData.phoneNumber}
           onChange={handleChange}
           error={errors.phoneNumber}

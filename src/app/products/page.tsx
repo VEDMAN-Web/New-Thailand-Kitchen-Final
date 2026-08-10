@@ -3,6 +3,9 @@ import ProductsPageView from "../../component/products/ProductsPageView";
 import { fetchMergedProducts } from "../../services/cmsPublic";
 import { productItems } from "../../component/products/productData";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function Page() {
   const items = await fetchMergedProducts().catch(() => productItems);
   return (

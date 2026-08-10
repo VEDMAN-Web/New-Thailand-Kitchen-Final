@@ -40,7 +40,7 @@ export default function BlogHero() {
           muted
           loop
           playsInline
-          preload="auto"
+          preload="metadata"
           onCanPlay={() => {
             videoRef.current?.play().catch(() => {});
           }}

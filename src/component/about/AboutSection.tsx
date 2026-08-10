@@ -28,8 +28,7 @@ export default function AboutSection() {
   );
   const storyImage =
     pickCmsAsset(story?.image, "") || "/slider/crafted-with-passion.png";
-  const remoteImage =
-    storyImage.startsWith("http") || storyImage.startsWith("/uploads");
+  const remoteImage = true; // always unoptimized for CMS images
 
   useEffect(() => {
     const el = imageRef.current;
@@ -62,11 +61,15 @@ export default function AboutSection() {
         <div className="relative">
           <div
             ref={imageRef}
-            className={`relative w-full h-[280px] sm:h-[380px] md:h-[460px] lg:h-[520px] rounded-2xl overflow-hidden transition-all duration-[1200ms] ease-out ${
+            className={`relative w-full h-[280px] sm:h-[380px] md:h-[460px] lg:h-[520px] rounded-2xl overflow-hidden ${
               imageVisible
-                ? "scale-100 opacity-100"
-                : "scale-[0.88] opacity-0"
+                ? "opacity-100 [transform:scale(1)]"
+                : "opacity-0 [transform:scale(0.88)]"
             }`}
+            style={{
+              transition: "opacity 900ms ease-out, transform 900ms ease-out",
+              willChange: "opacity, transform",
+            }}
           >
             <Image
               src={storyImage}

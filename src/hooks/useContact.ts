@@ -11,6 +11,7 @@ const initialData: ContactData = {
   fullName: "",
   email: "",
   whatsappNumber: "",
+  phoneCode: "+66",
   phoneNumber: "",
   cityName: "",
   countryName: "",
@@ -58,6 +59,7 @@ export default function useContact() {
     const phone = formData.phoneNumber.trim();
     const payload: ContactData = {
       ...formData,
+      phoneCode: formData.phoneCode,
       phoneNumber: phone,
       // Forms no longer collect these; keep API/DB contracts intact.
       whatsappNumber: phone,

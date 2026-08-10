@@ -10,11 +10,7 @@ import {
 } from "./galleryData";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import type { TranslationKey } from "../../i18n/translations";
-import {
-  fetchHomeSections,
-  fetchMergedGallery,
-  type CmsGallery,
-} from "../../services/cmsPublic";
+import type { CmsGallery } from "../../services/cmsPublic";
 import { pickCmsText } from "../../lib/cmsText";
 
 const categoryKeyMap: Record<GalleryCategory, TranslationKey> = {
@@ -32,36 +28,22 @@ function categoryToSlug(cat: string) {
     .replace(/\s+/g, "-");
 }
 
-export default function GalleryContent() {
+type Props = {
+  initialItems?: CmsGallery[];
+  initialFilters?: { id: string; label: unknown }[];
+};
+
+export default function GalleryContent({ initialItems, initialFilters }: Props) {
   const { t, locale } = useTranslation();
   const searchParams = useSearchParams();
   const [active, setActive] = useState<string>("All");
-  const [itemsAll, setItemsAll] = useState<CmsGallery[]>(galleryItems);
-  const [cmsFilters, setCmsFilters] = useState<
-    { id: string; label: unknown }[]
-  >([]);
 
-  useEffect(() => {
-    fetchMergedGallery().then((list) => {
-      if (list?.length) setItemsAll(list);
-    });
-    fetchHomeSections().then((sections) => {
-      const next = ((sections?.galleryPage?.filters || []) as {
-        id?: string;
-        label?: unknown;
-      }[])
-        .map((f) => ({
-          id: String(f.id || "").trim(),
-          label: f.label ?? f.id,
-        }))
-        .filter((f) => f.id);
-      if (next.length) setCmsFilters(next);
-    });
-  }, []);
+  // Use SSR data directly — no useEffect fetch, no flicker
+  const itemsAll = initialItems?.length ? initialItems : galleryItems;
 
   const filters =
-    cmsFilters.length > 0
-      ? cmsFilters.map((f) => ({
+    initialFilters && initialFilters.length > 0
+      ? initialFilters.map((f) => ({
           id: f.id,
           label: pickCmsText(
             f.label,

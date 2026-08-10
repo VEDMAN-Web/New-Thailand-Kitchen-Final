@@ -46,11 +46,10 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  /* Prevent horizontal rubber-band flicker on some browsers */
-  overflow-x: clip;
+  /* clip instead of hidden so Lenis can still intercept scroll on html */
+  overflow-x: hidden;
 }
 
-/* Smooth GPU-friendly scrolling containers */
 * {
   scrollbar-width: thin;
   scrollbar-color: #c8c0b6 transparent;
@@ -67,6 +66,9 @@ body {
 
 .animate-marquee {
   animation: marquee 28s linear infinite;
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .animate-marquee:hover {

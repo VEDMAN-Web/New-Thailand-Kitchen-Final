@@ -1,11 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import BlogFilters from "./BlogFilters";
 import BlogFeaturedCard from "./BlogFeaturedCard";
 import BlogCard from "./BlogCard";
 import { BlogCategory, type BlogPost } from "./blogData";
 import { useTranslation } from "../../i18n/LanguageProvider";
+import { fetchMergedBlogs } from "../../services/cmsPublic";
+
+// Only re-fetch in background if data is older than 30 seconds
+// This prevents hammering the remote backend on every client navigation
+const STALE_AFTER_MS = 30_000;
+let cachedPosts: BlogPost[] | null = null;
+let cacheTimestamp = 0;
 
 export default function BlogListSection({
   initialPosts,
@@ -14,7 +21,33 @@ export default function BlogListSection({
 }) {
   const { t } = useTranslation();
   const [active, setActive] = useState<BlogCategory>("All");
-  const [posts] = useState<BlogPost[]>(initialPosts);
+
+  // Hydrate from module-level cache if fresh, otherwise use SSR data
+  const startPosts =
+    cachedPosts && Date.now() - cacheTimestamp < STALE_AFTER_MS
+      ? cachedPosts
+      : initialPosts;
+
+  const [posts, setPosts] = useState<BlogPost[]>(startPosts);
+  const fetchedRef = useRef(false);
+
+  useEffect(() => {
+    // Skip if cache is still fresh
+    if (cachedPosts && Date.now() - cacheTimestamp < STALE_AFTER_MS) return;
+    // Skip if already fetching in this component instance
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
+
+    fetchMergedBlogs()
+      .then((fresh) => {
+        if (fresh.length > 0) {
+          cachedPosts = fresh;
+          cacheTimestamp = Date.now();
+          setPosts(fresh);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const filtered =
     active === "All"

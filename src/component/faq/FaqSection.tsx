@@ -1,31 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { faqItems } from "./faqData";
 import FaqItem from "./FaqItem";
-import { fetchMergedFaqs, type CmsFaq } from "../../services/cmsPublic";
+import type { CmsFaq } from "../../services/cmsPublic";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import type { TranslationKey } from "../../i18n/translations";
 import { pickCmsText } from "../../lib/cmsText";
 
-export default function FaqSection() {
+export default function FaqSection({ initialFaqs }: { initialFaqs?: CmsFaq[] }) {
   const { t, locale } = useTranslation();
-  const [cmsItems, setCmsItems] = useState<CmsFaq[]>([]);
 
-  useEffect(() => {
-    let alive = true;
-    fetchMergedFaqs().then((list: CmsFaq[]) => {
-      if (!alive) return;
-      if (list.length) setCmsItems(list);
-    });
-    return () => {
-      alive = false;
-    };
-  }, []);
-
+  // Use SSR data directly — no useEffect, no flicker
   const items =
-    cmsItems.length > 0
-      ? cmsItems.map((item, index) => ({
+    initialFaqs && initialFaqs.length > 0
+      ? initialFaqs.map((item, index) => ({
           id: item.id ?? index + 1,
           question: pickCmsText(
             item.question,

@@ -149,6 +149,7 @@ export default function ConsultationEnquiryModal({ open, onClose }: Props) {
       await createContact({
         fullName: form.fullName.trim(),
         email: `enquiry.${digits}@thailandkitchens.lead`,
+        phoneCode: "+66",
         phoneNumber,
         whatsappNumber: phoneNumber,
         cityName: "Not provided",

@@ -14,11 +14,14 @@ import ContactSection from "./contactUs/ContactSection";
 import HomeFaqSection from "./faq/HomeFaqSection";
 import Footer from "./Footer/footer";
 import { useTranslation } from "../i18n/LanguageProvider";
-import { useCmsSection } from "../lib/CmsHomeContext";
+import { useCms, useCmsSection } from "../lib/CmsHomeContext";
 import { pickCmsText } from "../lib/cmsText";
+
+const STATIC_FALLBACK_VIDEO = "/video/2.mp4";
 
 function HomePage() {
   const { t, locale } = useTranslation();
+  const { loading: cmsLoading } = useCms();
   const videoRef = useRef<HTMLVideoElement>(null);
   const hero = useCmsSection<{
     subtitle?: string;
@@ -100,9 +103,19 @@ function HomePage() {
     locale
   );
 
-  const heroVideo = (hero?.videoUrl || "").trim() || "/video/2.mp4?v=3";
+  // Only fall back to the static video AFTER the CMS has finished loading and
+  // confirmed there is no uploaded video. While loading (or when a CMS video
+  // exists), never let the static fallback override the CMS url — that is what
+  // caused the old-then-new double-play on every refresh.
+  const cmsVideoUrl = (hero?.videoUrl || "").trim();
+  const heroVideo = cmsVideoUrl
+    ? cmsVideoUrl
+    : cmsLoading
+    ? "" // CMS still resolving — show nothing until we know
+    : STATIC_FALLBACK_VIDEO; // CMS done, no video configured → use default
+
   const isEmbed =
-    /youtube\.com|youtu\.be|vimeo\.com/i.test(heroVideo);
+    Boolean(heroVideo) && /youtube\.com|youtu\.be|vimeo\.com/i.test(heroVideo);
 
   const embedSrc = (() => {
     if (!isEmbed) return heroVideo;
@@ -123,7 +136,7 @@ function HomePage() {
   })();
 
   useEffect(() => {
-    if (isEmbed) return;
+    if (!heroVideo || isEmbed) return;
     const video = videoRef.current;
     if (!video) return;
 
@@ -148,7 +161,7 @@ function HomePage() {
                 className="absolute inset-0 z-0 h-full w-full pointer-events-none scale-[1.35] origin-center"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               />
-            ) : (
+            ) : heroVideo ? (
               <video
                 key={heroVideo}
                 ref={videoRef}
@@ -156,14 +169,14 @@ function HomePage() {
                 muted
                 loop
                 playsInline
-                preload="auto"
+                preload="metadata"
                 src={heroVideo}
                 onCanPlay={() => {
                   videoRef.current?.play().catch(() => {});
                 }}
                 className="absolute inset-0 z-0 w-full h-full object-cover pointer-events-none"
               />
-            )}
+            ) : null}
 
             <div className="absolute inset-0 bg-black/45" />
 

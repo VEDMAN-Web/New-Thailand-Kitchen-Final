@@ -225,6 +225,7 @@ export default function CatlogSection() {
       const payload: ContactData = {
         fullName,
         email: fallbackEmail,
+        phoneCode: "+66",
         phoneNumber: fallbackPhone,
         whatsappNumber: fallbackPhone,
         cityName: "Catalogue Lead",
