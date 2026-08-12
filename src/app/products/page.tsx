@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   CheckCircle2,
   ChevronDown,
@@ -52,6 +53,9 @@ type ProductForm = {
   material: LocalizedText;
   style: LocalizedText;
   color: LocalizedText;
+  metaTitle: string;
+  metaDescription: string;
+  indexable: boolean;
 };
 
 const DEFAULT_FEATURE_HIGHLIGHTS: FeatureHighlight[] = [
@@ -96,11 +100,15 @@ const empty: ProductForm = {
   material: emptyLocalized(),
   style: emptyLocalized(),
   color: emptyLocalized(),
+  metaTitle: "",
+  metaDescription: "",
+  indexable: false,
 };
 
 export default function AdminProductsPage() {
   const { siteId } = useAdminAuth();
   const [items, setItems] = useState<ProductItem[]>([]);
+  const [categoryList, setCategoryList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<"create" | "edit" | null>(null);
   const [editing, setEditing] = useState<ProductItem | null>(null);
@@ -123,9 +131,20 @@ export default function AdminProductsPage() {
     }
   }, [siteId]);
 
+  const loadCategories = useCallback(async () => {
+    try {
+      const { listCategories } = await import("@/services/adminAPI");
+      const res = await listCategories(siteId);
+      setCategoryList(res.items || []);
+    } catch {
+      // Silently fail - category dropdown will just show empty
+    }
+  }, [siteId]);
+
   useEffect(() => {
     load();
-  }, [load]);
+    loadCategories();
+  }, [load, loadCategories]);
 
   const openCreate = () => {
     setForm(empty);
@@ -174,6 +193,9 @@ export default function AdminProductsPage() {
       material: asLocalizedForm(item.material),
       style: asLocalizedForm(item.style),
       color: asLocalizedForm(item.color),
+      metaTitle: (item as any).metaTitle || "",
+      metaDescription: (item as any).metaDescription || "",
+      indexable: (item as any).indexable ?? false,
     });
     setStep(1);
     setSaveArmed(false);
@@ -249,6 +271,15 @@ export default function AdminProductsPage() {
     if (step !== 3 || !saveArmed) return;
     if (!validateStep(2) || !validateStep(3)) return;
 
+    if (form.metaTitle && form.metaTitle.length > 60) {
+      toast.error("Meta Title must be 60 characters or less");
+      return;
+    }
+    if (form.metaDescription && form.metaDescription.length > 160) {
+      toast.error("Meta Description must be 160 characters or less");
+      return;
+    }
+
     const featureHighlights: FeatureHighlight[] = form.featureHighlights
       .map((f) => ({
         title: asLocalizedForm(f.title),
@@ -260,7 +291,7 @@ export default function AdminProductsPage() {
           localizedValue(f.description, "en").trim()
       );
 
-    const payload = {
+    const payload: any = {
       title: asLocalizedForm(form.title),
       slug: form.slug || localizedValue(form.title, "en"),
       subtitle: asLocalizedForm(form.subtitle),
@@ -278,6 +309,9 @@ export default function AdminProductsPage() {
       material: asLocalizedForm(form.material),
       style: asLocalizedForm(form.style),
       color: asLocalizedForm(form.color),
+      metaTitle: form.metaTitle,
+      metaDescription: form.metaDescription,
+      indexable: form.indexable,
     };
     try {
       if (modal === "create") {
@@ -335,6 +369,25 @@ export default function AdminProductsPage() {
 
   return (
     <>
+    <div className="rounded-xl border border-[#E8EDF2] bg-white px-4 py-3 mb-6 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+      <div>
+        <p className="text-sm font-semibold text-[#1A2332]">
+          Products page hero{" "}
+          <span className="font-mono text-xs font-normal text-[#6B7280]">
+            /products
+          </span>
+        </p>
+        <p className="text-xs text-[#6B7280] mt-0.5">
+          Edit video banner, titles, and homepage “Our Products” band.
+        </p>
+      </div>
+      <Link
+        href="/?section=productsPage"
+        className="inline-flex items-center justify-center rounded-lg border border-[#E2E5EA] bg-[#F8FAFC] px-3 py-2 text-xs font-semibold text-[#1A2332] hover:bg-[#EEF0F3] shrink-0"
+      >
+        Edit Products page content
+      </Link>
+    </div>
     <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative w-[270px]">
@@ -533,12 +586,25 @@ export default function AdminProductsPage() {
                     </label>
                     <label className="block text-xs font-semibold text-[#5C6370]">
                       Category *
-                      <input
+                      <select
                         required
                         value={localizedValue(form.category, locale)}
                         onChange={(e) => setForm({ ...form, category: writeLocalized(form.category, locale, e.target.value) })}
-                        className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
-                      />
+                        className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal bg-white"
+                      >
+                        <option value="">Select a category...</option>
+                        {categoryList.map((cat) => {
+                          const title = typeof cat.title === 'object' ? (cat.title.en || cat.title.th || cat.title.pl) : cat.title;
+                          return (
+                            <option key={cat._id} value={title}>
+                              {title} {cat.categoryType ? `(${cat.categoryType})` : ''}
+                            </option>
+                          );
+                        })}
+                      </select>
+                      <p className="text-[10px] text-gray-500 mt-1">
+                        Create categories in the Categories page first
+                      </p>
                     </label>
                   </div>
                 </div>
@@ -617,6 +683,53 @@ export default function AdminProductsPage() {
                     />
                   </label>
                 </div>
+
+                {locale === "en" && (
+                  <>
+                    <div className="rounded-xl border border-[#E8EAED] p-4 mt-4">
+                      <p className="text-xs font-bold uppercase tracking-wide text-[#334155]">SEO Metadata</p>
+                      <p className="text-[11px] text-[#94A3B8] mb-3">Optional search engine optimization fields</p>
+                      
+                      <div className="space-y-3">
+                        <label className="block text-xs font-semibold text-[#5C6370]">
+                          Meta Title ({form.metaTitle.length}/60)
+                          <input
+                            value={form.metaTitle}
+                            onChange={(e) => setForm({ ...form, metaTitle: e.target.value.slice(0, 60) })}
+                            placeholder="Custom Black Kitchen | Thailand Kitchen"
+                            maxLength={60}
+                            className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
+                          />
+                        </label>
+
+                        <label className="block text-xs font-semibold text-[#5C6370]">
+                          Meta Description ({form.metaDescription.length}/160)
+                          <textarea
+                            rows={2}
+                            value={form.metaDescription}
+                            onChange={(e) => setForm({ ...form, metaDescription: e.target.value.slice(0, 160) })}
+                            placeholder="Professional custom black kitchen design with matte obsidian finish and gold hardware. Premium materials, expert craftsmanship."
+                            maxLength={160}
+                            className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal resize-y"
+                          />
+                        </label>
+
+                        <div className="flex items-center gap-3">
+                          <input
+                            id="product-indexable"
+                            type="checkbox"
+                            checked={form.indexable}
+                            onChange={(e) => setForm({ ...form, indexable: e.target.checked })}
+                            className="w-4 h-4 rounded border-[#E2E5EA]"
+                          />
+                          <label htmlFor="product-indexable" className="text-sm text-[#1A2332]">
+                            Indexable (allow Google to index this product page)
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             ) : null}
 

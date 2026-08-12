@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   BookOpen,
   Calendar,
@@ -70,6 +71,12 @@ type FormState = {
   gallery2: string;
   translations: BlogTranslations;
   published: boolean;
+  primaryCommercialPage: string;
+  locationTag: string;
+  serviceTag: string;
+  materialTag: string;
+  metaDescription: string;
+  reviewer: string;
 };
 
 const emptyTranslation = (): BlogTranslation => ({
@@ -126,6 +133,12 @@ const emptyForm = (): FormState => ({
   gallery2: "",
   translations: emptyTranslations(),
   published: true,
+  primaryCommercialPage: "",
+  locationTag: "",
+  serviceTag: "",
+  materialTag: "",
+  metaDescription: "",
+  reviewer: "",
 });
 
 function formatDateLabel(value?: string) {
@@ -234,6 +247,12 @@ export default function AdminBlogsPage() {
         pl: toTranslation(item.translations?.pl),
       },
       published: item.published !== false,
+      primaryCommercialPage: (item as any).primaryCommercialPage || "",
+      locationTag: (item as any).locationTag || "",
+      serviceTag: (item as any).serviceTag || "",
+      materialTag: (item as any).materialTag || "",
+      metaDescription: (item as any).metaDescription || "",
+      reviewer: (item as any).reviewer || "",
     });
     setStep(1);
     setLang("en");
@@ -266,6 +285,36 @@ export default function AdminBlogsPage() {
       );
       if (!hasSection) {
         toast.error("Add at least one body section");
+        return false;
+      }
+      // Publish gate (directive §4.4): PCP + author + location + service/material + meta
+      if (form.published) {
+        if (!form.primaryCommercialPage.trim()) {
+          toast.error(
+            "Primary Commercial Page URL is required to publish. Link a service/product page or set Published to OFF."
+          );
+          return false;
+        }
+        if (!form.author.trim()) {
+          toast.error("Author is required to publish");
+          return false;
+        }
+        if (!form.locationTag.trim()) {
+          toast.error("Location tag is required to publish");
+          return false;
+        }
+        if (!form.serviceTag.trim() && !form.materialTag.trim()) {
+          toast.error("Service or Material tag is required to publish");
+          return false;
+        }
+        if (!form.metaDescription.trim()) {
+          toast.error("Meta Description is required to publish");
+          return false;
+        }
+      }
+      // Meta description character limit
+      if (form.metaDescription && form.metaDescription.length > 160) {
+        toast.error("Meta Description must be 160 characters or less");
         return false;
       }
     }
@@ -408,7 +457,7 @@ export default function AdminBlogsPage() {
       quoteAuthor: value.quoteAuthor.trim(),
     });
 
-    const payload = {
+    const payload: any = {
       title: form.title.trim(),
       slug: form.slug.trim(),
       category: form.category.trim(),
@@ -428,6 +477,12 @@ export default function AdminBlogsPage() {
         pl: packTranslation(translations.pl),
       },
       published: form.published,
+      primaryCommercialPage: form.primaryCommercialPage.trim(),
+      locationTag: form.locationTag.trim(),
+      serviceTag: form.serviceTag.trim(),
+      materialTag: form.materialTag.trim(),
+      metaDescription: form.metaDescription.trim(),
+      reviewer: form.reviewer.trim(),
     };
 
     try {
@@ -566,6 +621,25 @@ export default function AdminBlogsPage() {
   return (
     <>
     <div className="space-y-5">
+        <div className="rounded-xl border border-[#E8EDF2] bg-white px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+          <div>
+            <p className="text-sm font-semibold text-[#1A2332]">
+              Guides page hero{" "}
+              <span className="font-mono text-xs font-normal text-[#6B7280]">
+                /guides
+              </span>
+            </p>
+            <p className="text-xs text-[#6B7280] mt-0.5">
+              Edit video banner, titles, related heading, and share links.
+            </p>
+          </div>
+          <Link
+            href="/?section=blogPage"
+            className="inline-flex items-center justify-center rounded-lg border border-[#E2E5EA] bg-[#F8FAFC] px-3 py-2 text-xs font-semibold text-[#1A2332] hover:bg-[#EEF0F3] shrink-0"
+          >
+            Edit Guides page content
+          </Link>
+        </div>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-3">
             <div className="relative w-[320px] max-w-full">
@@ -1138,6 +1212,83 @@ export default function AdminBlogsPage() {
                       />
                     </div>
 
+                    <div className="rounded-xl border border-[#E8EAED] p-4 space-y-3 bg-[#FAFBFC]">
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wide text-[#334155]">
+                          SEO & Commercial Linking
+                        </p>
+                        <p className="text-[11px] text-[#94A3B8]">
+                          Link to a commercial page (service/product) and add taxonomy tags for discovery.
+                        </p>
+                      </div>
+
+                      <label className="block text-xs font-semibold text-[#5C6370]">
+                        Primary Commercial Page URL {form.published ? "*" : "(required to publish)"}
+                        <input
+                          value={form.primaryCommercialPage}
+                          onChange={(e) => setForm({ ...form, primaryCommercialPage: e.target.value })}
+                          placeholder="https://thailandkitchen.com/services/custom-kitchens"
+                          className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
+                          required={form.published}
+                        />
+                        <p className="text-[11px] text-[#6B7280] mt-1">
+                          ⚠️ Every blog MUST link to a commercial page before publishing (client spec).
+                        </p>
+                      </label>
+
+                      <div className="grid md:grid-cols-3 gap-3">
+                        <label className="block text-xs font-semibold text-[#5C6370]">
+                          Location Tag
+                          <input
+                            value={form.locationTag}
+                            onChange={(e) => setForm({ ...form, locationTag: e.target.value })}
+                            placeholder="e.g. Bangkok, Phuket"
+                            className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
+                          />
+                        </label>
+                        <label className="block text-xs font-semibold text-[#5C6370]">
+                          Service Tag
+                          <input
+                            value={form.serviceTag}
+                            onChange={(e) => setForm({ ...form, serviceTag: e.target.value })}
+                            placeholder="e.g. Custom Kitchens"
+                            className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
+                          />
+                        </label>
+                        <label className="block text-xs font-semibold text-[#5C6370]">
+                          Material Tag
+                          <input
+                            value={form.materialTag}
+                            onChange={(e) => setForm({ ...form, materialTag: e.target.value })}
+                            placeholder="e.g. Marble, Oak"
+                            className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
+                          />
+                        </label>
+                      </div>
+
+                      <label className="block text-xs font-semibold text-[#5C6370]">
+                        Meta Description ({form.metaDescription.length}/160)
+                        <textarea
+                          rows={2}
+                          value={form.metaDescription}
+                          onChange={(e) => setForm({ ...form, metaDescription: e.target.value.slice(0, 160) })}
+                          placeholder="SEO meta description for search results. Use the excerpt if left blank."
+                          maxLength={160}
+                          className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal resize-y"
+                        />
+                      </label>
+
+                      <label className="block text-xs font-semibold text-[#5C6370]">
+                        Reviewer Name (optional)
+                        <input
+                          value={form.reviewer}
+                          onChange={(e) => setForm({ ...form, reviewer: e.target.value })}
+                          placeholder="Expert who reviewed this article"
+                          className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
+                        />
+                      </label>
+                    </div>
+
                     <label className="flex items-center gap-2 text-sm">
                       <input
                         type="checkbox"
@@ -1188,7 +1339,25 @@ export default function AdminBlogsPage() {
                   <button
                     type="button"
                     onClick={() => void saveBlog()}
-                    className="rounded-lg bg-[#1A2332] text-white px-4 py-2 text-sm font-semibold"
+                    disabled={
+                      form.published &&
+                      (!form.primaryCommercialPage.trim() ||
+                        !form.author.trim() ||
+                        !form.locationTag.trim() ||
+                        (!form.serviceTag.trim() && !form.materialTag.trim()) ||
+                        !form.metaDescription.trim())
+                    }
+                    title={
+                      form.published &&
+                      (!form.primaryCommercialPage.trim() ||
+                        !form.author.trim() ||
+                        !form.locationTag.trim() ||
+                        (!form.serviceTag.trim() && !form.materialTag.trim()) ||
+                        !form.metaDescription.trim())
+                        ? "Fill Primary Commercial Page, Author, Location, Service/Material, and Meta Description to publish"
+                        : undefined
+                    }
+                    className="rounded-lg bg-[#1A2332] text-white px-4 py-2 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {modal === "create" ? "Create Blog" : "Save Blog"}
                   </button>

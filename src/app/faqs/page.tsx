@@ -4,6 +4,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { HelpCircle, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import LocaleTabs from "@/components/LocaleTabs";
+import HeroVideoUpload from "@/components/HeroVideoUpload";
 import { useAdminAuth } from "@/lib/AdminAuthContext";
 import {
   asLocalizedForm,
@@ -16,8 +17,10 @@ import {
 import {
   createFaq,
   deleteFaq,
+  getHome,
   listFaqs,
   updateFaq,
+  updateHome,
   type FaqCmsItem,
 } from "@/services/adminAPI";
 
@@ -27,11 +30,24 @@ type FaqForm = {
   sortOrder: number;
 };
 
+type FaqHeroForm = {
+  eyebrow: LocalizedText;
+  title: LocalizedText;
+  videoUrl: string;
+};
+
 export default function AdminFaqsPage() {
   const { siteId } = useAdminAuth();
   const [items, setItems] = useState<FaqCmsItem[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [savingHero, setSavingHero] = useState(false);
+  const [sections, setSections] = useState<Record<string, unknown>>({});
+  const [hero, setHero] = useState<FaqHeroForm>({
+    eyebrow: emptyLocalized(),
+    title: emptyLocalized(),
+    videoUrl: "",
+  });
   const [modal, setModal] = useState<"create" | "edit" | null>(null);
   const [editing, setEditing] = useState<FaqCmsItem | null>(null);
   const [locale, setLocale] = useState<LocaleCode>("en");
@@ -44,8 +60,23 @@ export default function AdminFaqsPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await listFaqs(siteId);
-      setItems(res.items || []);
+      const [faqRes, homeRes] = await Promise.all([
+        listFaqs(siteId),
+        getHome(siteId),
+      ]);
+      setItems(faqRes.items || []);
+      const nextSections = homeRes.home?.sections || {};
+      setSections(nextSections);
+      const fp = (nextSections.faqPage || {}) as {
+        eyebrow?: unknown;
+        title?: unknown;
+        videoUrl?: string;
+      };
+      setHero({
+        eyebrow: asLocalizedForm(fp.eyebrow),
+        title: asLocalizedForm(fp.title),
+        videoUrl: String(fp.videoUrl || ""),
+      });
     } catch {
       toast.error("Failed to load FAQs");
     } finally {
@@ -66,6 +97,31 @@ export default function AdminFaqsPage() {
       return question.includes(q) || answer.includes(q);
     });
   }, [items, query]);
+
+  const saveHero = async () => {
+    if (!localizedValue(hero.title, "en").trim()) {
+      toast.error("English FAQ page title is required");
+      return;
+    }
+    setSavingHero(true);
+    try {
+      const next = {
+        ...sections,
+        faqPage: {
+          eyebrow: asLocalizedForm(hero.eyebrow),
+          title: asLocalizedForm(hero.title),
+          videoUrl: hero.videoUrl,
+        },
+      };
+      await updateHome(siteId, next);
+      setSections(next);
+      toast.success("FAQ page hero saved");
+    } catch {
+      toast.error("Failed to save FAQ page hero");
+    } finally {
+      setSavingHero(false);
+    }
+  };
 
   const openCreate = () => {
     setForm({
@@ -124,7 +180,68 @@ export default function AdminFaqsPage() {
 
   return (
     <>
-    <div className="space-y-6">
+      <div className="space-y-6">
+        <div className="rounded-xl border border-[#E8EAED] bg-white p-4 space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-[#1A2332]">
+                FAQ page hero{" "}
+                <span className="font-mono text-xs font-normal text-[#6B7280]">
+                  /faq
+                </span>
+              </p>
+              <p className="text-xs text-[#6B7280] mt-0.5">
+                Video banner + title on the public FAQ page.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={saveHero}
+              disabled={savingHero}
+              className="rounded-lg bg-[#1A2332] text-white px-3 py-2 text-xs font-semibold disabled:opacity-60"
+            >
+              {savingHero ? "Saving…" : "Save hero"}
+            </button>
+          </div>
+          <LocaleTabs locale={locale} onChange={setLocale} />
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-[#5C6370] mb-1">
+                Eyebrow ({locale.toUpperCase()})
+              </label>
+              <input
+                value={localizedValue(hero.eyebrow, locale)}
+                onChange={(e) =>
+                  setHero((h) => ({
+                    ...h,
+                    eyebrow: writeLocalized(h.eyebrow, locale, e.target.value),
+                  }))
+                }
+                className="w-full rounded-lg border border-[#E2E5EA] px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-[#5C6370] mb-1">
+                Title ({locale.toUpperCase()})
+              </label>
+              <input
+                value={localizedValue(hero.title, locale)}
+                onChange={(e) =>
+                  setHero((h) => ({
+                    ...h,
+                    title: writeLocalized(h.title, locale, e.target.value),
+                  }))
+                }
+                className="w-full rounded-lg border border-[#E2E5EA] px-3 py-2 text-sm"
+              />
+            </div>
+          </div>
+          <HeroVideoUpload
+            value={hero.videoUrl}
+            onChange={(v) => setHero((h) => ({ ...h, videoUrl: v }))}
+          />
+        </div>
+
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9CA3AF]" />
@@ -146,8 +263,8 @@ export default function AdminFaqsPage() {
         </div>
 
         <p className="text-xs text-[#6B7280]">
-          Edit English / Thai / Polish like Varsovia. Dedicated FAQs power the
-          public <code>/faq</code> page.
+          Q&amp;A items power <code>/faq</code> and the first 5 also appear on the
+          homepage FAQ band.
         </p>
 
         {loading ? (

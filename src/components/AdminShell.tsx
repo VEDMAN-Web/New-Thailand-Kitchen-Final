@@ -23,13 +23,23 @@ import {
   Settings,
   Inbox,
   Wrench,
+  Sparkles,
+  LayoutGrid,
+  MessageSquareQuote,
+  RefreshCw,
+  X,
+  Database,
 } from "lucide-react";
 import { useAdminAuth } from "@/lib/AdminAuthContext";
 import type { SiteId } from "@/services/adminAPI";
+import { syncSiteFromDb } from "@/services/adminAPI";
+import { syncVarsoviaFromDb } from "@/services/varsoviaAPI";
+import { toast } from "sonner";
 import { clsx } from "clsx";
 import {
   ADMIN_SECTION_EVENT,
   VARSOVIA_NAV_EVENT,
+  emitCmsSynced,
   readAdminSectionFromUrl,
   readVarsoviaNavFromUrl,
   writeAdminSectionToUrl,
@@ -42,20 +52,84 @@ const THAILAND_NAV: {
   label: string;
   icon: typeof Home;
   section?: string;
-  group?: "pages" | "admin";
+  /** Match /categories?hub=… exactly when set */
+  hub?: string;
+  group?: "pages" | "chrome" | "admin";
 }[] = [
-  // Same order as the public website navigation + pages
-  { href: "/", label: "Home Page", icon: Home, group: "pages" },
+  // Same names + order as the live thailandkitchens.com header
+  { href: "/", label: "Home", icon: Home, group: "pages" },
+  {
+    href: "/categories?hub=kitchens",
+    label: "Kitchens",
+    icon: LayoutGrid,
+    hub: "kitchens",
+    group: "pages",
+  },
   { href: "/products", label: "Products", icon: Package, group: "pages" },
-  { href: "/categories", label: "Categories", icon: FolderKanban, group: "pages" },
+  {
+    href: "/categories?hub=services",
+    label: "Services",
+    icon: Wrench,
+    hub: "services",
+    group: "pages",
+  },
+  {
+    href: "/categories?hub=materials",
+    label: "Materials",
+    icon: Sparkles,
+    hub: "materials",
+    group: "pages",
+  },
+  {
+    href: "/categories?hub=locations",
+    label: "Locations",
+    icon: MapPin,
+    hub: "locations",
+    group: "pages",
+  },
   { href: "/gallery", label: "Gallery", icon: Images, group: "pages" },
-  { href: "/blogs", label: "Blogs", icon: FileText, group: "pages" },
-  { href: "/?section=catalogue", label: "Catalogue", icon: BookOpen, section: "catalogue", group: "pages" },
-  { href: "/faqs", label: "FAQs", icon: MessageCircleQuestion, group: "pages" },
-  { href: "/?section=contactPage", label: "Contact Page", icon: MapPin, section: "contactPage", group: "pages" },
-  { href: "/privacy", label: "Privacy Policy", icon: Shield, group: "pages" },
-  { href: "/terms", label: "Terms & Conditions", icon: ScrollText, group: "pages" },
-  // Admin tools
+  { href: "/blogs", label: "Guides", icon: FileText, group: "pages" },
+  {
+    href: "/?section=contactPage",
+    label: "Contact",
+    icon: BriefcaseBusiness,
+    section: "contactPage",
+    group: "pages",
+  },
+  { href: "/faqs", label: "FAQ", icon: MessageCircleQuestion, group: "pages" },
+
+  // Extra site pages + chrome (not in main header, still editable)
+  {
+    href: "/categories?hub=built-in-furniture",
+    label: "Built-In Furniture",
+    icon: FolderKanban,
+    hub: "built-in-furniture",
+    group: "chrome",
+  },
+  {
+    href: "/?section=catalogue",
+    label: "Catalogue",
+    icon: BookOpen,
+    section: "catalogue",
+    group: "chrome",
+  },
+  {
+    href: "/?section=hubPages",
+    label: "Hub Landings",
+    icon: LayoutGrid,
+    section: "hubPages",
+    group: "chrome",
+  },
+  {
+    href: "/?section=siteChrome",
+    label: "Navbar & SEO",
+    icon: Settings,
+    section: "siteChrome",
+    group: "chrome",
+  },
+  { href: "/privacy", label: "Privacy Policy", icon: Shield, group: "chrome" },
+  { href: "/terms", label: "Terms & Conditions", icon: ScrollText, group: "chrome" },
+
   { href: "/contacts", label: "Contact Inbox", icon: Inbox, group: "admin" },
   { href: "/users", label: "Users", icon: Users, group: "admin" },
 ];
@@ -68,21 +142,93 @@ const VARSOVIA_NAV: {
   section?: string;
   group: "pages" | "admin";
 }[] = [
-  // Same order as Varsovia public nav + home content sources
+  // ── Home (sections 1–10 in site settings rail) ──
   { href: "/varsovia?resource=site", resource: "site", label: "Home Page", icon: Home, group: "pages" },
-  { href: "/varsovia?resource=projects", resource: "projects", label: "Interior", icon: FolderKanban, group: "pages" },
-  { href: "/varsovia?resource=catalogues", resource: "catalogues", label: "Free Catalogue", icon: BookOpen, group: "pages" },
-  { href: "/varsovia?resource=showcases", resource: "showcases", label: "Showcase", icon: Images, group: "pages" },
+
+  // ── Hub pages (main site sections) ──
+  {
+    href: "/varsovia?resource=site&section=iaFurniture",
+    resource: "site",
+    section: "iaFurniture",
+    label: "Furniture",
+    icon: Package,
+    group: "pages",
+  },
+  {
+    href: "/varsovia?resource=site&section=iaInteriorDesign",
+    resource: "site",
+    section: "iaInteriorDesign",
+    label: "Interior Design",
+    icon: LayoutGrid,
+    group: "pages",
+  },
+  {
+    href: "/varsovia?resource=site&section=iaCompleteInteriors",
+    resource: "site",
+    section: "iaCompleteInteriors",
+    label: "Complete Interiors",
+    icon: FolderKanban,
+    group: "pages",
+  },
+  {
+    href: "/varsovia?resource=site&section=iaServices",
+    resource: "site",
+    section: "iaServices",
+    label: "Services",
+    icon: Wrench,
+    group: "pages",
+  },
+  {
+    href: "/varsovia?resource=site&section=iaLocations",
+    resource: "site",
+    section: "iaLocations",
+    label: "Locations",
+    icon: MapPin,
+    group: "pages",
+  },
+  {
+    href: "/varsovia?resource=site&section=iaForDevelopers",
+    resource: "site",
+    section: "iaForDevelopers",
+    label: "For Developers",
+    icon: BriefcaseBusiness,
+    group: "pages",
+  },
+  {
+    href: "/varsovia?resource=site&section=iaJournal",
+    resource: "site",
+    section: "iaJournal",
+    label: "Journal",
+    icon: FileText,
+    group: "pages",
+  },
+  {
+    href: "/varsovia?resource=site&section=iaAboutBrand",
+    resource: "site",
+    section: "iaAboutBrand",
+    label: "About brands",
+    icon: BookOpen,
+    group: "pages",
+  },
+
+  // ── Standalone pages (site settings copy) ──
   {
     href: "/varsovia?resource=site&section=aboutPage",
     resource: "site",
     section: "aboutPage",
-    label: "About",
+    label: "About Page",
     icon: BookOpen,
     group: "pages",
   },
-  { href: "/varsovia?resource=team-members", resource: "team-members", label: "Team", icon: BriefcaseBusiness, group: "pages" },
-  { href: "/varsovia?resource=blogs", resource: "blogs", label: "Blog", icon: FileText, group: "pages" },
+  {
+    href: "/varsovia?resource=site&section=teamPage",
+    resource: "site",
+    section: "teamPage",
+    label: "Team Page",
+    icon: BriefcaseBusiness,
+    group: "pages",
+  },
+  { href: "/varsovia?resource=team-members", resource: "team-members", label: "Team members", icon: Users, group: "pages" },
   {
     href: "/varsovia?resource=site&section=qualitySale",
     resource: "site",
@@ -91,7 +237,6 @@ const VARSOVIA_NAV: {
     icon: Wrench,
     group: "pages",
   },
-  { href: "/varsovia?resource=faqs", resource: "faqs", label: "FAQs", icon: MessageCircleQuestion, group: "pages" },
   {
     href: "/varsovia?resource=site&section=contact",
     resource: "site",
@@ -100,11 +245,77 @@ const VARSOVIA_NAV: {
     icon: MapPin,
     group: "pages",
   },
+  {
+    href: "/varsovia?resource=site&section=projectsPage",
+    resource: "site",
+    section: "projectsPage",
+    label: "Projects listing",
+    icon: Images,
+    group: "pages",
+  },
+
+  {
+    href: "/varsovia?resource=site&section=faqPage",
+    resource: "site",
+    section: "faqPage",
+    label: "FAQ Page",
+    icon: MessageSquareQuote,
+    group: "pages",
+  },
+  {
+    href: "/varsovia?resource=site&section=cataloguePage",
+    resource: "site",
+    section: "cataloguePage",
+    label: "Catalogue Page",
+    icon: BookOpen,
+    group: "pages",
+  },
+  {
+    href: "/varsovia?resource=site&section=contactPage",
+    resource: "site",
+    section: "contactPage",
+    label: "Contact Page",
+    icon: MapPin,
+    group: "pages",
+  },
+  {
+    href: "/varsovia?resource=site&section=privacyPage",
+    resource: "site",
+    section: "privacyPage",
+    label: "Privacy Policy",
+    icon: Shield,
+    group: "pages",
+  },
+  {
+    href: "/varsovia?resource=site&section=termsPage",
+    resource: "site",
+    section: "termsPage",
+    label: "Terms of Use",
+    icon: ScrollText,
+    group: "pages",
+  },
+
+  // ── Content libraries (cards / posts on those pages) ──
+  { href: "/varsovia?resource=blogs", resource: "blogs", label: "Journal articles", icon: FileText, group: "pages" },
+  { href: "/varsovia?resource=showcases", resource: "showcases", label: "Project showcases", icon: Images, group: "pages" },
+  { href: "/varsovia?resource=projects", resource: "projects", label: "Interior catalogue", icon: FolderKanban, group: "pages" },
+  { href: "/varsovia?resource=catalogues", resource: "catalogues", label: "Free Catalogue", icon: BookOpen, group: "pages" },
+  { href: "/varsovia?resource=faqs", resource: "faqs", label: "FAQs", icon: MessageCircleQuestion, group: "pages" },
+
+  // ── Home section data sources ──
   { href: "/varsovia?resource=products", resource: "products", label: "Products", icon: Package, group: "pages" },
   { href: "/varsovia?resource=testimonials", resource: "testimonials", label: "Testimonials", icon: Star, group: "pages" },
+  {
+    href: "/varsovia?resource=core-strengths",
+    resource: "core-strengths",
+    label: "Core Strengths",
+    icon: Sparkles,
+    group: "pages",
+  },
   { href: "/varsovia?resource=partners", resource: "partners", label: "Partners", icon: Handshake, group: "pages" },
   { href: "/varsovia?resource=showrooms", resource: "showrooms", label: "Showrooms", icon: MapPin, group: "pages" },
-  // Site chrome / admin tools
+
+  // ── Site chrome ──
   {
     href: "/varsovia?resource=site&section=brand",
     resource: "site",
@@ -153,6 +364,26 @@ const VARSOVIA_HOME_SECTIONS = new Set([
   "contact",
 ]);
 
+const VARSOVIA_PAGE_SECTIONS = new Set([
+  "aboutPage",
+  "teamPage",
+  "qualitySale",
+  "projectsPage",
+  "faqPage",
+  "cataloguePage",
+  "contactPage",
+  "privacyPage",
+  "termsPage",
+  "iaFurniture",
+  "iaInteriorDesign",
+  "iaCompleteInteriors",
+  "iaServices",
+  "iaLocations",
+  "iaForDevelopers",
+  "iaJournal",
+  "iaAboutBrand",
+]);
+
 const SITES: { id: SiteId; name: string }[] = [
   { id: "thailand-kitchen", name: "Thailand Kitchen" },
   { id: "varsovia-kitchen", name: "Varsovia Kitchen" },
@@ -187,6 +418,8 @@ function AdminShellContent({
   const { user, logout, siteId, setSiteId } = useAdminAuth();
   const isVarsovia = siteId === "varsovia-kitchen";
   const [profileOpen, setProfileOpen] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncConfirmOpen, setSyncConfirmOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const [homeSection, setHomeSection] = useState<string | null>(null);
   const [varsoviaNav, setVarsoviaNav] = useState<VarsoviaNavDetail>(() =>
@@ -274,6 +507,7 @@ function AdminShellContent({
     href: string;
     resource?: string;
     section?: string;
+    hub?: string;
   }) => {
     if (item.resource) {
       if (pathname !== "/varsovia" || activeResource !== item.resource) {
@@ -291,10 +525,19 @@ function AdminShellContent({
     if (item.section) {
       return pathname === "/" && homeSection === item.section;
     }
+    if (item.hub) {
+      return (
+        pathname === "/categories" &&
+        searchParams.get("hub") === item.hub
+      );
+    }
     if (item.href === "/") {
       return pathname === "/" && !homeSection;
     }
     const pathOnly = item.href.split("?")[0];
+    if (pathOnly === "/categories") {
+      return pathname === "/categories" && !searchParams.get("hub");
+    }
     return pathname.startsWith(pathOnly);
   };
 
@@ -327,6 +570,15 @@ function AdminShellContent({
     }
   };
 
+  useEffect(() => {
+    if (!syncConfirmOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSyncConfirmOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [syncConfirmOpen]);
+
   const changeSite = (next: SiteId) => {
     setSiteId(next);
     router.push(
@@ -334,40 +586,109 @@ function AdminShellContent({
     );
   };
 
+  const openSyncConfirm = () => {
+    if (syncing) return;
+    setSyncConfirmOpen(true);
+  };
+
+  const runSyncFromDb = async () => {
+    if (syncing) return;
+    setSyncConfirmOpen(false);
+    setSyncing(true);
+    const brand = isVarsovia ? "Varsovia" : "Thailand Kitchen";
+    const toastId = toast.loading(`Syncing ${brand} from connected database…`);
+    try {
+      if (isVarsovia) {
+        const res = await syncVarsoviaFromDb();
+        const report = res.report;
+        const resourceBits = Object.entries(report.resources || {})
+          .filter(([, n]) => Number(n) >= 0)
+          .slice(0, 4)
+          .map(([k, n]) => `${k}:${n}`);
+        toast.success(res.message || "Sync complete", {
+          id: toastId,
+          description: [
+            report.database,
+            report.siteUpdated
+              ? `Site fields filled: ${report.filledSiteKeys}`
+              : "Site unchanged",
+            resourceBits.length ? resourceBits.join(" · ") : null,
+          ]
+            .filter(Boolean)
+            .join(" · "),
+          duration: 6000,
+        });
+        emitCmsSynced({ site: "varsovia-kitchen", report });
+      } else {
+        const res = await syncSiteFromDb(siteId);
+        const report = res.report;
+        const addedParts = Object.entries(report.added || {})
+          .filter(([, n]) => Number(n) > 0)
+          .map(([k, n]) => `${k}+${n}`);
+        toast.success(res.message || "Sync complete", {
+          id: toastId,
+          description: [
+            `DB: ${report.database}`,
+            addedParts.length
+              ? `Added: ${addedParts.join(", ")}`
+              : "Nothing missing",
+            report.homeUpdated ? "Home sections refreshed" : "Home unchanged",
+          ].join(" · "),
+          duration: 6000,
+        });
+        emitCmsSynced({ site: "thailand-kitchen", report });
+      }
+      router.refresh();
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Sync failed — check backend & database connection";
+      toast.error(msg, { id: toastId });
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   return (
-    <div
-      className={clsx(
-        "bg-[#F4F5F7] text-[#1A1D26] flex",
-        lockShellHeight
-          ? "fixed inset-0 z-0 overflow-hidden"
-          : "min-h-screen"
-      )}
-    >
-      <aside
-        className={clsx(
-          "w-[240px] shrink-0 bg-white border-r border-[#E8EAED] flex flex-col",
-          lockShellHeight && "h-full overflow-hidden"
-        )}
-      >
-        <div className="px-5 py-5 flex items-center gap-2.5 border-b border-[#E8EAED]">
+    <div className="bg-[#F4F5F7] text-[#1A1D26] flex h-screen overflow-hidden">
+      <aside className="w-[240px] shrink-0 bg-white border-r border-[#E8EAED] flex flex-col h-full overflow-hidden">
+        <div className="px-5 py-5 flex items-center gap-2.5 border-b border-[#E8EAED] shrink-0">
           <div className="w-8 h-8 rounded-full bg-[#1A2332] flex items-center justify-center">
             <Shield className="w-4 h-4 text-white" strokeWidth={2} />
           </div>
           <span className="font-bold tracking-wide text-[15px]">TRUSTPRIME</span>
         </div>
 
-        <nav
-          className={clsx(
-            "flex-1 px-3 py-4 space-y-1",
-            lockShellHeight && "min-h-0 overflow-y-auto"
-          )}
-        >
+        <nav className="px-3 py-4 space-y-1 flex-1 overflow-y-auto min-h-0">
           {!isVarsovia ? (
             <>
               <p className="px-3 pb-1 pt-1 text-[10px] font-bold tracking-[0.14em] uppercase text-[#9CA3AF]">
                 Website pages
               </p>
               {THAILAND_NAV.filter((i) => i.group === "pages").map((item) => {
+                const { href, label, icon: Icon } = item;
+                return (
+                  <Link
+                    key={`${href}-${label}`}
+                    href={href}
+                    onClick={(e) => openNavItem(e, item)}
+                    className={clsx(
+                      "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                      isActive(item)
+                        ? "bg-[#EEF0F3] text-[#1A2332]"
+                        : "text-[#5C6370] hover:bg-[#F5F6F8] hover:text-[#1A2332]"
+                    )}
+                  >
+                    <Icon className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />
+                    {label}
+                  </Link>
+                );
+              })}
+              <p className="px-3 pb-1 pt-4 text-[10px] font-bold tracking-[0.14em] uppercase text-[#9CA3AF]">
+                More pages
+              </p>
+              {THAILAND_NAV.filter((i) => i.group === "chrome").map((item) => {
                 const { href, label, icon: Icon } = item;
                 return (
                   <Link
@@ -407,6 +728,18 @@ function AdminShellContent({
                   </Link>
                 );
               })}
+              
+              {/* Sign Out button directly below Users */}
+              <div className="pt-3 mt-3 border-t border-[#E8EAED]">
+                <button
+                  type="button"
+                  onClick={logout}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[#DC2626] hover:bg-red-50 transition-colors"
+                >
+                  <LogOut className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />
+                  Sign Out
+                </button>
+              </div>
             </>
           ) : (
             <>
@@ -454,32 +787,25 @@ function AdminShellContent({
                   </Link>
                 );
               })}
+              
+              {/* Sign Out button directly below Site chrome */}
+              <div className="pt-3 mt-3 border-t border-[#E8EAED]">
+                <button
+                  type="button"
+                  onClick={logout}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[#DC2626] hover:bg-red-50 transition-colors"
+                >
+                  <LogOut className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />
+                  Sign Out
+                </button>
+              </div>
             </>
           )}
         </nav>
-
-        <button
-          type="button"
-          onClick={logout}
-          className="m-3 flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium text-[#E11D48] hover:bg-red-50 transition-colors"
-        >
-          <LogOut className="w-[18px] h-[18px]" />
-          Sign Out
-        </button>
       </aside>
 
-      <div
-        className={clsx(
-          "flex-1 min-w-0 flex flex-col",
-          lockShellHeight && "min-h-0 h-full overflow-hidden"
-        )}
-      >
-        <header
-          className={clsx(
-            "h-16 bg-white border-b border-[#E8EAED] px-6 flex items-center justify-between gap-4",
-            lockShellHeight && "shrink-0"
-          )}
-        >
+      <div className="flex-1 min-w-0 flex flex-col h-full overflow-hidden">
+        <header className="h-16 bg-white border-b border-[#E8EAED] px-6 flex items-center justify-between gap-4 shrink-0">
           <div className="flex items-center gap-4 min-w-0">
             <h1 className="text-sm font-bold tracking-[0.12em] uppercase truncate">
               {title}
@@ -500,7 +826,27 @@ function AdminShellContent({
             </div>
           </div>
 
-          <div className="relative shrink-0" ref={profileRef}>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={openSyncConfirm}
+              disabled={syncing}
+              title="Sync from connected database (safe — never deletes content)"
+              className={clsx(
+                "inline-flex items-center gap-2 rounded-xl border border-[#E2E5EA] bg-white px-3 py-2 text-xs font-semibold text-[#1A2332] transition-colors",
+                syncing
+                  ? "opacity-70 cursor-wait"
+                  : "hover:bg-[#F5F6F8] hover:border-[#CBD5E1]"
+              )}
+            >
+              <RefreshCw
+                className={clsx("w-3.5 h-3.5", syncing && "animate-spin")}
+                strokeWidth={2}
+              />
+              {syncing ? "Syncing…" : "Sync from DB"}
+            </button>
+
+            <div className="relative shrink-0" ref={profileRef}>
             <button
               type="button"
               onClick={() => setProfileOpen((open) => !open)}
@@ -534,20 +880,104 @@ function AdminShellContent({
                 </button>
               </div>
             ) : null}
+            </div>
           </div>
         </header>
 
-        <main
-          className={clsx(
-            "flex-1 p-5 lg:p-6",
-            lockShellHeight ? "min-h-0 overflow-auto" : "overflow-auto"
-          )}
-        >
+        <main className="flex-1 p-5 lg:p-6 bg-[#F4F5F7] overflow-y-auto">
           <div key={pathname} className="tk-admin-panel-swap">
             {children}
           </div>
         </main>
       </div>
+
+      {syncConfirmOpen ? (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#1A2332]/45 backdrop-blur-[2px]"
+          role="presentation"
+          onClick={() => !syncing && setSyncConfirmOpen(false)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="sync-dialog-title"
+            className="w-full max-w-md rounded-2xl bg-white shadow-[0_24px_64px_rgba(26,35,50,0.22)] border border-[#E8EAED] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-3 px-5 pt-5 pb-3">
+              <div className="flex items-start gap-3 min-w-0">
+                <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#EEF0F3] text-[#1A2332]">
+                  <Database className="h-5 w-5" strokeWidth={1.75} />
+                </div>
+                <div className="min-w-0">
+                  <h2
+                    id="sync-dialog-title"
+                    className="text-[15px] font-bold text-[#1A2332] tracking-tight"
+                  >
+                    Sync from connected database?
+                  </h2>
+                  <p className="mt-1 text-xs text-[#6B7280]">
+                    {isVarsovia
+                      ? "Uses the Varsovia API / database configured for this admin."
+                      : "Uses the MongoDB your Thailand backend is connected to right now."}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSyncConfirmOpen(false)}
+                className="rounded-lg p-1.5 text-[#9CA3AF] hover:bg-[#F4F5F7] hover:text-[#1A2332] transition-colors"
+                aria-label="Close"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="px-5 pb-4">
+              <ul className="space-y-2 rounded-xl border border-[#E8EDF2] bg-[#F8FAFC] px-4 py-3.5">
+                {(isVarsovia
+                  ? [
+                      "Reloads Varsovia CMS data into admin",
+                      "Fills only blank site fields from defaults",
+                      "Never deletes or overwrites your existing content",
+                    ]
+                  : [
+                      "Reloads live CMS data into admin",
+                      "Fills only missing defaults",
+                      "Never deletes or overwrites your existing content",
+                    ]
+                ).map((line) => (
+                  <li
+                    key={line}
+                    className="flex items-start gap-2.5 text-[13px] text-[#334155] leading-snug"
+                  >
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#1A2332]" />
+                    {line}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 border-t border-[#EEF0F3] bg-[#FAFBFC] px-5 py-3.5">
+              <button
+                type="button"
+                onClick={() => setSyncConfirmOpen(false)}
+                className="rounded-xl border border-[#E2E5EA] bg-white px-4 py-2 text-sm font-semibold text-[#5C6370] hover:bg-[#F5F6F8] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={runSyncFromDb}
+                className="inline-flex items-center gap-2 rounded-xl bg-[#1A2332] px-4 py-2 text-sm font-semibold text-white hover:bg-[#243044] transition-colors"
+              >
+                <RefreshCw className="h-3.5 w-3.5" strokeWidth={2} />
+                Sync now
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

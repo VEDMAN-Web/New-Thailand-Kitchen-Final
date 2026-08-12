@@ -80,6 +80,32 @@ export async function resetHome(siteId: SiteId) {
   return data;
 }
 
+export type SyncSiteReport = {
+  database: string;
+  host: string;
+  siteId: string;
+  before: Record<string, number | boolean>;
+  after: Record<string, number | boolean>;
+  added: Record<string, number>;
+  taxonomy: { created: number; existing: number; total: number };
+  homeUpdated: boolean;
+  preserved: boolean;
+};
+
+/** Safe sync from the MongoDB currently connected to the backend. Never wipes content. */
+export async function syncSiteFromDb(siteId: SiteId) {
+  const { data } = await adminApi.post(
+    `/cms/${siteId}/sync`,
+    {},
+    { timeout: 60000 }
+  );
+  return data as {
+    success: boolean;
+    message: string;
+    report: SyncSiteReport;
+  };
+}
+
 export type CategoryItem = {
   _id: string;
   title: LocalizedCmsText;
@@ -95,12 +121,7 @@ export async function listCategories(siteId: SiteId) {
 
 export async function createCategory(
   siteId: SiteId,
-  body: {
-    title: LocalizedCmsText;
-    description?: LocalizedCmsText;
-    image?: string;
-    icon?: string;
-  }
+  body: Record<string, unknown>
 ) {
   const { data } = await adminApi.post(`/cms/${siteId}/categories`, body);
   return data;
@@ -109,12 +130,7 @@ export async function createCategory(
 export async function updateCategory(
   siteId: SiteId,
   id: string,
-  body: {
-    title: LocalizedCmsText;
-    description?: LocalizedCmsText;
-    image?: string;
-    icon?: string;
-  }
+  body: Record<string, unknown>
 ) {
   const { data } = await adminApi.put(`/cms/${siteId}/categories/${id}`, body);
   return data;

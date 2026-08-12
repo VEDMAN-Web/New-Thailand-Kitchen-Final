@@ -1,0 +1,366 @@
+{
+  "aboutPageSettings": {
+    "indexable": false,
+    "metaTitle": {
+      "en": "About Us | Varsovia Design",
+      "th": "About Us | Varsovia Design",
+      "pl": "About Us | Varsovia Design"
+    },
+    "metaDescription": {
+      "en": "Learn about Varsovia Design — our story, values, and process for kitchens and interiors across Thailand.",
+      "th": "Learn about Varsovia Design — our story, values, and process for kitchens and interiors across Thailand.",
+      "pl": "Learn about Varsovia Design — our story, values, and process for kitchens and interiors across Thailand."
+    }
+  },
+  "faqPage": {
+    "indexable": false,
+    "metaTitle": {
+      "en": "FAQ | Varsovia Design",
+      "th": "FAQ | Varsovia Design",
+      "pl": "FAQ | Varsovia Design"
+    },
+    "metaDescription": {
+      "en": "Answers to common questions about Varsovia kitchens, interiors, materials, and project process.",
+      "th": "Answers to common questions about Varsovia kitchens, interiors, materials, and project process.",
+      "pl": "Answers to common questions about Varsovia kitchens, interiors, materials, and project process."
+    },
+    "heroTitle": {
+      "en": "FAQ",
+      "th": "FAQ",
+      "pl": "FAQ"
+    },
+    "heroSubtitle": {
+      "en": "Clear answers to help you make informed design decisions",
+      "th": "Clear answers to help you make informed design decisions",
+      "pl": "Clear answers to help you make informed design decisions"
+    }
+  },
+  "cataloguePage": {
+    "indexable": false,
+    "metaTitle": {
+      "en": "Free Catalogue | Varsovia Design",
+      "th": "Free Catalogue | Varsovia Design",
+      "pl": "Free Catalogue | Varsovia Design"
+    },
+    "metaDescription": {
+      "en": "Download Varsovia Design catalogues for kitchen and interior inspiration.",
+      "th": "Download Varsovia Design catalogues for kitchen and interior inspiration.",
+      "pl": "Download Varsovia Design catalogues for kitchen and interior inspiration."
+    },
+    "heroTitle": {
+      "en": "Free Catalogue",
+      "th": "Free Catalogue",
+      "pl": "Free Catalogue"
+    },
+    "heroSubtitle": {
+      "en": "Explore Our Interior Design Catalogue",
+      "th": "Explore Our Interior Design Catalogue",
+      "pl": "Explore Our Interior Design Catalogue"
+    }
+  },
+  "contactPage": {
+    "indexable": false,
+    "metaTitle": {
+      "en": "Contact Us | Varsovia Design",
+      "th": "Contact Us | Varsovia Design",
+      "pl": "Contact Us | Varsovia Design"
+    },
+    "metaDescription": {
+      "en": "Get in touch with Varsovia Design for a free consultation on modular kitchens and interiors.",
+      "th": "Get in touch with Varsovia Design for a free consultation on modular kitchens and interiors.",
+      "pl": "Get in touch with Varsovia Design for a free consultation on modular kitchens and interiors."
+    },
+    "locationTitle": {
+      "en": "Our Location",
+      "th": "Our Location",
+      "pl": "Our Location"
+    },
+    "locationSubtitle": {
+      "en": "Visit our showroom or reach us online — we are here to help",
+      "th": "Visit our showroom or reach us online — we are here to help",
+      "pl": "Visit our showroom or reach us online — we are here to help"
+    },
+    "mapEmbedUrl": "https://maps.google.com/maps?q=9.56218,100.01582&hl=en&z=16&output=embed",
+    "mapAriaLabel": {
+      "en": "Varsovia Design office location map",
+      "th": "Varsovia Design office location map",
+      "pl": "Varsovia Design office location map"
+    },
+    "showroomsTitle": {
+      "en": "Visit a showroom",
+      "th": "Visit a showroom",
+      "pl": "Visit a showroom"
+    },
+    "showroomsSubtitle": {
+      "en": "Experience materials, layouts, and finishes in person at our locations.",
+      "th": "Experience materials, layouts, and finishes in person at our locations.",
+      "pl": "Experience materials, layouts, and finishes in person at our locations."
+    }
+  },
+  "legalPages": {
+    "privacy": {
+      "indexable": false,
+      "metaTitle": {
+        "en": "Privacy Policy | Varsovia Design",
+        "th": "Privacy Policy | Varsovia Design",
+        "pl": "Privacy Policy | Varsovia Design"
+      },
+      "metaDescription": {
+        "en": "Privacy Policy for Varsovia Design — personal data, cookies, your rights, and contact details.",
+        "th": "Privacy Policy for Varsovia Design — personal data, cookies, your rights, and contact details.",
+        "pl": "Privacy Policy for Varsovia Design — personal data, cookies, your rights, and contact details."
+      },
+      "title": {
+        "en": "Privacy Policy",
+        "th": "Privacy Policy",
+        "pl": "Privacy Policy"
+      },
+      "subtitle": {
+        "en": "How Varsovia Design collects, uses, and protects your information",
+        "th": "How Varsovia Design collects, uses, and protects your information",
+        "pl": "How Varsovia Design collects, uses, and protects your information"
+      },
+      "updated": {
+        "en": "Last updated: 31 July 2026",
+        "th": "Last updated: 31 July 2026",
+        "pl": "Last updated: 31 July 2026"
+      },
+      "blocks": [
+        {
+          "heading": {
+            "en": "1. Who we are",
+            "th": "1. Who we are",
+            "pl": "1. Who we are"
+          },
+          "text": {
+            "en": "Varsovia Design (“we”, “us”) provides modular kitchen and interior design services. This policy explains how we process personal data when you visit our website, request a consultation, download catalogues, or contact us.\n\nFor data protection enquiries, use the contact details on our Contact page or the email address listed in the site footer.",
+            "th": "Varsovia Design (“we”, “us”) provides modular kitchen and interior design services. This policy explains how we process personal data when you visit our website, request a consultation, download catalogues, or contact us.\n\nFor data protection enquiries, use the contact details on our Contact page or the email address listed in the site footer.",
+            "pl": "Varsovia Design (“we”, “us”) provides modular kitchen and interior design services. This policy explains how we process personal data when you visit our website, request a consultation, download catalogues, or contact us.\n\nFor data protection enquiries, use the contact details on our Contact page or the email address listed in the site footer."
+          }
+        },
+        {
+          "heading": {
+            "en": "2. Data we collect",
+            "th": "2. Data we collect",
+            "pl": "2. Data we collect"
+          },
+          "text": {
+            "en": "We may collect: name, email address, phone number, project location, message content, and catalogue download preferences when you submit forms. We also collect technical data such as IP address, browser type, and pages visited through standard server logs and analytics (when enabled).",
+            "th": "We may collect: name, email address, phone number, project location, message content, and catalogue download preferences when you submit forms. We also collect technical data such as IP address, browser type, and pages visited through standard server logs and analytics (when enabled).",
+            "pl": "We may collect: name, email address, phone number, project location, message content, and catalogue download preferences when you submit forms. We also collect technical data such as IP address, browser type, and pages visited through standard server logs and analytics (when enabled)."
+          }
+        },
+        {
+          "heading": {
+            "en": "3. How we use your data",
+            "th": "3. How we use your data",
+            "pl": "3. How we use your data"
+          },
+          "text": {
+            "en": "We use your information to respond to enquiries, provide quotes and design services, send requested materials, improve our website, and comply with legal obligations. We do not sell your personal data to third parties.",
+            "th": "We use your information to respond to enquiries, provide quotes and design services, send requested materials, improve our website, and comply with legal obligations. We do not sell your personal data to third parties.",
+            "pl": "We use your information to respond to enquiries, provide quotes and design services, send requested materials, improve our website, and comply with legal obligations. We do not sell your personal data to third parties."
+          }
+        },
+        {
+          "heading": {
+            "en": "4. Legal bases (EEA / UK visitors)",
+            "th": "4. Legal bases (EEA / UK visitors)",
+            "pl": "4. Legal bases (EEA / UK visitors)"
+          },
+          "text": {
+            "en": "Where applicable, we rely on: your consent (e.g. marketing where offered), performance of a contract or steps prior to contract (consultations and projects), legitimate interests (site security and improvement), and legal obligation.",
+            "th": "Where applicable, we rely on: your consent (e.g. marketing where offered), performance of a contract or steps prior to contract (consultations and projects), legitimate interests (site security and improvement), and legal obligation.",
+            "pl": "Where applicable, we rely on: your consent (e.g. marketing where offered), performance of a contract or steps prior to contract (consultations and projects), legitimate interests (site security and improvement), and legal obligation."
+          }
+        },
+        {
+          "heading": {
+            "en": "5. Retention & security",
+            "th": "5. Retention & security",
+            "pl": "5. Retention & security"
+          },
+          "text": {
+            "en": "We retain contact and project-related data only as long as needed for the purposes above or as required by law. We apply appropriate technical and organisational measures to protect data; no method of transmission over the internet is 100% secure.",
+            "th": "We retain contact and project-related data only as long as needed for the purposes above or as required by law. We apply appropriate technical and organisational measures to protect data; no method of transmission over the internet is 100% secure.",
+            "pl": "We retain contact and project-related data only as long as needed for the purposes above or as required by law. We apply appropriate technical and organisational measures to protect data; no method of transmission over the internet is 100% secure."
+          }
+        },
+        {
+          "heading": {
+            "en": "6. Your rights",
+            "th": "6. Your rights",
+            "pl": "6. Your rights"
+          },
+          "text": {
+            "en": "Depending on your location, you may have rights to access, rectify, erase, restrict, or object to processing, and to data portability. You may withdraw consent where processing is consent-based. You may lodge a complaint with your local supervisory authority.\n\nTo exercise rights, contact us using the details on the Contact page.",
+            "th": "Depending on your location, you may have rights to access, rectify, erase, restrict, or object to processing, and to data portability. You may withdraw consent where processing is consent-based. You may lodge a complaint with your local supervisory authority.\n\nTo exercise rights, contact us using the details on the Contact page.",
+            "pl": "Depending on your location, you may have rights to access, rectify, erase, restrict, or object to processing, and to data portability. You may withdraw consent where processing is consent-based. You may lodge a complaint with your local supervisory authority.\n\nTo exercise rights, contact us using the details on the Contact page."
+          }
+        },
+        {
+          "heading": {
+            "en": "7. International transfers",
+            "th": "7. International transfers",
+            "pl": "7. International transfers"
+          },
+          "text": {
+            "en": "If data is processed outside your country, we ensure appropriate safeguards (such as standard contractual clauses) where required by applicable law.",
+            "th": "If data is processed outside your country, we ensure appropriate safeguards (such as standard contractual clauses) where required by applicable law.",
+            "pl": "If data is processed outside your country, we ensure appropriate safeguards (such as standard contractual clauses) where required by applicable law."
+          }
+        },
+        {
+          "heading": {
+            "en": "8. Changes",
+            "th": "8. Changes",
+            "pl": "8. Changes"
+          },
+          "text": {
+            "en": "We may update this policy from time to time. The “Last updated” date at the top of this page will change when we do. Continued use of the site after changes constitutes acknowledgement of the updated policy.",
+            "th": "We may update this policy from time to time. The “Last updated” date at the top of this page will change when we do. Continued use of the site after changes constitutes acknowledgement of the updated policy.",
+            "pl": "We may update this policy from time to time. The “Last updated” date at the top of this page will change when we do. Continued use of the site after changes constitutes acknowledgement of the updated policy."
+          }
+        }
+      ]
+    },
+    "terms": {
+      "indexable": false,
+      "metaTitle": {
+        "en": "Terms of Use | Varsovia Design",
+        "th": "Terms of Use | Varsovia Design",
+        "pl": "Terms of Use | Varsovia Design"
+      },
+      "metaDescription": {
+        "en": "Terms of Use for Varsovia Design website — acceptable use, intellectual property, limitations, and governing law.",
+        "th": "Terms of Use for Varsovia Design website — acceptable use, intellectual property, limitations, and governing law.",
+        "pl": "Terms of Use for Varsovia Design website — acceptable use, intellectual property, limitations, and governing law."
+      },
+      "title": {
+        "en": "Terms of Use",
+        "th": "Terms of Use",
+        "pl": "Terms of Use"
+      },
+      "subtitle": {
+        "en": "Terms governing use of the Varsovia Design website and services",
+        "th": "Terms governing use of the Varsovia Design website and services",
+        "pl": "Terms governing use of the Varsovia Design website and services"
+      },
+      "updated": {
+        "en": "Last updated: 31 July 2026",
+        "th": "Last updated: 31 July 2026",
+        "pl": "Last updated: 31 July 2026"
+      },
+      "blocks": [
+        {
+          "heading": {
+            "en": "1. Acceptance",
+            "th": "1. Acceptance",
+            "pl": "1. Acceptance"
+          },
+          "text": {
+            "en": "By accessing varsoviadesign.com and related pages, you agree to these Terms of Use. If you do not agree, please do not use the site.",
+            "th": "By accessing varsoviadesign.com and related pages, you agree to these Terms of Use. If you do not agree, please do not use the site.",
+            "pl": "By accessing varsoviadesign.com and related pages, you agree to these Terms of Use. If you do not agree, please do not use the site."
+          }
+        },
+        {
+          "heading": {
+            "en": "2. Website content",
+            "th": "2. Website content",
+            "pl": "2. Website content"
+          },
+          "text": {
+            "en": "Images, text, layouts, and branding on this site are owned by Varsovia Design or used under licence. You may view and share links for personal, non-commercial use. You may not copy, scrape, or republish content without written permission.",
+            "th": "Images, text, layouts, and branding on this site are owned by Varsovia Design or used under licence. You may view and share links for personal, non-commercial use. You may not copy, scrape, or republish content without written permission.",
+            "pl": "Images, text, layouts, and branding on this site are owned by Varsovia Design or used under licence. You may view and share links for personal, non-commercial use. You may not copy, scrape, or republish content without written permission."
+          }
+        },
+        {
+          "heading": {
+            "en": "3. Enquiries & projects",
+            "th": "3. Enquiries & projects",
+            "pl": "3. Enquiries & projects"
+          },
+          "text": {
+            "en": "Information on the website is for general guidance. Quotes, timelines, materials, and warranties are confirmed only in signed agreements or written project documentation—not solely through website copy.",
+            "th": "Information on the website is for general guidance. Quotes, timelines, materials, and warranties are confirmed only in signed agreements or written project documentation—not solely through website copy.",
+            "pl": "Information on the website is for general guidance. Quotes, timelines, materials, and warranties are confirmed only in signed agreements or written project documentation—not solely through website copy."
+          }
+        },
+        {
+          "heading": {
+            "en": "4. Catalogue downloads",
+            "th": "4. Catalogue downloads",
+            "pl": "4. Catalogue downloads"
+          },
+          "text": {
+            "en": "When you request a catalogue, you agree to provide accurate contact details. We may use them to fulfil your request and, where permitted, follow up about relevant products and services. You may opt out of marketing communications at any time.",
+            "th": "When you request a catalogue, you agree to provide accurate contact details. We may use them to fulfil your request and, where permitted, follow up about relevant products and services. You may opt out of marketing communications at any time.",
+            "pl": "When you request a catalogue, you agree to provide accurate contact details. We may use them to fulfil your request and, where permitted, follow up about relevant products and services. You may opt out of marketing communications at any time."
+          }
+        },
+        {
+          "heading": {
+            "en": "5. Acceptable use",
+            "th": "5. Acceptable use",
+            "pl": "5. Acceptable use"
+          },
+          "text": {
+            "en": "You must not misuse the site (including attempting unauthorised access, introducing malware, or harassing our team). We may suspend access if we reasonably believe terms are violated.",
+            "th": "You must not misuse the site (including attempting unauthorised access, introducing malware, or harassing our team). We may suspend access if we reasonably believe terms are violated.",
+            "pl": "You must not misuse the site (including attempting unauthorised access, introducing malware, or harassing our team). We may suspend access if we reasonably believe terms are violated."
+          }
+        },
+        {
+          "heading": {
+            "en": "6. Disclaimer",
+            "th": "6. Disclaimer",
+            "pl": "6. Disclaimer"
+          },
+          "text": {
+            "en": "The site is provided “as is”. We strive for accuracy but do not warrant that content is error-free or uninterrupted. To the extent permitted by law, we exclude liability for indirect or consequential loss arising from use of the site.",
+            "th": "The site is provided “as is”. We strive for accuracy but do not warrant that content is error-free or uninterrupted. To the extent permitted by law, we exclude liability for indirect or consequential loss arising from use of the site.",
+            "pl": "The site is provided “as is”. We strive for accuracy but do not warrant that content is error-free or uninterrupted. To the extent permitted by law, we exclude liability for indirect or consequential loss arising from use of the site."
+          }
+        },
+        {
+          "heading": {
+            "en": "7. Third-party links",
+            "th": "7. Third-party links",
+            "pl": "7. Third-party links"
+          },
+          "text": {
+            "en": "Links to partner or social sites are provided for convenience. We are not responsible for third-party content or privacy practices.",
+            "th": "Links to partner or social sites are provided for convenience. We are not responsible for third-party content or privacy practices.",
+            "pl": "Links to partner or social sites are provided for convenience. We are not responsible for third-party content or privacy practices."
+          }
+        },
+        {
+          "heading": {
+            "en": "8. Governing law",
+            "th": "8. Governing law",
+            "pl": "8. Governing law"
+          },
+          "text": {
+            "en": "These terms are governed by the laws applicable to Varsovia Design’s principal place of business, without regard to conflict-of-law rules. Courts in that jurisdiction shall have exclusive jurisdiction where permitted by mandatory consumer protection laws in your country.",
+            "th": "These terms are governed by the laws applicable to Varsovia Design’s principal place of business, without regard to conflict-of-law rules. Courts in that jurisdiction shall have exclusive jurisdiction where permitted by mandatory consumer protection laws in your country.",
+            "pl": "These terms are governed by the laws applicable to Varsovia Design’s principal place of business, without regard to conflict-of-law rules. Courts in that jurisdiction shall have exclusive jurisdiction where permitted by mandatory consumer protection laws in your country."
+          }
+        },
+        {
+          "heading": {
+            "en": "9. Contact",
+            "th": "9. Contact",
+            "pl": "9. Contact"
+          },
+          "text": {
+            "en": "Questions about these terms: use the Contact page or footer contact details.",
+            "th": "Questions about these terms: use the Contact page or footer contact details.",
+            "pl": "Questions about these terms: use the Contact page or footer contact details."
+          }
+        }
+      ]
+    }
+  }
+}

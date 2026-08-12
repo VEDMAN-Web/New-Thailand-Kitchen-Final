@@ -14,6 +14,7 @@ const ALLOWED_RESOURCES = new Set([
   "team-members",
   "partners",
   "showrooms",
+  "core-strengths",
   "contacts",
   "health",
   "media",

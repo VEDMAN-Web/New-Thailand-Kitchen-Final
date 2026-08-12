@@ -1,3 +1,6 @@
+import { DEFAULT_IA_PAGES } from "./iaPagesDefaults";
+import pageCmsDefaults from "./pageCmsDefaults.json";
+
 type SiteRecord = Record<string, unknown>;
 
 const en = (value: string) => ({ en: value, th: "", pl: "" });
@@ -132,7 +135,7 @@ export const VARSOVIA_SITE_DEFAULTS: SiteRecord = {
   projectsTitle: en("Featured Projects"),
   projectsSubtitle: en("Designed to inspire. Built to last"),
   projectsCtaLabel: en("Explore More"),
-  projectsCtaHref: "/interior",
+  projectsCtaHref: "/interior-design",
   testimonialsTitle: en("Real Stories. Real Spaces."),
   testimonialsSubtitle: en(
     "Hear how we've transformed houses into dream homes"
@@ -197,6 +200,40 @@ export const VARSOVIA_SITE_DEFAULTS: SiteRecord = {
   contactSubtitle: en(
     "Your dream space begins with a simple conversation"
   ),
+  sectionCopy: {
+    products: {
+      title: en("Our Products"),
+      subtitle: en("Interiors made for the way you actually live"),
+      ctaLabel: en("Explore More"),
+      ctaHref: "/interior-design",
+    },
+    partners: {
+      title: en("Our Global Partners"),
+      subtitle: en("Powered by trusted brands from around the world"),
+    },
+    coreStrengths: {
+      title: en("Core Strengths"),
+      subtitle: en("Transforming data into intelligent, real-world solutions"),
+    },
+    catalogue: {
+      title: en("Free Catalogue"),
+      subtitle: en("Inspiration for Your Dream Kitchen"),
+    },
+    testimonials: {
+      title: en("Real Stories. Real Spaces."),
+      subtitle: en("Hear how we've transformed houses into dream homes"),
+    },
+    featured: {
+      title: en("Featured Projects"),
+      subtitle: en("Designed to inspire. Built to last"),
+      ctaLabel: en("Explore More"),
+      ctaHref: "/projects",
+    },
+    contact: {
+      title: en("Get In touch"),
+      subtitle: en("Your dream space begins with a simple conversation"),
+    },
+  },
   inquiryForm: {
     version: 1,
     submitLabel: { en: "Submit", th: "ส่ง", pl: "Wyślij" },
@@ -345,31 +382,43 @@ export const VARSOVIA_SITE_DEFAULTS: SiteRecord = {
         enabled: true,
         options: [
           {
-            value: "under_5l",
+            value: "under_5k",
             label: {
-              en: "Under ₹5 Lakh",
-              th: "ต่ำกว่า ₹5 ลakh",
-              pl: "Poniżej ₹5 lakh",
+              en: "Under $5,000",
+              th: "ต่ำกว่า $5,000",
+              pl: "Poniżej $5,000",
             },
           },
           {
-            value: "5l_10l",
-            label: { en: "₹5L – ₹10L", th: "₹5L – ₹10L", pl: "₹5L – ₹10L" },
-          },
-          {
-            value: "10l_20l",
-            label: { en: "₹10L – ₹20L", th: "₹10L – ₹20L", pl: "₹10L – ₹20L" },
-          },
-          {
-            value: "20l_50l",
-            label: { en: "₹20L – ₹50L", th: "₹20L – ₹50L", pl: "₹20L – ₹50L" },
-          },
-          {
-            value: "above_50l",
+            value: "5k_15k",
             label: {
-              en: "Above ₹50 Lakh",
-              th: "มากกว่า ₹50 ลakh",
-              pl: "Powyżej ₹50 lakh",
+              en: "$5,000 – $15,000",
+              th: "$5,000 – $15,000",
+              pl: "$5,000 – $15,000",
+            },
+          },
+          {
+            value: "15k_30k",
+            label: {
+              en: "$15,000 – $30,000",
+              th: "$15,000 – $30,000",
+              pl: "$15,000 – $30,000",
+            },
+          },
+          {
+            value: "30k_75k",
+            label: {
+              en: "$30,000 – $75,000",
+              th: "$30,000 – $75,000",
+              pl: "$30,000 – $75,000",
+            },
+          },
+          {
+            value: "above_75k",
+            label: {
+              en: "Above $75,000",
+              th: "มากกว่า $75,000",
+              pl: "Powyżej $75,000",
             },
           },
         ],
@@ -415,6 +464,11 @@ export const VARSOVIA_SITE_DEFAULTS: SiteRecord = {
   },
 
   teamPage: {
+    indexable: false,
+    metaTitle: en("Our Team | Varsovia Design"),
+    metaDescription: en(
+      "Meet the designers, architects, and craftspeople behind Varsovia Design."
+    ),
     heroTitle: en("Our Team"),
     heroSubtitle: en("THE CREATIVE MINDS BEHIND EVERY BEAUTIFUL SPACE"),
     intro: en(
@@ -444,6 +498,11 @@ export const VARSOVIA_SITE_DEFAULTS: SiteRecord = {
   },
 
   qualitySale: {
+    indexable: false,
+    metaTitle: en("Quality & After-Sales | Varsovia Design"),
+    metaDescription: en(
+      "Varsovia quality standards, support process, and after-sales care for kitchens and interiors."
+    ),
     heroTitle: en("Quality After Sales"),
     heroSubtitle: en(
       "Committed to your satisfaction beyond project completion"
@@ -560,6 +619,16 @@ export const VARSOVIA_SITE_DEFAULTS: SiteRecord = {
     },
   ],
 
+  projectsPage: {
+    indexable: false,
+    metaTitle: en("Projects"),
+    metaDescription: en(
+      "Explore Varsovia Design projects across kitchens, bedrooms, and whole-home interiors."
+    ),
+    heroTitle: en("Our Projects"),
+    heroSubtitle: en("Every space, every story"),
+  },
+
   phone: "+66 64 683 9777",
   email: "hi@thailandkitchens.com",
   address: en("Route 4169, Mae Nam, Amphoe Ko Samui, Surat Thani 84330"),
@@ -594,7 +663,7 @@ export const VARSOVIA_SITE_DEFAULTS: SiteRecord = {
         order: 1,
         enabled: true,
         links: [
-          { label: en("Blog"), href: "/blog", enabled: true },
+          { label: en("Journal"), href: "/journal", enabled: true },
           { label: en("About Us"), href: "/about", enabled: true },
           { label: en("Contact Us"), href: "/contact", enabled: true },
           { label: en("FAQ"), href: "/faq", enabled: true },
@@ -606,18 +675,18 @@ export const VARSOVIA_SITE_DEFAULTS: SiteRecord = {
         order: 2,
         enabled: true,
         links: [
-          { label: en("Kitchen"), href: "/interior?category=Kitchen", enabled: true },
-          { label: en("Bedroom"), href: "/interior?category=Bedroom", enabled: true },
-          { label: en("Bathroom"), href: "/interior?category=Bathroom", enabled: true },
-          { label: en("Furniture"), href: "/interior?category=Furniture", enabled: true },
+          { label: en("Kitchen"), href: "/interior-design?category=Kitchen", enabled: true },
+          { label: en("Bedroom"), href: "/interior-design?category=Bedroom", enabled: true },
+          { label: en("Bathroom"), href: "/interior-design?category=Bathroom", enabled: true },
+          { label: en("Furniture"), href: "/interior-design?category=Furniture", enabled: true },
           {
             label: en("Door & Windows"),
-            href: "/interior?category=Door%20%26%20Windows",
+            href: "/interior-design?category=Door%20%26%20Windows",
             enabled: true,
           },
           {
             label: en("Whole House Solutions"),
-            href: "/interior?category=Whole%20House%20Solutions",
+            href: "/interior-design?category=Whole%20House%20Solutions",
             enabled: true,
           },
         ],
@@ -637,9 +706,15 @@ export const VARSOVIA_SITE_DEFAULTS: SiteRecord = {
     socialLabels: {
       whatsapp: en("WhatsApp"),
       facebook: en("Facebook"),
+      instagram: en("Instagram"),
+      x: en("X"),
     },
     copyright: en("©{year} Varsovia Design"),
   },
+
+  pages: DEFAULT_IA_PAGES as unknown as SiteRecord,
+
+  ...(pageCmsDefaults as SiteRecord),
 };
 
 function isBlank(value: unknown): boolean {
@@ -658,12 +733,30 @@ export function mergeVarsoviaSiteDefaults(
   defaults: SiteRecord = VARSOVIA_SITE_DEFAULTS
 ): SiteRecord {
   const merged = structuredClone(current);
+  /** Nested CMS blobs — fill only when blank; never deep-merge (avoids corrupting form field arrays). */
+  const atomicKeys = new Set([
+    "inquiryForm",
+    "mainNavigation",
+    "footerNavigation",
+    "showcaseMeta",
+    "projectsPage",
+    "aboutPageSettings",
+    "faqPage",
+    "cataloguePage",
+    "contactPage",
+    "legalPages",
+    "pages",
+  ]);
 
   for (const [key, defaultValue] of Object.entries(defaults)) {
     const currentValue = merged[key];
 
     if (isBlank(currentValue)) {
       merged[key] = structuredClone(defaultValue);
+      continue;
+    }
+
+    if (atomicKeys.has(key)) {
       continue;
     }
 

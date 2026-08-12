@@ -1,38 +1,66 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import AdminShell from "@/components/AdminShell";
+import { adminHubByParam } from "@/lib/thailandHubs";
 
 const TITLE_BY_PATH: Record<string, string> = {
-  "/": "Home Management",
-  "/products": "Product Inventory",
+  "/": "Home",
+  "/products": "Products",
   "/categories": "Categories",
-  "/gallery": "Gallery Management",
-  "/blogs": "Blog Content Manager",
-  "/faqs": "FAQs",
-  "/contacts": "Contact Enquiries",
+  "/gallery": "Gallery",
+  "/blogs": "Guides",
+  "/faqs": "FAQ",
+  "/contacts": "Contact Inbox",
   "/privacy": "Privacy Policy",
   "/terms": "Terms & Conditions",
-  "/users": "User Management",
+  "/users": "Users",
   "/varsovia": "Varsovia Kitchen CMS",
 };
+
+function ChromeInner({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  if (pathname === "/login") {
+    return <>{children}</>;
+  }
+
+  const hub = adminHubByParam(searchParams.get("hub"));
+  const section = searchParams.get("section");
+
+  let title =
+    TITLE_BY_PATH[pathname] ||
+    (pathname.startsWith("/varsovia")
+      ? "Varsovia Kitchen CMS"
+      : "Admin");
+
+  if (pathname === "/categories" && hub) {
+    title = hub.label;
+  } else if (pathname === "/") {
+    if (section === "contactPage") title = "Contact";
+    else if (section === "catalogue") title = "Catalogue";
+    else if (section === "hubPages") title = "Hub Landings";
+    else if (section === "siteChrome") title = "Navbar & SEO";
+    else if (section === "faqPage") title = "FAQ Page";
+    else if (section === "blogPage") title = "Guides Page";
+    else if (section === "homeContact") title = "Home Contact";
+    else if (section === "productsPage") title = "Products Page";
+    else title = "Home";
+  }
+
+  return <AdminShell title={title}>{children}</AdminShell>;
+}
 
 export default function PersistentAdminChrome({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const pathname = usePathname();
-
-  if (pathname === "/login") {
-    return <>{children}</>;
-  }
-
-  const title =
-    TITLE_BY_PATH[pathname] ||
-    (pathname.startsWith("/varsovia")
-      ? "Varsovia Kitchen CMS"
-      : "Admin");
-
-  return <AdminShell title={title}>{children}</AdminShell>;
+  return (
+    <Suspense fallback={<AdminShell title="Admin">{children}</AdminShell>}>
+      <ChromeInner>{children}</ChromeInner>
+    </Suspense>
+  );
 }

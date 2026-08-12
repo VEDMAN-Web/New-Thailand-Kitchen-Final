@@ -37,6 +37,7 @@ import { clsx } from "clsx";
 import { toast } from "sonner";
 import MediaUpload from "@/components/MediaUpload";
 import { mergeVarsoviaSiteDefaults, VARSOVIA_SITE_DEFAULTS } from "./siteDefaults";
+import IaChildrenListEditor from "./IaChildrenListEditor";
 import {
   generateBlogImageWithAI,
   generateBlogWithAI,
@@ -44,6 +45,7 @@ import {
 import { toPublicMediaUrl } from "@/lib/publicMediaUrl";
 import {
   ADMIN_SECTION_EVENT,
+  CMS_SYNCED_EVENT,
   VARSOVIA_NAV_EVENT,
   readAdminSectionFromUrl,
   readVarsoviaNavFromUrl,
@@ -92,7 +94,9 @@ type FieldType =
   | "search-page-list"
   | "footer-nav"
   | "inquiry-form"
-  | "select";
+  | "select"
+  | "ia-children-list"
+  | "section-divider";
 type Field = {
   key: string;
   label: string;
@@ -105,6 +109,15 @@ type Field = {
   itemKey?: string;
   /** Options for `select` fields. */
   options?: { value: string; label: string }[];
+  /** Hard character limit for text/textarea (hub meta 60/160). */
+  maxLength?: number;
+  /** Fixed slot labels for string-list galleries (Image 1, Kitchen Image 2…). */
+  listLabels?: string[];
+  /** Pad list to at least this many slots so every site image has an admin row. */
+  minItems?: number;
+  iaHubKey?: string;
+  /** Short help under the label for non-technical editors. */
+  helpText?: string;
 };
 /** Gallery-style listing (image cards + search + category filter). */
 type CardListConfig = {
@@ -157,8 +170,20 @@ const CONFIGS: Record<VarsoviaResource, ResourceConfig> = {
       { key: "description", label: "Description", localized: true, type: "textarea" },
       { key: "fullDescription", label: "Full Description", localized: true, type: "textarea" },
       { key: "slug", label: "Slug" },
-      { key: "image", label: "Image URL", media: "image" },
-      { key: "gallery", label: "Gallery Images", type: "string-list", media: "image" },
+      { key: "image", label: "Cover Image (1)", media: "image" },
+      {
+        key: "gallery",
+        label: "Gallery Images (detail page)",
+        type: "string-list",
+        media: "image",
+        minItems: 4,
+        listLabels: [
+          "Gallery Image 1",
+          "Gallery Image 2",
+          "Gallery Image 3",
+          "Gallery Image 4",
+        ],
+      },
       { key: "features", label: "Features", type: "localized-string-list", itemKey: "text" },
       { key: "specs", label: "Specifications", type: "spec-list" },
       { key: "category", label: "Category" },
@@ -168,8 +193,8 @@ const CONFIGS: Record<VarsoviaResource, ResourceConfig> = {
     ],
   },
   projects: {
-    label: "Interior Projects",
-    singular: "Project",
+    label: "Interior catalogue projects",
+    singular: "Interior project",
     titleKey: "title",
     card: {
       imageKey: "coverImage",
@@ -182,12 +207,36 @@ const CONFIGS: Record<VarsoviaResource, ResourceConfig> = {
     },
     fields: [
       { key: "title", label: "Title", localized: true, required: true },
-      { key: "description", label: "Description", localized: true, type: "textarea" },
+      { key: "description", label: "Listing Description", localized: true, type: "textarea" },
+      { key: "detailTitle", label: "Detail Page Title", localized: true },
+      { key: "detailDescription", label: "Detail Page Description", localized: true, type: "textarea" },
+      { key: "narrativeOne", label: "Detail Narrative 1", localized: true, type: "textarea" },
+      { key: "narrativeTwo", label: "Detail Narrative 2", localized: true, type: "textarea" },
       { key: "location", label: "Location", localized: true },
       { key: "slug", label: "Slug" },
-      { key: "coverImage", label: "Cover Image URL", media: "image" },
-      { key: "gallery", label: "Gallery Images", type: "string-list", media: "image" },
-      { key: "category", label: "Category" },
+      { key: "coverImage", label: "Cover Image (1) — listing + detail hero", media: "image" },
+      {
+        key: "gallery",
+        label: "Detail Gallery (slider images)",
+        type: "string-list",
+        media: "image",
+        minItems: 5,
+        listLabels: [
+          "Gallery Image 1",
+          "Gallery Image 2",
+          "Gallery Image 3",
+          "Gallery Image 4",
+          "Gallery Image 5",
+        ],
+      },
+      { key: "category", label: "Category", type: "select", options: [
+        { value: "Kitchen", label: "Kitchen" },
+        { value: "Bedroom", label: "Bedroom" },
+        { value: "Bathroom", label: "Bathroom" },
+        { value: "Door & Windows", label: "Door & Windows" },
+        { value: "Whole House Solutions", label: "Whole House Solutions" },
+        { value: "Furniture", label: "Furniture" },
+      ] },
       { key: "subcategory", label: "Subcategory" },
       { key: "shape", label: "Shape" },
       { key: "style", label: "Style" },
@@ -203,29 +252,36 @@ const CONFIGS: Record<VarsoviaResource, ResourceConfig> = {
     ],
   },
   blogs: {
-    label: "Blogs",
-    singular: "Blog",
+    label: "Journal articles",
+    singular: "Journal article",
     titleKey: "title",
     card: {
       imageKey: "image",
       subtitleKey: "author.name",
       descriptionKey: "excerpt",
-      searchPlaceholder: "Search blogs...",
-      createLabel: "Create Blog",
-      emptyLabel: "No blogs found.",
-      fallbackBadge: "Design",
+      searchPlaceholder: "Search journal articles...",
+      createLabel: "Create article",
+      emptyLabel: "No journal articles found.",
+      fallbackBadge: "Journal",
     },
     fields: [
       { key: "title", label: "Title", localized: true, required: true },
       { key: "excerpt", label: "Excerpt", localized: true, type: "textarea" },
       { key: "content", label: "Content", localized: true, type: "textarea" },
-      { key: "category", label: "Category", localized: true },
-      { key: "sections", label: "Content Sections", type: "content-sections" },
+      { key: "category", label: "Journal topic", type: "select", options: [
+        { value: "kitchens", label: "Kitchens" },
+        { value: "furniture", label: "Furniture" },
+        { value: "materials", label: "Materials" },
+        { value: "interior-design", label: "Interior Design" },
+        { value: "villa-guides", label: "Villa Guides" },
+        { value: "thailand-living", label: "Thailand Living" },
+      ] },
+      { key: "sections", label: "Content Sections (detail body + section images)", type: "content-sections" },
       { key: "readTime", label: "Read Time", localized: true },
       { key: "author.name", label: "Author Name", localized: true },
       { key: "date", label: "Date" },
-      { key: "author.avatar", label: "Author Avatar URL", media: "image" },
-      { key: "image", label: "Cover Image URL", media: "image" },
+      { key: "author.avatar", label: "Author Avatar (1)", media: "image" },
+      { key: "image", label: "Cover Image (1) — detail hero", media: "image" },
       { key: "views", label: "Views", type: "number" },
       VISIBLE_FIELD,
       { key: "order", label: "Order", type: "number" },
@@ -273,18 +329,52 @@ const CONFIGS: Record<VarsoviaResource, ResourceConfig> = {
     ],
   },
   showcases: {
-    label: "Showcases",
-    singular: "Showcase",
+    label: "Project showcases",
+    singular: "Project showcase",
     titleKey: "title",
     fields: [
       { key: "title", label: "Title", localized: true, required: true },
-      { key: "category", label: "Category", localized: true },
+      { key: "category", label: "Region / tab category", localized: true },
+      {
+        key: "furnitureSlug",
+        label: "Furniture category",
+        type: "select",
+        options: [
+          { value: "", label: "— None —" },
+          { value: "kitchens", label: "Kitchens" },
+          { value: "wardrobes", label: "Wardrobes" },
+          { value: "living-room", label: "Living Room" },
+          { value: "bedrooms", label: "Bedrooms" },
+          { value: "bathroom", label: "Bathroom" },
+          { value: "dining", label: "Dining" },
+          { value: "doors", label: "Doors" },
+          { value: "whole-house", label: "Whole House" },
+        ],
+      },
       { key: "location", label: "Location", localized: true },
       { key: "typeLabel", label: "Type Label", localized: true },
       { key: "typeValue", label: "Type Value", localized: true },
       { key: "supplyArea", label: "Supply Area", localized: true },
-      { key: "image", label: "Image URL", media: "image" },
-      { key: "gallery", label: "Gallery Images", type: "string-list", media: "image" },
+      { key: "image", label: "Cover Image (1) — detail hero", media: "image" },
+      {
+        key: "gallery",
+        label: "Detail Gallery — Kitchen (1–5) then Bathroom (6–10)",
+        type: "string-list",
+        media: "image",
+        minItems: 10,
+        listLabels: [
+          "Kitchen Image 1 — hero",
+          "Kitchen Image 2 — bento",
+          "Kitchen Image 3 — bento",
+          "Kitchen Image 4 — bento",
+          "Kitchen Image 5 — bento",
+          "Bathroom Image 1 — hero",
+          "Bathroom Image 2 — bento",
+          "Bathroom Image 3 — bento",
+          "Bathroom Image 4 — bento",
+          "Bathroom Image 5 — bento",
+        ],
+      },
       VISIBLE_FIELD,
       { key: "order", label: "Order", type: "number" },
     ],
@@ -323,6 +413,44 @@ const CONFIGS: Record<VarsoviaResource, ResourceConfig> = {
       { key: "location", label: "Location", localized: true },
       { key: "address", label: "Address", localized: true, type: "textarea" },
       { key: "image", label: "Image URL", media: "image" },
+      VISIBLE_FIELD,
+      { key: "order", label: "Order", type: "number" },
+    ],
+  },
+  "core-strengths": {
+    label: "Core Strengths",
+    singular: "Core Strength",
+    titleKey: "title",
+    card: {
+      imageKey: "image",
+      descriptionKey: "description",
+      searchPlaceholder: "Search core strengths...",
+      createLabel: "Create Core Strength",
+      emptyLabel: "No core strengths found.",
+      fallbackBadge: "Strength",
+    },
+    fields: [
+      { key: "title", label: "Title", localized: true, required: true },
+      {
+        key: "description",
+        label: "Description",
+        localized: true,
+        type: "textarea",
+      },
+      { key: "image", label: "Image", media: "image" },
+      {
+        key: "iconKey",
+        label: "Icon",
+        type: "select",
+        options: [
+          { value: "eye", label: "Eye" },
+          { value: "ruler", label: "Ruler" },
+          { value: "users", label: "Users" },
+          { value: "box", label: "Box" },
+          { value: "shield", label: "Shield" },
+          { value: "pen", label: "Pen" },
+        ],
+      },
       VISIBLE_FIELD,
       { key: "order", label: "Order", type: "number" },
     ],
@@ -454,6 +582,56 @@ function VarsoviaManagerContent() {
   );
 }
 
+/** Home Site Settings: inline editors for section item data (projects, catalogues, etc.). */
+function HomeSectionItemsPanel({ sectionId }: { sectionId: string }) {
+  switch (sectionId) {
+    case "featured":
+      return (
+        <div className="mt-8 border-t border-[#E8EAED] pt-8">
+          <ResourceManager resource="projects" embedded />
+        </div>
+      );
+    case "catalogue":
+      return (
+        <div className="mt-8 border-t border-[#E8EAED] pt-8">
+          <CataloguesInlineEditor embedded />
+        </div>
+      );
+    case "products":
+      return (
+        <div className="mt-8 border-t border-[#E8EAED] pt-8">
+          <ResourceManager resource="products" embedded />
+        </div>
+      );
+    case "testimonials":
+      return (
+        <div className="mt-8 border-t border-[#E8EAED] pt-8">
+          <TestimonialsInlineEditor embedded />
+        </div>
+      );
+    case "coreStrengths":
+      return (
+        <div className="mt-8 border-t border-[#E8EAED] pt-8">
+          <ResourceManager resource="core-strengths" embedded />
+        </div>
+      );
+    case "partners":
+      return (
+        <div className="mt-8 border-t border-[#E8EAED] pt-8">
+          <PartnersInlineEditor embedded />
+        </div>
+      );
+    case "contactPage":
+      return (
+        <div className="mt-8 border-t border-[#E8EAED] pt-8">
+          <ResourceManager resource="showrooms" embedded />
+        </div>
+      );
+    default:
+      return null;
+  }
+}
+
 function isVarsoviaSectionComplete(
   section: SiteSection,
   content: Record<string, unknown>,
@@ -461,6 +639,7 @@ function isVarsoviaSectionComplete(
 ): boolean {
   if (!section.fields.length) return false;
   return section.fields.some((field) => {
+    if (field.type === "section-divider") return false;
     const raw = getAtPath(content, field.key);
     if (field.type === "boolean") return typeof raw === "boolean";
     if (field.localized) return Boolean(localizedValue(raw, locale).trim());
@@ -521,6 +700,14 @@ function SiteSettings() {
 
   useEffect(() => {
     void loadContent();
+  }, [loadContent]);
+
+  useEffect(() => {
+    const onSynced = () => {
+      void loadContent();
+    };
+    window.addEventListener(CMS_SYNCED_EVENT, onSynced);
+    return () => window.removeEventListener(CMS_SYNCED_EVENT, onSynced);
   }, [loadContent]);
 
   const updateContentField = (field: Field, value: unknown) => {
@@ -641,9 +828,11 @@ function SiteSettings() {
                 const groupLabel =
                   section.group === "home"
                     ? "Home page (site order)"
-                    : section.group === "pages"
-                      ? "Other pages"
-                      : "Site chrome";
+                    : section.group === "chrome"
+                      ? "Site chrome"
+                      : section.id.startsWith("ia")
+                        ? "Hub pages (site order)"
+                        : "Standalone pages";
                 return (
                   <li key={section.id}>
                     {showGroup ? (
@@ -722,6 +911,17 @@ function SiteSettings() {
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {activeSection.fields.map((field) => {
+                  if (field.type === "section-divider") {
+                    return (
+                      <FieldControl
+                        key={field.key}
+                        field={field}
+                        value={null}
+                        locale={locale}
+                        onChange={() => undefined}
+                      />
+                    );
+                  }
                   const raw = getAtPath(content, field.key);
                   const structured =
                     field.type === "string-list" ||
@@ -737,7 +937,8 @@ function SiteSettings() {
                     field.type === "office-list" ||
                     field.type === "search-page-list" ||
                     field.type === "footer-nav" ||
-                    field.type === "inquiry-form";
+                    field.type === "inquiry-form" ||
+                    field.type === "ia-children-list";
                   const value = field.localized
                     ? localizedValue(raw, locale)
                     : structured
@@ -774,6 +975,8 @@ function SiteSettings() {
                   );
                 })}
               </div>
+
+              <HomeSectionItemsPanel sectionId={active} />
             </div>
 
             <div className="flex items-center gap-2 border-t border-[#E8EAED] px-5 py-4">
@@ -784,7 +987,7 @@ function SiteSettings() {
                 className="inline-flex items-center gap-2 rounded-lg bg-[#1A2332] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#243044] disabled:opacity-60"
               >
                 <Save className="h-4 w-4" />
-                {savingContent ? "Saving…" : "Save Section"}
+                {savingContent ? "Saving…" : "Save headings"}
               </button>
               <button
                 type="button"
@@ -841,7 +1044,7 @@ function toCatalogueDraft(item?: VarsoviaRecord, index = 0): CatalogueDraft {
   };
 }
 
-function CataloguesInlineEditor() {
+function CataloguesInlineEditor({ embedded = false }: { embedded?: boolean }) {
   const [drafts, setDrafts] = useState<CatalogueDraft[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -861,6 +1064,14 @@ function CataloguesInlineEditor() {
 
   useEffect(() => {
     void load();
+  }, [load]);
+
+  useEffect(() => {
+    const onSynced = () => {
+      void load();
+    };
+    window.addEventListener(CMS_SYNCED_EVENT, onSynced);
+    return () => window.removeEventListener(CMS_SYNCED_EVENT, onSynced);
   }, [load]);
 
   const complete = drafts.length >= 1;
@@ -940,8 +1151,9 @@ function CataloguesInlineEditor() {
     "w-full rounded-lg border border-[#E2E5EA] bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A2332]/15 focus:border-[#1A2332]";
 
   return (
-    <section className="space-y-5">
-      <div className="rounded-xl border border-[#E8EAED] bg-white p-5 lg:p-6">
+    <section className={embedded ? "space-y-4" : "space-y-5"}>
+      <div className={embedded ? "" : "rounded-xl border border-[#E8EAED] bg-white p-5 lg:p-6"}>
+        {!embedded ? (
         <div className="mb-6 flex items-start justify-between gap-3">
           <div>
             <h2 className="text-lg font-bold text-[#1A2332]">Free Catalogue</h2>
@@ -956,6 +1168,9 @@ function CataloguesInlineEditor() {
             </span>
           ) : null}
         </div>
+        ) : (
+          <p className="mb-4 text-sm font-semibold text-[#1A2332]">Catalogue brochures</p>
+        )}
 
         <div className="mb-4 flex flex-wrap gap-2">
           {(["en", "th", "pl"] as LocaleCode[]).map((code) => (
@@ -1089,6 +1304,19 @@ function CataloguesInlineEditor() {
                     />
                   </div>
                 </div>
+
+                <label className="inline-flex items-center gap-2 text-sm text-[#374151]">
+                  <input
+                    type="checkbox"
+                    checked={draft.visible}
+                    onChange={(event) =>
+                      updateDraft(draft.clientKey, {
+                        visible: event.target.checked,
+                      })
+                    }
+                  />
+                  Visible on website
+                </label>
               </div>
             ))}
 
@@ -1103,7 +1331,7 @@ function CataloguesInlineEditor() {
           </div>
         )}
 
-        <div className="mt-8 flex items-center gap-2 border-t border-[#E8EAED] pt-5">
+        <div className={embedded ? "mt-4 flex items-center gap-2 border-t border-[#E8EAED] pt-4" : "mt-8 flex items-center gap-2 border-t border-[#E8EAED] pt-5"}>
           <button
             type="button"
             onClick={() => void saveAll()}
@@ -1111,7 +1339,7 @@ function CataloguesInlineEditor() {
             className="inline-flex items-center gap-2 rounded-lg bg-[#1A2332] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#243044] disabled:opacity-60"
           >
             <Save className="h-4 w-4" />
-            {saving ? "Saving…" : "Save Section"}
+            {saving ? "Saving…" : "Save catalogues"}
           </button>
           <button
             type="button"
@@ -1135,6 +1363,7 @@ type TeamDraft = {
   role: unknown;
   image: string;
   teamType: "Italian" | "Headquarter";
+  visible: boolean;
   order: number;
 };
 
@@ -1148,6 +1377,7 @@ function toTeamDraft(item?: VarsoviaRecord, index = 0): TeamDraft {
     role: item?.role ?? emptyLocalized(),
     image: String(item?.image ?? ""),
     teamType,
+    visible: item?.visible !== false,
     order: Number(item?.order ?? index) || index,
   };
 }
@@ -1195,6 +1425,14 @@ function TeamInlineEditor() {
 
   useEffect(() => {
     void load();
+  }, [load]);
+
+  useEffect(() => {
+    const onSynced = () => {
+      void load();
+    };
+    window.addEventListener(CMS_SYNCED_EVENT, onSynced);
+    return () => window.removeEventListener(CMS_SYNCED_EVENT, onSynced);
   }, [load]);
 
   const updateDraft = (clientKey: string, patch: Partial<TeamDraft>) => {
@@ -1276,6 +1514,7 @@ function TeamInlineEditor() {
           role: draft.role,
           image: draft.image,
           teamType: draft.teamType,
+          visible: draft.visible,
           order: index,
         };
         if (draft._id) {
@@ -1469,6 +1708,19 @@ function TeamInlineEditor() {
                     </select>
                   </label>
 
+                  <label className="inline-flex items-center gap-2 text-sm text-[#374151]">
+                    <input
+                      type="checkbox"
+                      checked={draft.visible}
+                      onChange={(event) =>
+                        updateDraft(draft.clientKey, {
+                          visible: event.target.checked,
+                        })
+                      }
+                    />
+                    Visible on website
+                  </label>
+
                   <MediaUpload
                     label="Photo"
                     kind="image"
@@ -1494,6 +1746,7 @@ type PartnerDraft = {
   name: unknown;
   logo: string;
   website: string;
+  visible: boolean;
   order: number;
 };
 
@@ -1504,11 +1757,12 @@ function toPartnerDraft(item?: VarsoviaRecord, index = 0): PartnerDraft {
     name: item?.name ?? emptyLocalized(),
     logo: String(item?.logo ?? ""),
     website: String(item?.website ?? ""),
+    visible: item?.visible !== false,
     order: Number(item?.order ?? index) || index,
   };
 }
 
-function PartnersInlineEditor() {
+function PartnersInlineEditor({ embedded = false }: { embedded?: boolean }) {
   const [drafts, setDrafts] = useState<PartnerDraft[]>([]);
   const [pageTitle, setPageTitle] = useState("Our Global Partners");
   const [subtitle, setSubtitle] = useState(
@@ -1560,6 +1814,14 @@ function PartnersInlineEditor() {
     void load();
   }, [load]);
 
+  useEffect(() => {
+    const onSynced = () => {
+      void load();
+    };
+    window.addEventListener(CMS_SYNCED_EVENT, onSynced);
+    return () => window.removeEventListener(CMS_SYNCED_EVENT, onSynced);
+  }, [load]);
+
   const updateDraft = (clientKey: string, patch: Partial<PartnerDraft>) => {
     setDrafts((prev) =>
       prev.map((item) =>
@@ -1595,7 +1857,7 @@ function PartnersInlineEditor() {
   };
 
   const saveAll = async () => {
-    if (!pageTitle.trim()) {
+    if (!embedded && !pageTitle.trim()) {
       toast.error("Page title is required");
       return;
     }
@@ -1610,35 +1872,37 @@ function PartnersInlineEditor() {
 
     try {
       setSaving(true);
-      const existingSectionCopy =
-        siteSnapshot.sectionCopy && typeof siteSnapshot.sectionCopy === "object"
-          ? { ...(siteSnapshot.sectionCopy as Record<string, unknown>) }
-          : {};
-      const existingPartners =
-        existingSectionCopy.partners &&
-        typeof existingSectionCopy.partners === "object"
-          ? { ...(existingSectionCopy.partners as Record<string, unknown>) }
-          : {};
+      if (!embedded) {
+        const existingSectionCopy =
+          siteSnapshot.sectionCopy && typeof siteSnapshot.sectionCopy === "object"
+            ? { ...(siteSnapshot.sectionCopy as Record<string, unknown>) }
+            : {};
+        const existingPartners =
+          existingSectionCopy.partners &&
+          typeof existingSectionCopy.partners === "object"
+            ? { ...(existingSectionCopy.partners as Record<string, unknown>) }
+            : {};
 
-      await updateVarsoviaSite({
-        ...siteSnapshot,
-        sectionCopy: {
-          ...existingSectionCopy,
-          partners: {
-            ...existingPartners,
-            title: writeLocalizedField(
-              existingPartners.title,
-              locale,
-              pageTitle.trim()
-            ),
-            subtitle: writeLocalizedField(
-              existingPartners.subtitle,
-              locale,
-              subtitle.trim()
-            ),
+        await updateVarsoviaSite({
+          ...siteSnapshot,
+          sectionCopy: {
+            ...existingSectionCopy,
+            partners: {
+              ...existingPartners,
+              title: writeLocalizedField(
+                existingPartners.title,
+                locale,
+                pageTitle.trim()
+              ),
+              subtitle: writeLocalizedField(
+                existingPartners.subtitle,
+                locale,
+                subtitle.trim()
+              ),
+            },
           },
-        },
-      });
+        });
+      }
 
       for (let index = 0; index < drafts.length; index += 1) {
         const draft = drafts[index];
@@ -1646,6 +1910,7 @@ function PartnersInlineEditor() {
           name: draft.name,
           logo: draft.logo,
           website: draft.website,
+          visible: draft.visible,
           order: index,
         };
         if (draft._id) {
@@ -1667,7 +1932,8 @@ function PartnersInlineEditor() {
     "mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal";
 
   return (
-    <section className="max-w-5xl space-y-5">
+    <section className={embedded ? "space-y-4" : "max-w-5xl space-y-5"}>
+      {!embedded ? (
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-[#E8EAED] bg-white px-5 py-4">
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#1A2332] text-white">
@@ -1692,8 +1958,11 @@ function PartnersInlineEditor() {
           {saving ? "Saving…" : "Save Partners"}
         </button>
       </div>
+      ) : (
+        <p className="text-sm font-semibold text-[#1A2332]">Partner logos</p>
+      )}
 
-      <div className="space-y-4 rounded-xl border border-[#E8EAED] bg-white p-5">
+      <div className={embedded ? "space-y-4" : "space-y-4 rounded-xl border border-[#E8EAED] bg-white p-5"}>
         <div className="mb-1 flex flex-wrap gap-2">
           {(["en", "th", "pl"] as LocaleCode[]).map((code) => (
             <button
@@ -1711,6 +1980,8 @@ function PartnersInlineEditor() {
           ))}
         </div>
 
+        {!embedded ? (
+        <>
         <div className="grid gap-4 md:grid-cols-2">
           <label className="block text-xs font-semibold text-[#5C6370]">
             Page Title
@@ -1739,6 +2010,8 @@ function PartnersInlineEditor() {
             className={fieldClass}
           />
         </label>
+        </>
+        ) : null}
 
         <div className="pt-2">
           <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
@@ -1824,11 +2097,38 @@ function PartnersInlineEditor() {
                     }
                     uploadFile={uploadVarsoviaMedia}
                   />
+
+                  <label className="inline-flex items-center gap-2 text-sm text-[#374151]">
+                    <input
+                      type="checkbox"
+                      checked={draft.visible}
+                      onChange={(event) =>
+                        updateDraft(draft.clientKey, {
+                          visible: event.target.checked,
+                        })
+                      }
+                    />
+                    Visible on website
+                  </label>
                 </div>
               ))}
             </div>
           )}
         </div>
+
+        {embedded ? (
+          <div className="mt-4 flex items-center gap-2 border-t border-[#E8EAED] pt-4">
+            <button
+              type="button"
+              disabled={saving || loading}
+              onClick={() => void saveAll()}
+              className="inline-flex items-center gap-2 rounded-lg bg-[#1A2332] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#243044] disabled:opacity-60"
+            >
+              <Save className="h-4 w-4" />
+              {saving ? "Saving…" : "Save partners"}
+            </button>
+          </div>
+        ) : null}
       </div>
     </section>
   );
@@ -1850,9 +2150,11 @@ type ShowcaseDraft = {
 };
 
 function toShowcaseDraft(item?: VarsoviaRecord, index = 0): ShowcaseDraft {
+  const SHOWCASE_GALLERY_SLOTS = 10;
   const gallery = Array.isArray(item?.gallery)
-    ? (item.gallery as unknown[]).map((url) => String(url ?? "")).filter(Boolean)
+    ? (item.gallery as unknown[]).map((url) => String(url ?? ""))
     : [];
+  while (gallery.length < SHOWCASE_GALLERY_SLOTS) gallery.push("");
   return {
     clientKey: item?._id || `showcase-new-${index}-${Date.now()}`,
     _id: item?._id,
@@ -1863,7 +2165,7 @@ function toShowcaseDraft(item?: VarsoviaRecord, index = 0): ShowcaseDraft {
     typeValue: item?.typeValue ?? emptyLocalized(),
     supplyArea: item?.supplyArea ?? emptyLocalized(),
     image: String(item?.image ?? ""),
-    gallery,
+    gallery: gallery.slice(0, Math.max(SHOWCASE_GALLERY_SLOTS, gallery.length)),
     visible: item?.visible !== false,
     order: Number(item?.order ?? index) || index,
   };
@@ -1931,6 +2233,14 @@ function ShowcasesInlineEditor() {
 
   useEffect(() => {
     void load();
+  }, [load]);
+
+  useEffect(() => {
+    const onSynced = () => {
+      void load();
+    };
+    window.addEventListener(CMS_SYNCED_EVENT, onSynced);
+    return () => window.removeEventListener(CMS_SYNCED_EVENT, onSynced);
   }, [load]);
 
   // When only the tab changes, refresh headings from the already-loaded snapshot
@@ -2063,7 +2373,7 @@ function ShowcasesInlineEditor() {
               Showcases Management
             </h2>
             <p className="mt-0.5 text-xs text-[#6B7280]">
-              Manage showcase page headings (drives /showcase) and project cards
+              Manage project page headings (drives /projects) and project cards
             </p>
           </div>
         </div>
@@ -2291,7 +2601,7 @@ function ShowcasesInlineEditor() {
                   </div>
 
                   <MediaUpload
-                    label="Cover Image"
+                    label="Cover Image (1) — detail hero"
                     kind="image"
                     value={draft.image}
                     onChange={(value) =>
@@ -2302,11 +2612,20 @@ function ShowcasesInlineEditor() {
 
                   <div>
                     <p className="mb-1.5 text-xs font-semibold text-[#5C6370]">
-                      Gallery Images
+                      Detail Gallery — Kitchen Images 1–5, Bathroom Images 6–10
                     </p>
                     <div className="space-y-2">
-                      {draft.gallery.map((url, galleryIndex) => (
-                        <div key={`${draft.clientKey}-g-${galleryIndex}`} className="flex gap-2">
+                      {draft.gallery.map((url, galleryIndex) => {
+                        const slotLabel =
+                          galleryIndex < 5
+                            ? `Kitchen Image ${galleryIndex + 1}${galleryIndex === 0 ? " — hero" : " — bento"}`
+                            : `Bathroom Image ${galleryIndex - 4}${galleryIndex === 5 ? " — hero" : " — bento"}`;
+                        return (
+                        <div key={`${draft.clientKey}-g-${galleryIndex}`} className="space-y-1">
+                          <span className="block text-[11px] font-semibold uppercase tracking-wide text-[#6B7280]">
+                            {slotLabel}
+                          </span>
+                          <div className="flex gap-2">
                           <input
                             value={url}
                             onChange={(event) => {
@@ -2327,19 +2646,19 @@ function ShowcasesInlineEditor() {
                           />
                           <button
                             type="button"
-                            onClick={() =>
-                              updateDraft(draft.clientKey, {
-                                gallery: draft.gallery.filter(
-                                  (_, i) => i !== galleryIndex
-                                ),
-                              })
-                            }
+                            onClick={() => {
+                              const next = [...draft.gallery];
+                              next[galleryIndex] = "";
+                              updateDraft(draft.clientKey, { gallery: next });
+                            }}
                             className="rounded-lg px-2 text-xs font-semibold text-[#DC2626] hover:bg-red-50"
                           >
-                            Remove
+                            Clear
                           </button>
+                          </div>
                         </div>
-                      ))}
+                        );
+                      })}
                       <button
                         type="button"
                         onClick={() =>
@@ -2354,6 +2673,19 @@ function ShowcasesInlineEditor() {
                       </button>
                     </div>
                   </div>
+
+                  <label className="inline-flex items-center gap-2 text-sm text-[#374151]">
+                    <input
+                      type="checkbox"
+                      checked={draft.visible}
+                      onChange={(event) =>
+                        updateDraft(draft.clientKey, {
+                          visible: event.target.checked,
+                        })
+                      }
+                    />
+                    Visible on website
+                  </label>
                 </div>
               ))}
             </div>
@@ -2458,6 +2790,14 @@ function FaqsInlineEditor() {
 
   useEffect(() => {
     void load();
+  }, [load]);
+
+  useEffect(() => {
+    const onSynced = () => {
+      void load();
+    };
+    window.addEventListener(CMS_SYNCED_EVENT, onSynced);
+    return () => window.removeEventListener(CMS_SYNCED_EVENT, onSynced);
   }, [load]);
 
   const topicCounts = useMemo(() => {
@@ -2589,6 +2929,7 @@ function FaqsInlineEditor() {
           question: ensureEnglishCopy(draft.question),
           answer: ensureEnglishCopy(draft.answer),
           category: activeTopic,
+          visible: draft.visible,
           order,
         };
         order += 1;
@@ -2799,6 +3140,19 @@ function FaqsInlineEditor() {
                         ))}
                       </select>
                     </label>
+
+                    <label className="inline-flex items-center gap-2 text-sm text-[#374151]">
+                      <input
+                        type="checkbox"
+                        checked={draft.visible}
+                        onChange={(event) =>
+                          updateDraft(draft.clientKey, {
+                            visible: event.target.checked,
+                          })
+                        }
+                      />
+                      Visible on website
+                    </label>
                   </div>
                 ))
               )}
@@ -2878,7 +3232,7 @@ function writeLocalizedField(
   return base;
 }
 
-function TestimonialsInlineEditor() {
+function TestimonialsInlineEditor({ embedded = false }: { embedded?: boolean }) {
   const [drafts, setDrafts] = useState<TestimonialDraft[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -2898,6 +3252,14 @@ function TestimonialsInlineEditor() {
 
   useEffect(() => {
     void load();
+  }, [load]);
+
+  useEffect(() => {
+    const onSynced = () => {
+      void load();
+    };
+    window.addEventListener(CMS_SYNCED_EVENT, onSynced);
+    return () => window.removeEventListener(CMS_SYNCED_EVENT, onSynced);
   }, [load]);
 
   const complete = drafts.length >= 1;
@@ -2977,8 +3339,9 @@ function TestimonialsInlineEditor() {
     "w-full rounded-lg border border-[#E2E5EA] bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A2332]/15 focus:border-[#1A2332]";
 
   return (
-    <section className="space-y-5">
-      <div className="rounded-xl border border-[#E8EAED] bg-white p-5 lg:p-6">
+    <section className={embedded ? "space-y-4" : "space-y-5"}>
+      <div className={embedded ? "" : "rounded-xl border border-[#E8EAED] bg-white p-5 lg:p-6"}>
+        {!embedded ? (
         <div className="mb-6 flex items-start justify-between gap-3">
           <div>
             <h2 className="text-lg font-bold text-[#1A2332]">Testimonials</h2>
@@ -2993,6 +3356,9 @@ function TestimonialsInlineEditor() {
             </span>
           ) : null}
         </div>
+        ) : (
+          <p className="mb-4 text-sm font-semibold text-[#1A2332]">Customer reviews</p>
+        )}
 
         <div className="mb-4 flex flex-wrap gap-2">
           {(["en", "th", "pl"] as LocaleCode[]).map((code) => (
@@ -3115,6 +3481,19 @@ function TestimonialsInlineEditor() {
                     className={fieldClass}
                   />
                 </div>
+
+                <label className="inline-flex items-center gap-2 text-sm text-[#374151]">
+                  <input
+                    type="checkbox"
+                    checked={draft.visible}
+                    onChange={(event) =>
+                      updateDraft(draft.clientKey, {
+                        visible: event.target.checked,
+                      })
+                    }
+                  />
+                  Visible on website
+                </label>
               </div>
             ))}
 
@@ -3129,7 +3508,7 @@ function TestimonialsInlineEditor() {
           </div>
         )}
 
-        <div className="mt-8 flex items-center gap-2 border-t border-[#E8EAED] pt-5">
+        <div className={embedded ? "mt-4 flex items-center gap-2 border-t border-[#E8EAED] pt-4" : "mt-8 flex items-center gap-2 border-t border-[#E8EAED] pt-5"}>
           <button
             type="button"
             onClick={() => void saveAll()}
@@ -3137,7 +3516,7 @@ function TestimonialsInlineEditor() {
             className="inline-flex items-center gap-2 rounded-lg bg-[#1A2332] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#243044] disabled:opacity-60"
           >
             <Save className="h-4 w-4" />
-            {saving ? "Saving…" : "Save Section"}
+            {saving ? "Saving…" : "Save testimonials"}
           </button>
           <button
             type="button"
@@ -3154,7 +3533,13 @@ function TestimonialsInlineEditor() {
   );
 }
 
-function ResourceManager({ resource }: { resource: VarsoviaResource }) {
+function ResourceManager({
+  resource,
+  embedded = false,
+}: {
+  resource: VarsoviaResource;
+  embedded?: boolean;
+}) {
   const config = CONFIGS[resource];
   const [items, setItems] = useState<VarsoviaRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -3187,6 +3572,14 @@ function ResourceManager({ resource }: { resource: VarsoviaResource }) {
     setQuery("");
     setCategoryFilter("All categories");
     void load();
+  }, [load]);
+
+  useEffect(() => {
+    const onSynced = () => {
+      void load();
+    };
+    window.addEventListener(CMS_SYNCED_EVENT, onSynced);
+    return () => window.removeEventListener(CMS_SYNCED_EVENT, onSynced);
   }, [load]);
 
   const cardCategories = useMemo(() => {
@@ -3223,7 +3616,15 @@ function ResourceManager({ resource }: { resource: VarsoviaResource }) {
 
   const open = (item?: VarsoviaRecord) => {
     setEditing(item || null);
-    setForm(item ? normalizeRecord(item) : { visible: true });
+    if (!item) {
+      setForm({ visible: true });
+    } else {
+      const next = normalizeRecord(item);
+      // Existing docs may omit `visible` (treated as public). Keep checkbox truthful.
+      if (next.visible === undefined) next.visible = true;
+      if (resource === "core-strengths" && !next.iconKey) next.iconKey = "eye";
+      setForm(next);
+    }
     setLocale("en");
   };
 
@@ -3288,7 +3689,7 @@ function ResourceManager({ resource }: { resource: VarsoviaResource }) {
   const generateCoverImage = async () => {
     const topic = aiTopic.trim();
     if (!topic) {
-      toast.error("Enter a blog topic before generating an image");
+      toast.error("Enter an article topic before generating an image");
       return;
     }
 
@@ -3310,7 +3711,7 @@ function ResourceManager({ resource }: { resource: VarsoviaResource }) {
   const generateBlogDraft = async () => {
     const topic = aiTopic.trim();
     if (!topic) {
-      toast.error("Enter a blog topic");
+      toast.error("Enter an article topic");
       return;
     }
 
@@ -3359,8 +3760,8 @@ function ResourceManager({ resource }: { resource: VarsoviaResource }) {
       setAiCoverImage("");
       toast.success(
         cover
-          ? "Varsovia blog draft generated with cover image"
-          : "Varsovia blog draft generated"
+          ? "Varsovia journal article draft generated with cover image"
+          : "Varsovia journal article draft generated"
       );
     } catch (error) {
       toast.error(errorMessage(error));
@@ -3370,7 +3771,7 @@ function ResourceManager({ resource }: { resource: VarsoviaResource }) {
   };
 
   return (
-    <section className="space-y-5">
+    <section className={embedded ? "space-y-3" : "space-y-5"}>
       {card ? (
         <>
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -3639,6 +4040,17 @@ function ResourceManager({ resource }: { resource: VarsoviaResource }) {
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {config.fields.map((field) => {
+                  if (field.type === "section-divider") {
+                    return (
+                      <FieldControl
+                        key={field.key}
+                        field={field}
+                        value={null}
+                        locale={locale}
+                        onChange={() => undefined}
+                      />
+                    );
+                  }
                   if (field.localized === true) {
                     const value = localizedValue(
                       getAtPath(form, field.key),
@@ -3669,7 +4081,8 @@ function ResourceManager({ resource }: { resource: VarsoviaResource }) {
                     field.type === "office-list" ||
                     field.type === "search-page-list" ||
                     field.type === "footer-nav" ||
-                    field.type === "inquiry-form";
+                    field.type === "inquiry-form" ||
+                    field.type === "ia-children-list";
                   const raw = getAtPath(form, field.key);
                   const value = structured
                     ? raw
@@ -3736,7 +4149,7 @@ function ResourceManager({ resource }: { resource: VarsoviaResource }) {
                 </h3>
                 <p className="mt-1 text-xs text-[#6B7280]">
                   Enter a topic, optionally generate or upload a cover image,
-                  then draft the full blog article.
+                  then draft the full journal article.
                 </p>
               </div>
               <button
@@ -3753,7 +4166,7 @@ function ResourceManager({ resource }: { resource: VarsoviaResource }) {
             </div>
 
             <label className="block text-xs font-semibold text-[#5C6370]">
-              Blog topic
+              Article topic
               <input
                 value={aiTopic}
                 onChange={(event) => setAiTopic(event.target.value)}
@@ -3830,7 +4243,7 @@ function ResourceManager({ resource }: { resource: VarsoviaResource }) {
                 ) : (
                   <Sparkles className="h-4 w-4" />
                 )}
-                {aiLoading ? "Generating…" : "Generate Blog"}
+                {aiLoading ? "Generating…" : "Generate article"}
               </button>
             </div>
           </div>
@@ -3851,6 +4264,28 @@ function FieldControl({
   locale?: LocaleCode;
   onChange: (value: unknown) => void;
 }) {
+  if (field.type === "section-divider") {
+    return (
+      <div className="md:col-span-2 mt-2 rounded-lg border border-[#E8EDF2] bg-[#F8FAFC] px-4 py-3">
+        <p className="text-sm font-semibold text-[#1A2332]">{field.label}</p>
+        {field.helpText ? (
+          <p className="mt-1 text-[11px] leading-snug text-[#6B7280]">{field.helpText}</p>
+        ) : null}
+      </div>
+    );
+  }
+
+  if (field.type === "ia-children-list") {
+    return (
+      <IaChildrenListEditor
+        value={value}
+        onChange={onChange}
+        locale={locale}
+        hubKey={field.iaHubKey || "furniture"}
+      />
+    );
+  }
+
   const items = Array.isArray(value) ? value : [];
   const move = (index: number, direction: -1 | 1) => {
     const target = index + direction;
@@ -3874,47 +4309,75 @@ function FieldControl({
   };
 
   if (field.type === "string-list") {
+    const labels = field.listLabels || [];
+    const minItems = field.minItems ?? labels.length;
     const strings = items.map((item) => String(item ?? ""));
+    while (strings.length < minItems) strings.push("");
+    const canRemove = (index: number) =>
+      minItems > 0 ? strings.length > minItems : true;
+    const moveString = (index: number, direction: -1 | 1) => {
+      const target = index + direction;
+      if (target < 0 || target >= strings.length) return;
+      const next = [...strings];
+      [next[index], next[target]] = [next[target], next[index]];
+      onChange(next);
+    };
+
     return (
       <div className="md:col-span-2">
         <FieldLabel field={field} />
         <div className="space-y-2">
           {strings.map((item, index) => (
-            <div key={index} className="flex gap-2">
-              <input
-                value={item}
-                onChange={(event) =>
-                  onChange(
-                    strings.map((current, itemIndex) =>
-                      itemIndex === index ? event.target.value : current
-                    )
-                  )
-                }
-                placeholder={
-                  field.media === "pdf"
-                    ? "PDF URL or upload…"
-                    : "Image URL or upload…"
-                }
-                className="min-w-0 flex-1 rounded-lg border border-[#DDE1E7] px-3.5 py-2.5 text-sm outline-none focus:border-[#1A2332]"
-              />
-              {field.media ? (
-                <InlineUploadButton
-                  kind={field.media}
-                  onUploaded={(url) =>
+            <div key={index} className="space-y-1">
+              <span className="block text-[11px] font-semibold uppercase tracking-wide text-[#6B7280]">
+                {labels[index] || `Image ${index + 1}`}
+              </span>
+              <div className="flex gap-2">
+                <input
+                  value={item}
+                  onChange={(event) =>
                     onChange(
                       strings.map((current, itemIndex) =>
-                        itemIndex === index ? url : current
+                        itemIndex === index ? event.target.value : current
                       )
                     )
                   }
+                  placeholder={
+                    field.media === "pdf"
+                      ? "PDF URL or upload…"
+                      : "Image URL or upload…"
+                  }
+                  className="min-w-0 flex-1 rounded-lg border border-[#DDE1E7] px-3.5 py-2.5 text-sm outline-none focus:border-[#1A2332]"
                 />
-              ) : null}
-              <ListButtons
-                index={index}
-                length={strings.length}
-                onMove={move}
-                onRemove={() => onChange(strings.filter((_, i) => i !== index))}
-              />
+                {field.media ? (
+                  <InlineUploadButton
+                    kind={field.media}
+                    onUploaded={(url) =>
+                      onChange(
+                        strings.map((current, itemIndex) =>
+                          itemIndex === index ? url : current
+                        )
+                      )
+                    }
+                  />
+                ) : null}
+                <ListButtons
+                  index={index}
+                  length={strings.length}
+                  onMove={moveString}
+                  onRemove={() => {
+                    if (!canRemove(index)) {
+                      onChange(
+                        strings.map((current, itemIndex) =>
+                          itemIndex === index ? "" : current
+                        )
+                      );
+                      return;
+                    }
+                    onChange(strings.filter((_, i) => i !== index));
+                  }}
+                />
+              </div>
             </div>
           ))}
           <button
@@ -4108,7 +4571,7 @@ function FieldControl({
                   />
                 </label>
                 <SmallInput
-                  label="Image URL"
+                  label={`Section ${index + 1} — Image`}
                   value={String(entry.image ?? "")}
                   media="image"
                   onChange={(next) =>
@@ -4119,6 +4582,73 @@ function FieldControl({
                     )
                   }
                 />
+                <label>
+                  <span className="mb-1 block text-[11px] font-semibold uppercase text-[#6B7280]">
+                    Image side (desktop)
+                  </span>
+                  <select
+                    value={
+                      entry.imagePosition === "right" || entry.imagePosition === "left"
+                        ? String(entry.imagePosition)
+                        : index % 2 === 0
+                          ? "left"
+                          : "right"
+                    }
+                    onChange={(event) =>
+                      onChange(
+                        sections.map((current, i) =>
+                          i === index
+                            ? { ...current, imagePosition: event.target.value }
+                            : current
+                        )
+                      )
+                    }
+                    className="w-full rounded-lg border border-[#DDE1E7] px-3 py-2 text-sm outline-none focus:border-[#1A2332]"
+                  >
+                    <option value="left">Photo left · text right</option>
+                    <option value="right">Text left · photo right</option>
+                  </select>
+                  <p className="mt-1 text-[11px] text-[#6B7280]">
+                    On mobile, photo always stacks above the text.
+                  </p>
+                </label>
+                <label>
+                  <span className="mb-1 block text-[11px] font-semibold uppercase text-[#6B7280]">
+                    Section layout
+                  </span>
+                  <select
+                    value={
+                      ["band", "spotlight", "editorial", "overlay", "rail"].includes(
+                        String(entry.layout || "")
+                      )
+                        ? String(entry.layout)
+                        : "auto"
+                    }
+                    onChange={(event) =>
+                      onChange(
+                        sections.map((current, i) =>
+                          i === index
+                            ? {
+                                ...current,
+                                layout:
+                                  event.target.value === "auto"
+                                    ? undefined
+                                    : event.target.value,
+                              }
+                            : current
+                        )
+                      )
+                    }
+                    className="w-full rounded-lg border border-[#DDE1E7] px-3 py-2 text-sm outline-none focus:border-[#1A2332]"
+                  >
+                    <option value="auto">Auto (vary by page)</option>
+                    <option value="band">Band — side-by-side strip</option>
+                    <option value="spotlight">Spotlight — wide photo, text below</option>
+                    <option value="editorial">Editorial — text + landscape</option>
+                    <option value="overlay">Overlay — text on photo</option>
+                    <option value="rail">Rail — compact image + copy</option>
+                  </select>
+                </label>
               </div>
             </div>
           ))}
@@ -4127,7 +4657,12 @@ function FieldControl({
             onClick={() =>
               onChange([
                 ...sections,
-                { heading: { en: "" }, text: { en: "" }, image: "" },
+                {
+                  heading: { en: "" },
+                  text: { en: "" },
+                  image: "",
+                  imagePosition: sections.length % 2 === 0 ? "left" : "right",
+                },
               ])
             }
             className="inline-flex items-center gap-2 rounded-lg border border-dashed border-[#B9C0CA] px-3 py-2 text-xs font-semibold text-[#5C6370]"
@@ -4897,6 +5432,24 @@ function FieldControl({
               })
             }
           />
+          <SmallInput
+            label="Instagram social label"
+            value={localizedValue(socialLabels.instagram, locale)}
+            onChange={(next) =>
+              patchNav({
+                socialLabels: setEntryLocalized(socialLabels, "instagram", next),
+              })
+            }
+          />
+          <SmallInput
+            label="X (Twitter) social label"
+            value={localizedValue(socialLabels.x, locale)}
+            onChange={(next) =>
+              patchNav({
+                socialLabels: setEntryLocalized(socialLabels, "x", next),
+              })
+            }
+          />
         </div>
 
         <div className="space-y-3">
@@ -5195,6 +5748,28 @@ function FieldControl({
                       <option value="half">Half width</option>
                     </select>
                   </label>
+                  {fieldType === "textarea" ? (
+                    <SmallInput
+                      label="Max length"
+                      value={
+                        entry.maxLength != null
+                          ? String(entry.maxLength)
+                          : "2000"
+                      }
+                      onChange={(next) =>
+                        updateFieldAt(index, (current) => {
+                          const parsed = Number.parseInt(next, 10);
+                          return {
+                            ...current,
+                            maxLength:
+                              Number.isFinite(parsed) && parsed > 0
+                                ? parsed
+                                : 2000,
+                          };
+                        })
+                      }
+                    />
+                  ) : null}
                   <div className="flex flex-wrap items-end gap-4 pb-1">
                     <label className="inline-flex items-center gap-2 text-sm text-[#374151]">
                       <input
@@ -5489,13 +6064,17 @@ function FieldControl({
       {field.type === "boolean" ? (
         <input
           type="checkbox"
-          checked={Boolean(value)}
+          checked={
+            field.key === "visible" || field.key === "enabled"
+              ? value !== false
+              : Boolean(value)
+          }
           onChange={(event) => onChange(event.target.checked)}
           className="h-5 w-5 accent-[#1A2332]"
         />
       ) : field.type === "select" ? (
         <select
-          value={String(value ?? "")}
+          value={String(value ?? field.options?.[0]?.value ?? "")}
           onChange={(event) => onChange(event.target.value)}
           className="w-full rounded-lg border border-[#DDE1E7] bg-white px-3.5 py-2.5 text-sm outline-none focus:border-[#1A2332]"
         >
@@ -5508,13 +6087,20 @@ function FieldControl({
       ) : field.type === "textarea" || field.type === "json" ? (
         <textarea
           value={String(value ?? "")}
-          onChange={(event) => onChange(event.target.value)}
+          maxLength={field.maxLength}
+          onChange={(event) => {
+            const next = event.target.value;
+            onChange(
+              field.maxLength != null ? next.slice(0, field.maxLength) : next,
+            );
+          }}
           rows={field.type === "json" ? 4 : 5}
           className="w-full rounded-lg border border-[#DDE1E7] px-3.5 py-2.5 text-sm outline-none focus:border-[#1A2332]"
         />
       ) : (
         <input
           type={field.type === "number" ? "number" : "text"}
+          maxLength={field.type === "number" ? undefined : field.maxLength}
           value={String(value ?? "")}
           onChange={(event) =>
             onChange(
@@ -5522,7 +6108,9 @@ function FieldControl({
                 ? event.target.value === ""
                   ? ""
                   : Number(event.target.value)
-                : event.target.value
+                : field.maxLength != null
+                  ? event.target.value.slice(0, field.maxLength)
+                  : event.target.value
             )
           }
           className="w-full rounded-lg border border-[#DDE1E7] px-3.5 py-2.5 text-sm outline-none focus:border-[#1A2332]"
@@ -5534,9 +6122,17 @@ function FieldControl({
 
 function FieldLabel({ field }: { field: Field }) {
   return (
-    <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[#5C6370]">
-      {field.label}
-      {field.required ? " *" : ""}
+    <span className="mb-1.5 block">
+      <span className="block text-xs font-semibold uppercase tracking-wide text-[#5C6370]">
+        {field.label}
+        {field.maxLength != null ? ` (max ${field.maxLength})` : ""}
+        {field.required ? " *" : ""}
+      </span>
+      {field.helpText ? (
+        <span className="mt-1 block text-[11px] font-normal normal-case tracking-normal text-[#6B7280] leading-snug">
+          {field.helpText}
+        </span>
+      ) : null}
     </span>
   );
 }

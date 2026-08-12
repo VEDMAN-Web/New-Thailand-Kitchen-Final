@@ -1,6 +1,16 @@
 /** Sync home-section selection without Next.js navigations (avoids Suspense flicker). */
 export const ADMIN_SECTION_EVENT = "tk-admin-section";
 
+/** Fired after a successful CMS sync so open editors can reload from DB. */
+export const CMS_SYNCED_EVENT = "tk-cms-synced";
+
+export function emitCmsSynced(detail?: Record<string, unknown>) {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(
+    new CustomEvent(CMS_SYNCED_EVENT, { detail: detail || {} })
+  );
+}
+
 /** Varsovia CMS resource/section changes on `/varsovia` without Next navigations. */
 export const VARSOVIA_NAV_EVENT = "varsovia-admin-nav";
 
@@ -25,6 +35,10 @@ export function writeAdminSectionToUrl(section: string | null) {
     url.searchParams.delete("section");
   } else {
     url.searchParams.set("section", section);
+  }
+  // Hub focus is only meaningful on Hub Landings
+  if (section !== "hubPages") {
+    url.searchParams.delete("hub");
   }
   const next = `${url.pathname}${url.search}${url.hash}`;
   window.history.replaceState(window.history.state, "", next);

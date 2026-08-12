@@ -22,12 +22,23 @@ import {
   MessageCircleQuestion,
   MapPin,
   Settings,
+  LayoutGrid,
 } from "lucide-react";
 import { toast } from "sonner";
 import MediaUpload from "@/components/MediaUpload";
 import HeroVideoUpload from "@/components/HeroVideoUpload";
+import SectionBlocksEditor, {
+  sectionsFromApi,
+  sectionsToApiPayload,
+} from "@/components/SectionBlocksEditor";
 import { useAdminAuth } from "@/lib/AdminAuthContext";
 import { getHome, resetHome, updateHome } from "@/services/adminAPI";
+import {
+  ADMIN_SECTION_EVENT,
+  CMS_SYNCED_EVENT,
+  readAdminSectionFromUrl,
+  writeAdminSectionToUrl,
+} from "@/lib/adminSectionNav";
 import { clsx } from "clsx";
 import LocaleTabs from "@/components/LocaleTabs";
 import {
@@ -36,11 +47,6 @@ import {
   type LocaleCode,
   type LocalizedText,
 } from "@/lib/localized";
-import {
-  ADMIN_SECTION_EVENT,
-  readAdminSectionFromUrl,
-  writeAdminSectionToUrl,
-} from "@/lib/adminSectionNav";
 
 type Sections = Record<string, any>;
 
@@ -122,13 +128,20 @@ const SECTION_META = [
   {
     key: "faq",
     title: "10 · Home FAQ",
-    desc: "First 5 FAQs above Get in Touch",
+    desc: "Eyebrow & title — Q&A from Admin → FAQ (first 5 on home)",
     icon: HelpCircle,
     group: "home" as SectionGroup,
   },
   {
+    key: "homeContact",
+    title: "11 · Home Contact",
+    desc: "Get in Touch form band under FAQ on the homepage",
+    icon: Contact,
+    group: "home" as SectionGroup,
+  },
+  {
     key: "footer",
-    title: "11 · Footer",
+    title: "12 · Footer",
     desc: "Logo, link columns, contact & social",
     icon: Contact,
     group: "home" as SectionGroup,
@@ -136,9 +149,16 @@ const SECTION_META = [
   // —— Other website pages (same order as main nav: Blog → Contact → FAQ) ——
   {
     key: "blogPage",
-    title: "Blog Page",
-    desc: "Blog hero, share links & related heading",
+    title: "Guides Page",
+    desc: "Guides (/guides) hero, share links & related heading",
     icon: Newspaper,
+    group: "pages" as SectionGroup,
+  },
+  {
+    key: "hubPages",
+    title: "Hub Landings",
+    desc: "Kitchens, Services, Materials, Locations & Built-In Furniture hub intros",
+    icon: LayoutGrid,
     group: "pages" as SectionGroup,
   },
   {
@@ -256,13 +276,22 @@ function isSectionComplete(key: string, sections: Sections): boolean {
         (Array.isArray(s.items) && s.items.length >= 1)
       );
     case "faq":
-      return Array.isArray(s.items) && s.items.length >= 1;
+      return Boolean(localizedValue(s.title, "en") || localizedValue(s.eyebrow, "en"));
+    case "homeContact":
+      return Boolean(
+        localizedValue(s.title, "en") || localizedValue(s.formTitle, "en")
+      );
     case "footer":
       return Boolean(s.email || s.address || s.phone || s.logoUrl);
     case "productsPage":
       return Boolean(localizedValue(s.title, "en") || s.videoUrl || localizedValue(s.label, "en") || localizedValue(s.homeTitle, "en"));
     case "blogPage":
       return Boolean(localizedValue(s.title, "en") || s.videoUrl || localizedValue(s.eyebrow, "en"));
+    case "hubPages":
+      return Boolean(
+        localizedValue(s.kitchens?.title, "en") ||
+          localizedValue(s.services?.title, "en")
+      );
     case "faqPage":
       return Boolean(localizedValue(s.title, "en") || s.videoUrl || localizedValue(s.eyebrow, "en"));
     case "contactPage":
@@ -293,6 +322,20 @@ export default function AdminHomePage() {
     return () => window.removeEventListener(ADMIN_SECTION_EVENT, onSection);
   }, []);
 
+  // Focus a specific hub block when linked as /?section=hubPages&hub=kitchens
+  useEffect(() => {
+    if (active !== "hubPages" || typeof window === "undefined") return;
+    const hubKey = new URLSearchParams(window.location.search).get("hub");
+    if (!hubKey) return;
+    const timer = window.setTimeout(() => {
+      document.getElementById(`hub-${hubKey}`)?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 120);
+    return () => window.clearTimeout(timer);
+  }, [active, loading]);
+
   const selectSection = (key: string) => {
     if (key === active) return;
     setActive(key);
@@ -313,6 +356,15 @@ export default function AdminHomePage() {
   useEffect(() => {
     setLoading(true);
     void load();
+  }, [load]);
+
+  // Reload home sections after header "Sync from DB"
+  useEffect(() => {
+    const onSynced = () => {
+      void load();
+    };
+    window.addEventListener(CMS_SYNCED_EVENT, onSynced);
+    return () => window.removeEventListener(CMS_SYNCED_EVENT, onSynced);
   }, [load]);
 
   const doneCount = useMemo(
@@ -612,6 +664,14 @@ function SectionEditor({
           <p className="text-xs font-bold uppercase tracking-wide text-[#334155]">
             Navigation
           </p>
+          <MediaUpload
+            label="Navbar logo"
+            kind="image"
+            value={nav.logoUrl || ""}
+            onChange={(v) =>
+              onChange({ ...data, nav: { ...nav, logoUrl: v } })
+            }
+          />
           <div className="grid sm:grid-cols-2 gap-3">
             <Field
               locale={locale}
@@ -711,6 +771,15 @@ function SectionEditor({
             value={seo.ogImage || ""}
             onChange={(v) =>
               onChange({ ...data, seo: { ...seo, ogImage: v } })
+            }
+          />
+          <Field
+            locale="en"
+            shared
+            label="GA4 Measurement ID (e.g. G-XXXXXXXXXX)"
+            value={seo.ga4MeasurementId || ""}
+            onChange={(v) =>
+              onChange({ ...data, seo: { ...seo, ga4MeasurementId: v } })
             }
           />
         </div>
@@ -1120,6 +1189,32 @@ function SectionEditor({
             />
           </div>
         </div>
+        <div className="rounded-xl border border-[#E8EAED] bg-[#F8FAFC] p-4 space-y-3">
+          <p className="text-xs font-bold uppercase tracking-wide text-[#334155]">
+            /catalogue page heading
+          </p>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <Field
+              locale={locale}
+              label="Page eyebrow"
+              value={data.pageEyebrow || ""}
+              onChange={(v) => onChange({ ...data, pageEyebrow: v })}
+            />
+            <Field
+              locale={locale}
+              label="Page title"
+              value={data.pageTitle || ""}
+              onChange={(v) => onChange({ ...data, pageTitle: v })}
+            />
+          </div>
+          <Field
+            locale={locale}
+            label="Page description"
+            multiline
+            value={data.pageDescription || ""}
+            onChange={(v) => onChange({ ...data, pageDescription: v })}
+          />
+        </div>
         {items.map((item: any, i: number) => (
           <div key={i} className="rounded-xl border border-[#E8EAED] p-4 space-y-3">
             <div className="flex justify-between">
@@ -1285,14 +1380,12 @@ function SectionEditor({
   }
 
   if (sectionKey === "faq") {
-    const items = data.items || [];
     return (
       <div className="space-y-4">
         <p className="text-xs text-[#6B7280] rounded-lg bg-[#F8FAFC] border border-[#E8EAED] px-3 py-2">
-          These FAQs appear on the <strong>homepage</strong> above Get in Touch
-          (first <strong>5</strong> items only). Use <strong>View all FAQs</strong> on
-          the site to open the full /faq page. Dedicated FAQs under{" "}
-          <strong>FAQs</strong> in the sidebar still power /faq when any exist.
+          Homepage FAQ band uses the eyebrow/title below. Q&amp;A items come from{" "}
+          <strong>Admin → FAQ</strong> (first 5 on home). Edit the full /faq page
+          hero under <strong>FAQ → Page hero</strong>.
         </p>
         <Field
           locale={locale}
@@ -1306,53 +1399,40 @@ function SectionEditor({
           value={data.title || ""}
           onChange={(v) => onChange({ ...data, title: v })}
         />
-        {items.map((item: any, i: number) => (
-          <div key={i} className="rounded-xl border border-[#E8EAED] p-4 space-y-3">
-            <div className="flex justify-end">
-              <button
-                type="button"
-                className="text-xs text-red-600"
-                onClick={() =>
-                  onChange({
-                    ...data,
-                    items: items.filter((_: any, idx: number) => idx !== i),
-                  })
-                }
-              >
-                Remove
-              </button>
-            </div>
-            <Field
-              locale={locale}
-              label={`Question #${i + 1}`}
-              value={item.question || ""}
-              onChange={(v) => {
-                const next = [...items];
-                next[i] = { ...item, question: v };
-                onChange({ ...data, items: next });
-              }}
-            />
-            <Field
-              locale={locale}
-              label="Answer"
-              multiline
-              value={item.answer || ""}
-              onChange={(v) => {
-                const next = [...items];
-                next[i] = { ...item, answer: v };
-                onChange({ ...data, items: next });
-              }}
-            />
-          </div>
-        ))}
-        <AddItemButton
-          label="Add FAQ"
-          onClick={() =>
-            onChange({
-              ...data,
-              items: [...items, { question: "", answer: "" }],
-            })
-          }
+      </div>
+    );
+  }
+
+  if (sectionKey === "homeContact") {
+    return (
+      <div className="space-y-4">
+        <p className="text-xs text-[#6B7280] rounded-lg bg-[#F8FAFC] border border-[#E8EAED] px-3 py-2">
+          Homepage “Get in Touch” band (below FAQ). The full /contact page is
+          edited under sidebar <strong>Contact</strong>.
+        </p>
+        <Field
+          locale={locale}
+          label="Eyebrow"
+          value={data.eyebrow || ""}
+          onChange={(v) => onChange({ ...data, eyebrow: v })}
+        />
+        <Field
+          locale={locale}
+          label="Title"
+          value={data.title || ""}
+          onChange={(v) => onChange({ ...data, title: v })}
+        />
+        <Field
+          locale={locale}
+          label="Form title"
+          multiline
+          value={data.formTitle || ""}
+          onChange={(v) => onChange({ ...data, formTitle: v })}
+        />
+        <MediaUpload
+          label="Side image"
+          value={String(data.image || "")}
+          onChange={(v) => onChange({ ...data, image: v })}
         />
       </div>
     );
@@ -1511,6 +1591,217 @@ function SectionEditor({
           value={data.videoUrl || ""}
           onChange={(v) => onChange({ ...data, videoUrl: v })}
         />
+      </div>
+    );
+  }
+
+  if (sectionKey === "hubPages") {
+    const hubs: { order: string; key: string; label: string; path: string }[] = [
+      { order: "1", key: "kitchens", label: "Kitchens", path: "/kitchens" },
+      { order: "2", key: "services", label: "Services", path: "/services" },
+      { order: "3", key: "materials", label: "Materials", path: "/materials" },
+      { order: "4", key: "locations", label: "Locations", path: "/locations" },
+      {
+        order: "5",
+        key: "builtInFurniture",
+        label: "Built-In Furniture",
+        path: "/built-in-furniture",
+      },
+    ];
+    const kitchenSubsections: {
+      order: string;
+      key: string;
+      label: string;
+      path: string;
+    }[] = [
+      {
+        order: "1a",
+        key: "layouts",
+        label: "Layouts hub",
+        path: "/kitchens/layouts",
+      },
+      {
+        order: "1b",
+        key: "styles",
+        label: "Styles hub",
+        path: "/kitchens/styles",
+      },
+      {
+        order: "1c",
+        key: "byProperty",
+        label: "By Property hub",
+        path: "/kitchens/by-property",
+      },
+    ];
+
+    const renderHubFields = (
+      hub: Record<string, unknown>,
+      onHubChange: (next: Record<string, unknown>) => void,
+      prefix: string
+    ) => (
+      <>
+        <Field
+          locale={locale}
+          label={`${prefix} eyebrow`}
+          value={(hub.eyebrow as string) || ""}
+          onChange={(v) => onHubChange({ ...hub, eyebrow: v })}
+        />
+        <MediaUpload
+          label={`${prefix} hero image`}
+          value={String(hub.heroImage || "")}
+          onChange={(v) => onHubChange({ ...hub, heroImage: v })}
+        />
+        <div className="grid sm:grid-cols-2 gap-3">
+          <Field
+            locale={locale}
+            label={`${prefix} CTA label`}
+            value={(hub.ctaLabel as string) || ""}
+            onChange={(v) => onHubChange({ ...hub, ctaLabel: v })}
+          />
+          <Field
+            locale={locale}
+            shared
+            label={`${prefix} CTA link`}
+            value={String(hub.ctaHref || "")}
+            onChange={(v) => onHubChange({ ...hub, ctaHref: v })}
+          />
+        </div>
+        <SectionBlocksEditor
+          locale={locale}
+          label={`${prefix} content sections`}
+          sections={sectionsFromApi(hub.sections)}
+          onChange={(next) =>
+            onHubChange({ ...hub, sections: sectionsToApiPayload(next) })
+          }
+        />
+      </>
+    );
+
+    return (
+      <div className="space-y-6">
+        <p className="text-sm text-[#5C6370] rounded-lg border border-[#E8EDF2] bg-[#F8FAFC] px-4 py-3">
+          Hub landing pages show hero + content sections only. All category links
+          (Kitchen Design, Brass Hardware, etc.) appear in the header mega menu
+          and are managed under <strong>Categories</strong>.
+        </p>
+        {hubs.map(({ order, key, label, path }) => {
+          const hub = data[key] || {};
+          return (
+            <div
+              key={key}
+              id={`hub-${key}`}
+              className="rounded-xl border border-[#E8EAED] p-4 space-y-3 scroll-mt-4"
+            >
+              <div className="flex items-center gap-2">
+                <span className="inline-flex h-7 min-w-[1.75rem] items-center justify-center rounded-md bg-[#1A2332] px-2 text-[11px] font-bold text-white">
+                  {order}
+                </span>
+                <p className="text-xs font-bold uppercase tracking-wide text-[#334155]">
+                  {label}{" "}
+                  <span className="font-mono font-normal text-[#6B7280]">
+                    {path}
+                  </span>
+                </p>
+              </div>
+              <Field
+                locale={locale}
+                label="Hub title"
+                value={hub.title || ""}
+                onChange={(v) =>
+                  onChange({ ...data, [key]: { ...hub, title: v } })
+                }
+              />
+              <Field
+                locale={locale}
+                label="Hub description"
+                multiline
+                value={hub.description || ""}
+                onChange={(v) =>
+                  onChange({ ...data, [key]: { ...hub, description: v } })
+                }
+              />
+              {renderHubFields(hub, (next) => onChange({ ...data, [key]: next }), "Hub")}
+              {key === "kitchens" ? (
+                <div className="space-y-4 rounded-lg border border-[#E8EDF2] bg-[#F8FAFC] p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[#5C6370]">
+                    Kitchens sub-hub landing pages
+                  </p>
+                  {kitchenSubsections.map(({ order, key: subKey, label: subLabel, path }) => {
+                    const sub = hub.subsections?.[subKey] || {};
+                    return (
+                      <div
+                        key={subKey}
+                        className="space-y-3 rounded-lg border border-[#E8EAED] bg-white p-3"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex h-6 min-w-[1.75rem] items-center justify-center rounded-md bg-[#334155] px-2 text-[10px] font-bold text-white">
+                            {order}
+                          </span>
+                          <p className="text-xs font-semibold text-[#334155]">
+                            {subLabel}{" "}
+                            <span className="font-mono font-normal text-[#6B7280]">
+                              {path}
+                            </span>
+                          </p>
+                        </div>
+                        <Field
+                          locale={locale}
+                          label="Section title"
+                          value={sub.title || ""}
+                          onChange={(v) =>
+                            onChange({
+                              ...data,
+                              [key]: {
+                                ...hub,
+                                subsections: {
+                                  ...(hub.subsections || {}),
+                                  [subKey]: { ...sub, title: v },
+                                },
+                              },
+                            })
+                          }
+                        />
+                        <Field
+                          locale={locale}
+                          label="Section description"
+                          multiline
+                          value={sub.description || ""}
+                          onChange={(v) =>
+                            onChange({
+                              ...data,
+                              [key]: {
+                                ...hub,
+                                subsections: {
+                                  ...(hub.subsections || {}),
+                                  [subKey]: { ...sub, description: v },
+                                },
+                              },
+                            })
+                          }
+                        />
+                        {renderHubFields(
+                          sub,
+                          (next) =>
+                            onChange({
+                              ...data,
+                              [key]: {
+                                ...hub,
+                                subsections: {
+                                  ...(hub.subsections || {}),
+                                  [subKey]: next,
+                                },
+                              },
+                            }),
+                          subLabel
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : null}
+            </div>
+          );
+        })}
       </div>
     );
   }

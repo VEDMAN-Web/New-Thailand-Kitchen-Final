@@ -39,6 +39,13 @@ type GalleryForm = {
   tall: boolean;
   wide: boolean;
   sortOrder: number;
+  locationTag: string;
+  layoutTag: string;
+  styleTag: string;
+  materialTag: string;
+  propertyType: string;
+  projectTitle: string;
+  projectDesc: string;
 };
 
 const emptyForm: GalleryForm = {
@@ -48,6 +55,13 @@ const emptyForm: GalleryForm = {
   tall: false,
   wide: false,
   sortOrder: 0,
+  locationTag: "",
+  layoutTag: "",
+  styleTag: "",
+  materialTag: "",
+  propertyType: "",
+  projectTitle: "",
+  projectDesc: "",
 };
 
 type HeroForm = {
@@ -185,6 +199,13 @@ export default function AdminGalleryPage() {
       tall: Boolean(item.tall),
       wide: Boolean(item.wide),
       sortOrder: Number(item.sortOrder) || 0,
+      locationTag: (item as any).locationTag || "",
+      layoutTag: (item as any).layoutTag || "",
+      styleTag: (item as any).styleTag || "",
+      materialTag: (item as any).materialTag || "",
+      propertyType: (item as any).propertyType || "",
+      projectTitle: (item as any).projectTitle || "",
+      projectDesc: (item as any).projectDesc || "",
     });
     setLocale("en");
     setModal("edit");
@@ -196,8 +217,12 @@ export default function AdminGalleryPage() {
       toast.error("Please upload an image");
       return;
     }
+    if (form.projectDesc && form.projectDesc.length > 300) {
+      toast.error("Project Description must be 300 characters or less");
+      return;
+    }
     try {
-      const payload = {
+      const payload: any = {
         ...form,
         title: asLocalizedForm(form.title),
       };
@@ -493,6 +518,95 @@ export default function AdminGalleryPage() {
                   ))}
               </select>
             </label>
+
+            {locale === "en" && (
+              <>
+                <div className="border-t border-[#E8EAED] pt-3 mt-2">
+                  <p className="text-xs font-bold uppercase tracking-wide text-[#334155] mb-3">
+                    Project Metadata & Taxonomy
+                  </p>
+                </div>
+
+                <label className="block text-xs font-semibold text-[#5C6370]">
+                  Project Title
+                  <input
+                    value={form.projectTitle}
+                    onChange={(e) => setForm({ ...form, projectTitle: e.target.value })}
+                    placeholder="e.g. Modern Villa Kitchen - Phuket"
+                    className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
+                  />
+                </label>
+
+                <label className="block text-xs font-semibold text-[#5C6370]">
+                  Project Description ({form.projectDesc.length}/300)
+                  <textarea
+                    rows={3}
+                    value={form.projectDesc}
+                    onChange={(e) => setForm({ ...form, projectDesc: e.target.value.slice(0, 300) })}
+                    placeholder="Brief project description for SEO and discovery (max 300 chars)"
+                    maxLength={300}
+                    className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal resize-y"
+                  />
+                </label>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <label className="block text-xs font-semibold text-[#5C6370]">
+                    Location Tag
+                    <input
+                      value={form.locationTag}
+                      onChange={(e) => setForm({ ...form, locationTag: e.target.value })}
+                      placeholder="e.g. Bangkok, Phuket"
+                      className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
+                    />
+                  </label>
+
+                  <label className="block text-xs font-semibold text-[#5C6370]">
+                    Layout Tag
+                    <input
+                      value={form.layoutTag}
+                      onChange={(e) => setForm({ ...form, layoutTag: e.target.value })}
+                      placeholder="e.g. L-shaped, U-shaped"
+                      className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
+                    />
+                  </label>
+
+                  <label className="block text-xs font-semibold text-[#5C6370]">
+                    Style Tag
+                    <input
+                      value={form.styleTag}
+                      onChange={(e) => setForm({ ...form, styleTag: e.target.value })}
+                      placeholder="e.g. Modern, Industrial"
+                      className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
+                    />
+                  </label>
+
+                  <label className="block text-xs font-semibold text-[#5C6370]">
+                    Material Tag
+                    <input
+                      value={form.materialTag}
+                      onChange={(e) => setForm({ ...form, materialTag: e.target.value })}
+                      placeholder="e.g. Marble, Oak"
+                      className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
+                    />
+                  </label>
+                </div>
+
+                <label className="block text-xs font-semibold text-[#5C6370]">
+                  Property Type
+                  <input
+                    value={form.propertyType}
+                    onChange={(e) => setForm({ ...form, propertyType: e.target.value })}
+                    placeholder="e.g. Villa, Condo, Townhouse"
+                    className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
+                  />
+                </label>
+
+                <p className="text-[11px] text-[#6B7280]">
+                  These taxonomy tags help with project discovery and SEO. They will be used for filtering and structured data.
+                </p>
+              </>
+            )}
+
             <div className="flex justify-end gap-2 pt-2">
               <button
                 type="button"

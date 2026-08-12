@@ -20,7 +20,8 @@ export type VarsoviaResource =
   | "showcases"
   | "team-members"
   | "partners"
-  | "showrooms";
+  | "showrooms"
+  | "core-strengths";
 
 type ApiEnvelope<T> = {
   success: boolean;
@@ -158,10 +159,17 @@ const SITE_UPDATE_KEYS = [
   "navMenus",
   "qualitySale",
   "showcaseMeta",
+  "projectsPage",
+  "aboutPageSettings",
+  "faqPage",
+  "cataloguePage",
+  "contactPage",
+  "legalPages",
   "interiorCatalogMode",
   "inquiryForm",
   "mainNavigation",
   "footerNavigation",
+  "pages",
 ] as const;
 
 export function pickVarsoviaSiteUpdate(body: Record<string, unknown>) {
@@ -192,6 +200,114 @@ export function pickVarsoviaSiteUpdate(body: Record<string, unknown>) {
 export async function updateVarsoviaSite(body: Record<string, unknown>) {
   const { data } = await varsoviaApi.put("/site", pickVarsoviaSiteUpdate(body));
   return unwrapApiData<Record<string, unknown>>(data);
+}
+
+export type VarsoviaSyncReport = {
+  database: string;
+  host: string;
+  siteId: "varsovia-kitchen";
+  siteUpdated: boolean;
+  preserved: boolean;
+  resources: Record<string, number>;
+  filledSiteKeys: number;
+};
+
+/**
+ * Safe Varsovia sync against the API currently configured (VARSOVIA_API_URL).
+ * Fills blank site fields from defaults only — never wipes existing content.
+ */
+export async function syncVarsoviaFromDb(): Promise<{
+  success: boolean;
+  message: string;
+  report: VarsoviaSyncReport;
+}> {
+  const { mergeVarsoviaSiteDefaults } = await import(
+    "@/app/varsovia/siteDefaults"
+  );
+
+  const loaded = await getVarsoviaSite();
+  const beforePayload = JSON.stringify(pickVarsoviaSiteUpdate(loaded));
+  const merged = mergeVarsoviaSiteDefaults({ ...loaded });
+  const afterPayload = JSON.stringify(pickVarsoviaSiteUpdate(merged));
+
+  let siteUpdated = false;
+  let filledSiteKeys = 0;
+  if (beforePayload !== afterPayload) {
+    // Count keys that were blank before and filled after
+    const before = pickVarsoviaSiteUpdate(loaded);
+    const after = pickVarsoviaSiteUpdate(merged);
+    for (const key of Object.keys(after)) {
+      const b = before[key];
+      const a = after[key];
+      const blankBefore =
+        b === undefined ||
+        b === null ||
+        (typeof b === "string" && !b.trim()) ||
+        (Array.isArray(b) && b.length === 0);
+      if (blankBefore && JSON.stringify(b) !== JSON.stringify(a)) {
+        filledSiteKeys += 1;
+      }
+    }
+    await updateVarsoviaSite(merged);
+    siteUpdated = true;
+  }
+
+  const resourceList: VarsoviaResource[] = [
+    "products",
+    "projects",
+    "blogs",
+    "faqs",
+    "testimonials",
+    "catalogues",
+    "showcases",
+    "team-members",
+    "partners",
+    "showrooms",
+    "core-strengths",
+  ];
+
+  const resources: Record<string, number> = {};
+  await Promise.all(
+    resourceList.map(async (resource) => {
+      try {
+        const items = await listVarsoviaRecords(resource);
+        resources[resource] = items.length;
+      } catch {
+        resources[resource] = -1;
+      }
+    })
+  );
+
+  // Resolve configured host for the report (browser only sees proxy)
+  let host = "varsovia-api";
+  let database = "varsovia";
+  try {
+    const { data } = await varsoviaApi.get("/health");
+    const health = (data && typeof data === "object" ? data : {}) as {
+      brand?: string;
+      status?: string;
+      db?: string;
+    };
+    if (health.brand) database = health.brand;
+    if (health.db) database = String(health.db);
+  } catch {
+    /* ignore */
+  }
+
+  return {
+    success: true,
+    message:
+      "Synced from connected Varsovia database. Existing content was preserved.",
+    report: {
+      database,
+      host,
+      siteId: "varsovia-kitchen",
+      siteUpdated,
+      preserved: true,
+      resources,
+      filledSiteKeys,
+    },
+  };
 }
 
 export async function listVarsoviaRecords(resource: VarsoviaResource) {
