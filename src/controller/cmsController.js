@@ -35,6 +35,49 @@ function slugify(value) {
     .replace(/^-+|-+$/g, "");
 }
 
+/** Reserved so /products/[slug] category tabs are never stolen by a product slug. */
+const RESERVED_PRODUCT_SLUGS = new Set([
+  "all",
+  "best-seller",
+  "bestseller",
+  "modern",
+  "islands",
+  "u-shape",
+  "l-shape",
+  "straight",
+  "t-shape",
+]);
+
+async function assertProductSlugAvailable(siteId, slug, excludeId = null) {
+  const normalized = String(slug || "").trim().toLowerCase();
+  if (!normalized) {
+    return { ok: false, message: "Title and slug are required" };
+  }
+  if (RESERVED_PRODUCT_SLUGS.has(normalized)) {
+    return {
+      ok: false,
+      message: `Slug "${normalized}" is reserved for a product category tab. Choose another slug.`,
+    };
+  }
+  const categoryHit = await Category.findOne({ siteId, slug: normalized }).select("_id");
+  if (categoryHit) {
+    return {
+      ok: false,
+      message: `Slug "${normalized}" is already used by a category. Choose another slug.`,
+    };
+  }
+  const query = { siteId, slug: normalized };
+  if (excludeId) query._id = { $ne: excludeId };
+  const productHit = await Product.findOne(query).select("_id");
+  if (productHit) {
+    return {
+      ok: false,
+      message: `Slug "${normalized}" is already used by another product.`,
+    };
+  }
+  return { ok: true };
+}
+
 /** Website product seed — keeps admin + public site in sync */
 const DEFAULT_PRODUCTS = [
   {
@@ -209,16 +252,12 @@ const DEFAULT_PRODUCTS = [
 
 async function ensureDefaultProducts(siteId) {
   const existing = await Product.find({ siteId }).select("slug image featureHighlights gallery").lean();
-  const existingSlugs = new Set(
-    existing.map((p) => String(p.slug || "").trim().toLowerCase())
-  );
 
-  const missing = DEFAULT_PRODUCTS.filter(
-    (p) => !existingSlugs.has(String(p.slug).toLowerCase())
-  );
-  if (missing.length) {
+  // First-time seed only (same pattern as ensureDefaultCategories).
+  // Never re-insert missing default slugs — a deleted product must stay deleted.
+  if (existing.length === 0) {
     await Product.insertMany(
-      missing.map((p) => ({
+      DEFAULT_PRODUCTS.map((p) => ({
         siteId,
         title: p.title,
         slug: p.slug,
@@ -235,6 +274,7 @@ async function ensureDefaultProducts(siteId) {
         featured: Boolean(p.featured),
       }))
     );
+    return;
   }
 
   // Backfill empty Features & Details for products created before highlights existed
@@ -353,18 +393,13 @@ async function ensureDefaultFaqs(siteId) {
   );
 }
 
+const taxonomyRepaired = new Set();
+
 async function ensureDefaultCategories(siteId) {
-  const count = await Category.countDocuments({ siteId });
-  if (count > 0) return;
-  await Category.insertMany(
-    DEFAULT_CATEGORIES.map((c) => ({
-      siteId,
-      title: c.title,
-      description: c.description || "",
-      image: c.image || "",
-      icon: "",
-    }))
-  );
+  if (taxonomyRepaired.has(siteId)) return;
+  const { repairThailandTaxonomy } = require("../scripts/repairThailandTaxonomyLib");
+  await repairThailandTaxonomy(siteId);
+  taxonomyRepaired.add(siteId);
 }
 
 /**
@@ -408,8 +443,30 @@ function enrichHomeSections(sections) {
   if (!next.faqPage) {
     next.faqPage = defaults.faqPage;
   }
+  if (!next.homeContact) {
+    next.homeContact = defaults.homeContact;
+  }
   if (!next.contactPage) {
     next.contactPage = defaults.contactPage;
+  }
+  if (!next.hubPages) {
+    next.hubPages = defaults.hubPages;
+  } else {
+    next.hubPages = { ...defaults.hubPages, ...next.hubPages };
+    for (const key of Object.keys(defaults.hubPages)) {
+      if (!next.hubPages[key]) {
+        next.hubPages[key] = defaults.hubPages[key];
+      } else if (key === "kitchens" && defaults.hubPages.kitchens?.subsections) {
+        next.hubPages.kitchens = {
+          ...defaults.hubPages.kitchens,
+          ...next.hubPages.kitchens,
+          subsections: {
+            ...defaults.hubPages.kitchens.subsections,
+            ...(next.hubPages.kitchens.subsections || {}),
+          },
+        };
+      }
+    }
   }
   if (!next.nav) {
     next.nav = defaults.nav;
@@ -483,6 +540,51 @@ function asFeatureHighlights(value) {
 function localizedTitleEn(value) {
   const map = asLocalized(value);
   return map.en || map.th || map.pl || "";
+}
+
+function normalizeContentSections(sections) {
+  if (!Array.isArray(sections)) return [];
+  return sections.map((block) => ({
+    heading: asLocalized(block?.heading),
+    body: asLocalized(block?.body),
+    image: String(block?.image || "").trim(),
+    layout: String(block?.layout || "image-left").trim(),
+  }));
+}
+
+/**
+ * Products store category as a free-text label (string or {en,th,pl}).
+ * Keep those labels in sync when a category is renamed or deleted.
+ */
+async function syncProductCategoryLabel(siteId, fromEn, toValue) {
+  const from = String(fromEn || "").trim();
+  if (!from) return;
+
+  const to =
+    typeof toValue === "string"
+      ? toValue
+      : toValue && typeof toValue === "object"
+        ? toValue
+        : "";
+
+  // Legacy plain-string category
+  await Product.updateMany(
+    { siteId, category: from },
+    { $set: { category: typeof to === "string" ? to : asLocalized(to) } }
+  );
+
+  // Localized category map — only rewrite English label to avoid wiping TH/PL
+  if (typeof to === "string") {
+    await Product.updateMany(
+      { siteId, "category.en": from },
+      { $set: { "category.en": to } }
+    );
+  } else if (to && typeof to === "object") {
+    await Product.updateMany(
+      { siteId, "category.en": from },
+      { $set: { category: asLocalized(to) } }
+    );
+  }
 }
 
 /**
@@ -563,9 +665,76 @@ const listCategories = asyncHandler(async (req, res) => {
   if (!assertSite(siteId)) {
     return res.status(400).json({ success: false, message: "Invalid site" });
   }
+  
   await ensureDefaultCategories(siteId);
-  const items = await Category.find({ siteId }).sort({ createdAt: -1 });
+  
+  // Support filtering by categoryType and indexable status
+  const filter = { siteId };
+  if (req.query.type) {
+    filter.categoryType = req.query.type;
+  }
+  if (req.query.indexable === 'true') {
+    filter.indexable = true;
+  } else if (req.query.indexable === 'false') {
+    filter.indexable = false;
+  }
+  
+  let items = await Category.find(filter)
+    .populate('parentId', 'title slug categoryType')
+    .sort({ createdAt: -1 });
+  
+  // Fix: Ensure indexable field exists on all items (migrate old records)
+  items = items.map(item => {
+    const obj = item.toObject();
+    if (obj.indexable === undefined) {
+      obj.indexable = false;
+    }
+    return obj;
+  });
+    
   return res.json({ success: true, items });
+});
+
+const getCategoryBySlug = asyncHandler(async (req, res) => {
+  const { siteId, slug } = req.params;
+  if (!assertSite(siteId)) {
+    return res.status(400).json({ success: false, message: "Invalid site" });
+  }
+  
+  const filter = { siteId, slug };
+
+  // Optional type filter for more specific lookups
+  if (req.query.type) {
+    filter.categoryType = req.query.type;
+  }
+
+  // Location × service: resolve service under a specific location parent
+  if (req.query.parentLocation) {
+    const parentLoc = await Category.findOne({
+      siteId,
+      slug: String(req.query.parentLocation).trim(),
+      categoryType: "location",
+    });
+    if (!parentLoc) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Parent location not found" });
+    }
+    filter.parentId = parentLoc._id;
+  } else if (req.query.type === "service") {
+    // Standalone service pages (/services/{slug}) have no parent
+    filter.parentId = null;
+  }
+
+  const item = await Category.findOne(filter)
+    .populate('parentId', 'title slug categoryType');
+    
+  if (!item) {
+    return res.status(404).json({ success: false, message: "Category not found" });
+  }
+  
+  // Keep `item` (existing clients) and `category` (SEO pages / cmsPublic)
+  return res.json({ success: true, item, category: item });
 });
 
 const createCategory = asyncHandler(async (req, res) => {
@@ -573,41 +742,176 @@ const createCategory = asyncHandler(async (req, res) => {
   if (!assertSite(siteId)) {
     return res.status(400).json({ success: false, message: "Invalid site" });
   }
+  
   const title = asLocalized(req.body.title);
-  if (!localizedTitleEn(title)) {
+  const titleEn = localizedTitleEn(title);
+  if (!titleEn) {
     return res.status(400).json({ success: false, message: "Title required" });
   }
+  
+  // Auto-generate slug from title if not provided
+  const slug = req.body.slug ? slugify(req.body.slug) : slugify(titleEn);
+  
+  // Validate slug uniqueness per categoryType + parent (location × service)
+  if (slug) {
+    const categoryType = String(req.body.categoryType || "");
+    const parentId = req.body.parentId || null;
+    const existing = await Category.findOne({
+      siteId,
+      slug,
+      categoryType,
+      parentId,
+    });
+    if (existing) {
+      return res.status(400).json({
+        success: false,
+        message: "Slug already exists for this category type and parent",
+      });
+    }
+  }
+  
+  // Validate parent category exists if parentId provided
+  if (req.body.parentId) {
+    const parent = await Category.findOne({ _id: req.body.parentId, siteId });
+    if (!parent) {
+      return res.status(400).json({ success: false, message: "Parent category not found" });
+    }
+  }
+  
   const item = await Category.create({
     siteId,
     title,
     description: asLocalized(req.body.description),
     image: String(req.body.image || ""),
     icon: String(req.body.icon || ""),
+    slug,
+    categoryType: String(req.body.categoryType || ""),
+    parentId: req.body.parentId || null,
+    metaTitle: String(req.body.metaTitle || "").substring(0, 60),
+    metaDescription: String(req.body.metaDescription || "").substring(0, 160),
+    canonicalUrl: String(req.body.canonicalUrl || ""),
+    indexable: Boolean(req.body.indexable),
+    sections: normalizeContentSections(req.body.sections),
+    eyebrow: asLocalized(req.body.eyebrow),
+    ctaLabel: asLocalized(req.body.ctaLabel),
+    ctaHref: String(req.body.ctaHref || "/contact").trim() || "/contact",
   });
+  
   return res.status(201).json({ success: true, item });
 });
 
 const updateCategory = asyncHandler(async (req, res) => {
   const { siteId, id } = req.params;
+
+  const existing = await Category.findOne({ _id: id, siteId });
+  if (!existing) {
+    return res.status(404).json({ success: false, message: "Category not found" });
+  }
+  const oldTitleEn = localizedTitleEn(existing.title);
+  
   const title = asLocalized(req.body.title);
-  if (!localizedTitleEn(title)) {
+  const titleEn = localizedTitleEn(title);
+  if (!titleEn) {
     return res.status(400).json({ success: false, message: "Title required" });
   }
+  
+  const updateData = {
+    title,
+    description: asLocalized(req.body.description),
+    image: String(req.body.image || ""),
+    icon: String(req.body.icon || ""),
+  };
+  
+  // Handle slug update with uniqueness check (per categoryType)
+  if (req.body.slug !== undefined) {
+    const slug = slugify(req.body.slug);
+    if (slug) {
+      const nextType =
+        req.body.categoryType !== undefined
+          ? String(req.body.categoryType || "")
+          : String(existing.categoryType || "");
+      const nextParent =
+        req.body.parentId !== undefined
+          ? req.body.parentId || null
+          : existing.parentId || null;
+      const existingSlug = await Category.findOne({
+        siteId,
+        slug,
+        categoryType: nextType,
+        parentId: nextParent,
+        _id: { $ne: id },
+      });
+      if (existingSlug) {
+        return res.status(400).json({
+          success: false,
+          message: "Slug already exists for this category type and parent",
+        });
+      }
+      updateData.slug = slug;
+    }
+  }
+  
+  // Validate parent category if being updated
+  if (req.body.parentId !== undefined) {
+    if (req.body.parentId) {
+      const parent = await Category.findOne({ _id: req.body.parentId, siteId });
+      if (!parent) {
+        return res.status(400).json({ success: false, message: "Parent category not found" });
+      }
+      // Prevent circular references
+      if (req.body.parentId === id) {
+        return res.status(400).json({ success: false, message: "Category cannot be its own parent" });
+      }
+    }
+    updateData.parentId = req.body.parentId || null;
+  }
+  
+  // Update optional SEO fields if provided
+  if (req.body.categoryType !== undefined) {
+    updateData.categoryType = String(req.body.categoryType || "");
+  }
+  if (req.body.metaTitle !== undefined) {
+    updateData.metaTitle = String(req.body.metaTitle || "").substring(0, 60);
+  }
+  if (req.body.metaDescription !== undefined) {
+    updateData.metaDescription = String(req.body.metaDescription || "").substring(0, 160);
+  }
+  if (req.body.canonicalUrl !== undefined) {
+    updateData.canonicalUrl = String(req.body.canonicalUrl || "");
+  }
+  if (req.body.indexable !== undefined) {
+    updateData.indexable = Boolean(req.body.indexable);
+  }
+  if (req.body.sections !== undefined) {
+    updateData.sections = normalizeContentSections(req.body.sections);
+  }
+  if (req.body.eyebrow !== undefined) {
+    updateData.eyebrow = asLocalized(req.body.eyebrow);
+  }
+  if (req.body.ctaLabel !== undefined) {
+    updateData.ctaLabel = asLocalized(req.body.ctaLabel);
+  }
+  if (req.body.ctaHref !== undefined) {
+    updateData.ctaHref =
+      String(req.body.ctaHref || "/contact").trim() || "/contact";
+  }
+  
   const item = await Category.findOneAndUpdate(
     { _id: id, siteId },
-    {
-      $set: {
-        title,
-        description: asLocalized(req.body.description),
-        image: String(req.body.image || ""),
-        icon: String(req.body.icon || ""),
-      },
-    },
-    { new: true }
-  );
+    { $set: updateData },
+    { new: true, runValidators: true }
+  ).populate('parentId', 'title slug categoryType');
+  
   if (!item) {
     return res.status(404).json({ success: false, message: "Category not found" });
   }
+
+  // Keep product filters working after rename (products store category as label text)
+  const newTitleEn = localizedTitleEn(item.title);
+  if (oldTitleEn && newTitleEn && oldTitleEn !== newTitleEn) {
+    await syncProductCategoryLabel(siteId, oldTitleEn, item.title);
+  }
+  
   return res.json({ success: true, item });
 });
 
@@ -617,6 +921,18 @@ const deleteCategory = asyncHandler(async (req, res) => {
   if (!item) {
     return res.status(404).json({ success: false, message: "Category not found" });
   }
+
+  const titleEn = localizedTitleEn(item.title);
+  // Detach products from deleted category label (stay listed under All, not a ghost tab)
+  if (titleEn) {
+    await syncProductCategoryLabel(siteId, titleEn, "");
+  }
+  // Orphan child categories instead of leaving a dead parentId
+  await Category.updateMany(
+    { siteId, parentId: id },
+    { $set: { parentId: null } }
+  );
+
   return res.json({ success: true, message: "Deleted" });
 });
 
@@ -627,7 +943,17 @@ const listProducts = asyncHandler(async (req, res) => {
   }
   // Seed website catalogue products into CMS so admin + site share one list
   await ensureDefaultProducts(siteId);
-  const items = await Product.find({ siteId }).sort({ createdAt: -1 });
+  let items = await Product.find({ siteId }).sort({ createdAt: -1 });
+  
+  // Fix: Ensure indexable field exists on all items
+  items = items.map(item => {
+    const obj = item.toObject();
+    if (obj.indexable === undefined) {
+      obj.indexable = false;
+    }
+    return obj;
+  });
+  
   return res.json({ success: true, items });
 });
 
@@ -644,6 +970,11 @@ const createProduct = asyncHandler(async (req, res) => {
     return res
       .status(400)
       .json({ success: false, message: "Title and slug are required" });
+  }
+
+  const slugCheck = await assertProductSlugAvailable(siteId, slug);
+  if (!slugCheck.ok) {
+    return res.status(400).json({ success: false, message: slugCheck.message });
   }
 
   const item = await Product.create({
@@ -665,6 +996,9 @@ const createProduct = asyncHandler(async (req, res) => {
     material: asLocalized(req.body.material),
     style: asLocalized(req.body.style),
     color: asLocalized(req.body.color),
+    metaTitle: String(req.body.metaTitle || "").substring(0, 60),
+    metaDescription: String(req.body.metaDescription || "").substring(0, 160),
+    indexable: Boolean(req.body.indexable),
   });
 
   return res.status(201).json({ success: true, item });
@@ -675,6 +1009,16 @@ const updateProduct = asyncHandler(async (req, res) => {
   const title = asLocalized(req.body.title);
   const titleEn = localizedTitleEn(title);
   const slug = slugify(req.body.slug || titleEn);
+  if (!titleEn || !slug) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Title and slug are required" });
+  }
+
+  const slugCheck = await assertProductSlugAvailable(siteId, slug, id);
+  if (!slugCheck.ok) {
+    return res.status(400).json({ success: false, message: slugCheck.message });
+  }
 
   const item = await Product.findOneAndUpdate(
     { _id: id, siteId },
@@ -697,6 +1041,9 @@ const updateProduct = asyncHandler(async (req, res) => {
         material: asLocalized(req.body.material),
         style: asLocalized(req.body.style),
         color: asLocalized(req.body.color),
+        metaTitle: String(req.body.metaTitle || "").substring(0, 60),
+        metaDescription: String(req.body.metaDescription || "").substring(0, 160),
+        indexable: Boolean(req.body.indexable),
       },
     },
     { new: true }
@@ -996,9 +1343,72 @@ const listBlogs = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: "Invalid site" });
   }
   await ensureDefaultBlogs(siteId);
-  const items = await Blog.find({ siteId }).sort({ createdAt: -1 });
+  let items = await Blog.find({ siteId }).sort({ createdAt: -1 });
+  
+  // Fix: Ensure all SEO fields exist
+  items = items.map(item => {
+    const obj = item.toObject();
+    if (obj.indexable === undefined) {
+      obj.indexable = false;
+    }
+    return obj;
+  });
+  
   return res.json({ success: true, items });
 });
+
+function blogSeoFieldsFromBody(body = {}) {
+  return {
+    primaryCommercialPage: String(body.primaryCommercialPage || "").trim(),
+    locationTag: String(body.locationTag || "").trim(),
+    serviceTag: String(body.serviceTag || "").trim(),
+    materialTag: String(body.materialTag || "").trim(),
+    metaDescription: String(body.metaDescription || "").trim().slice(0, 160),
+    reviewer: String(body.reviewer || "").trim(),
+  };
+}
+
+function assertPublishedBlogHasPrimaryCommercial(body = {}) {
+  const published = body.published !== false;
+  if (!published) return { ok: true };
+
+  const primary = String(body.primaryCommercialPage || "").trim();
+  const author = String(body.author || "").trim();
+  const locationTag = String(body.locationTag || "").trim();
+  const serviceTag = String(body.serviceTag || "").trim();
+  const materialTag = String(body.materialTag || "").trim();
+  const metaDescription = String(body.metaDescription || "").trim();
+
+  if (!primary) {
+    return {
+      ok: false,
+      message:
+        "Primary Commercial Page URL is required to publish. Link a service/product page or set Published to OFF.",
+    };
+  }
+  if (!author) {
+    return { ok: false, message: "Author is required to publish" };
+  }
+  if (!locationTag) {
+    return { ok: false, message: "Location tag is required to publish" };
+  }
+  if (!serviceTag && !materialTag) {
+    return {
+      ok: false,
+      message: "Service or Material tag is required to publish",
+    };
+  }
+  if (!metaDescription) {
+    return { ok: false, message: "Meta Description is required to publish" };
+  }
+  if (metaDescription.length > 160) {
+    return {
+      ok: false,
+      message: "Meta Description must be 160 characters or less",
+    };
+  }
+  return { ok: true };
+}
 
 const createBlog = asyncHandler(async (req, res) => {
   const { siteId } = req.params;
@@ -1014,11 +1424,17 @@ const createBlog = asyncHandler(async (req, res) => {
       .json({ success: false, message: "Title and slug are required" });
   }
 
+  const publishGate = assertPublishedBlogHasPrimaryCommercial(req.body);
+  if (!publishGate.ok) {
+    return res.status(400).json({ success: false, message: publishGate.message });
+  }
+
   const slug = await uniqueBlogSlug(siteId, baseSlug);
   const bodySections = asBodySections(req.body.bodySections);
   const content =
     String(req.body.content || "").trim() ||
     contentFromBodySections(bodySections);
+  const seo = blogSeoFieldsFromBody(req.body);
 
   const item = await Blog.create({
     siteId,
@@ -1039,6 +1455,7 @@ const createBlog = asyncHandler(async (req, res) => {
     quoteAuthor: String(req.body.quoteAuthor || ""),
     translations: asBlogTranslations(req.body.translations),
     published: req.body.published !== false,
+    ...seo,
   });
 
   return res.status(201).json({ success: true, item });
@@ -1046,19 +1463,46 @@ const createBlog = asyncHandler(async (req, res) => {
 
 const updateBlog = asyncHandler(async (req, res) => {
   const { siteId, id } = req.params;
-  const title = String(req.body.title || "").trim();
-  const baseSlug = slugify(req.body.slug || title);
+  const existing = await Blog.findOne({ _id: id, siteId });
+  if (!existing) {
+    return res.status(404).json({ success: false, message: "Blog not found" });
+  }
+
+  const title = String(req.body.title || existing.title || "").trim();
+  const baseSlug = slugify(req.body.slug || title || existing.slug);
   if (!title || !baseSlug) {
     return res
       .status(400)
       .json({ success: false, message: "Title and slug are required" });
   }
 
+  // Merge SEO so re-saving a published post without retyping PCP still works
+  const mergedBody = {
+    ...req.body,
+    primaryCommercialPage:
+      req.body.primaryCommercialPage !== undefined &&
+      String(req.body.primaryCommercialPage || "").trim()
+        ? req.body.primaryCommercialPage
+        : existing.primaryCommercialPage,
+    published:
+      req.body.published !== undefined ? req.body.published : existing.published,
+  };
+
+  const publishGate = assertPublishedBlogHasPrimaryCommercial(mergedBody);
+  if (!publishGate.ok) {
+    return res.status(400).json({ success: false, message: publishGate.message });
+  }
+
   const slug = await uniqueBlogSlug(siteId, baseSlug, id);
-  const bodySections = asBodySections(req.body.bodySections);
+  const bodySections =
+    req.body.bodySections !== undefined
+      ? asBodySections(req.body.bodySections)
+      : asBodySections(existing.bodySections);
   const content =
     String(req.body.content || "").trim() ||
-    contentFromBodySections(bodySections);
+    contentFromBodySections(bodySections) ||
+    String(existing.content || "");
+  const seo = blogSeoFieldsFromBody(mergedBody);
 
   const item = await Blog.findOneAndUpdate(
     { _id: id, siteId },
@@ -1066,29 +1510,63 @@ const updateBlog = asyncHandler(async (req, res) => {
       $set: {
         title,
         slug,
-        excerpt: String(req.body.excerpt || ""),
+        excerpt:
+          req.body.excerpt !== undefined
+            ? String(req.body.excerpt || "")
+            : String(existing.excerpt || ""),
         content,
-        image: String(req.body.image || ""),
-        gallery: asStringArray(req.body.gallery),
-        category: String(req.body.category || ""),
-        author: String(req.body.author || ""),
-        readTime: String(req.body.readTime || ""),
-        publishDate: String(req.body.publishDate || ""),
+        image:
+          req.body.image !== undefined
+            ? String(req.body.image || "")
+            : String(existing.image || ""),
+        gallery:
+          req.body.gallery !== undefined
+            ? asStringArray(req.body.gallery)
+            : asStringArray(existing.gallery),
+        category:
+          req.body.category !== undefined
+            ? String(req.body.category || "")
+            : String(existing.category || ""),
+        author:
+          req.body.author !== undefined
+            ? String(req.body.author || "")
+            : String(existing.author || ""),
+        readTime:
+          req.body.readTime !== undefined
+            ? String(req.body.readTime || "")
+            : String(existing.readTime || ""),
+        publishDate:
+          req.body.publishDate !== undefined
+            ? String(req.body.publishDate || "")
+            : String(existing.publishDate || ""),
         bodySections,
-        highlightTitle: String(req.body.highlightTitle || ""),
-        highlightText: String(req.body.highlightText || ""),
-        quote: String(req.body.quote || ""),
-        quoteAuthor: String(req.body.quoteAuthor || ""),
-        translations: asBlogTranslations(req.body.translations),
-        published: req.body.published !== false,
+        highlightTitle:
+          req.body.highlightTitle !== undefined
+            ? String(req.body.highlightTitle || "")
+            : String(existing.highlightTitle || ""),
+        highlightText:
+          req.body.highlightText !== undefined
+            ? String(req.body.highlightText || "")
+            : String(existing.highlightText || ""),
+        quote:
+          req.body.quote !== undefined
+            ? String(req.body.quote || "")
+            : String(existing.quote || ""),
+        quoteAuthor:
+          req.body.quoteAuthor !== undefined
+            ? String(req.body.quoteAuthor || "")
+            : String(existing.quoteAuthor || ""),
+        translations:
+          req.body.translations !== undefined
+            ? asBlogTranslations(req.body.translations)
+            : asBlogTranslations(existing.translations),
+        published: mergedBody.published !== false,
+        ...seo,
       },
     },
     { new: true }
   );
 
-  if (!item) {
-    return res.status(404).json({ success: false, message: "Blog not found" });
-  }
   return res.json({ success: true, item });
 });
 
@@ -1385,42 +1863,70 @@ const listGallery = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: "Invalid site" });
   }
   await ensureDefaultGallery(siteId);
-  const items = await GalleryItem.find({ siteId }).sort({
+  let items = await GalleryItem.find({ siteId }).sort({
     sortOrder: 1,
     createdAt: -1,
   });
+  
+  // Fix: Ensure all tagging fields exist
+  items = items.map(item => {
+    const obj = item.toObject();
+    if (obj.indexable === undefined) {
+      obj.indexable = false;
+    }
+    return obj;
+  });
+  
   return res.json({ success: true, items });
 });
+
+function galleryProjectFieldsFromBody(body = {}) {
+  return {
+    locationTag: String(body.locationTag || "").trim(),
+    layoutTag: String(body.layoutTag || "").trim(),
+    styleTag: String(body.styleTag || "").trim(),
+    materialTag: String(body.materialTag || "").trim(),
+    propertyType: String(body.propertyType || "").trim(),
+    projectTitle: String(body.projectTitle || "").trim(),
+    projectDesc: String(body.projectDesc || "").trim().slice(0, 300),
+  };
+}
 
 const createGalleryItem = asyncHandler(async (req, res) => {
   const { siteId } = req.params;
   if (!assertSite(siteId)) {
     return res.status(400).json({ success: false, message: "Invalid site" });
   }
+  const rawFilter = String(req.body.filter || "Style & Color").trim().slice(0, 80);
+  const project = galleryProjectFieldsFromBody(req.body);
   const item = await GalleryItem.create({
     siteId,
     title: asLocalized(req.body.title || "Gallery image"),
     image: String(req.body.image || ""),
-    filter: String(req.body.filter || "Style & Color"),
+    filter: rawFilter || "Style & Color",
     tall: Boolean(req.body.tall),
     wide: Boolean(req.body.wide),
     sortOrder: Number(req.body.sortOrder) || 0,
+    ...project,
   });
   return res.status(201).json({ success: true, item });
 });
 
 const updateGalleryItem = asyncHandler(async (req, res) => {
   const { siteId, id } = req.params;
+  const rawFilter = String(req.body.filter || "Style & Color").trim().slice(0, 80);
+  const project = galleryProjectFieldsFromBody(req.body);
   const item = await GalleryItem.findOneAndUpdate(
     { _id: id, siteId },
     {
       $set: {
         title: asLocalized(req.body.title || "Gallery image"),
         image: String(req.body.image || ""),
-        filter: String(req.body.filter || "Style & Color"),
+        filter: rawFilter || "Style & Color",
         tall: Boolean(req.body.tall),
         wide: Boolean(req.body.wide),
         sortOrder: Number(req.body.sortOrder) || 0,
+        ...project,
       },
     },
     { new: true }
@@ -1565,12 +2071,144 @@ const deleteFaq = asyncHandler(async (req, res) => {
   return res.json({ success: true, message: "Deleted" });
 });
 
+/**
+ * Safe CMS sync against the currently connected MongoDB.
+ * - Never deletes custom content
+ * - Never overwrites existing category/product/blog/gallery/faq rows
+ * - Only seeds empty collections + missing taxonomy rows
+ * - Fills missing home section keys (enrich) without wiping filled fields
+ */
+const syncSite = asyncHandler(async (req, res) => {
+  const { siteId } = req.params;
+  if (!assertSite(siteId)) {
+    return res.status(400).json({ success: false, message: "Invalid site" });
+  }
+  if (siteId !== "thailand-kitchen") {
+    return res.status(400).json({
+      success: false,
+      message: "Sync is available for Thailand Kitchen only",
+    });
+  }
+
+  const mongoose = require("mongoose");
+  if (mongoose.connection.readyState !== 1) {
+    return res.status(503).json({
+      success: false,
+      message: "Database not connected. Check backend MongoDB and try again.",
+    });
+  }
+
+  const before = {
+    categories: await Category.countDocuments({ siteId }),
+    products: await Product.countDocuments({ siteId }),
+    blogs: await Blog.countDocuments({ siteId }),
+    gallery: await GalleryItem.countDocuments({ siteId }),
+    faqs: await FaqItem.countDocuments({ siteId }),
+    catalogues: await CatalogueItem.countDocuments({ siteId }),
+    home: Boolean(await HomePage.exists({ siteId })),
+  };
+
+  // Seed empty collections only (existing ensure* helpers are insert-if-empty)
+  await Promise.all([
+    ensureDefaultProducts(siteId),
+    ensureDefaultBlogs(siteId),
+    ensureDefaultGallery(siteId),
+    ensureDefaultFaqs(siteId),
+  ]);
+
+  // Taxonomy: create missing rows only — never overwrite edited categories
+  const { syncTaxonomyMissingOnly } = require("../scripts/syncTaxonomySafe");
+  const taxonomy = await syncTaxonomyMissingOnly(siteId);
+  // Allow ensureDefaultCategories cache to refresh next list call
+  taxonomyRepaired.delete(siteId);
+  taxonomyRepaired.add(siteId);
+
+  // Home: enrich missing keys / normalize locales, keep existing copy
+  let home = await HomePage.findOne({ siteId });
+  if (!home) {
+    home = await HomePage.create({
+      siteId,
+      sections: structuredClone(DEFAULT_HOME_SECTIONS),
+    });
+  }
+  const beforeHome = JSON.stringify(home.sections || {});
+  const sections = enrichHomeSections(home.sections || {});
+  const afterHome = JSON.stringify(sections);
+  let homeUpdated = false;
+  if (beforeHome !== afterHome) {
+    home.sections = sections;
+    home.markModified("sections");
+    await home.save();
+    homeUpdated = true;
+  }
+
+  // Legal pages — create only if missing (same shape as getLegal)
+  let legalCreated = 0;
+  for (const type of ["privacy", "terms"]) {
+    const exists = await LegalPage.exists({ siteId, type });
+    if (!exists) {
+      const defaults = DEFAULT_LEGAL[type];
+      await LegalPage.create({
+        siteId,
+        type,
+        title: asLocalized(defaults.title),
+        subtitle: asLocalized(defaults.subtitle),
+        updatedLabel: asLocalized(defaults.updatedLabel),
+        sections: asLegalSections(defaults.sections),
+        content: asLocalized(serializeLegalSections(defaults.sections)),
+      });
+      legalCreated += 1;
+    }
+  }
+
+  const after = {
+    categories: await Category.countDocuments({ siteId }),
+    products: await Product.countDocuments({ siteId }),
+    blogs: await Blog.countDocuments({ siteId }),
+    gallery: await GalleryItem.countDocuments({ siteId }),
+    faqs: await FaqItem.countDocuments({ siteId }),
+    catalogues: await CatalogueItem.countDocuments({ siteId }),
+    home: true,
+  };
+
+  const dbName =
+    mongoose.connection.name ||
+    mongoose.connection.db?.databaseName ||
+    "connected";
+
+  return res.json({
+    success: true,
+    message: "Synced from connected database. Existing content was preserved.",
+    report: {
+      database: dbName,
+      host: mongoose.connection.host || "unknown",
+      siteId,
+      before,
+      after,
+      added: {
+        categories: Math.max(0, after.categories - before.categories),
+        products: Math.max(0, after.products - before.products),
+        blogs: Math.max(0, after.blogs - before.blogs),
+        gallery: Math.max(0, after.gallery - before.gallery),
+        faqs: Math.max(0, after.faqs - before.faqs),
+        catalogues: Math.max(0, after.catalogues - before.catalogues),
+        legal: legalCreated,
+      },
+      taxonomy,
+      homeUpdated,
+      preserved: true,
+    },
+  });
+});
+
 module.exports = {
   listSites,
   getHome,
   updateHome,
   resetHome,
+  syncSite,
   listCategories,
+  getCategoryBySlug,
   createCategory,
   updateCategory,
   deleteCategory,

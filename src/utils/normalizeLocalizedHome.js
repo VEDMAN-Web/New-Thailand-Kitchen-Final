@@ -20,6 +20,34 @@ function mergeLinkList(raw, fallback) {
   }));
 }
 
+/** Nav links: union CMS overrides with default IA routes (preserves default order). */
+function mergeNavLinks(raw, fallback) {
+  const fb = Array.isArray(fallback) ? fallback : [];
+  if (!Array.isArray(raw) || !raw.length) {
+    return mergeLinkList(raw, fb);
+  }
+  const cmsByHref = new Map();
+  for (const l of raw) {
+    const href = String(l?.href || "").trim();
+    if (!href) continue;
+    cmsByHref.set(href, mergeLocalized(l?.label, ""));
+  }
+  const merged = fb.map((l) => {
+    const href = String(l.href || "").trim();
+    const defaultLabel = mergeLocalized(l.label, l.label);
+    return {
+      href,
+      label: cmsByHref.get(href) || defaultLabel,
+    };
+  });
+  for (const [href, label] of cmsByHref) {
+    if (!fb.some((l) => String(l.href || "").trim() === href)) {
+      merged.push({ href, label });
+    }
+  }
+  return merged;
+}
+
 function normalizeLocalizedHomeSections(raw = {}) {
   const defaults = structuredClone(DEFAULT_HOME_SECTIONS);
   const src = raw && typeof raw === "object" ? raw : {};
@@ -179,6 +207,18 @@ function normalizeLocalizedHomeSections(raw = {}) {
   const catalogue = {
     eyebrow: mergeLocalized(catalogueSrc.eyebrow, defaults.catalogue.eyebrow),
     title: mergeLocalized(catalogueSrc.title, defaults.catalogue.title),
+    pageEyebrow: mergeLocalized(
+      catalogueSrc.pageEyebrow,
+      defaults.catalogue.pageEyebrow || defaults.catalogue.eyebrow
+    ),
+    pageTitle: mergeLocalized(
+      catalogueSrc.pageTitle,
+      defaults.catalogue.pageTitle || defaults.catalogue.title
+    ),
+    pageDescription: mergeLocalized(
+      catalogueSrc.pageDescription,
+      defaults.catalogue.pageDescription || ""
+    ),
     items: catalogueItemsRaw.map((c, i) => ({
       title: mergeLocalized(c.title, defaults.catalogue.items[i]?.title || "Catalogue"),
       category: mergeLocalized(
@@ -246,6 +286,9 @@ function normalizeLocalizedHomeSections(raw = {}) {
 
   const navSrc = src.nav || {};
   const nav = {
+    logoUrl: String(
+      navSrc.logoUrl || defaults.nav.logoUrl || "/logo1.svg"
+    ).trim(),
     consultationLabel: mergeLocalized(
       navSrc.consultationLabel,
       defaults.nav.consultationLabel
@@ -254,7 +297,7 @@ function normalizeLocalizedHomeSections(raw = {}) {
       navSrc.searchPlaceholder,
       defaults.nav.searchPlaceholder
     ),
-    links: mergeLinkList(navSrc.links, defaults.nav.links),
+    links: mergeNavLinks(navSrc.links, defaults.nav.links),
   };
 
   const seoSrc = src.seo || {};
@@ -262,6 +305,9 @@ function normalizeLocalizedHomeSections(raw = {}) {
     title: mergeLocalized(seoSrc.title, defaults.seo.title),
     description: mergeLocalized(seoSrc.description, defaults.seo.description),
     ogImage: String(seoSrc.ogImage || defaults.seo.ogImage || "").trim(),
+    ga4MeasurementId: String(
+      seoSrc.ga4MeasurementId || defaults.seo.ga4MeasurementId || ""
+    ).trim(),
   };
 
   const galleryPageSrc = src.galleryPage || {};
@@ -372,6 +418,25 @@ function normalizeLocalizedHomeSections(raw = {}) {
     ).trim(),
   };
 
+  const homeContactSrc = src.homeContact || {};
+  const homeContact = {
+    eyebrow: mergeLocalized(
+      homeContactSrc.eyebrow,
+      defaults.homeContact?.eyebrow || ""
+    ),
+    title: mergeLocalized(
+      homeContactSrc.title,
+      defaults.homeContact?.title || ""
+    ),
+    formTitle: mergeLocalized(
+      homeContactSrc.formTitle,
+      defaults.homeContact?.formTitle || ""
+    ),
+    image: String(
+      homeContactSrc.image || defaults.homeContact?.image || ""
+    ).trim(),
+  };
+
   const contactPageSrc = src.contactPage || {};
   const contactLocationsRaw = Array.isArray(contactPageSrc.locations)
     ? contactPageSrc.locations
@@ -414,6 +479,67 @@ function normalizeLocalizedHomeSections(raw = {}) {
     locations: contactLocations,
   };
 
+  const hubKeys = [
+    "kitchens",
+    "services",
+    "materials",
+    "locations",
+    "builtInFurniture",
+  ];
+  const kitchenSubKeys = ["layouts", "styles", "byProperty"];
+
+  function mergeContentSections(src = [], def = []) {
+    const list =
+      Array.isArray(src) && src.length
+        ? src
+        : Array.isArray(def)
+          ? def
+          : [];
+    return list.map((block, i) => {
+      const defBlock = def[i] || {};
+      return {
+        heading: mergeLocalizedFillEmpty(block?.heading, defBlock?.heading || ""),
+        body: mergeLocalizedFillEmpty(block?.body, defBlock?.body || ""),
+        image: String(block?.image || defBlock?.image || "").trim(),
+        layout: String(block?.layout || defBlock?.layout || "image-left").trim(),
+      };
+    });
+  }
+
+  function mergeHubBlock(src = {}, def = {}) {
+    return {
+      title: mergeLocalizedFillEmpty(src.title, def.title || ""),
+      description: mergeLocalizedFillEmpty(
+        src.description,
+        def.description || ""
+      ),
+      eyebrow: mergeLocalizedFillEmpty(src.eyebrow, def.eyebrow || ""),
+      heroImage: String(src.heroImage || def.heroImage || "").trim(),
+      ctaLabel: mergeLocalizedFillEmpty(src.ctaLabel, def.ctaLabel || ""),
+      ctaHref: String(src.ctaHref || def.ctaHref || "/contact").trim(),
+      sections: mergeContentSections(src.sections, def.sections),
+    };
+  }
+
+  const hubPages = {};
+  for (const key of hubKeys) {
+    const hubSrc = src.hubPages?.[key] || {};
+    const hubDef = defaults.hubPages?.[key] || {};
+    const nextHub = mergeHubBlock(hubSrc, hubDef);
+
+    if (key === "kitchens") {
+      const subsections = {};
+      for (const subKey of kitchenSubKeys) {
+        const subSrc = hubSrc.subsections?.[subKey] || {};
+        const subDef = hubDef.subsections?.[subKey] || {};
+        subsections[subKey] = mergeHubBlock(subSrc, subDef);
+      }
+      nextHub.subsections = subsections;
+    }
+
+    hubPages[key] = nextHub;
+  }
+
   return {
     hero,
     statistics: { items: statsItems },
@@ -431,7 +557,9 @@ function normalizeLocalizedHomeSections(raw = {}) {
     productsPage,
     blogPage,
     faqPage,
+    homeContact,
     contactPage,
+    hubPages,
   };
 }
 

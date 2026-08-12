@@ -9,6 +9,7 @@ const router = express.Router();
 router.get("/sites", cms.listSites);
 router.get("/:siteId/home", cms.getHome);
 router.get("/:siteId/categories", cms.listCategories);
+router.get("/:siteId/categories/by-slug/:slug", cms.getCategoryBySlug);
 router.get("/:siteId/products", cms.listProducts);
 router.get("/:siteId/blogs", cms.listBlogs);
 router.get("/:siteId/legal/:type", cms.getLegal);
@@ -19,6 +20,7 @@ router.get("/:siteId/faqs", cms.listFaqs);
 // Protected writes (admin panel)
 router.put("/:siteId/home", protect, cms.updateHome);
 router.post("/:siteId/home/reset", protect, cms.resetHome);
+router.post("/:siteId/sync", protect, cms.syncSite);
 
 router.post("/:siteId/categories", protect, cms.createCategory);
 router.put("/:siteId/categories/:id", protect, cms.updateCategory);
