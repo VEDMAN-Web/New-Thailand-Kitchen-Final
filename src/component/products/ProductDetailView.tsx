@@ -4,7 +4,6 @@ import ProductDetailNarrative from "./ProductDetailNarrative";
 import ProductDetailGallery from "./ProductDetailGallery";
 import ProductDetailFeatures from "./ProductDetailFeatures";
 import ProductDetailContact from "./ProductDetailContact";
-import Footer from "../Footer/footer";
 
 interface Props {
   product: ProductItem;
@@ -20,7 +19,6 @@ export default function ProductDetailView({ product }: Props) {
         <ProductDetailFeatures product={product} />
         <ProductDetailContact product={product} />
       </div>
-      <Footer />
     </div>
   );
 }

@@ -20,7 +20,7 @@ function toBlogHref(slug: string) {
     .trim()
     .replace(/^\/+|\/+$/g, "")
     .toLowerCase();
-  return clean ? `/blog/${encodeURIComponent(clean)}` : "/blog";
+  return clean ? `/guides/${encodeURIComponent(clean)}` : "/guides";
 }
 
 export default function BlogFeaturedCard({ post: rawPost }: Props) {

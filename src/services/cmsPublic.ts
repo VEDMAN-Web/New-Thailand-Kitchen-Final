@@ -11,6 +11,14 @@ import {
 
 const SITE_ID = "thailand-kitchen";
 
+/** Static mocks only when dev explicitly opts in (CMS is source of truth in production). */
+function allowStaticFallback(): boolean {
+  return (
+    process.env.NODE_ENV === "development" &&
+    process.env.NEXT_PUBLIC_CMS_STATIC_FALLBACK === "1"
+  );
+}
+
 function normalizeSlug(slug: string) {
   return String(slug || "")
     .trim()
@@ -68,6 +76,9 @@ type CmsProduct = {
   material?: string;
   style?: string;
   color?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  indexable?: boolean;
 };
 
 type CmsBlogTranslation = {
@@ -101,6 +112,12 @@ type CmsBlog = {
   translations?: { th?: CmsBlogTranslation; pl?: CmsBlogTranslation };
   published: boolean;
   createdAt?: string;
+  primaryCommercialPage?: string;
+  locationTag?: string;
+  serviceTag?: string;
+  materialTag?: string;
+  metaDescription?: string;
+  reviewer?: string;
 };
 
 const LAYOUTS: ProductLayout[] = [
@@ -201,6 +218,9 @@ function mapCmsProduct(p: CmsProduct, index: number): ProductItem {
     material: (p.material as any) || template.material,
     style: (p.style as any) || template.style,
     color: (p.color as any) || template.color,
+    metaTitle: String(p.metaTitle || ""),
+    metaDescription: String(p.metaDescription || ""),
+    indexable: p.indexable === true,
   };
 }
 
@@ -248,6 +268,11 @@ function mapCmsBlog(b: CmsBlog, index: number): BlogPost {
     : "RECENT";
   const dateISO = dateSource ? new Date(dateSource).toISOString() : undefined;
 
+  // Mongoose timestamps (for "Published/Updated" rendering + JSON-LD dateModified).
+  const updatedISO = (b as any).updatedAt
+    ? new Date((b as any).updatedAt).toISOString()
+    : undefined;
+
   const gallery =
     b.gallery && b.gallery.length >= 2
       ? ([b.gallery[0], b.gallery[1]] as [string, string])
@@ -265,6 +290,7 @@ function mapCmsBlog(b: CmsBlog, index: number): BlogPost {
     filter: "All" as BlogCategory,
     date,
     dateISO,
+    updatedISO,
     readTime: (b.readTime || "5 MIN READ").toUpperCase().includes("MIN")
       ? (b.readTime || "5 MIN READ").toUpperCase()
       : `${b.readTime || "5"} MIN READ`,
@@ -281,6 +307,14 @@ function mapCmsBlog(b: CmsBlog, index: number): BlogPost {
       th: mapBlogTranslation(b.translations?.th),
       pl: mapBlogTranslation(b.translations?.pl),
     },
+    author: b.author || undefined,
+    primaryCommercialPage: b.primaryCommercialPage || undefined,
+    locationTag: b.locationTag || undefined,
+    serviceTag: b.serviceTag || undefined,
+    materialTag: b.materialTag || undefined,
+    metaDescription: b.metaDescription || undefined,
+    reviewer: b.reviewer || undefined,
+    published: b.published !== false,
   };
 }
 
@@ -302,12 +336,12 @@ export async function fetchMergedProducts(): Promise<ProductItem[]> {
     const json = (await cmsFetch(`/cms/${SITE_ID}/products`)) as
       | { items?: CmsProduct[] }
       | null;
-    if (!json) return productItems;
+    if (!json) return allowStaticFallback() ? productItems : [];
     const cmsItems = (json.items || []).map(mapCmsProduct);
-    if (!cmsItems.length) return productItems;
+    if (!cmsItems.length) return allowStaticFallback() ? productItems : [];
     return cmsItems;
   } catch {
-    return productItems;
+    return allowStaticFallback() ? productItems : [];
   }
 }
 
@@ -316,14 +350,14 @@ export async function fetchMergedBlogs(): Promise<BlogPost[]> {
     const json = (await cmsFetch(`/cms/${SITE_ID}/blogs`)) as
       | { items?: CmsBlog[] }
       | null;
-    if (!json) return blogPosts;
+    if (!json) return allowStaticFallback() ? blogPosts : [];
     const cmsItems = (json.items || [])
       .filter((b) => b.published !== false)
       .map(mapCmsBlog);
-    if (!cmsItems.length) return blogPosts;
+    if (!cmsItems.length) return allowStaticFallback() ? blogPosts : [];
     return cmsItems;
   } catch {
-    return blogPosts;
+    return allowStaticFallback() ? blogPosts : [];
   }
 }
 
@@ -332,10 +366,7 @@ export async function fetchProductBySlug(
 ): Promise<ProductItem | undefined> {
   const target = normalizeSlug(slug);
   const all = await fetchMergedProducts();
-  return (
-    all.find((p) => normalizeSlug(p.slug) === target) ||
-    productItems.find((p) => normalizeSlug(p.slug) === target)
-  );
+  return all.find((p) => normalizeSlug(p.slug) === target);
 }
 
 export async function fetchBlogBySlug(
@@ -343,10 +374,7 @@ export async function fetchBlogBySlug(
 ): Promise<BlogPost | undefined> {
   const target = normalizeSlug(slug);
   const all = await fetchMergedBlogs();
-  return (
-    all.find((b) => normalizeSlug(b.slug) === target) ||
-    blogPosts.find((b) => normalizeSlug(b.slug) === target)
-  );
+  return all.find((b) => normalizeSlug(b.slug) === target);
 }
 
 export type CmsCatalogue = {
@@ -438,7 +466,38 @@ export type CmsCategory = {
   title: unknown;
   description: unknown;
   image: string;
+  slug?: string;
+  categoryType?: string;
+  parentId?: string | CmsCategory;
+  metaTitle?: string;
+  metaDescription?: string;
+  canonicalUrl?: string;
+  indexable?: boolean;
+  sections?: { heading?: unknown; body?: unknown; image?: string; layout?: string }[];
+  eyebrow?: unknown;
+  ctaLabel?: unknown;
+  ctaHref?: string;
 };
+
+function mapCategoryFromApi(c: Record<string, unknown>): CmsCategory {
+  return {
+    id: String(c._id || localizedEn(c.title) || ""),
+    title: c.title,
+    description: c.description,
+    image: String(c.image || ""),
+    slug: c.slug as string | undefined,
+    categoryType: c.categoryType as string | undefined,
+    parentId: c.parentId as string | CmsCategory | undefined,
+    metaTitle: c.metaTitle as string | undefined,
+    metaDescription: c.metaDescription as string | undefined,
+    canonicalUrl: c.canonicalUrl as string | undefined,
+    indexable: c.indexable as boolean | undefined,
+    sections: Array.isArray(c.sections) ? c.sections : [],
+    eyebrow: c.eyebrow,
+    ctaLabel: c.ctaLabel,
+    ctaHref: String(c.ctaHref || "/contact").trim() || "/contact",
+  };
+}
 
 function localizedEn(value: unknown): string {
   if (value && typeof value === "object" && !Array.isArray(value)) {
@@ -453,13 +512,99 @@ export async function fetchMergedCategories(): Promise<CmsCategory[]> {
     | { items?: any[] }
     | null;
   return (json?.items || [])
-    .map((c) => ({
-      id: String(c._id || localizedEn(c.title) || ""),
-      title: c.title,
-      description: c.description,
-      image: String(c.image || ""),
-    }))
+    .map((c) => mapCategoryFromApi(c))
     .filter((c) => localizedEn(c.title));
+}
+
+/** Get category by slug with optional type filter */
+export type CategoryTypeFilter =
+  | "service"
+  | "material"
+  | "style"
+  | "layout"
+  | "property-type"
+  | "location"
+  | "built-in-furniture"
+  | string;
+
+export async function getCategoryBySlug(
+  slug: string,
+  type?: CategoryTypeFilter
+): Promise<CmsCategory | null> {
+  const params = type ? `?type=${encodeURIComponent(type)}` : "";
+  const json = (await cmsFetch(
+    `/cms/${SITE_ID}/categories/by-slug/${slug}${params}`
+  )) as { category?: any; item?: any } | null;
+  // Backend returns `item`; accept `category` too for forward/backward compatibility
+  const c = json?.item || json?.category;
+  if (!c) return null;
+  return mapCategoryFromApi(c);
+}
+
+/**
+ * Resolve a location × service category:
+ * service slug + parent location slug must match.
+ */
+export async function getLocationServiceCategory(
+  locationSlug: string,
+  serviceSlug: string
+): Promise<CmsCategory | null> {
+  const loc = normalizeSlug(locationSlug);
+  const svc = normalizeSlug(serviceSlug);
+  const json = (await cmsFetch(
+    `/cms/${SITE_ID}/categories/by-slug/${encodeURIComponent(svc)}?type=service&parentLocation=${encodeURIComponent(loc)}`
+  )) as { category?: any; item?: any } | null;
+  const c = json?.item || json?.category;
+  if (!c) return null;
+  return mapCategoryFromApi(c);
+}
+
+/** Get all indexable categories for sitemap */
+export async function getIndexableCategories(): Promise<CmsCategory[]> {
+  const json = (await cmsFetch(`/cms/${SITE_ID}/categories?indexable=true`)) as
+    | { items?: any[] }
+    | null;
+  return (json?.items || []).map((c) => mapCategoryFromApi(c));
+}
+
+/** Get all indexable products for sitemap */
+export async function getIndexableProducts(): Promise<ProductItem[]> {
+  const all = await fetchMergedProducts();
+  return all.filter((p) => (p as any).indexable === true);
+}
+
+/** Get products filtered by category slug */
+export async function getProductsByCategory(
+  categorySlug: string
+): Promise<ProductItem[]> {
+  const all = await fetchMergedProducts();
+  const target = normalizeSlug(categorySlug);
+  const targetKey = normalizeLayoutKey(categorySlug);
+  const known = new Set(
+    LAYOUTS.map((l) => normalizeLayoutKey(l))
+  );
+
+  return all.filter((p) => {
+    const layoutKey = normalizeLayoutKey(String(p.layout || ""));
+    const typeKey = normalizeLayoutKey(String(p.layoutType || ""));
+    const categoryKey = normalizeSlug(String((p as any).category || ""));
+    const isCustom = Boolean(layoutKey && !known.has(layoutKey));
+
+    if (isCustom) {
+      return (
+        layoutKey === targetKey ||
+        normalizeSlug(String(p.layout || "")) === target ||
+        categoryKey === target
+      );
+    }
+
+    return (
+      layoutKey === targetKey ||
+      typeKey === targetKey ||
+      normalizeSlug(String(p.layout || "")) === target ||
+      categoryKey === target
+    );
+  });
 }
 
 export type CmsGallery = {
@@ -470,6 +615,13 @@ export type CmsGallery = {
   filter: string;
   tall?: boolean;
   wide?: boolean;
+  locationTag?: string;
+  layoutTag?: string;
+  styleTag?: string;
+  materialTag?: string;
+  propertyType?: string;
+  projectTitle?: string;
+  projectDesc?: string;
 };
 
 export async function fetchMergedGallery(): Promise<CmsGallery[]> {
@@ -484,9 +636,60 @@ export async function fetchMergedGallery(): Promise<CmsGallery[]> {
     filter: g.filter || "Style & Color",
     tall: Boolean(g.tall),
     wide: Boolean(g.wide),
+    locationTag: String(g.locationTag || ""),
+    layoutTag: String(g.layoutTag || ""),
+    styleTag: String(g.styleTag || ""),
+    materialTag: String(g.materialTag || ""),
+    propertyType: String(g.propertyType || ""),
+    projectTitle: String(g.projectTitle || ""),
+    projectDesc: String(g.projectDesc || ""),
   }));
   if (cmsItems.length) return cmsItems;
-  return galleryItems;
+  return allowStaticFallback() ? galleryItems : [];
+}
+
+function tagMatches(value: string, needle: string) {
+  const a = normalizeLayoutKey(value);
+  const b = normalizeLayoutKey(needle);
+  if (!a || !b) return false;
+  return a === b || a.includes(b) || b.includes(a);
+}
+
+/** Gallery items tagged for a commercial category page (no mocks). */
+export async function getRelatedGalleryProjects(
+  categoryType: string,
+  category: { slug: string; title: string; locationSlug?: string },
+  limit = 6
+): Promise<CmsGallery[]> {
+  const all = await fetchMergedGallery().catch(() => [] as CmsGallery[]);
+  const needles = [category.slug, category.title, category.locationSlug || ""].filter(
+    Boolean
+  );
+
+  const matched = all.filter((g) => {
+    const fields: string[] = [];
+    if (categoryType === "location") fields.push(g.locationTag || "");
+    else if (categoryType === "layout") fields.push(g.layoutTag || "");
+    else if (categoryType === "style") fields.push(g.styleTag || "");
+    else if (categoryType === "material") fields.push(g.materialTag || "");
+    else if (categoryType === "property-type") fields.push(g.propertyType || "");
+    else if (categoryType === "service") {
+      fields.push(g.locationTag || "", g.layoutTag || "", g.styleTag || "");
+    } else if (categoryType === "built-in-furniture") {
+      fields.push(g.propertyType || "", g.styleTag || "", g.layoutTag || "");
+    } else {
+      fields.push(
+        g.locationTag || "",
+        g.layoutTag || "",
+        g.styleTag || "",
+        g.materialTag || "",
+        g.propertyType || ""
+      );
+    }
+    return fields.some((f) => needles.some((n) => tagMatches(f, n)));
+  });
+
+  return matched.filter((g) => g.image).slice(0, limit);
 }
 
 export async function fetchLegalPage(type: "privacy" | "terms") {

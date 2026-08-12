@@ -27,10 +27,38 @@ const pageItems: NavSearchResult[] = [
     type: "Page",
   },
   {
+    id: "page-kitchens",
+    title: "Kitchens",
+    description: "Kitchen layouts, styles, and property-type pages.",
+    href: "/kitchens",
+    type: "Page",
+  },
+  {
     id: "page-products",
     title: "Products",
     description: "Browse modular kitchen layouts, finishes, materials and best sellers.",
     href: "/products",
+    type: "Page",
+  },
+  {
+    id: "page-services",
+    title: "Services",
+    description: "Kitchen design, installation, renovation and related services.",
+    href: "/services",
+    type: "Page",
+  },
+  {
+    id: "page-materials",
+    title: "Materials",
+    description: "Cabinet materials, finishes, worktops and hardware.",
+    href: "/materials",
+    type: "Page",
+  },
+  {
+    id: "page-locations",
+    title: "Locations",
+    description: "Kitchen services and projects across Thailand.",
+    href: "/locations",
     type: "Page",
   },
   {
@@ -41,10 +69,10 @@ const pageItems: NavSearchResult[] = [
     type: "Page",
   },
   {
-    id: "page-blog",
-    title: "Blog",
-    description: "Stories of craft, design and modern Thai kitchen living.",
-    href: "/blog",
+    id: "page-guides",
+    title: "Guides",
+    description: "Guides on craft, design and modern Thai kitchen living.",
+    href: "/guides",
     type: "Page",
   },
   {
@@ -108,7 +136,7 @@ function buildIndexFromCms(data: {
     id: `blog-${b.id}`,
     title: b.title,
     description: [b.excerpt, b.category, b.filter, ...b.content].join(" "),
-    href: `/blog/${b.slug}`,
+    href: `/guides/${b.slug}`,
     type: "Blog",
   }));
 

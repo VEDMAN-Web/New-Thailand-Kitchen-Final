@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { BlogPost, getRelatedPosts } from "./blogData";
 import BlogCard from "./BlogCard";
-import Footer from "../Footer/footer";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import {
   blogCategoryLabel,
@@ -105,7 +104,7 @@ export default function BlogDetailView({ post: rawPost }: Props) {
           <div className="max-w-4xl mx-auto">
             <div className="text-left">
               <p className="text-sm text-[#8A8A8A] mb-5">
-                <Link href="/blog" className="hover:text-[#1A1A1A] transition">
+                <Link href="/guides" className="hover:text-[#1A1A1A] transition">
                   {`< ${t("blog.detail.breadcrumb")}`}
                 </Link>
                 <span className="mx-2">/</span>
@@ -118,6 +117,8 @@ export default function BlogDetailView({ post: rawPost }: Props) {
 
               <p className="text-xs tracking-[0.14em] uppercase text-[#9A9A9A] mb-5">
                 {formatBlogDate(post, locale)} · {formatReadTime(post.readTime, t)}
+                {post.author ? ` · ${post.author}` : ""}
+                {post.reviewer ? ` · Reviewed by ${post.reviewer}` : ""}
               </p>
 
               <h1 className="text-3xl sm:text-4xl lg:text-[2.75rem] font-extrabold text-[#1A1A1A] leading-tight">
@@ -127,6 +128,32 @@ export default function BlogDetailView({ post: rawPost }: Props) {
               <p className="mt-5 text-[#6B6B6B] text-base leading-8">
                 {post.excerpt}
               </p>
+
+              {(post.primaryCommercialPage ||
+                post.locationTag ||
+                post.serviceTag ||
+                post.materialTag) && (
+                <div className="mt-6 flex flex-wrap gap-3 text-sm">
+                  {post.primaryCommercialPage ? (
+                    <Link
+                      href={post.primaryCommercialPage}
+                      className="inline-flex items-center rounded-full border border-[#1A2332] px-4 py-1.5 font-semibold text-[#1A2332] hover:bg-[#1A2332] hover:text-white transition"
+                    >
+                      Related page
+                    </Link>
+                  ) : null}
+                  {[post.locationTag, post.serviceTag, post.materialTag]
+                    .filter(Boolean)
+                    .map((tag) => (
+                      <span
+                        key={tag}
+                        className="inline-flex items-center rounded-full bg-[#E8E4DC] px-3 py-1 text-xs uppercase tracking-wide text-[#5C6370]"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                </div>
+              )}
             </div>
 
             <div className="relative mt-10 lg:mt-12 w-full h-[240px] sm:h-[340px] md:h-[420px] rounded-[1.75rem] overflow-hidden">
@@ -244,7 +271,7 @@ export default function BlogDetailView({ post: rawPost }: Props) {
                 {relatedTitle}
               </h2>
               <Link
-                href="/blog"
+                href="/guides"
                 className="shrink-0 inline-flex items-center gap-2 text-sm font-semibold text-[#1A1A1A] hover:text-[#E0905A] transition"
               >
                 {t("blog.detail.viewAll")}
@@ -260,8 +287,6 @@ export default function BlogDetailView({ post: rawPost }: Props) {
           </div>
         </div>
       </article>
-
-      <Footer />
     </div>
   );
 }

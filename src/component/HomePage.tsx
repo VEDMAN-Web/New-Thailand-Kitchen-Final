@@ -12,7 +12,6 @@ import FeatureSection from "./features/FeatureSection";
 import CatalogSection from "./catlog/CatlogSection";
 import ContactSection from "./contactUs/ContactSection";
 import HomeFaqSection from "./faq/HomeFaqSection";
-import Footer from "./Footer/footer";
 import { useTranslation } from "../i18n/LanguageProvider";
 import { useCms, useCmsSection } from "../lib/CmsHomeContext";
 import { pickCmsText } from "../lib/cmsText";
@@ -276,7 +275,6 @@ function HomePage() {
 
         <HomeFaqSection />
         <ContactSection />
-        <Footer />
       </div>
     </div>
   );

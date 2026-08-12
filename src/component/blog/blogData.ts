@@ -26,6 +26,8 @@ export interface BlogPost {
   date: string;
   /** Raw date so the UI can re-format per locale */
   dateISO?: string;
+  /** Last updated date (ISO) for "Published/Updated" UI + JSON-LD dateModified */
+  updatedISO?: string;
   readTime: string;
   image: string;
   gallery?: [string, string];
@@ -36,6 +38,14 @@ export interface BlogPost {
   featuredLayout?: "image-left" | "image-right";
   content: string[];
   translations?: { th?: BlogTranslation; pl?: BlogTranslation };
+  author?: string;
+  primaryCommercialPage?: string;
+  locationTag?: string;
+  serviceTag?: string;
+  materialTag?: string;
+  metaDescription?: string;
+  reviewer?: string;
+  published?: boolean;
 }
 
 const IMG1 = "/blog/blogImage (1).jpg";

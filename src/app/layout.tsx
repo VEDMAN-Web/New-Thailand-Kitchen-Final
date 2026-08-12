@@ -5,10 +5,13 @@ import { cookies } from "next/headers";
 import { Cormorant_Garamond, Manrope } from "next/font/google";
 import Providers from "../lib/react-query";
 import Navbar from "../component/navBar";
+import Footer from "../component/Footer/footer";
 import { Toaster } from "sonner";
-import { fetchHomeSections, fetchMergedProducts } from "../services/cmsPublic";
+import { fetchHomeSections, fetchMergedProducts, fetchMergedCategories, type HomeSections } from "../services/cmsPublic";
 import { pickCmsText } from "../lib/cmsText";
 import type { Locale } from "../i18n/translations";
+import { SITE_ORIGIN } from "../lib/siteUrl";
+import JsonLd from "../components/seo/JsonLd";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -81,10 +84,19 @@ export default async function RootLayout({
     initialLocale === "TH" ? "th" : initialLocale === "PL" ? "pl" : "en";
 
   // Server-side fetch CMS data to eliminate flicker on initial load
-  const [homeSections, products] = await Promise.all([
+  const [homeSections, products, categories] = await Promise.all([
     fetchHomeSections().catch(() => ({})),
     fetchMergedProducts().catch(() => []),
+    fetchMergedCategories().catch(() => []),
   ]);
+
+  const seo = (homeSections as HomeSections)?.seo as {
+    ga4MeasurementId?: string;
+  } | undefined;
+  const ga4Id =
+    (typeof seo?.ga4MeasurementId === "string" && seo.ga4MeasurementId.trim()) ||
+    process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID?.trim() ||
+    "";
 
   return (
     <html
@@ -94,15 +106,51 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body className="font-sans antialiased" suppressHydrationWarning>
+        <JsonLd
+          type="Organization"
+          data={{
+            name: "Thailand Kitchens",
+            url: SITE_ORIGIN,
+            logo: `${SITE_ORIGIN}/icon.png`,
+          }}
+        />
+        <JsonLd
+          type="WebSite"
+          data={{
+            name: "Thailand Kitchens",
+            url: SITE_ORIGIN,
+          }}
+        />
         <Script id="tk-locale-boot" strategy="beforeInteractive">
           {localeBootScript}
         </Script>
+        {ga4Id ? (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${ga4Id}`}
+              strategy="afterInteractive"
+            />
+            <Script id="tk-ga4" strategy="afterInteractive">
+              {`
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', '${ga4Id}');
+              `}
+            </Script>
+          </>
+        ) : null}
         <Providers
           initialLocale={initialLocale}
-          initialCmsData={{ sections: homeSections, products }}
+          initialCmsData={{
+            sections: homeSections,
+            products,
+            categories,
+          }}
         >
           <Navbar />
           {children}
+          <Footer />
           <Toaster position="top-right" richColors closeButton />
         </Providers>
       </body>

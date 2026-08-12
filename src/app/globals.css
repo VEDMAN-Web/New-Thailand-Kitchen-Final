@@ -55,6 +55,21 @@ body {
   scrollbar-color: #c8c0b6 transparent;
 }
 
+/* Utility: hide scrollbar but keep horizontal scroll */
+.tk-no-scrollbar {
+  -ms-overflow-style: none; /* IE/Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.tk-no-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/WebKit */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [class*="duration-200"] {
+    transition-duration: 0ms !important;
+  }
+}
+
 @keyframes marquee {
   0% {
     transform: translateX(0%);

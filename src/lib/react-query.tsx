@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { LanguageProvider } from "../i18n/LanguageProvider";
 import type { Locale } from "../i18n/translations";
 import { CmsProvider, type HomeSections } from "./CmsHomeContext";
+import type { CmsCategory } from "../services/cmsPublic";
 import SmoothScrollProvider from "../component/SmoothScrollProvider";
 import type { ProductItem } from "../component/products/productData";
 
@@ -19,6 +20,7 @@ export default function Providers({
   initialCmsData?: {
     sections?: HomeSections;
     products?: ProductItem[];
+    categories?: CmsCategory[];
   };
 }) {
   return (
@@ -27,6 +29,7 @@ export default function Providers({
         <CmsProvider
           initialSections={initialCmsData?.sections}
           initialProducts={initialCmsData?.products}
+          initialCategories={initialCmsData?.categories}
         >
           <SmoothScrollProvider>{children}</SmoothScrollProvider>
         </CmsProvider>

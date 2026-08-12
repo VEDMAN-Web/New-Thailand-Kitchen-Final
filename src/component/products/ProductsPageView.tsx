@@ -1,6 +1,5 @@
 import ProductsHero from "./ProductsHero";
 import ProductsListSection from "./ProductsListSection";
-import Footer from "../Footer/footer";
 import type { ProductItem } from "./productData";
 
 export default function ProductsPageView({
@@ -21,7 +20,6 @@ export default function ProductsPageView({
           initialCategory={initialCategory}
         />
       </div>
-      <Footer />
     </div>
   );
 }

@@ -1,12 +1,19 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { Download } from "lucide-react";
-import Footer from "../../component/Footer/footer";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import type { CmsCatalogue } from "../../services/cmsPublic";
 import { pickCmsText } from "../../lib/cmsText";
+import { useCmsSection } from "../../lib/CmsHomeContext";
+
+type CatalogueCms = {
+  pageEyebrow?: unknown;
+  pageTitle?: unknown;
+  pageDescription?: unknown;
+  eyebrow?: unknown;
+  title?: unknown;
+};
 
 export default function CataloguePageClient({
   initialCatalogues,
@@ -14,8 +21,8 @@ export default function CataloguePageClient({
   initialCatalogues: CmsCatalogue[];
 }) {
   const { t, locale } = useTranslation();
+  const cms = useCmsSection<CatalogueCms>("catalogue");
 
-  // Use SSR data directly — no useEffect, no flicker
   const item = initialCatalogues[0] ?? null;
 
   const cover = item?.image || "/catlog/catlog.png";
@@ -23,6 +30,21 @@ export default function CataloguePageClient({
     cover.startsWith("http") || cover.startsWith("/uploads");
   const title = pickCmsText(item?.title, t("catalogue.fileTitle"), locale);
   const category = pickCmsText(item?.category, t("catalogue.edition"), locale);
+  const pageEyebrow = pickCmsText(
+    cms?.pageEyebrow || cms?.eyebrow,
+    t("catalogue.eyebrow"),
+    locale
+  );
+  const pageTitle = pickCmsText(
+    cms?.pageTitle || cms?.title,
+    t("catalogue.title"),
+    locale
+  );
+  const pageDescription = pickCmsText(
+    cms?.pageDescription,
+    t("catalogue.description"),
+    locale
+  );
   const href =
     item?.pdfUrl ||
     (item?.pdf ? `/catlog/${item.pdf}` : "/catlog/catalogue.pdf");
@@ -34,13 +56,13 @@ export default function CataloguePageClient({
       <section className="pt-[80px] sm:pt-[84px] pb-16 lg:pb-24">
         <div className="max-w-3xl mx-auto px-6 text-center">
           <p className="text-[#E0905A] text-xs tracking-[0.28em] uppercase font-medium mb-3">
-            {t("catalogue.eyebrow")}
+            {pageEyebrow}
           </p>
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-[#1A1A1A]">
-            {t("catalogue.title")}
+            {pageTitle}
           </h1>
           <p className="mt-5 text-[#6B6B6B] text-sm sm:text-base leading-7 max-w-xl mx-auto">
-            {t("catalogue.description")}
+            {pageDescription}
           </p>
 
           <div className="mt-10 mx-auto max-w-md rounded-[1.75rem] overflow-hidden bg-white shadow-[0_12px_40px_rgba(0,0,0,0.06)]">
@@ -79,16 +101,8 @@ export default function CataloguePageClient({
               </p>
             </div>
           </div>
-
-          <Link
-            href="/contact"
-            className="mt-10 inline-flex text-sm font-medium text-[#1A1A1A] hover:text-[#E0905A] transition"
-          >
-            {t("catalogue.contactLink")} →
-          </Link>
         </div>
       </section>
-      <Footer />
     </div>
   );
 }

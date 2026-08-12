@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import ProductCard from "./ProductCard";
 import {
   productFilterTabs,
@@ -9,13 +9,11 @@ import {
   tabToSlug,
   type ProductFilterTab,
   type ProductItem,
-  type ProductLayout,
 } from "./productData";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import type { TranslationKey } from "../../i18n/translations";
-import { pickCmsText } from "../../lib/cmsText";
 import { smoothScrollToId } from "../../lib/smoothScroll";
-import { fetchMergedCategories, fetchMergedProducts } from "../../services/cmsPublic";
+import { fetchMergedProducts } from "../../services/cmsPublic";
 
 // Only re-fetch in background if data is older than 30 seconds
 const STALE_AFTER_MS = 30_000;
@@ -32,6 +30,68 @@ const tabLabelKeys: Record<ProductFilterTab, TranslationKey> = {
   "T Shape": "products.tab.tShape",
   "Best Seller": "products.tab.bestSeller",
 };
+
+const KNOWN_LAYOUT_KEYS = new Set([
+  "modern",
+  "islands",
+  "u-shape",
+  "l-shape",
+  "straight",
+  "t-shape",
+]);
+
+function normalizeFilterKey(value: string) {
+  return String(value || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[\s_-]+/g, "-");
+}
+
+function tagMatchesFilter(tag: ProductItem["tag"], target: string) {
+  if (typeof tag === "string") {
+    return tag.toLowerCase() === target || normalizeFilterKey(tag) === normalizeFilterKey(target);
+  }
+  if (tag && typeof tag === "object") {
+    return Object.values(tag as Record<string, string>).some(
+      (v) =>
+        typeof v === "string" &&
+        (v.toLowerCase() === target ||
+          normalizeFilterKey(v) === normalizeFilterKey(target))
+    );
+  }
+  return false;
+}
+
+/**
+ * Match product to a filter tab.
+ * Custom CMS categories must not leak into layout tabs via layoutType fallback ("Modern").
+ */
+function productMatchesLayoutFilter(item: ProductItem, layout: string) {
+  if (layout === "All") return true;
+  if (layout === "Best Seller") return Boolean(item.bestSeller);
+
+  const target = layout.toLowerCase();
+  const targetKey = normalizeFilterKey(layout);
+  const layoutKey = normalizeFilterKey(String(item.layout || ""));
+  const typeKey = normalizeFilterKey(String(item.layoutType || ""));
+  const isCustomCategory = Boolean(layoutKey && !KNOWN_LAYOUT_KEYS.has(layoutKey));
+
+  if (isCustomCategory) {
+    return (
+      String(item.layout || "").toLowerCase() === target ||
+      layoutKey === targetKey ||
+      tagMatchesFilter(item.tag, target)
+    );
+  }
+
+  return (
+    typeKey === targetKey ||
+    layoutKey === targetKey ||
+    String(item.layout || "").toLowerCase() === target ||
+    String(item.layoutType || "").toLowerCase() === target ||
+    tagMatchesFilter(item.tag, target)
+  );
+}
 
 function tabFromQuery(
   value: string | null,
@@ -55,8 +115,7 @@ export default function ProductsListSection({
   /** Category tab pre-selected via a /products/<category> URL (Smart merged route). */
   initialCategory?: string;
 }) {
-  const { t, locale } = useTranslation();
-  const router = useRouter();
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const [layout, setLayout] = useState<string>(initialCategory || "All");
   const [page, setPage] = useState(1);
@@ -69,9 +128,6 @@ export default function ProductsListSection({
 
   const [items, setItems] = useState<ProductItem[]>(startItems);
   const fetchedRef = useRef(false);
-  const [cmsCategories, setCmsCategories] = useState<
-    { id: string; title: unknown }[]
-  >([]);
 
   // Re-fetch only when cache is stale (>30s) — not on every mount
   useEffect(() => {
@@ -90,48 +146,10 @@ export default function ProductsListSection({
       .catch(() => {});
   }, []);
 
-  useEffect(() => {
-    let alive = true;
-    fetchMergedCategories().then((cats) => {
-      if (!alive) return;
-      setCmsCategories(
-        cats
-          .map((c) => ({
-            id: pickCmsText(c.title, "", "EN"),
-            title: c.title,
-          }))
-          .filter((c) => c.id)
-      );
-    });
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  const filterTabs = useMemo(() => {
-    const base = [...productFilterTabs] as string[];
-    const known = new Set(base.map((t) => t.toLowerCase()));
-    for (const cat of cmsCategories) {
-      if (!known.has(cat.id.toLowerCase())) {
-        base.splice(base.length - 1, 0, cat.id); // before Best Seller
-        known.add(cat.id.toLowerCase());
-      }
-    }
-    // Also surface categories present on products but missing from CMS list
-    for (const p of items) {
-      const cat = (p.layout || p.layoutType || "").trim();
-      if (
-        cat &&
-        !known.has(cat.toLowerCase()) &&
-        cat.toLowerCase() !== "modern" &&
-        cat.toLowerCase() !== "all"
-      ) {
-        base.splice(base.length - 1, 0, cat);
-        known.add(cat.toLowerCase());
-      }
-    }
-    return base;
-  }, [cmsCategories, items]);
+  const filterTabs = useMemo(
+    () => [...productFilterTabs] as string[],
+    []
+  );
 
   // Skip legacy ?tab=/?filter= query-string handling when this view was
   // already given an initialCategory via a /products/<category> URL — the
@@ -160,20 +178,7 @@ export default function ProductsListSection({
     } else if (layout === "Best Seller") {
       list = list.filter((item) => item.bestSeller);
     } else {
-      // All other tabs (Modern, Islands, U Shape, L Shape, Straight, T Shape, custom CMS)
-      // Filter by matching layoutType, layout string, or tag — case-insensitive
-      list = list.filter(
-        (item) =>
-          item.layoutType?.toLowerCase() === layout.toLowerCase() ||
-          item.layout?.toLowerCase() === layout.toLowerCase() ||
-          (typeof item.tag === "string" &&
-            item.tag.toLowerCase() === layout.toLowerCase()) ||
-          (typeof item.tag === "object" &&
-            item.tag !== null &&
-            Object.values(item.tag as Record<string, string>).some(
-              (v) => typeof v === "string" && v.toLowerCase() === layout.toLowerCase()
-            ))
-      );
+      list = list.filter((item) => productMatchesLayoutFilter(item, layout));
     }
 
     return list;
@@ -188,14 +193,13 @@ export default function ProductsListSection({
 
   return (
     <section id="best-seller" className="pb-16 lg:pb-24 pt-10 lg:pt-12 scroll-mt-28">
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap justify-center gap-2.5 sm:gap-3">
         {filterTabs.map((item) => {
           const isActive = layout === item;
-          const cmsCat = cmsCategories.find((c) => c.id === item);
           const label =
             item in tabLabelKeys
               ? t(tabLabelKeys[item as ProductFilterTab])
-              : pickCmsText(cmsCat?.title, item, locale);
+              : item;
           return (
             <button
               key={item}
@@ -203,14 +207,8 @@ export default function ProductsListSection({
               onClick={() => {
                 setLayout(item);
                 setPage(1);
-                // Real, crawlable category URL (e.g. /products/u-shape) instead of
-                // a query-string — this is what makes category browsing SEO
-                // friendly. "All" goes back to the plain /products listing.
-                const path =
-                  item === "All" ? "/products" : `/products/${tabToSlug(item)}`;
-                router.push(path, { scroll: false });
               }}
-              className={`px-5 py-2.5 rounded-full text-sm font-medium transition ${
+              className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-sm font-medium transition ${
                 isActive
                   ? "bg-[#1A1A1A] text-white"
                   : "bg-[#EDE8E1] text-[#1A1A1A] hover:bg-[#E5DFD6]"
@@ -229,7 +227,7 @@ export default function ProductsListSection({
       </div>
 
       {pageItems.length > 0 ? (
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 items-start">
           {pageItems.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}

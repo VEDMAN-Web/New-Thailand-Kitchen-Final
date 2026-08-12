@@ -10,6 +10,11 @@ import { loadNavSearchIndex, searchSiteContent, type NavSearchResult } from "./n
 import ConsultationEnquiryModal from "./ConsultationEnquiryModal";
 import { useCmsSection } from "../lib/CmsHomeContext";
 import { pickCmsText } from "../lib/cmsText";
+import {
+  HubDesktopNavItem,
+  HubMobileNavSection,
+  hubNavByHref,
+} from "../components/navigation/HubMegaMenu";
 
 const languages = [
   { code: "EN" as const, label: "English", flag: "/en.png" },
@@ -19,9 +24,13 @@ const languages = [
 
 const defaultNavLinks = [
   { href: "/", labelKey: "nav.home" as const },
+  { href: "/kitchens", labelKey: "nav.kitchens" as const },
   { href: "/products", labelKey: "nav.products" as const },
+  { href: "/services", labelKey: "nav.services" as const },
+  { href: "/materials", labelKey: "nav.materials" as const },
+  { href: "/locations", labelKey: "nav.locations" as const },
   { href: "/gallery", labelKey: "nav.gallery" as const },
-  { href: "/blog", labelKey: "nav.blog" as const },
+  { href: "/guides", labelKey: "nav.guides" as const },
   { href: "/contact", labelKey: "nav.contact" as const },
   { href: "/faq", labelKey: "nav.faq" as const },
 ];
@@ -31,6 +40,7 @@ const Navbar = () => {
   const router = useRouter();
   const { locale, setLocale, t } = useTranslation();
   const navCms = useCmsSection<{
+    logoUrl?: string;
     links?: { label?: string; href?: string }[];
     consultationLabel?: string;
     searchPlaceholder?: string;
@@ -51,23 +61,34 @@ const Navbar = () => {
   const cmsLinks = (navCms?.links || []).filter(
     (l) => l?.href && pickCmsText(l?.label, "", "EN")
   );
-  const navLinks =
-    cmsLinks.length > 0
-      ? cmsLinks.map((l) => {
-          const fallback = defaultNavLinks.find((d) => d.href === l.href);
-          return {
-            href: l.href || "/",
-            label: pickCmsText(
-              l.label,
-              fallback ? t(fallback.labelKey) : "",
-              locale
-            ),
-          };
-        })
-      : defaultNavLinks.map((l) => ({
-          href: l.href,
-          label: t(l.labelKey),
-        }));
+  const navLinks = useMemo(() => {
+    const raw =
+      cmsLinks.length > 0
+        ? cmsLinks.map((l) => {
+            const href = String(l.href || "/").replace(/\/+$/, "") || "/";
+            const fallback = defaultNavLinks.find((d) => d.href === href);
+            return {
+              href,
+              label: pickCmsText(
+                l.label,
+                fallback ? t(fallback.labelKey) : "",
+                locale
+              ),
+            };
+          })
+        : defaultNavLinks.map((l) => ({
+            href: l.href,
+            label: t(l.labelKey),
+          }));
+
+    const seen = new Set<string>();
+    return raw.filter((link) => {
+      const key = link.href === "/blog" ? "/guides" : link.href;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [cmsLinks, locale, t]);
   const consultationLabel = pickCmsText(
     navCms?.consultationLabel,
     t("nav.consultation"),
@@ -78,6 +99,10 @@ const Navbar = () => {
     t("nav.search"),
     locale
   );
+  const logoSrc =
+    typeof navCms?.logoUrl === "string" && navCms.logoUrl.trim()
+      ? navCms.logoUrl.trim()
+      : "/logo1.svg";
 
   useEffect(() => {
     let alive = true;
@@ -96,6 +121,18 @@ const Navbar = () => {
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
+
+  const navLinkClass = (href: string) =>
+    `shrink-0 rounded-full tracking-wide transition-colors duration-200 px-2 py-1.5 text-[12px] xl:px-2.5 xl:text-[13px] 2xl:px-3.5 2xl:py-2 2xl:text-sm ${
+      isActive(href)
+        ? "bg-[#F5F3EF] text-[#1A1A1A] font-bold"
+        : "text-gray-500 font-medium hover:text-[#1A1A1A]"
+    }`;
+
+  const hubNavForHref = (href: string) => {
+    const normalized = href.replace(/\/+$/, "") || "/";
+    return hubNavByHref(normalized);
+  };
 
   useEffect(() => {
     return () => {
@@ -236,38 +273,48 @@ const Navbar = () => {
 
   return (
     <>
-      <header className="fixed top-0 left-0 w-full z-50 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.06)]">
-      <div className="w-full px-6 sm:px-8 lg:px-10 py-3">
-        <div className="flex items-center justify-between gap-4">
+      <header className="fixed top-0 left-0 w-full z-50 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.06)] overflow-visible">
+      <div className="w-full px-4 sm:px-6 xl:px-8 2xl:px-10 py-3">
+        <div className="flex items-center justify-between gap-2 xl:gap-3 2xl:gap-4">
           <Link
             href="/"
             className="flex-shrink-0"
             onClick={() => setMobileOpen(false)}
           >
             <Image
-              src="/logo1.png"
+              src={logoSrc}
               alt="Thailand Kitchens"
               width={200}
               height={72}
               priority
-              className="w-auto h-12 sm:h-14"
+              className="w-auto h-11 sm:h-12 xl:h-12 2xl:h-14"
             />
           </Link>
 
-          <nav className="hidden lg:flex items-center bg-white rounded-full shadow-[0_4px_16px_rgba(0,0,0,0.08)] px-3 py-1.5 gap-0.5">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`px-4 py-2 rounded-full text-sm tracking-wide transition-colors duration-200 ${
-                  isActive(link.href)
-                    ? "bg-[#F5F3EF] text-[#1A1A1A] font-bold"
-                    : "text-gray-500 font-medium hover:text-[#1A1A1A]"
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
+          <nav className="hidden lg:flex flex-1 min-w-0 justify-center overflow-visible">
+            <div className="flex items-center justify-center flex-nowrap bg-white rounded-full shadow-[0_4px_16px_rgba(0,0,0,0.08)] px-1.5 py-1 xl:px-2 xl:py-1.5 gap-0 max-w-full overflow-visible">
+              {navLinks.map((link) => {
+                const href = link.href === "/blog" ? "/guides" : link.href;
+                const hubConfig = hubNavForHref(href);
+                if (hubConfig) {
+                  return (
+                    <HubDesktopNavItem
+                      key={link.href}
+                      config={hubConfig}
+                      label={link.label}
+                      locale={locale}
+                      pathname={pathname}
+                      linkClassName={navLinkClass(hubConfig.href)}
+                    />
+                  );
+                }
+                return (
+                  <Link key={link.href} href={href} className={navLinkClass(href)}>
+                    {link.label}
+                  </Link>
+                );
+              })}
+            </div>
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-3">
@@ -423,20 +470,36 @@ const Navbar = () => {
         }`}
       >
         <nav className="flex flex-col px-4 sm:px-6 py-4 gap-1 overflow-y-auto max-h-[min(80vh,640px)]">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setMobileOpen(false)}
-              className={`py-3 px-4 rounded-full font-medium transition ${
-                isActive(link.href)
-                  ? "text-[#1A1A1A] font-bold bg-[#F5F3EF]"
-                  : "text-gray-500 hover:bg-gray-50"
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
+          {navLinks.map((link) => {
+            const href = link.href === "/blog" ? "/guides" : link.href;
+            const hubConfig = hubNavForHref(href);
+            if (hubConfig) {
+              return (
+                <HubMobileNavSection
+                  key={link.href}
+                  config={hubConfig}
+                  label={link.label}
+                  locale={locale}
+                  pathname={pathname}
+                  onNavigate={() => setMobileOpen(false)}
+                />
+              );
+            }
+            return (
+              <Link
+                key={link.href}
+                href={href}
+                onClick={() => setMobileOpen(false)}
+                className={`py-3 px-4 rounded-full font-medium transition ${
+                  isActive(href)
+                    ? "text-[#1A1A1A] font-bold bg-[#F5F3EF]"
+                    : "text-gray-500 hover:bg-gray-50"
+                }`}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
 
           <div className="sm:hidden pt-2">
             <input

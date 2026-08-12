@@ -36,19 +36,37 @@ export function blogCategoryLabel(category: string, t: Translate) {
 }
 
 export function formatBlogDate(
-  post: { date: string; dateISO?: string },
+  post: { date: string; dateISO?: string; updatedISO?: string },
   locale: Locale
 ) {
   if (!post.dateISO) return post.date;
-  const parsed = new Date(post.dateISO);
-  if (Number.isNaN(parsed.getTime())) return post.date;
-  return parsed
+
+  const parsedPublished = new Date(post.dateISO);
+  if (Number.isNaN(parsedPublished.getTime())) return post.date;
+
+  const published = parsedPublished
     .toLocaleDateString(DATE_LOCALES[locale], {
       month: "short",
       day: "numeric",
       year: "numeric",
     })
     .toUpperCase();
+
+  if (!post.updatedISO) return published;
+
+  const parsedUpdated = new Date(post.updatedISO);
+  if (Number.isNaN(parsedUpdated.getTime())) return published;
+
+  const updated = parsedUpdated
+    .toLocaleDateString(DATE_LOCALES[locale], {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    })
+    .toUpperCase();
+
+  // Keep label short and consistent with existing uppercase date styling.
+  return `${published} · UPDATED ${updated}`;
 }
 
 export function formatReadTime(readTime: string, t: Translate) {

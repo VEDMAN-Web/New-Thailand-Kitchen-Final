@@ -14,6 +14,7 @@ import {
 } from "../../services/cmsPublic";
 import type { ContactData } from "../../types/contactUs";
 import { pickCmsText } from "../../lib/cmsText";
+import { trackGa4Event } from "../../lib/ga4";
 
 type PendingDownload = {
   id: number;
@@ -136,6 +137,13 @@ export default function CatlogSection() {
           return;
         }
 
+        // GA4: catalogue download request (unlocked)
+        trackGa4Event("catalog_download", {
+          lead_source: "catalog_download_btn",
+          category,
+          download_name: downloadName,
+        });
+
         const sourceUrl =
           pdfUrl && (pdfUrl.startsWith("http") || pdfUrl.startsWith("/uploads"))
             ? pdfUrl
@@ -254,6 +262,11 @@ export default function CatlogSection() {
       setGateErrors({});
       setShowFormPopup(false);
 
+      // GA4: catalogue download unlocked after gate submit
+      trackGa4Event("catalog_unlock", {
+        lead_source: "catalog_gate",
+      });
+
       toast.success(t("form.successTitle"), {
         description: t("form.successDescCatalog"),
       });
@@ -298,6 +311,8 @@ export default function CatlogSection() {
               const isDownloading = downloadingId === item.id;
               const title = pickCmsText(item.title, "Catalogue", locale);
               const category = pickCmsText(item.category, "Catalogue", locale);
+              const imageSrc =
+                typeof item.image === "string" ? item.image.trim() : "";
 
               return (
                 <div
@@ -313,21 +328,23 @@ export default function CatlogSection() {
                   }`}
                 >
                   <div className="relative w-full h-[320px] sm:h-full overflow-hidden rounded-2xl">
-                    <Image
-                      src={item.image}
-                      alt={title}
-                      fill
-                      className={`object-cover transition-transform duration-700 ease-out ${
-                        isActive || isIdle
-                          ? "scale-100 group-hover:scale-105"
-                          : "scale-100"
-                      }`}
-                      sizes="(max-width: 640px) 100vw, 50vw"
-                      unoptimized={
-                        item.image.startsWith("/uploads") ||
-                        item.image.startsWith("http")
-                      }
-                    />
+                    {imageSrc ? (
+                      <Image
+                        src={imageSrc}
+                        alt={title}
+                        fill
+                        className={`object-cover transition-transform duration-700 ease-out ${
+                          isActive || isIdle
+                            ? "scale-100 group-hover:scale-105"
+                            : "scale-100"
+                        }`}
+                        sizes="(max-width: 640px) 100vw, 50vw"
+                        unoptimized={
+                          imageSrc.startsWith("/uploads") ||
+                          imageSrc.startsWith("http")
+                        }
+                      />
+                    ) : null}
 
                     <button
                       type="button"

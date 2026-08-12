@@ -47,35 +47,37 @@ export default function ProductDetailGallery({ product }: Props) {
       </div>
 
       {/* Carousel controls */}
-      <div className="mt-6 flex items-center justify-center gap-4">
+      <div className="mt-8 flex items-center justify-center gap-6">
         <button
           type="button"
           onClick={goPrev}
           aria-label="Previous image"
-          className="w-10 h-10 rounded-full border border-[#C9C2B6] flex items-center justify-center text-[#1A1A1A] hover:bg-[#1A1A1A] hover:text-white hover:border-[#1A1A1A] transition"
+          disabled={slides.length <= 1}
+          className="group w-12 h-12 rounded-full bg-white border-2 border-[#E8E3DD] shadow-[0_2px_12px_rgba(0,0,0,0.08)] flex items-center justify-center text-[#1A1A1A] hover:border-[#1A1A1A] hover:shadow-[0_4px_16px_rgba(0,0,0,0.12)] active:scale-95 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-[#E8E3DD] disabled:hover:shadow-[0_2px_12px_rgba(0,0,0,0.08)]"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden className="transform group-active:scale-90 transition-transform">
             <path
               d="M15 18l-6-6 6-6"
               stroke="currentColor"
-              strokeWidth="2"
+              strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
           </svg>
         </button>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           {slides.map((_, index) => (
             <button
               key={index}
               type="button"
               onClick={() => setActive(index)}
               aria-label={`Go to image ${index + 1}`}
-              className={`rounded-full transition-all ${
+              aria-current={index === active ? "true" : "false"}
+              className={`rounded-full transition-all duration-300 ${
                 index === active
-                  ? "w-6 h-2 bg-[#E0905A]"
-                  : "w-2 h-2 bg-[#C9C2B6] hover:bg-[#A79E8F]"
+                  ? "w-8 h-2.5 bg-gradient-to-r from-[#E0905A] to-[#D17A3F] shadow-[0_2px_8px_rgba(224,144,90,0.4)]"
+                  : "w-2.5 h-2.5 bg-[#D4C4B0] hover:bg-[#B8A890] hover:scale-125 active:scale-110"
               }`}
             />
           ))}
@@ -85,13 +87,14 @@ export default function ProductDetailGallery({ product }: Props) {
           type="button"
           onClick={goNext}
           aria-label="Next image"
-          className="w-10 h-10 rounded-full border border-[#C9C2B6] flex items-center justify-center text-[#1A1A1A] hover:bg-[#1A1A1A] hover:text-white hover:border-[#1A1A1A] transition"
+          disabled={slides.length <= 1}
+          className="group w-12 h-12 rounded-full bg-white border-2 border-[#E8E3DD] shadow-[0_2px_12px_rgba(0,0,0,0.08)] flex items-center justify-center text-[#1A1A1A] hover:border-[#1A1A1A] hover:shadow-[0_4px_16px_rgba(0,0,0,0.12)] active:scale-95 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-[#E8E3DD] disabled:hover:shadow-[0_2px_12px_rgba(0,0,0,0.08)]"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden className="transform group-active:scale-90 transition-transform">
             <path
               d="M9 6l6 6-6 6"
               stroke="currentColor"
-              strokeWidth="2"
+              strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
             />

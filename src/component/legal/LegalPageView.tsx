@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Footer from "../Footer/footer";
 import {
   type LegalPageContent,
   type LegalSection,
@@ -83,7 +82,6 @@ export default function LegalPageView({
           </div>
         </div>
       </main>
-      <Footer />
     </div>
   );
 }

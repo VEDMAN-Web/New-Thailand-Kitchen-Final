@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createContact } from "../services/contactAPI";
 import { toast } from "sonner";
 import { useTranslation } from "../i18n/LanguageProvider";
+import { trackGa4Event } from "../lib/ga4";
 
 type ContactMethod = "whatsapp" | "telegram" | "phone" | "email";
 
@@ -157,11 +158,21 @@ export default function ConsultationEnquiryModal({ open, onClose }: Props) {
         message,
       });
 
+      // GA4: navbar free-consultation lead submission conversion
+      trackGa4Event("lead_submit", {
+        lead_source: "navbar_enquiry",
+        preferred_contact: form.method,
+      });
+
       try {
         await fetch("/api/catalog/unlock", { method: "POST" });
       } catch {
         /* unlock is best-effort; contact already saved */
       }
+
+      trackGa4Event("catalog_unlock", {
+        lead_source: "navbar_enquiry",
+      });
 
       toast.success(t("form.successTitle"), {
         description: t("form.successDesc"),

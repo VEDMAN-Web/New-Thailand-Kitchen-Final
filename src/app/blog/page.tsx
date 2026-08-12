@@ -1,11 +1,12 @@
-import BlogPageView from "../../component/blog/BlogPageView";
+import { redirect } from "next/navigation";
 import { blogPosts } from "../../component/blog/blogData";
 import { fetchMergedBlogs } from "../../services/cmsPublic";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+/** Legacy /blog — permanent redirect also in next.config; this is a safety net. */
 export default async function BlogPage() {
-  const posts = await fetchMergedBlogs().catch(() => blogPosts);
-  return <BlogPageView initialPosts={posts} />;
+  await fetchMergedBlogs().catch(() => blogPosts);
+  redirect("/guides");
 }

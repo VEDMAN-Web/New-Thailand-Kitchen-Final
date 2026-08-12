@@ -13,6 +13,7 @@ import { useTranslation } from "../../i18n/LanguageProvider";
 import { useCmsSection } from "../../lib/CmsHomeContext";
 import { pickCmsText } from "../../lib/cmsText";
 import { smoothScrollAfterNav } from "../../lib/smoothScroll";
+import { trackGa4Event } from "../../lib/ga4";
 
 function SocialIcon({ name }: { name: SocialIconName }) {
   const common = {
@@ -122,6 +123,15 @@ export default function Footer() {
     return s;
   });
 
+  const handleSocialClick = (name: string) => {
+    // Track only; do not block navigation.
+    if (name === "whatsapp") {
+      trackGa4Event("whatsapp_click", {
+        origin: "footer",
+      });
+    }
+  };
+
   const logoUrl = footerCms?.logoUrl?.trim() || "/footer/logo.png";
   const remoteLogo =
     logoUrl.startsWith("http") || logoUrl.startsWith("/uploads");
@@ -217,6 +227,7 @@ export default function Footer() {
                   aria-label={item.label}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => handleSocialClick(item.name)}
                   className="w-10 h-10 rounded-full border border-[#B38B6D]/60 text-[#B38B6D] flex items-center justify-center bg-transparent hover:bg-[#F5F3EF] hover:border-[#F5F3EF] hover:text-[#1A1A1A] transition-colors duration-300"
                 >
                   <SocialIcon name={item.name} />

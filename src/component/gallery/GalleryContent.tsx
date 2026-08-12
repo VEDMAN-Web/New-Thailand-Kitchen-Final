@@ -75,7 +75,24 @@ export default function GalleryContent({ initialItems, initialFilters }: Props) 
   const items =
     active === "All"
       ? itemsAll
-      : itemsAll.filter((item) => item.filter === active);
+      : itemsAll.filter((item) => {
+          // Legacy filter bucket OR SEO taxonomy tags (location/layout/style/material/property)
+          if (item.filter === active) return true;
+          const cms = item as CmsGallery;
+          const tags = [
+            cms.locationTag,
+            cms.layoutTag,
+            cms.styleTag,
+            cms.materialTag,
+            cms.propertyType,
+          ]
+            .filter(Boolean)
+            .map((t) => String(t).toLowerCase());
+          const needle = active.toLowerCase();
+          return tags.some(
+            (t) => t === needle || t.includes(needle) || needle.includes(t)
+          );
+        });
 
   return (
     <section className="pb-16 lg:pb-24">
@@ -110,6 +127,8 @@ export default function GalleryContent({ initialItems, initialFilters }: Props) 
             const pos = i % 7;
             const isTall = Boolean(item.tall) || pos === 0 || pos === 4;
             const isWide = Boolean(item.wide) || pos === 6;
+            const imageSrc =
+              typeof item.image === "string" ? item.image.trim() : "";
 
             const panClass =
               isTall || isWide
@@ -123,17 +142,20 @@ export default function GalleryContent({ initialItems, initialFilters }: Props) 
                   isTall ? "row-span-2" : ""
                 } ${isWide ? "col-span-2 row-span-2" : ""}`}
               >
-                <Image
-                  src={item.image}
-                  alt={pickCmsText(item.title, "Gallery", locale)}
-                  fill
-                  className={`object-cover ${panClass}`}
-                  sizes={isWide ? "100vw" : "(max-width: 1024px) 50vw, 45vw"}
-                  unoptimized={
-                    item.image.startsWith("/uploads") ||
-                    item.image.startsWith("http")
-                  }
-                />
+                {imageSrc ? (
+                  <Image
+                    src={imageSrc}
+                    alt={pickCmsText(item.title, "Gallery", locale)}
+                    fill
+                    className={`object-cover ${panClass}`}
+                    sizes={
+                      isWide ? "100vw" : "(max-width: 1024px) 50vw, 45vw"
+                    }
+                    unoptimized={
+                      imageSrc.startsWith("/uploads") || imageSrc.startsWith("http")
+                    }
+                  />
+                ) : null}
               </article>
             );
           })}

@@ -11,7 +11,9 @@ import {
 } from "react";
 import {
   fetchHomeSections,
+  fetchMergedCategories,
   fetchMergedProducts,
+  type CmsCategory,
   type HomeSections,
 } from "../services/cmsPublic";
 import type { ProductItem } from "../component/products/productData";
@@ -21,6 +23,7 @@ export type { HomeSections };
 type CmsContextValue = {
   sections: HomeSections;
   products: ProductItem[];
+  categories: CmsCategory[];
   /** True only on the very first fetch (never blank after that). */
   loading: boolean;
   /** Soft refresh without clearing current CMS data. */
@@ -30,6 +33,7 @@ type CmsContextValue = {
 const CmsContext = createContext<CmsContextValue>({
   sections: {},
   products: [],
+  categories: [],
   loading: true,
   refresh: async () => {},
 });
@@ -58,34 +62,51 @@ export function CmsProvider({
   children,
   initialSections,
   initialProducts,
+  initialCategories,
 }: {
   children: React.ReactNode;
   initialSections?: HomeSections;
   initialProducts?: ProductItem[];
+  initialCategories?: CmsCategory[];
 }) {
   const [sections, setSections] = useState<HomeSections>(initialSections || {});
   const [products, setProducts] = useState<ProductItem[]>(initialProducts || []);
-  const [loading, setLoading] = useState(!initialSections && !initialProducts);
+  const [categories, setCategories] = useState<CmsCategory[]>(
+    initialCategories || []
+  );
+  const [loading, setLoading] = useState(
+    !initialSections && !initialProducts && !initialCategories
+  );
   const aliveRef = useRef(true);
   const fadeRef = useRef<HTMLDivElement>(null);
-  const hasDataRef = useRef(Boolean(initialSections || initialProducts));
+  const hasDataRef = useRef(
+    Boolean(initialSections || initialProducts || initialCategories)
+  );
   const sectionsRef = useRef<HomeSections>(initialSections || {});
   const productsRef = useRef<ProductItem[]>(initialProducts || []);
+  const categoriesRef = useRef<CmsCategory[]>(initialCategories || []);
   const fetchingRef = useRef(false);
 
   const applyData = useCallback(
-    (nextSections: HomeSections, nextProducts: ProductItem[]) => {
+    (
+      nextSections: HomeSections,
+      nextProducts: ProductItem[],
+      nextCategories: CmsCategory[]
+    ) => {
       const changed =
         JSON.stringify(sectionsRef.current) !== JSON.stringify(nextSections) ||
-        JSON.stringify(productsRef.current) !== JSON.stringify(nextProducts);
+        JSON.stringify(productsRef.current) !== JSON.stringify(nextProducts) ||
+        JSON.stringify(categoriesRef.current) !== JSON.stringify(nextCategories);
 
       if (!changed && hasDataRef.current) return;
 
       const commit = () => {
         sectionsRef.current = nextSections;
         productsRef.current = nextProducts;
+        categoriesRef.current = nextCategories;
         setSections(nextSections);
         setProducts(nextProducts);
+        setCategories(nextCategories);
         hasDataRef.current = true;
       };
 
@@ -105,12 +126,13 @@ export function CmsProvider({
       if (fetchingRef.current) return;
       fetchingRef.current = true;
       try {
-        const [home, productList] = await Promise.all([
+        const [home, productList, categoryList] = await Promise.all([
           fetchHomeSections(),
           fetchMergedProducts(),
+          fetchMergedCategories(),
         ]);
         if (!aliveRef.current) return;
-        applyData(home || {}, productList || []);
+        applyData(home || {}, productList || [], categoryList || []);
       } catch {
         /* keep previous / empty → components fall back to static/i18n */
       } finally {
@@ -127,7 +149,7 @@ export function CmsProvider({
     aliveRef.current = true;
     
     // If we have initial data, skip the first fetch but still set up polling
-    if (!initialSections && !initialProducts) {
+    if (!initialSections && !initialProducts && !initialCategories) {
       void load(true);
     }
 
@@ -152,15 +174,15 @@ export function CmsProvider({
       document.removeEventListener("visibilitychange", onVisibility);
       window.clearInterval(interval);
     };
-  }, [load, initialSections, initialProducts]);
+  }, [load, initialSections, initialProducts, initialCategories]);
 
   const refresh = useCallback(async () => {
     await load(false);
   }, [load]);
 
   const value = useMemo(
-    () => ({ sections, products, loading, refresh }),
-    [sections, products, loading, refresh]
+    () => ({ sections, products, categories, loading, refresh }),
+    [sections, products, categories, loading, refresh]
   );
 
   return (

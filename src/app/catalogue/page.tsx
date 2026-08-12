@@ -1,4 +1,3 @@
-import Footer from "../../component/Footer/footer";
 import { fetchMergedCatalogues } from "../../services/cmsPublic";
 import CataloguePageClient from "./CataloguePageClient";
 

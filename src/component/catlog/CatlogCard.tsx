@@ -12,16 +12,19 @@ interface ProductProps {
 }
 
 export default function CatlogCard({ item }: ProductProps) {
+  const imageSrc = typeof item.image === "string" ? item.image.trim() : "";
   return (
     <div className="group bg-white rounded-[24px] p-3 sm:p-4 shadow-[0_12px_40px_rgba(0,0,0,0.06)] h-full">
       <div className="relative rounded-[18px] overflow-hidden">
-        <Image
-          src={item.image}
-          alt={item.title}
-          width={500}
-          height={640}
-          className="w-full h-[320px] sm:h-[360px] md:h-[400px] object-cover scale-110 transition-transform duration-700 ease-out group-hover:scale-100"
-        />
+        {imageSrc ? (
+          <Image
+            src={imageSrc}
+            alt={item.title}
+            width={500}
+            height={640}
+            className="w-full h-[320px] sm:h-[360px] md:h-[400px] object-cover scale-110 transition-transform duration-700 ease-out group-hover:scale-100"
+          />
+        ) : null}
       </div>
 
       <div className="flex items-end justify-between gap-3 px-2 pt-4 pb-2">

@@ -6,6 +6,7 @@ import { createContact } from "../services/contactAPI";
 import { validateContact } from "../utils/validation";
 import { toast } from "sonner";
 import { useTranslation } from "../i18n/LanguageProvider";
+import { trackGa4Event } from "../lib/ga4";
 
 const initialData: ContactData = {
   fullName: "",
@@ -82,6 +83,12 @@ export default function useContact() {
 
       await createContact(payload);
 
+      // GA4: lead form submission conversion
+      trackGa4Event("lead_submit", {
+        lead_source: "contact_page",
+        preferred_contact: payload.whatsappNumber ? "whatsapp" : "phone",
+      });
+
       // Unlock catalogue PDF download (httpOnly cookie via Next API)
       try {
         await fetch("/api/catalog/unlock", { method: "POST" });
@@ -99,6 +106,11 @@ export default function useContact() {
 
       // Soft-refresh catalog lock UI if user stays on page
       window.dispatchEvent(new Event("catalog:unlocked"));
+
+      // GA4: catalogue unlock after successful lead submission
+      trackGa4Event("catalog_unlock", {
+        lead_source: "contact_page",
+      });
     } catch (err: unknown) {
       const apiMessage =
         typeof err === "object" &&

@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import BlogFilters from "./BlogFilters";
 import BlogFeaturedCard from "./BlogFeaturedCard";
 import BlogCard from "./BlogCard";
-import { BlogCategory, type BlogPost } from "./blogData";
+import { type BlogPost } from "./blogData";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import { fetchMergedBlogs } from "../../services/cmsPublic";
 
@@ -20,7 +20,7 @@ export default function BlogListSection({
   initialPosts: BlogPost[];
 }) {
   const { t } = useTranslation();
-  const [active, setActive] = useState<BlogCategory>("All");
+  const [active, setActive] = useState("All");
 
   // Hydrate from module-level cache if fresh, otherwise use SSR data
   const startPosts =
@@ -29,6 +29,24 @@ export default function BlogListSection({
       : initialPosts;
 
   const [posts, setPosts] = useState<BlogPost[]>(startPosts);
+
+  const categories = useMemo(() => {
+    const fromPosts = posts
+      .map((p) => String(p.category || "").trim())
+      .filter(Boolean);
+    const unique = Array.from(new Set(fromPosts)).sort((a, b) =>
+      a.localeCompare(b)
+    );
+    return unique.length ? ["All", ...unique] : ["All"];
+  }, [posts]);
+
+  // Reset filter if active category no longer exists
+  useEffect(() => {
+    if (!categories.includes(active)) {
+      setActive("All");
+    }
+  }, [active, categories]);
+
   const fetchedRef = useRef(false);
 
   useEffect(() => {
@@ -55,7 +73,7 @@ export default function BlogListSection({
       : posts.filter(
           (post) =>
             post.filter === active ||
-            post.category.toLowerCase() === active.toLowerCase()
+            String(post.category || "").toLowerCase() === active.toLowerCase()
         );
 
   const featured = filtered.filter((post) => post.featured);
@@ -63,7 +81,7 @@ export default function BlogListSection({
 
   return (
     <section className="pb-16 lg:pb-24 bg-[#F5F3EF] pt-10 lg:pt-12">
-      <BlogFilters active={active} onChange={setActive} />
+      <BlogFilters active={active} categories={categories} onChange={setActive} />
 
       <div className="mt-12 lg:mt-16 space-y-16 lg:space-y-20 w-full">
         {featured.map((post) => (

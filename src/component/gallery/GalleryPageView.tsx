@@ -1,6 +1,5 @@
 import GalleryHero from "./GalleryHero";
 import GalleryContent from "./GalleryContent";
-import Footer from "../Footer/footer";
 import type { CmsGallery } from "../../services/cmsPublic";
 
 type Props = {
@@ -13,7 +12,6 @@ export default function GalleryPageView({ initialItems, initialFilters }: Props)
     <div className="w-full bg-[#F5F3EF]">
       <GalleryHero />
       <GalleryContent initialItems={initialItems} initialFilters={initialFilters} />
-      <Footer />
     </div>
   );
 }

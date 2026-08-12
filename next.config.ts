@@ -17,6 +17,21 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
+  async redirects() {
+    return [
+      { source: "/blog", destination: "/guides", permanent: true },
+      { source: "/blog/:slug", destination: "/guides/:slug", permanent: true },
+      { source: "/journal", destination: "/guides", permanent: true },
+      { source: "/journal/:slug", destination: "/guides/:slug", permanent: true },
+      { source: "/kitchen", destination: "/kitchens", permanent: true },
+      { source: "/kitchen/:path*", destination: "/kitchens/:path*", permanent: true },
+      { source: "/styles/:slug", destination: "/kitchens/styles/:slug", permanent: true },
+      { source: "/projects", destination: "/gallery", permanent: true },
+      { source: "/portfolio", destination: "/gallery", permanent: true },
+      { source: "/about", destination: "/#our-service", permanent: true },
+      { source: "/catalog", destination: "/catalogue", permanent: true },
+    ];
+  },
   async rewrites() {
     return [
       {

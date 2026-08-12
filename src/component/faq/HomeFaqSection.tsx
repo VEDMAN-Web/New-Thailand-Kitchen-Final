@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import type { TranslationKey } from "../../i18n/translations";
 import { useCmsSection } from "../../lib/CmsHomeContext";
 import { pickCmsText } from "../../lib/cmsText";
+import { fetchMergedFaqs } from "../../services/cmsPublic";
 import { faqItems } from "./faqData";
 
 type HomeFaqCms = {
@@ -57,10 +58,28 @@ function AccordionRow({
   );
 }
 
-/** Home-page FAQ — driven by Home Management → FAQ Section in admin. */
+/** Home-page FAQ — first 5 from Admin → FAQs (same source as /faq). */
 export default function HomeFaqSection() {
   const { t, locale } = useTranslation();
   const faqCms = useCmsSection<HomeFaqCms>("faq");
+  const [dedicatedFaqs, setDedicatedFaqs] = useState<
+    { question: unknown; answer: unknown }[] | null
+  >(null);
+
+  useEffect(() => {
+    let alive = true;
+    fetchMergedFaqs()
+      .then((items) => {
+        if (!alive) return;
+        setDedicatedFaqs(
+          items.map((f) => ({ question: f.question, answer: f.answer }))
+        );
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const eyebrow = pickCmsText(
     faqCms?.eyebrow,
@@ -72,11 +91,17 @@ export default function HomeFaqSection() {
   const HOME_FAQ_LIMIT = 5;
 
   const items = useMemo(() => {
-    const cmsItems = (faqCms?.items || []).filter(
-      (i) => pickCmsText(i?.question, "", "EN") || pickCmsText(i?.answer, "", "EN")
-    );
-    const mapped = cmsItems.length
-      ? cmsItems.map((item, index) => ({
+    const source =
+      dedicatedFaqs && dedicatedFaqs.length
+        ? dedicatedFaqs
+        : (faqCms?.items || []).filter(
+            (i) =>
+              pickCmsText(i?.question, "", "EN") ||
+              pickCmsText(i?.answer, "", "EN")
+          );
+
+    const mapped = source.length
+      ? source.map((item, index) => ({
           id: `home-faq-${index}`,
           question: pickCmsText(
             item.question,
@@ -95,7 +120,7 @@ export default function HomeFaqSection() {
           answer: t(`faq.a${item.id}` as TranslationKey),
         }));
     return mapped.slice(0, HOME_FAQ_LIMIT);
-  }, [faqCms, locale, t]);
+  }, [dedicatedFaqs, faqCms, locale, t]);
 
   return (
     <section id="home-faq" className="bg-[#F5F3EF] pt-10 lg:pt-12 pb-16 lg:pb-20 scroll-mt-28">

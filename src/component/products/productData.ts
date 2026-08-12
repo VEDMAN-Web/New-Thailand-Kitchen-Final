@@ -38,6 +38,9 @@ export interface ProductItem {
   contactImage: string;
   pdfUrl?: string;
   icon?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  indexable?: boolean;
 }
 
 export const productLayouts: ProductLayout[] = [

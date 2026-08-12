@@ -1,10 +1,9 @@
 "use client";
 
-import { blogCategories, BlogCategory } from "./blogData";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import type { TranslationKey } from "../../i18n/translations";
 
-const categoryKeyMap: Record<BlogCategory, TranslationKey> = {
+const categoryKeyMap: Record<string, TranslationKey> = {
   All: "gallery.filter.all",
   "Layout & Space": "gallery.filter.layout",
   Storage: "gallery.filter.storage",
@@ -13,17 +12,20 @@ const categoryKeyMap: Record<BlogCategory, TranslationKey> = {
 };
 
 interface Props {
-  active: BlogCategory;
-  onChange: (category: BlogCategory) => void;
+  active: string;
+  categories: string[];
+  onChange: (category: string) => void;
 }
 
-export default function BlogFilters({ active, onChange }: Props) {
+export default function BlogFilters({ active, categories, onChange }: Props) {
   const { t } = useTranslation();
 
   return (
     <div className="flex flex-wrap justify-start gap-3">
-      {blogCategories.map((category) => {
+      {categories.map((category) => {
         const isActive = category === active;
+        const labelKey = categoryKeyMap[category];
+        const label = labelKey ? t(labelKey) : category;
         return (
           <button
             key={category}
@@ -35,7 +37,7 @@ export default function BlogFilters({ active, onChange }: Props) {
                 : "bg-[#EDE8E1] text-[#1A1A1A] hover:bg-[#E5DFD6]"
             }`}
           >
-            {t(categoryKeyMap[category])}
+            {label}
           </button>
         );
       })}
