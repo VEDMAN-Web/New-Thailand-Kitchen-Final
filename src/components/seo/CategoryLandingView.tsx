@@ -96,7 +96,7 @@ export default function CategoryLandingView({
             <p className="text-[#D4B896] text-xs tracking-[0.22em] uppercase font-semibold mb-3">
               {eyebrow}
             </p>
-            <h1 className="font-[family-name:var(--font-cormorant)] text-4xl sm:text-5xl md:text-6xl text-white leading-tight max-w-3xl">
+            <h1 className="font-sans text-4xl sm:text-5xl md:text-6xl text-white leading-tight max-w-3xl">
               {title}
             </h1>
             {paragraphs[0] ? (
@@ -123,7 +123,7 @@ export default function CategoryLandingView({
               >
                 {eyebrow}
               </p>
-              <h1 className="font-[family-name:var(--font-cormorant)] text-4xl sm:text-5xl text-[#1A2332] leading-tight">
+              <h1 className="font-sans text-4xl sm:text-5xl text-[#1A2332] leading-tight">
                 {title}
               </h1>
               {paragraphs[0] ? (
@@ -174,7 +174,7 @@ export default function CategoryLandingView({
             >
               {eyebrow}
             </p>
-            <h1 className="font-[family-name:var(--font-cormorant)] text-4xl sm:text-5xl text-[#1A2332] leading-tight">
+            <h1 className="font-sans text-4xl sm:text-5xl text-[#1A2332] leading-tight">
               {title}
             </h1>
             {paragraphs[0] ? (
@@ -217,7 +217,7 @@ export default function CategoryLandingView({
               >
                 {eyebrow}
               </p>
-              <h1 className="font-[family-name:var(--font-cormorant)] text-3xl sm:text-4xl md:text-5xl text-[#1A2332] leading-tight">
+              <h1 className="font-sans text-3xl sm:text-4xl md:text-5xl text-[#1A2332] leading-tight">
                 {title}
               </h1>
               {paragraphs[0] ? (

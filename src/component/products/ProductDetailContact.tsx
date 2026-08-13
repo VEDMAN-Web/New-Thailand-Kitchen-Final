@@ -19,7 +19,7 @@ export default function ProductDetailContact({ product }: Props) {
       <p className="text-[#E0905A] text-xs tracking-[0.28em] uppercase font-medium mb-3">
         {t("productDetail.contact.eyebrow")}
       </p>
-      <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-semibold text-[#1A1A1A] mb-10 lg:mb-14">
+      <h2 className="text-3xl sm:text-4xl lg:text-5xl font-semibold text-[#1A1A1A] mb-10 lg:mb-14">
         {t("productDetail.contact.title")}
       </h2>
 

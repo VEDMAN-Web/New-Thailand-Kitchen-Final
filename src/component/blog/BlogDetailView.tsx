@@ -218,7 +218,7 @@ export default function BlogDetailView({ post: rawPost }: Props) {
 
                 {post.quote ? (
                   <blockquote className="mt-10 border-l-[3px] border-[#E0905A] pl-6 py-1">
-                    <p className="text-lg sm:text-xl italic text-[#1A1A1A] leading-8 font-serif">
+                    <p className="text-lg sm:text-xl italic text-[#1A1A1A] leading-8">
                       &ldquo;{post.quote}&rdquo;
                     </p>
                     {post.quoteAuthor ? (

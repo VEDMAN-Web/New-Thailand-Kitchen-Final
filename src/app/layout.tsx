@@ -2,7 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import Script from "next/script";
 import { cookies } from "next/headers";
-import { Cormorant_Garamond, Manrope } from "next/font/google";
+import { Manrope } from "next/font/google";
 import Providers from "../lib/react-query";
 import Navbar from "../component/navBar";
 import Footer from "../component/Footer/footer";
@@ -16,14 +16,6 @@ import JsonLd from "../components/seo/JsonLd";
 const manrope = Manrope({
   subsets: ["latin"],
   variable: "--font-manrope",
-  display: "swap",
-});
-
-const cormorant = Cormorant_Garamond({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  style: ["normal", "italic"],
-  variable: "--font-cormorant",
   display: "swap",
 });
 
@@ -102,7 +94,7 @@ export default async function RootLayout({
     <html
       lang={htmlLang}
       data-locale={initialLocale}
-      className={`${manrope.variable} ${cormorant.variable}`}
+      className={manrope.variable}
       suppressHydrationWarning
     >
       <body className="font-sans antialiased" suppressHydrationWarning>

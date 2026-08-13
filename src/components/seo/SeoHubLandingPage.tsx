@@ -129,7 +129,7 @@ export default async function SeoHubLandingPage({
             <p className="text-[#D4B896] text-xs tracking-[0.22em] uppercase font-semibold mb-3">
               {data.eyebrow}
             </p>
-            <h1 className="font-[family-name:var(--font-cormorant)] text-4xl sm:text-5xl md:text-6xl text-white leading-tight max-w-3xl">
+            <h1 className="font-sans text-4xl sm:text-5xl md:text-6xl text-white leading-tight max-w-3xl">
               {data.title}
             </h1>
             <p className="mt-4 max-w-xl text-white/80 text-sm sm:text-base leading-7">
@@ -157,7 +157,7 @@ export default async function SeoHubLandingPage({
               >
                 {data.eyebrow}
               </p>
-              <h1 className="font-[family-name:var(--font-cormorant)] text-4xl sm:text-5xl text-[#1A2332] leading-tight">
+              <h1 className="font-sans text-4xl sm:text-5xl text-[#1A2332] leading-tight">
                 {data.title}
               </h1>
               <p className="mt-5 text-[#5C6370] text-base leading-8">
@@ -201,7 +201,7 @@ export default async function SeoHubLandingPage({
             >
               {data.eyebrow}
             </p>
-            <h1 className="font-[family-name:var(--font-cormorant)] text-4xl sm:text-5xl text-[#1A2332] leading-tight">
+            <h1 className="font-sans text-4xl sm:text-5xl text-[#1A2332] leading-tight">
               {data.title}
             </h1>
             <p className="mt-5 text-[#5C6370] text-base leading-8 max-w-lg">
@@ -245,7 +245,7 @@ export default async function SeoHubLandingPage({
               >
                 {data.eyebrow}
               </p>
-              <h1 className="font-[family-name:var(--font-cormorant)] text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] text-[#1A2332] leading-tight">
+              <h1 className="font-sans text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] text-[#1A2332] leading-tight">
                 {data.title}
               </h1>
               <p className="mt-4 sm:mt-5 text-[#5C6370] text-sm sm:text-base leading-7 sm:leading-8 max-w-xl">

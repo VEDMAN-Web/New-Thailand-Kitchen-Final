@@ -35,8 +35,8 @@ export default function ContactSection() {
         <p className="text-[#E0905A] text-xs tracking-[0.28em] uppercase font-medium mb-3">
           {eyebrow}
         </p>
-        <h2 className="font-serif text-3xl md:text-4xl lg:text-[2.75rem] font-semibold text-[#1A1A1A] mb-10 lg:mb-14">
-          {title}
+        <h2 className="text-3xl md:text-4xl lg:text-[2.75rem] font-semibold text-[#1A1A1A] mb-10 lg:mb-14">
+          {t("home.contact.title")}
         </h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 items-stretch">

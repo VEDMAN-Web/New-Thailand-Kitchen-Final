@@ -129,7 +129,7 @@ export default function HomeFaqSection() {
           {eyebrow}
         </p>
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8 lg:mb-10">
-          <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-[#1A1A1A]">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold text-[#1A1A1A]">
             {title}
           </h2>
           <Link
