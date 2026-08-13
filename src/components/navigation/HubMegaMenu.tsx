@@ -16,6 +16,7 @@ import type { Locale } from "../../i18n/translations";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import {
   hubNavActive,
+  hubNavByKey,
   type HubNavConfig,
   type HubPageCms,
 } from "../../lib/hubNavigation";
@@ -82,6 +83,63 @@ function CategoryLink({
       />
       <span className="truncate">{title}</span>
     </Link>
+  );
+}
+
+function BuiltInFurnitureNavBlock({
+  locale,
+  exploreLabel,
+  onNavigate,
+}: {
+  locale: Locale;
+  exploreLabel: string;
+  onNavigate?: () => void;
+}) {
+  const { categories } = useCms();
+  const { t } = useTranslation();
+  const config = hubNavByKey("builtInFurniture");
+  const copy = useHubCopy(config, locale);
+  const title = copy.title || t("nav.builtInFurniture");
+  const items = categories.filter(
+    (c) =>
+      String(c.categoryType) === "built-in-furniture" &&
+      c.slug &&
+      isTopLevelCategory(c)
+  );
+
+  return (
+    <div className="mt-2 border-t border-[#EEE8DF] pt-2">
+      <Link
+        href="/built-in-furniture"
+        onClick={onNavigate}
+        className="mb-1 flex items-center justify-between gap-3 rounded-xl bg-[#F7F4EF] px-3.5 py-2.5 transition-colors duration-200 hover:bg-[#F0EBE3]"
+      >
+        <span className="text-[13px] font-semibold text-[#1A2332]">
+          {title}
+        </span>
+        <span className="text-[11px] font-medium text-[#9CA3AF] shrink-0">
+          {exploreLabel} →
+        </span>
+      </Link>
+      {items.length > 0 ? (
+        <div
+          className={
+            items.length > 2
+              ? "grid grid-cols-2 gap-x-1 gap-y-0.5 px-0.5"
+              : "grid grid-cols-1 gap-0.5 px-0.5"
+          }
+        >
+          {items.map((item) => (
+            <CategoryLink
+              key={item.id}
+              item={item}
+              locale={locale}
+              onNavigate={onNavigate}
+            />
+          ))}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -174,6 +232,12 @@ function KitchensMegaPanel({
           </div>
         ))}
       </div>
+
+      <BuiltInFurnitureNavBlock
+        locale={locale}
+        exploreLabel={exploreLabel}
+        onNavigate={onNavigate}
+      />
     </div>
   );
 }
@@ -404,6 +468,7 @@ export function HubDesktopNavItem({
                 overviewLabel={overviewLabel}
                 title={copy.title}
                 exploreLabel={exploreLabel}
+                onNavigate={() => setOpen(false)}
               />
             ) : (
               <FlatMegaPanel
@@ -517,6 +582,13 @@ export function HubMobileNavSection({
                     onNavigate={onNavigate}
                   />
                 ))}
+            {config.layout === "grouped" ? (
+              <BuiltInFurnitureNavBlock
+                locale={locale}
+                exploreLabel={exploreLabel}
+                onNavigate={onNavigate}
+              />
+            ) : null}
         </div>
       ) : null}
     </div>

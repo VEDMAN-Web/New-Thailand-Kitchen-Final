@@ -24,6 +24,7 @@ export const translations = {
     "nav.searchLoading": "Searching…",
     "nav.overview": "Overview",
     "nav.explore": "Explore",
+    "nav.builtInFurniture": "Built-In Furniture",
 
     "home.hero.eyebrow": "Fineline of kitchen",
     "home.hero.title": "Timeless craft of Thai kitchen",
@@ -302,6 +303,7 @@ export const translations = {
     "nav.searchLoading": "กำลังค้นหา…",
     "nav.overview": "ภาพรวม",
     "nav.explore": "สำรวจ",
+    "nav.builtInFurniture": "เฟอร์นิเจอร์บิวท์อิน",
 
     "home.hero.eyebrow": "เส้นบางของครัว",
     "home.hero.title": "งานฝีมือครัวไทยที่เหนือกาลเวลา",
@@ -577,6 +579,7 @@ export const translations = {
     "nav.searchLoading": "Szukanie…",
     "nav.overview": "Przegląd",
     "nav.explore": "Odkryj",
+    "nav.builtInFurniture": "Meble na wymiar",
 
     "home.hero.eyebrow": "Fine line kuchni",
     "home.hero.title": "Ponadczasowe rzemiosło kuchni tajskiej",
