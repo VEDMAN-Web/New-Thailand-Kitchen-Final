@@ -144,7 +144,7 @@ const emptyForm = (): FormState => ({
   gallery1: "",
   gallery2: "",
   translations: emptyTranslations(),
-  published: true,
+  published: false,
   primaryCommercialPage: "",
   locationTag: "",
   serviceTag: "",
@@ -708,7 +708,7 @@ export default function AdminBlogsPage() {
         gallery1: a.gallery1 || "",
         gallery2: a.gallery2 || "",
         translations: emptyTranslations(),
-        published: true,
+        published: false,
       });
       setStep(1);
       setLang("en");
