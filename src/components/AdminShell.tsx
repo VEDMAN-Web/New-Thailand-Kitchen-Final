@@ -98,7 +98,7 @@ const THAILAND_NAV: {
   },
   { href: "/faqs", label: "FAQ", icon: MessageCircleQuestion, group: "pages" },
 
-  // Extra site pages + chrome (not in main header, still editable)
+  // Extra site pages (not in the main header, still on the website)
   {
     href: "/categories?hub=built-in-furniture",
     label: "Built-In Furniture",
@@ -108,21 +108,21 @@ const THAILAND_NAV: {
   },
   {
     href: "/?section=catalogue",
-    label: "Catalogue",
+    label: "Free Catalogue",
     icon: BookOpen,
     section: "catalogue",
     group: "chrome",
   },
   {
     href: "/?section=hubPages",
-    label: "Hub Landings",
+    label: "Kitchens, Services, Materials, Locations",
     icon: LayoutGrid,
     section: "hubPages",
     group: "chrome",
   },
   {
     href: "/?section=siteChrome",
-    label: "Navbar & SEO",
+    label: "Header & SEO",
     icon: Settings,
     section: "siteChrome",
     group: "chrome",

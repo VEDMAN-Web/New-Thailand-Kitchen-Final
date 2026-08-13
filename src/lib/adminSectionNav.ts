@@ -36,7 +36,7 @@ export function writeAdminSectionToUrl(section: string | null) {
   } else {
     url.searchParams.set("section", section);
   }
-  // Hub focus is only meaningful on Hub Landings
+  // Hub focus is only meaningful on Kitchens / Services / Materials / Locations overview pages
   if (section !== "hubPages") {
     url.searchParams.delete("hub");
   }

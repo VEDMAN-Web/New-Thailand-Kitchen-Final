@@ -40,9 +40,9 @@ function ChromeInner({ children }: { children: React.ReactNode }) {
     title = hub.label;
   } else if (pathname === "/") {
     if (section === "contactPage") title = "Contact";
-    else if (section === "catalogue") title = "Catalogue";
-    else if (section === "hubPages") title = "Hub Landings";
-    else if (section === "siteChrome") title = "Navbar & SEO";
+    else if (section === "catalogue") title = "Free Catalogue";
+    else if (section === "hubPages") title = "Kitchens, Services, Materials, Locations";
+    else if (section === "siteChrome") title = "Header & SEO";
     else if (section === "faqPage") title = "FAQ Page";
     else if (section === "blogPage") title = "Guides Page";
     else if (section === "homeContact") title = "Home Contact";

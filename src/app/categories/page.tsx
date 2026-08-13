@@ -435,15 +435,15 @@ export default function AdminCategoriesPage() {
               href={`/?section=hubPages&hub=${hub.key}`}
               className="inline-flex items-center justify-center rounded-lg border border-[#E2E5EA] bg-[#F8FAFC] px-3 py-2 text-xs font-semibold text-[#1A2332] hover:bg-[#EEF0F3] shrink-0"
             >
-              Edit {hub.label} hub landing
+              Edit {hub.label} page
             </Link>
           </div>
         ) : (
           <p className="text-xs text-[#6B7280]">
             Pick a hub from the sidebar (Kitchens, Services, Materials,
-            Locations) to edit mega-menu pages. Hub overview landings are under{" "}
+            Locations) to edit mega-menu pages. Overview pages are under{" "}
             <Link href="/?section=hubPages" className="underline font-semibold">
-              Hub Landings
+              Kitchens, Services, Materials, Locations
             </Link>
             .
           </p>

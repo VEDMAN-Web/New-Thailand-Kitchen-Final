@@ -56,8 +56,8 @@ const SECTION_META = [
   // —— Site-wide (navbar lives on every page) ——
   {
     key: "siteChrome",
-    title: "Navbar & SEO",
-    desc: "Top nav links, consultation CTA & SEO meta",
+    title: "Header & SEO",
+    desc: "Top menu, Free Consultation button, logo & Google SEO",
     icon: Settings,
     group: "chrome" as SectionGroup,
   },
@@ -156,8 +156,8 @@ const SECTION_META = [
   },
   {
     key: "hubPages",
-    title: "Hub Landings",
-    desc: "Kitchens, Services, Materials, Locations & Built-In Furniture hub intros",
+    title: "Kitchens, Services, Materials, Locations",
+    desc: "Overview pages for Kitchens, Services, Materials, Locations & Built-In Furniture",
     icon: LayoutGrid,
     group: "pages" as SectionGroup,
   },
@@ -665,7 +665,7 @@ function SectionEditor({
             Navigation
           </p>
           <MediaUpload
-            label="Navbar logo"
+            label="Header logo"
             kind="image"
             value={nav.logoUrl || ""}
             onChange={(v) =>
@@ -1652,19 +1652,19 @@ function SectionEditor({
       {
         order: "1a",
         key: "layouts",
-        label: "Layouts hub",
+        label: "Layouts",
         path: "/kitchens/layouts",
       },
       {
         order: "1b",
         key: "styles",
-        label: "Styles hub",
+        label: "Styles",
         path: "/kitchens/styles",
       },
       {
         order: "1c",
         key: "byProperty",
-        label: "By Property hub",
+        label: "By Property",
         path: "/kitchens/by-property",
       },
     ];
@@ -1759,7 +1759,7 @@ function SectionEditor({
               {key === "kitchens" ? (
                 <div className="space-y-4 rounded-lg border border-[#E8EDF2] bg-[#F8FAFC] p-4">
                   <p className="text-xs font-semibold uppercase tracking-wide text-[#5C6370]">
-                    Kitchens sub-hub landing pages
+                    Layouts, Styles, By Property
                   </p>
                   {kitchenSubsections.map(({ order, key: subKey, label: subLabel, path }) => {
                     const sub = hub.subsections?.[subKey] || {};
