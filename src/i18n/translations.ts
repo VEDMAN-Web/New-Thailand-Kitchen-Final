@@ -263,7 +263,7 @@ export const translations = {
     "footer.link.contact": "Contact",
     "footer.link.bestSeller": "Best Seller",
     "footer.link.ourProducts": "Our Products",
-    "footer.partnered": "Partnered with Livio.Dsign by Oppolia Home",
+    "footer.partnered": "Partnered with Livio.Design by Oppolia Homes",
     "footer.address": "Pattaya & Samui, Thailand",
     "footer.privacy": "Privacy Policy",
     "footer.terms": "Terms & Conditions",

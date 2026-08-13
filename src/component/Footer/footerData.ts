@@ -28,7 +28,7 @@ export const contactInfo = [
   },
   {
     icon: "/footer/calling.png",
-    text: "+91 98765 43210",
+    text: "+66 99 359 6916",
   },
 ];
 
@@ -37,5 +37,5 @@ export type SocialIconName = "instagram" | "facebook" | "whatsapp" | "x";
 export const socialLinks: { name: SocialIconName; link: string; label: string }[] = [
   { name: "instagram", link: "https://www.facebook.com/ThailandKitchens/", label: "Instagram" },
   { name: "facebook", link: "https://www.facebook.com/ThailandKitchens/", label: "Facebook" },
-  { name: "whatsapp", link: "https://web.whatsapp.com/", label: "WhatsApp" },
+  { name: "whatsapp", link: "https://wa.me/99 359 6916", label: "WhatsApp" },
 ];
