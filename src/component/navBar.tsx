@@ -6,7 +6,11 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslation } from "../i18n/LanguageProvider";
 import type { Locale } from "../i18n/translations";
-import { loadNavSearchIndex, searchSiteContent, type NavSearchResult } from "./navSearch";
+import {
+  loadNavSearchIndex,
+  searchSiteGrouped,
+  type NavSearchResult,
+} from "./navSearch";
 import ConsultationEnquiryModal from "./ConsultationEnquiryModal";
 import { useCmsSection } from "../lib/CmsHomeContext";
 import { pickCmsText } from "../lib/cmsText";
@@ -46,14 +50,17 @@ const Navbar = () => {
     searchPlaceholder?: string;
   }>("nav");
   const [isOpen, setIsOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchHover, setSearchHover] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
   const [search, setSearch] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [enquiryOpen, setEnquiryOpen] = useState(false);
   const [searchIndex, setSearchIndex] = useState<NavSearchResult[] | null>(null);
   const desktopSearchRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const closeSearchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const searchExpanded = searchHover || searchFocused || search.trim().length > 0;
+  const showSearchResults = searchFocused || search.trim().length > 0;
 
   const selectedLanguage =
     languages.find((l) => l.code === locale) ?? languages[0];
@@ -106,18 +113,20 @@ const Navbar = () => {
 
   useEffect(() => {
     let alive = true;
-    loadNavSearchIndex().then((index) => {
+    loadNavSearchIndex(locale).then((index) => {
       if (alive) setSearchIndex(index);
     });
     return () => {
       alive = false;
     };
-  }, []);
+  }, [locale]);
 
-  const searchResults = useMemo(
-    () => searchSiteContent(search, 8, searchIndex || undefined),
-    [search, searchIndex]
+  const groupedResults = useMemo(
+    () => searchSiteGrouped(search, searchIndex || undefined),
+    [search, searchIndex],
   );
+  const hasQuery = search.trim().length > 0;
+  const resultCount = groupedResults.pages.length + groupedResults.content.length;
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -135,12 +144,6 @@ const Navbar = () => {
   };
 
   useEffect(() => {
-    return () => {
-      if (closeSearchTimer.current) clearTimeout(closeSearchTimer.current);
-    };
-  }, []);
-
-  useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
@@ -150,59 +153,29 @@ const Navbar = () => {
   useEffect(() => {
     setMobileOpen(false);
     setIsOpen(false);
-    setSearchOpen(false);
+    setSearchHover(false);
+    setSearchFocused(false);
     setSearch("");
   }, [pathname]);
 
   useEffect(() => {
-    if (!searchOpen) return;
-
-    const onPointerDown = (event: MouseEvent) => {
-      if (
-        desktopSearchRef.current &&
-        !desktopSearchRef.current.contains(event.target as Node)
-      ) {
-        setSearchOpen(false);
-        setSearch("");
-      }
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as Node;
+      if (desktopSearchRef.current?.contains(target)) return;
+      searchInputRef.current?.blur();
+      setSearchFocused(false);
+      setSearchHover(false);
     };
 
-    document.addEventListener("mousedown", onPointerDown);
-    return () => document.removeEventListener("mousedown", onPointerDown);
-  }, [searchOpen]);
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, []);
 
   const openSearch = () => {
-    if (closeSearchTimer.current) {
-      clearTimeout(closeSearchTimer.current);
-      closeSearchTimer.current = null;
-    }
     setIsOpen(false);
-    setSearchOpen(true);
-  };
-
-  useEffect(() => {
-    if (!searchOpen) return;
-    const id = window.setTimeout(() => searchInputRef.current?.focus(), 0);
-    return () => window.clearTimeout(id);
-  }, [searchOpen]);
-
-  const closeSearchOnLeave = () => {
-    if (closeSearchTimer.current) clearTimeout(closeSearchTimer.current);
-    closeSearchTimer.current = setTimeout(() => {
-      searchInputRef.current?.blur();
-      setSearchOpen(false);
-      setSearch("");
-    }, 100);
-  };
-
-  const toggleSearch = () => {
-    if (searchOpen) {
-      searchInputRef.current?.blur();
-      setSearchOpen(false);
-      setSearch("");
-      return;
-    }
-    openSearch();
+    setSearchHover(true);
+    setSearchFocused(true);
+    window.setTimeout(() => searchInputRef.current?.focus(), 50);
   };
 
   const selectLanguage = (code: Locale) => {
@@ -212,7 +185,8 @@ const Navbar = () => {
 
   const goToResult = (href: string) => {
     setSearch("");
-    setSearchOpen(false);
+    setSearchHover(false);
+    setSearchFocused(false);
     setMobileOpen(false);
 
     // Same page: do not scroll / move sections
@@ -222,51 +196,70 @@ const Navbar = () => {
   };
 
   const SearchResultsList = ({ mobile = false }: { mobile?: boolean }) => {
-    if (!search.trim()) return null;
+    if (!hasQuery) return null;
 
-    if (searchResults.length === 0) {
+    const panelClass = mobile
+      ? "mt-2 rounded-2xl border border-black/5 bg-white shadow-[0_4px_16px_rgba(0,0,0,0.08)] overflow-hidden"
+      : "absolute right-0 top-[calc(100%+0.5rem)] z-[70] w-[min(22rem,calc(100vw-2rem))] rounded-2xl border border-black/5 bg-white shadow-[0_8px_28px_rgba(0,0,0,0.12)] overflow-hidden";
+
+    if (!searchIndex) {
       return (
-        <div
-          className={`${
-            mobile
-              ? "mt-2 rounded-2xl border border-black/5 bg-white p-4 shadow-[0_4px_16px_rgba(0,0,0,0.08)]"
-              : "absolute right-0 top-full mt-2 w-[min(22rem,calc(100vw-2rem))] rounded-2xl border border-black/5 bg-white p-4 shadow-[0_4px_16px_rgba(0,0,0,0.08)] z-50"
-          }`}
-        >
-        <p className="text-sm text-gray-500">{t("nav.noResults")}</p>
+        <div className={`${panelClass} p-4`}>
+          <p className="text-sm text-gray-500">{t("nav.searchLoading")}</p>
         </div>
       );
     }
 
+    if (resultCount === 0) {
+      return (
+        <div className={`${panelClass} p-4`}>
+          <p className="text-sm text-gray-500">{t("nav.noResults")}</p>
+        </div>
+      );
+    }
+
+    const renderRow = (item: NavSearchResult) => (
+      <li key={item.id}>
+        <button
+          type="button"
+          onClick={() => goToResult(item.href)}
+          className="w-full px-4 py-3 text-left transition hover:bg-[#F5F3EF]"
+        >
+          <p className="text-sm font-semibold leading-snug text-[#1A1A1A] line-clamp-1">
+            {item.title}
+          </p>
+          {item.description ? (
+            <p className="mt-1 text-xs leading-5 text-gray-500 line-clamp-2">
+              {item.description}
+            </p>
+          ) : null}
+          <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#E0905A]">
+            {item.type}
+          </p>
+        </button>
+      </li>
+    );
+
     return (
-      <div
-        className={`${
-          mobile
-            ? "mt-2 rounded-2xl border border-black/5 bg-white overflow-hidden shadow-[0_4px_16px_rgba(0,0,0,0.08)]"
-            : "absolute right-0 top-full mt-2 w-[min(22rem,calc(100vw-2rem))] rounded-2xl border border-black/5 bg-white shadow-[0_4px_16px_rgba(0,0,0,0.08)] z-50 overflow-hidden"
-        }`}
-      >
-        <ul className="max-h-80 overflow-y-auto py-1">
-          {searchResults.map((item) => (
-            <li key={item.id}>
-              <button
-                type="button"
-                onClick={() => goToResult(item.href)}
-                className="w-full text-left px-4 py-3 hover:bg-[#F5F3EF] transition"
-              >
-                <p className="text-[10px] tracking-[0.16em] uppercase text-[#E0905A] font-semibold mb-1">
-                  {item.type}
-                </p>
-                <p className="text-sm font-semibold text-[#1A1A1A] leading-snug line-clamp-1">
-                  {item.title}
-                </p>
-                <p className="mt-1 text-xs text-gray-500 leading-5 line-clamp-2">
-                  {item.description}
-                </p>
-              </button>
-            </li>
-          ))}
-        </ul>
+      <div className={panelClass}>
+        <div className="max-h-80 overflow-y-auto py-1">
+          {groupedResults.pages.length > 0 ? (
+            <div className="border-b border-black/5 pb-1 mb-1">
+              <p className="px-4 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-gray-400">
+                {t("nav.searchPages")}
+              </p>
+              <ul>{groupedResults.pages.map(renderRow)}</ul>
+            </div>
+          ) : null}
+          {groupedResults.content.length > 0 ? (
+            <div>
+              <p className="px-4 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-gray-400">
+                {t("nav.searchContent")}
+              </p>
+              <ul>{groupedResults.content.map(renderRow)}</ul>
+            </div>
+          ) : null}
+        </div>
       </div>
     );
   };
@@ -319,41 +312,62 @@ const Navbar = () => {
 
           <div className="flex items-center gap-2 sm:gap-3">
             <div
-              className={`relative hidden sm:block shrink-0 ${
-                searchOpen ? "w-[15.5rem] h-10" : "w-10 h-10"
-              }`}
+              className="relative hidden h-10 w-10 shrink-0 sm:block"
               ref={desktopSearchRef}
-              onMouseEnter={openSearch}
-              onMouseLeave={(e) => {
-                const next = e.relatedTarget as Node | null;
-                if (next && desktopSearchRef.current?.contains(next)) return;
-                closeSearchOnLeave();
+              onMouseEnter={() => {
+                setIsOpen(false);
+                setSearchHover(true);
+              }}
+              onMouseLeave={() => {
+                if (!searchFocused && !search.trim()) setSearchHover(false);
               }}
             >
+              {/* Fixed icon slot — bar expands left as overlay so nav never reflows */}
               <div
-                className={`absolute right-0 top-1/2 z-50 flex h-10 -translate-y-1/2 items-center transition-all duration-300 ease-out ${
-                  searchOpen
-                    ? "w-[15.5rem] gap-2 rounded-full border border-[#D4C4B0] bg-[#F5F3EF] pl-4 pr-1 shadow-[0_4px_16px_rgba(0,0,0,0.08)]"
-                    : "w-10 justify-center"
+                className={`absolute right-0 top-1/2 z-[60] flex -translate-y-1/2 items-center overflow-hidden rounded-full transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                  searchExpanded
+                    ? "h-10 w-[min(234px,calc(100vw-8rem))] gap-1 border border-[#D4C4B0] bg-[#F5F3EF] pl-4 pr-1 shadow-[0_8px_22px_rgba(0,0,0,0.10)]"
+                    : "h-10 w-10 justify-center border border-transparent bg-transparent shadow-none"
                 }`}
               >
-                {searchOpen ? (
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    onFocus={openSearch}
-                    placeholder={searchPlaceholder}
-                    className="h-full min-w-0 flex-1 bg-transparent border-0 text-sm text-[#1A1A1A] caret-[#1A1A1A] placeholder:text-gray-400 outline-none"
-                  />
-                ) : null}
+                <input
+                  ref={searchInputRef}
+                  type="search"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  onFocus={() => {
+                    setIsOpen(false);
+                    setSearchFocused(true);
+                    setSearchHover(true);
+                  }}
+                  onBlur={(e) => {
+                    const next = e.relatedTarget as Node | null;
+                    if (next && desktopSearchRef.current?.contains(next)) return;
+                    requestAnimationFrame(() => {
+                      const active = document.activeElement;
+                      if (active && desktopSearchRef.current?.contains(active)) return;
+                      setSearchFocused(false);
+                      if (!search.trim()) setSearchHover(false);
+                    });
+                  }}
+                  placeholder={searchPlaceholder}
+                  tabIndex={searchExpanded ? 0 : -1}
+                  aria-label={searchPlaceholder}
+                  className={`min-w-0 flex-1 border-0 bg-transparent py-2 text-sm text-[#1A1A1A] caret-[#1A1A1A] outline-none transition-opacity duration-200 placeholder:text-gray-400 ${
+                    searchExpanded
+                      ? "pointer-events-auto opacity-100 delay-100"
+                      : "pointer-events-none opacity-0"
+                  }`}
+                />
                 <button
                   type="button"
-                  onClick={toggleSearch}
-                  aria-label="Toggle search"
-                  className={`shrink-0 flex items-center justify-center rounded-full bg-white shadow-[0_4px_16px_rgba(0,0,0,0.08)] hover:bg-gray-50 transition ${
-                    searchOpen ? "w-8 h-8" : "w-10 h-10"
+                  onClick={openSearch}
+                  aria-label="Search"
+                  aria-expanded={searchExpanded}
+                  className={`flex shrink-0 items-center justify-center rounded-full transition-colors duration-300 ${
+                    searchExpanded
+                      ? "h-8 w-8 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.06)]"
+                      : "h-10 w-10 bg-white shadow-[0_4px_16px_rgba(0,0,0,0.08)]"
                   }`}
                 >
                   <Image
@@ -366,7 +380,7 @@ const Navbar = () => {
                 </button>
               </div>
 
-              {searchOpen ? <SearchResultsList /> : null}
+              {showSearchResults ? <SearchResultsList /> : null}
             </div>
 
             <div className="relative hidden sm:flex items-center">
@@ -434,7 +448,8 @@ const Navbar = () => {
               onClick={() => {
                 setMobileOpen((open) => !open);
                 setIsOpen(false);
-                setSearchOpen(false);
+                setSearchHover(false);
+                setSearchFocused(false);
               }}
               aria-label="Toggle menu"
               aria-expanded={mobileOpen}

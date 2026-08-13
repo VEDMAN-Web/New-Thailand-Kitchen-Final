@@ -19,6 +19,9 @@ export const translations = {
     "nav.thai": "Thai",
     "nav.polish": "Polish",
     "nav.noResults": "No results found",
+    "nav.searchPages": "Pages",
+    "nav.searchContent": "Content",
+    "nav.searchLoading": "Searching…",
     "nav.overview": "Overview",
     "nav.explore": "Explore",
 
@@ -294,6 +297,9 @@ export const translations = {
     "nav.thai": "ไทย",
     "nav.polish": "โปแลนด์",
     "nav.noResults": "ไม่พบผลลัพธ์",
+    "nav.searchPages": "หน้า",
+    "nav.searchContent": "เนื้อหา",
+    "nav.searchLoading": "กำลังค้นหา…",
     "nav.overview": "ภาพรวม",
     "nav.explore": "สำรวจ",
 
@@ -566,6 +572,9 @@ export const translations = {
     "nav.thai": "Tajski",
     "nav.polish": "Polski",
     "nav.noResults": "Brak wyników",
+    "nav.searchPages": "Strony",
+    "nav.searchContent": "Treści",
+    "nav.searchLoading": "Szukanie…",
     "nav.overview": "Przegląd",
     "nav.explore": "Odkryj",
 

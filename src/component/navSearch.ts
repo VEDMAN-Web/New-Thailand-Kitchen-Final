@@ -1,10 +1,17 @@
 import {
   fetchMergedBlogs,
   fetchMergedCatalogues,
+  fetchMergedCategories,
+  fetchMergedFaqs,
   fetchMergedGallery,
   fetchMergedProducts,
+  type CmsCategory,
 } from "../services/cmsPublic";
 import { pickCmsText } from "../lib/cmsText";
+import { categoryPublicPath, categorySectionLabel } from "../lib/categoryRoutes";
+import { HUB_NAV_CONFIG } from "../lib/hubNavigation";
+import { KITCHENS_SECTIONS } from "../components/kitchens/kitchensConfig";
+import type { Locale } from "../i18n/translations";
 import { productItems } from "./products/productData";
 import { blogPosts } from "./blog/blogData";
 import { galleryItems } from "./gallery/galleryData";
@@ -16,87 +23,97 @@ export type NavSearchResult = {
   description: string;
   href: string;
   type: string;
+  /** "page" = site pages/hubs; everything else = CMS content */
+  group: "page" | "content";
 };
 
-const pageItems: NavSearchResult[] = [
-  {
-    id: "page-home",
-    title: "Home",
-    description: "Thailand Kitchens homepage — kitchens, catalogue and consultation.",
-    href: "/",
-    type: "Page",
-  },
-  {
-    id: "page-kitchens",
-    title: "Kitchens",
-    description: "Kitchen layouts, styles, and property-type pages.",
-    href: "/kitchens",
-    type: "Page",
-  },
-  {
-    id: "page-products",
-    title: "Products",
-    description: "Browse modular kitchen layouts, finishes, materials and best sellers.",
-    href: "/products",
-    type: "Page",
-  },
-  {
-    id: "page-services",
-    title: "Services",
-    description: "Kitchen design, installation, renovation and related services.",
-    href: "/services",
-    type: "Page",
-  },
-  {
-    id: "page-materials",
-    title: "Materials",
-    description: "Cabinet materials, finishes, worktops and hardware.",
-    href: "/materials",
-    type: "Page",
-  },
-  {
-    id: "page-locations",
-    title: "Locations",
-    description: "Kitchen services and projects across Thailand.",
-    href: "/locations",
-    type: "Page",
-  },
-  {
-    id: "page-gallery",
-    title: "Gallery",
-    description: "Inspiration library of tropical, modern and minimal kitchen designs.",
-    href: "/gallery",
-    type: "Page",
-  },
-  {
-    id: "page-guides",
-    title: "Guides",
-    description: "Guides on craft, design and modern Thai kitchen living.",
-    href: "/guides",
-    type: "Page",
-  },
-  {
-    id: "page-contact",
-    title: "Contact",
-    description: "Free design consultation — get in touch with our kitchen studio.",
-    href: "/contact",
-    type: "Page",
-  },
-  {
-    id: "page-faq",
-    title: "FAQ",
-    description: "Answers about pricing, process, materials, installation and support.",
-    href: "/faq",
-    type: "Page",
-  },
-  {
-    id: "page-catalogue",
-    title: "Free Catalogue",
-    description: "Download our latest kitchen catalogue PDF.",
-    href: "/catalogue",
-    type: "Page",
-  },
-];
+export type GroupedNavSearch = {
+  pages: NavSearchResult[];
+  content: NavSearchResult[];
+};
+
+const TYPE_PAGE = "Page";
+
+function staticPageItems(): NavSearchResult[] {
+  const hubs: NavSearchResult[] = HUB_NAV_CONFIG.map((hub) => ({
+    id: `page-hub-${hub.key}`,
+    title: hub.fallbackTitle,
+    description: hub.fallbackDescription,
+    href: hub.href,
+    type: TYPE_PAGE,
+    group: "page",
+  }));
+
+  const kitchenSubs: NavSearchResult[] = KITCHENS_SECTIONS.map((section) => ({
+    id: `page-kitchens-${section.key}`,
+    title: section.label,
+    description: section.description,
+    href: section.href,
+    type: TYPE_PAGE,
+    group: "page",
+  }));
+
+  const core: NavSearchResult[] = [
+    {
+      id: "page-home",
+      title: "Home",
+      description: "Thailand Kitchens homepage — kitchens, catalogue and consultation.",
+      href: "/",
+      type: TYPE_PAGE,
+      group: "page",
+    },
+    {
+      id: "page-products",
+      title: "Products",
+      description: "Browse modular kitchen layouts, finishes, materials and best sellers.",
+      href: "/products",
+      type: TYPE_PAGE,
+      group: "page",
+    },
+    {
+      id: "page-gallery",
+      title: "Gallery",
+      description: "Inspiration library of tropical, modern and minimal kitchen designs.",
+      href: "/gallery",
+      type: TYPE_PAGE,
+      group: "page",
+    },
+    {
+      id: "page-guides",
+      title: "Guides",
+      description: "Guides on craft, design and modern Thai kitchen living.",
+      href: "/guides",
+      type: TYPE_PAGE,
+      group: "page",
+    },
+    {
+      id: "page-contact",
+      title: "Contact",
+      description: "Free design consultation — get in touch with our kitchen studio.",
+      href: "/contact",
+      type: TYPE_PAGE,
+      group: "page",
+    },
+    {
+      id: "page-faq",
+      title: "FAQ",
+      description: "Answers about pricing, process, materials, installation and support.",
+      href: "/faq",
+      type: TYPE_PAGE,
+      group: "page",
+    },
+    {
+      id: "page-catalogue",
+      title: "Free Catalogue",
+      description: "Download our latest kitchen catalogue PDF.",
+      href: "/catalogue",
+      type: TYPE_PAGE,
+      group: "page",
+    },
+  ];
+
+  return [...core, ...hubs, ...kitchenSubs];
+}
 
 function toProductHref(slug: string) {
   const clean = String(slug || "")
@@ -106,121 +123,267 @@ function toProductHref(slug: string) {
   return clean ? `/products/${encodeURIComponent(clean)}` : "/products";
 }
 
-function buildIndexFromCms(data: {
-  products: Awaited<ReturnType<typeof fetchMergedProducts>>;
-  blogs: Awaited<ReturnType<typeof fetchMergedBlogs>>;
-  gallery: Awaited<ReturnType<typeof fetchMergedGallery>>;
-  catalogues: Awaited<ReturnType<typeof fetchMergedCatalogues>>;
-}): NavSearchResult[] {
-  const products: NavSearchResult[] = data.products.map((p) => ({
-    id: `product-${p.id}`,
-    title: pickCmsText(p.name, "", "EN"),
-    description: [
-      pickCmsText(p.description, "", "EN"),
-      pickCmsText(p.headline, "", "EN"),
-      pickCmsText(p.layout, "", "EN"),
-      pickCmsText(p.style, "", "EN"),
-      pickCmsText(p.material, "", "EN"),
-      pickCmsText(p.finish, "", "EN"),
-      pickCmsText(p.color, "", "EN"),
-      ...p.features.map(
-        (f) =>
-          `${pickCmsText(f.title as unknown, "", "EN")} ${pickCmsText(f.description as unknown, "", "EN")}`
-      ),
-    ].join(" "),
-    href: toProductHref(p.slug),
-    type: "Product",
-  }));
+function textOf(value: unknown, locale: Locale, fallback = ""): string {
+  return pickCmsText(value, fallback, locale).trim();
+}
 
-  const blogs: NavSearchResult[] = data.blogs.map((b) => ({
-    id: `blog-${b.id}`,
-    title: b.title,
-    description: [b.excerpt, b.category, b.filter, ...b.content].join(" "),
-    href: `/guides/${b.slug}`,
-    type: "Blog",
-  }));
+function buildIndexFromCms(
+  data: {
+    products: Awaited<ReturnType<typeof fetchMergedProducts>>;
+    blogs: Awaited<ReturnType<typeof fetchMergedBlogs>>;
+    gallery: Awaited<ReturnType<typeof fetchMergedGallery>>;
+    catalogues: Awaited<ReturnType<typeof fetchMergedCatalogues>>;
+    categories: CmsCategory[];
+    faqs: Awaited<ReturnType<typeof fetchMergedFaqs>>;
+  },
+  locale: Locale,
+): NavSearchResult[] {
+  const products: NavSearchResult[] = data.products
+    .map((p) => {
+      const title = textOf(p.name, locale);
+      if (!title) return null;
+      return {
+        id: `product-${p.id}`,
+        title,
+        description: [
+          textOf(p.description, locale),
+          textOf(p.headline, locale),
+          textOf(p.layout, locale),
+          textOf(p.style, locale),
+          textOf(p.material, locale),
+          textOf(p.finish, locale),
+          textOf(p.color, locale),
+          ...p.features.map(
+            (f) =>
+              `${textOf(f.title as unknown, locale)} ${textOf(f.description as unknown, locale)}`,
+          ),
+        ]
+          .filter(Boolean)
+          .join(" "),
+        href: toProductHref(p.slug),
+        type: "Product",
+        group: "content" as const,
+      };
+    })
+    .filter(Boolean) as NavSearchResult[];
 
-  const gallery: NavSearchResult[] = data.gallery.map((g) => ({
-    id: `gallery-${g.id}`,
-    title: pickCmsText(g.title, "Gallery", "EN"),
-    description: `${g.filter} kitchen gallery inspiration`,
-    href: "/gallery",
-    type: "Gallery",
-  }));
+  const blogs: NavSearchResult[] = data.blogs
+    .map((b) => {
+      const title = textOf(b.title, locale) || String(b.title || "").trim();
+      if (!title) return null;
+      return {
+        id: `blog-${b.id}`,
+        title,
+        description: [
+          textOf(b.excerpt, locale) || String(b.excerpt || ""),
+          textOf(b.category as unknown, locale) || String(b.category || ""),
+          String(b.filter || ""),
+          ...(Array.isArray(b.content) ? b.content.map((c) => String(c || "")) : []),
+        ]
+          .filter(Boolean)
+          .join(" "),
+        href: `/guides/${b.slug}`,
+        type: "Guide",
+        group: "content" as const,
+      };
+    })
+    .filter(Boolean) as NavSearchResult[];
 
-  const catalogues: NavSearchResult[] = data.catalogues.slice(0, 6).map((c) => {
-    const category = pickCmsText(c.category, "Catalogue", "EN");
-    const title = pickCmsText(c.title, "Catalogue", "EN");
+  const gallery: NavSearchResult[] = data.gallery
+    .map((g) => {
+      const title = textOf(g.title, locale, "Gallery");
+      return {
+        id: `gallery-${g.id}`,
+        title,
+        description: `${String(g.filter || "")} kitchen gallery inspiration`.trim(),
+        href: "/gallery",
+        type: "Gallery",
+        group: "content" as const,
+      };
+    })
+    .filter((g) => g.title);
+
+  const catalogues: NavSearchResult[] = data.catalogues.slice(0, 8).map((c) => {
+    const category = textOf(c.category, locale, "Catalogue");
+    const title = textOf(c.title, locale, "Catalogue");
     return {
       id: `catalog-${c.id}`,
       title: `${category} Catalogue`,
       description: `${title} — download our ${category.toLowerCase()} kitchen catalogue.`,
       href: "/catalogue",
       type: "Catalogue",
+      group: "content" as const,
     };
   });
 
-  return [...pageItems, ...products, ...blogs, ...gallery, ...catalogues];
+  const categories: NavSearchResult[] = data.categories
+    .map((c) => {
+      const title = textOf(c.title, locale);
+      if (!title || !c.slug) return null;
+      const typeLabel = categorySectionLabel(c.categoryType || "");
+      const desc =
+        textOf(c.description, locale) ||
+        textOf(c.metaDescription, locale) ||
+        `${typeLabel} — ${title}`;
+      return {
+        id: `category-${c.id}`,
+        title,
+        description: desc,
+        href: categoryPublicPath(c),
+        type: typeLabel,
+        group: "content" as const,
+      };
+    })
+    .filter(Boolean) as NavSearchResult[];
+
+  const faqs: NavSearchResult[] = data.faqs
+    .map((f, i) => {
+      const q = textOf(f.question, locale);
+      const a = textOf(f.answer, locale);
+      if (!q) return null;
+      return {
+        id: `faq-${f.id || i}`,
+        title: q,
+        description: a,
+        href: "/faq",
+        type: "FAQ",
+        group: "content" as const,
+      };
+    })
+    .filter(Boolean) as NavSearchResult[];
+
+  return [
+    ...staticPageItems(),
+    ...categories,
+    ...products,
+    ...blogs,
+    ...gallery,
+    ...catalogues,
+    ...faqs,
+  ];
 }
 
-/** Sync fallback if CMS has not loaded yet */
-function buildStaticIndex(): NavSearchResult[] {
-  return buildIndexFromCms({
-    products: productItems,
-    blogs: blogPosts,
-    gallery: galleryItems,
-    catalogues: catalogProducts.map((p) => ({ ...p, pdfUrl: "" })),
-  });
+function buildStaticIndex(locale: Locale): NavSearchResult[] {
+  return buildIndexFromCms(
+    {
+      products: productItems,
+      blogs: blogPosts,
+      gallery: galleryItems,
+      catalogues: catalogProducts.map((p) => ({ ...p, pdfUrl: "" })),
+      categories: [],
+      faqs: [],
+    },
+    locale,
+  );
 }
 
-let cachedIndex: NavSearchResult[] | null = null;
-let loadPromise: Promise<NavSearchResult[]> | null = null;
+const cacheByLocale = new Map<Locale, NavSearchResult[]>();
+const loadByLocale = new Map<Locale, Promise<NavSearchResult[]>>();
 
-export async function loadNavSearchIndex(): Promise<NavSearchResult[]> {
-  if (cachedIndex) return cachedIndex;
-  if (loadPromise) return loadPromise;
+export async function loadNavSearchIndex(locale: Locale = "EN"): Promise<NavSearchResult[]> {
+  const cached = cacheByLocale.get(locale);
+  if (cached) return cached;
 
-  loadPromise = Promise.all([
-    fetchMergedProducts(),
-    fetchMergedBlogs(),
-    fetchMergedGallery(),
-    fetchMergedCatalogues(),
+  const inflight = loadByLocale.get(locale);
+  if (inflight) return inflight;
+
+  const promise = Promise.all([
+    fetchMergedProducts().catch(() => [] as Awaited<ReturnType<typeof fetchMergedProducts>>),
+    fetchMergedBlogs().catch(() => [] as Awaited<ReturnType<typeof fetchMergedBlogs>>),
+    fetchMergedGallery().catch(() => [] as Awaited<ReturnType<typeof fetchMergedGallery>>),
+    fetchMergedCatalogues().catch(() => [] as Awaited<ReturnType<typeof fetchMergedCatalogues>>),
+    fetchMergedCategories().catch(() => [] as CmsCategory[]),
+    fetchMergedFaqs().catch(() => [] as Awaited<ReturnType<typeof fetchMergedFaqs>>),
   ])
-    .then(([products, blogs, gallery, catalogues]) => {
-      cachedIndex = buildIndexFromCms({ products, blogs, gallery, catalogues });
-      return cachedIndex;
+    .then(([products, blogs, gallery, catalogues, categories, faqs]) => {
+      const hasCms =
+        products.length +
+          blogs.length +
+          gallery.length +
+          catalogues.length +
+          categories.length +
+          faqs.length >
+        0;
+      const index = hasCms
+        ? buildIndexFromCms(
+            { products, blogs, gallery, catalogues, categories, faqs },
+            locale,
+          )
+        : buildStaticIndex(locale);
+      cacheByLocale.set(locale, index);
+      return index;
     })
     .catch(() => {
-      cachedIndex = buildStaticIndex();
-      return cachedIndex;
+      const index = buildStaticIndex(locale);
+      cacheByLocale.set(locale, index);
+      return index;
     })
     .finally(() => {
-      loadPromise = null;
+      loadByLocale.delete(locale);
     });
 
-  return loadPromise;
+  loadByLocale.set(locale, promise);
+  return promise;
+}
+
+function scoreItem(item: NavSearchResult, terms: string[]): number {
+  const title = item.title.toLowerCase();
+  const desc = item.description.toLowerCase();
+  const type = item.type.toLowerCase();
+  let score = 0;
+  for (const term of terms) {
+    if (title === term) score += 100;
+    else if (title.startsWith(term)) score += 60;
+    else if (title.includes(term)) score += 40;
+    if (type.includes(term)) score += 15;
+    if (desc.includes(term)) score += 10;
+  }
+  if (item.group === "page") score += 5;
+  return score;
 }
 
 export function searchSiteContent(
   query: string,
-  limit = 8,
-  index?: NavSearchResult[]
+  limit = 10,
+  index?: NavSearchResult[],
 ): NavSearchResult[] {
   const q = query.trim().toLowerCase();
   if (!q) return [];
 
   const terms = q.split(/\s+/).filter(Boolean);
-  const source = index?.length ? index : cachedIndex || buildStaticIndex();
+  const source = index?.length ? index : buildStaticIndex("EN");
 
   return source
-    .filter((item) => {
+    .map((item) => ({ item, score: scoreItem(item, terms) }))
+    .filter(({ score, item }) => {
+      if (score <= 0) return false;
       const haystack = `${item.title} ${item.description} ${item.type}`.toLowerCase();
       return terms.every((term) => haystack.includes(term));
     })
-    .slice(0, limit);
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map(({ item }) => item);
 }
 
-/** Bust cache after admin publishes (optional future hook). */
+/** Varsovia-style grouped results: pages first, then CMS content. */
+export function searchSiteGrouped(
+  query: string,
+  index?: NavSearchResult[],
+  limits: { pages?: number; content?: number } = {},
+): GroupedNavSearch {
+  const pageLimit = limits.pages ?? 5;
+  const contentLimit = limits.content ?? 8;
+  const all = searchSiteContent(query, pageLimit + contentLimit + 8, index);
+  const pages = all.filter((r) => r.group === "page").slice(0, pageLimit);
+  const pageHrefs = new Set(pages.map((p) => p.href.split("?")[0]));
+  const content = all
+    .filter((r) => r.group === "content" && !pageHrefs.has(r.href.split("?")[0]))
+    .slice(0, contentLimit);
+  return { pages, content };
+}
+
+/** Bust cache after admin publishes. */
 export function invalidateNavSearchIndex() {
-  cachedIndex = null;
+  cacheByLocale.clear();
+  loadByLocale.clear();
 }
