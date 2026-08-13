@@ -82,6 +82,8 @@ const categorySchema = new mongoose.Schema(
     eyebrow: { type: mongoose.Schema.Types.Mixed, default: "" },
     ctaLabel: { type: mongoose.Schema.Types.Mixed, default: "" },
     ctaHref: { type: String, default: "/contact", trim: true },
+    footerCtaHeading: { type: mongoose.Schema.Types.Mixed, default: "" },
+    footerCtaBody: { type: mongoose.Schema.Types.Mixed, default: "" },
   },
   { timestamps: true }
 );
@@ -112,6 +114,11 @@ const productSchema = new mongoose.Schema(
     image: { type: String, default: "" },
     icon: { type: String, default: "" },
     gallery: { type: [String], default: [] },
+    /** Side image on product detail contact band (falls back to `image`). */
+    contactImage: { type: String, default: "" },
+    contactEyebrow: { type: mongoose.Schema.Types.Mixed, default: "" },
+    contactTitle: { type: mongoose.Schema.Types.Mixed, default: "" },
+    contactFormTitle: { type: mongoose.Schema.Types.Mixed, default: "" },
     pdfUrl: { type: String, default: "" },
     featureHighlights: {
       type: [

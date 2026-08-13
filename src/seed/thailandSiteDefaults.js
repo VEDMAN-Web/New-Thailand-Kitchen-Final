@@ -300,7 +300,7 @@ const DEFAULT_HOME_SECTIONS = {
   blogPage: {
     eyebrow: {"en":"The Journal","th":"วารสาร","pl":"Dziennik"},
     title: {"en":"Blogs","th":"บล็อก","pl":"Blog"},
-    videoUrl: "/blog/Video.mp4",
+    videoUrl: "/product/productVideo.mp4",
     relatedTitle: {"en":"Related Journal Entries","th":"บทความที่เกี่ยวข้อง","pl":"Powiązane wpisy"},
     shareLinks: [
       { label: L("Facebook", "Facebook", "Facebook"), href: "https://www.facebook.com/ThailandKitchens/" },

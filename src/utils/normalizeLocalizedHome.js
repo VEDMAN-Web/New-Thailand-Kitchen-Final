@@ -5,6 +5,11 @@
  */
 const { DEFAULT_HOME_SECTIONS } = require("../seed/thailandSiteDefaults");
 const { mergeLocalized, mergeLocalizedFillEmpty, asLocalized } = require("./localized");
+const {
+  sectionsContainProbe,
+  sectionContainsProbe,
+  sanitizeMediaUrl,
+} = require("./cmsContentGuard");
 
 function mergeLinkList(raw, fallback) {
   const fb = Array.isArray(fallback) ? fallback : [];
@@ -195,7 +200,11 @@ function normalizeLocalizedHomeSections(raw = {}) {
       image: String(
         it.image || defaults.testimonials.items[i]?.image || ""
       ).trim(),
-      rating: Number(it.rating) || 5,
+      rating: (() => {
+        const n = Number(it.rating);
+        if (!Number.isFinite(n)) return 5;
+        return Math.min(5, Math.max(1, Math.round(n)));
+      })(),
     })),
   };
 
@@ -489,6 +498,10 @@ function normalizeLocalizedHomeSections(raw = {}) {
   const kitchenSubKeys = ["layouts", "styles", "byProperty"];
 
   function mergeContentSections(src = [], def = []) {
+    if (sectionsContainProbe(src)) {
+      return structuredClone(Array.isArray(def) ? def : []);
+    }
+
     const list =
       Array.isArray(src) && src.length
         ? src
@@ -497,10 +510,18 @@ function normalizeLocalizedHomeSections(raw = {}) {
           : [];
     return list.map((block, i) => {
       const defBlock = def[i] || {};
+      if (sectionContainsProbe(block)) {
+        return {
+          heading: defBlock?.heading || "",
+          body: defBlock?.body || "",
+          image: sanitizeMediaUrl(defBlock?.image || ""),
+          layout: String(defBlock?.layout || "image-left").trim(),
+        };
+      }
       return {
         heading: mergeLocalizedFillEmpty(block?.heading, defBlock?.heading || ""),
         body: mergeLocalizedFillEmpty(block?.body, defBlock?.body || ""),
-        image: String(block?.image || defBlock?.image || "").trim(),
+        image: sanitizeMediaUrl(block?.image || defBlock?.image || ""),
         layout: String(block?.layout || defBlock?.layout || "image-left").trim(),
       };
     });

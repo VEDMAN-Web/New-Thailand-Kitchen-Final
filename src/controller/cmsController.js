@@ -251,31 +251,11 @@ const DEFAULT_PRODUCTS = [
 ];
 
 async function ensureDefaultProducts(siteId) {
-  const existing = await Product.find({ siteId }).select("slug image featureHighlights gallery").lean();
+  const { syncProductsMissingOnly } = require("../scripts/syncProductsSafe");
+  await syncProductsMissingOnly(siteId, DEFAULT_PRODUCTS, DEFAULT_FEATURE_HIGHLIGHTS);
 
-  // First-time seed only (same pattern as ensureDefaultCategories).
-  // Never re-insert missing default slugs — a deleted product must stay deleted.
-  if (existing.length === 0) {
-    await Product.insertMany(
-      DEFAULT_PRODUCTS.map((p) => ({
-        siteId,
-        title: p.title,
-        slug: p.slug,
-        subtitle: p.subtitle || "",
-        productType: p.productType || "",
-        sectionTag: p.sectionTag || "",
-        description: p.description || "",
-        image: p.image || "",
-        icon: "",
-        gallery: p.gallery || [],
-        pdfUrl: "",
-        featureHighlights: p.featureHighlights || DEFAULT_FEATURE_HIGHLIGHTS,
-        category: p.category || "",
-        featured: Boolean(p.featured),
-      }))
-    );
-    return;
-  }
+  const existing = await Product.find({ siteId }).select("slug image featureHighlights gallery").lean();
+  if (!existing.length) return;
 
   // Backfill empty Features & Details for products created before highlights existed
   const needsHighlights = existing.filter((p) => {
@@ -381,25 +361,25 @@ async function ensureDefaultGallery(siteId) {
 }
 
 async function ensureDefaultFaqs(siteId) {
-  const count = await FaqItem.countDocuments({ siteId });
-  if (count > 0) return;
-  await FaqItem.insertMany(
-    DEFAULT_FAQS.map((f) => ({
-      siteId,
-      question: f.question,
-      answer: f.answer,
-      sortOrder: Number(f.sortOrder) || 0,
-    }))
-  );
+  const { syncFaqsMissingOnly } = require("../scripts/syncFaqsSafe");
+  await syncFaqsMissingOnly(siteId, DEFAULT_FAQS);
 }
 
 const taxonomyRepaired = new Set();
+const localesRepaired = new Set();
 
 async function ensureDefaultCategories(siteId) {
-  if (taxonomyRepaired.has(siteId)) return;
-  const { repairThailandTaxonomy } = require("../scripts/repairThailandTaxonomyLib");
-  await repairThailandTaxonomy(siteId);
-  taxonomyRepaired.add(siteId);
+  const {
+    repairThailandTaxonomy,
+    seedEmptyCategoryLandingSections,
+  } = require("../scripts/repairThailandTaxonomyLib");
+  if (!taxonomyRepaired.has(siteId)) {
+    await repairThailandTaxonomy(siteId);
+    taxonomyRepaired.add(siteId);
+  } else {
+    // Cheap non-destructive fill for landings still missing sections
+    await seedEmptyCategoryLandingSections(siteId).catch(() => {});
+  }
 }
 
 /**
@@ -467,6 +447,7 @@ function enrichHomeSections(sections) {
         };
       }
     }
+    next.hubPages = repairHubPages(next.hubPages, defaults.hubPages);
   }
   if (!next.nav) {
     next.nav = defaults.nav;
@@ -499,6 +480,15 @@ async function ensureAllSiteDefaults(siteId) {
     ensureDefaultFaqs(siteId),
     ensureDefaultCategories(siteId),
   ]);
+
+  if (!localesRepaired.has(siteId)) {
+    const { repairAllThailandLocales } = require("../scripts/repairThailandLocales");
+    await repairAllThailandLocales(siteId, {
+      productDefaults: DEFAULT_PRODUCTS,
+      galleryDefaults: DEFAULT_GALLERY,
+    }).catch(() => null);
+    localesRepaired.add(siteId);
+  }
 }
 
 function asStringArray(value) {
@@ -517,7 +507,22 @@ function asStringArray(value) {
 const {
   normalizeLocalizedHomeSections,
 } = require("../utils/normalizeLocalizedHome");
-const { asLocalized, mergeLocalized, L } = require("../utils/localized");
+const {
+  findProbePath,
+  repairHubPages,
+  sanitizeMediaUrl,
+} = require("../utils/cmsContentGuard");
+const {
+  asLocalized: asLocalizedRaw,
+  mergeLocalized,
+  L,
+  fillEmptyLocalesFromEn,
+} = require("../utils/localized");
+
+/** Persist EN into empty TH/PL so language tabs never save as blank. */
+function asLocalized(value, fallbackEn = "") {
+  return fillEmptyLocalesFromEn(asLocalizedRaw(value, fallbackEn));
+}
 
 function asFeatureHighlights(value) {
   if (!Array.isArray(value)) return [];
@@ -547,9 +552,20 @@ function normalizeContentSections(sections) {
   return sections.map((block) => ({
     heading: asLocalized(block?.heading),
     body: asLocalized(block?.body),
-    image: String(block?.image || "").trim(),
+    image: sanitizeMediaUrl(block?.image),
     layout: String(block?.layout || "image-left").trim(),
   }));
+}
+
+function rejectProbePayload(payload, label = "content") {
+  const hit = findProbePath(payload);
+  if (hit) {
+    const err = new Error(
+      `Test markers are not allowed in ${label} (found at ${hit}). Remove HTML-PROBE / smoke-test strings before saving.`
+    );
+    err.statusCode = 400;
+    throw err;
+  }
 }
 
 /**
@@ -587,11 +603,25 @@ async function syncProductCategoryLabel(siteId, fromEn, toValue) {
   }
 }
 
+function fillLocalizedMapsDeep(value) {
+  if (value == null) return value;
+  if (Array.isArray(value)) return value.map(fillLocalizedMapsDeep);
+  if (typeof value !== "object") return value;
+  if ("en" in value || "th" in value || "pl" in value) {
+    return asLocalized(value);
+  }
+  const next = {};
+  for (const [key, entry] of Object.entries(value)) {
+    next[key] = fillLocalizedMapsDeep(entry);
+  }
+  return next;
+}
+
 /**
  * Migrate legacy field names + localize text to {en,th,pl} (Varsovia-style).
  */
 function normalizeHomeSections(raw = {}) {
-  return normalizeLocalizedHomeSections(raw);
+  return fillLocalizedMapsDeep(normalizeLocalizedHomeSections(raw));
 }
 
 const listSites = asyncHandler(async (_req, res) => {
@@ -633,6 +663,14 @@ const updateHome = asyncHandler(async (req, res) => {
   const { siteId } = req.params;
   if (!assertSite(siteId)) {
     return res.status(400).json({ success: false, message: "Invalid site" });
+  }
+
+  try {
+    rejectProbePayload(req.body.sections || {}, "home sections");
+  } catch (err) {
+    return res
+      .status(err.statusCode || 400)
+      .json({ success: false, message: err.message });
   }
 
   const sections = normalizeHomeSections(req.body.sections || {});
@@ -748,6 +786,14 @@ const createCategory = asyncHandler(async (req, res) => {
   if (!titleEn) {
     return res.status(400).json({ success: false, message: "Title required" });
   }
+
+  try {
+    rejectProbePayload(req.body, "category");
+  } catch (err) {
+    return res
+      .status(err.statusCode || 400)
+      .json({ success: false, message: err.message });
+  }
   
   // Auto-generate slug from title if not provided
   const slug = req.body.slug ? slugify(req.body.slug) : slugify(titleEn);
@@ -782,7 +828,7 @@ const createCategory = asyncHandler(async (req, res) => {
     siteId,
     title,
     description: asLocalized(req.body.description),
-    image: String(req.body.image || ""),
+    image: sanitizeMediaUrl(req.body.image),
     icon: String(req.body.icon || ""),
     slug,
     categoryType: String(req.body.categoryType || ""),
@@ -795,6 +841,8 @@ const createCategory = asyncHandler(async (req, res) => {
     eyebrow: asLocalized(req.body.eyebrow),
     ctaLabel: asLocalized(req.body.ctaLabel),
     ctaHref: String(req.body.ctaHref || "/contact").trim() || "/contact",
+    footerCtaHeading: asLocalized(req.body.footerCtaHeading),
+    footerCtaBody: asLocalized(req.body.footerCtaBody),
   });
   
   return res.status(201).json({ success: true, item });
@@ -814,11 +862,19 @@ const updateCategory = asyncHandler(async (req, res) => {
   if (!titleEn) {
     return res.status(400).json({ success: false, message: "Title required" });
   }
+
+  try {
+    rejectProbePayload(req.body, "category");
+  } catch (err) {
+    return res
+      .status(err.statusCode || 400)
+      .json({ success: false, message: err.message });
+  }
   
   const updateData = {
     title,
     description: asLocalized(req.body.description),
-    image: String(req.body.image || ""),
+    image: sanitizeMediaUrl(req.body.image),
     icon: String(req.body.icon || ""),
   };
   
@@ -895,6 +951,12 @@ const updateCategory = asyncHandler(async (req, res) => {
     updateData.ctaHref =
       String(req.body.ctaHref || "/contact").trim() || "/contact";
   }
+  if (req.body.footerCtaHeading !== undefined) {
+    updateData.footerCtaHeading = asLocalized(req.body.footerCtaHeading);
+  }
+  if (req.body.footerCtaBody !== undefined) {
+    updateData.footerCtaBody = asLocalized(req.body.footerCtaBody);
+  }
   
   const item = await Category.findOneAndUpdate(
     { _id: id, siteId },
@@ -942,7 +1004,7 @@ const listProducts = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: "Invalid site" });
   }
   // Seed website catalogue products into CMS so admin + site share one list
-  await ensureDefaultProducts(siteId);
+  await ensureAllSiteDefaults(siteId).catch(() => {});
   let items = await Product.find({ siteId }).sort({ createdAt: -1 });
   
   // Fix: Ensure indexable field exists on all items
@@ -985,9 +1047,13 @@ const createProduct = asyncHandler(async (req, res) => {
     productType: asLocalized(req.body.productType),
     sectionTag: asLocalized(req.body.sectionTag),
     description: asLocalized(req.body.description),
-    image: String(req.body.image || ""),
+    image: sanitizeMediaUrl(req.body.image),
     icon: String(req.body.icon || ""),
     gallery: asStringArray(req.body.gallery),
+    contactImage: String(req.body.contactImage || ""),
+    contactEyebrow: asLocalized(req.body.contactEyebrow),
+    contactTitle: asLocalized(req.body.contactTitle),
+    contactFormTitle: asLocalized(req.body.contactFormTitle),
     pdfUrl: String(req.body.pdfUrl || ""),
     featureHighlights: asFeatureHighlights(req.body.featureHighlights),
     category: asLocalized(req.body.category),
@@ -1030,9 +1096,13 @@ const updateProduct = asyncHandler(async (req, res) => {
         productType: asLocalized(req.body.productType),
         sectionTag: asLocalized(req.body.sectionTag),
         description: asLocalized(req.body.description),
-        image: String(req.body.image || ""),
+        image: sanitizeMediaUrl(req.body.image),
         icon: String(req.body.icon || ""),
         gallery: asStringArray(req.body.gallery),
+        contactImage: String(req.body.contactImage || ""),
+        contactEyebrow: asLocalized(req.body.contactEyebrow),
+        contactTitle: asLocalized(req.body.contactTitle),
+        contactFormTitle: asLocalized(req.body.contactFormTitle),
         pdfUrl: String(req.body.pdfUrl || ""),
         featureHighlights: asFeatureHighlights(req.body.featureHighlights),
         category: asLocalized(req.body.category),
@@ -1070,7 +1140,7 @@ function asBodySections(value) {
     .map((s) => ({
       title: String(s?.title || "").trim(),
       content: String(s?.content || "").trim(),
-      image: String(s?.image || "").trim(),
+      image: sanitizeMediaUrl(s?.image),
     }))
     .filter((s) => s.title || s.content || s.image);
 }
@@ -1078,8 +1148,9 @@ function asBodySections(value) {
 const BLOG_LOCALES = ["th", "pl"];
 
 /** Keep only known per-locale blog fields so strict schema writes succeed. */
-function asBlogTranslations(value) {
+function asBlogTranslations(value, englishBase = {}) {
   const source = value && typeof value === "object" ? value : {};
+  const baseSections = asBodySections(englishBase.bodySections);
   return BLOG_LOCALES.reduce((acc, locale) => {
     const entry = source[locale] && typeof source[locale] === "object"
       ? source[locale]
@@ -1092,18 +1163,23 @@ function asBlogTranslations(value) {
         .filter(Boolean)
         .map((content) => ({ title: "", content, image: "" }));
     }
+    if (!bodySections.length && baseSections.length) {
+      bodySections = baseSections.map((s) => ({ ...s }));
+    }
     const highlightTitle = String(
-      entry.highlightTitle || entry.subsectionTitle || ""
+      entry.highlightTitle || entry.subsectionTitle || englishBase.highlightTitle || ""
     ).trim();
     acc[locale] = {
-      title: String(entry.title || "").trim(),
-      excerpt: String(entry.excerpt || "").trim(),
-      category: String(entry.category || "").trim(),
+      title: String(entry.title || englishBase.title || "").trim(),
+      excerpt: String(entry.excerpt || englishBase.excerpt || "").trim(),
+      category: String(entry.category || englishBase.category || "").trim(),
       bodySections,
       highlightTitle,
-      highlightText: String(entry.highlightText || "").trim(),
-      quote: String(entry.quote || "").trim(),
-      quoteAuthor: String(entry.quoteAuthor || "").trim(),
+      highlightText: String(
+        entry.highlightText || englishBase.highlightText || ""
+      ).trim(),
+      quote: String(entry.quote || englishBase.quote || "").trim(),
+      quoteAuthor: String(entry.quoteAuthor || englishBase.quoteAuthor || "").trim(),
     };
     return acc;
   }, {});
@@ -1305,36 +1381,8 @@ const DEFAULT_BLOGS = [
 ];
 
 async function ensureDefaultBlogs(siteId) {
-  const existing = await Blog.find({ siteId }).select("slug").lean();
-  const existingSlugs = new Set(
-    existing.map((b) => String(b.slug || "").trim().toLowerCase())
-  );
-  const missing = DEFAULT_BLOGS.filter(
-    (b) => !existingSlugs.has(String(b.slug).toLowerCase())
-  );
-  if (!missing.length) return;
-
-  await Blog.insertMany(
-    missing.map((b) => ({
-      siteId,
-      title: b.title,
-      slug: b.slug,
-      excerpt: b.excerpt,
-      content: contentFromBodySections(b.bodySections) || b.excerpt,
-      image: b.image,
-      gallery: b.gallery || [],
-      category: b.category || "",
-      author: b.author || "",
-      readTime: b.readTime || "",
-      publishDate: b.publishDate || "",
-      bodySections: b.bodySections || [],
-      highlightTitle: b.highlightTitle || "",
-      highlightText: b.highlightText || "",
-      quote: b.quote || "",
-      quoteAuthor: b.quoteAuthor || "",
-      published: b.published !== false,
-    }))
-  );
+  const { syncBlogsMissingOnly } = require("../scripts/syncBlogsSafe");
+  await syncBlogsMissingOnly(siteId, DEFAULT_BLOGS);
 }
 
 const listBlogs = asyncHandler(async (req, res) => {
@@ -1342,7 +1390,7 @@ const listBlogs = asyncHandler(async (req, res) => {
   if (!assertSite(siteId)) {
     return res.status(400).json({ success: false, message: "Invalid site" });
   }
-  await ensureDefaultBlogs(siteId);
+  await ensureAllSiteDefaults(siteId).catch(() => {});
   let items = await Blog.find({ siteId }).sort({ createdAt: -1 });
   
   // Fix: Ensure all SEO fields exist
@@ -1442,8 +1490,8 @@ const createBlog = asyncHandler(async (req, res) => {
     slug,
     excerpt: String(req.body.excerpt || ""),
     content,
-    image: String(req.body.image || ""),
-    gallery: asStringArray(req.body.gallery),
+    image: sanitizeMediaUrl(req.body.image),
+    gallery: asStringArray(req.body.gallery).map(sanitizeMediaUrl),
     category: String(req.body.category || ""),
     author: String(req.body.author || ""),
     readTime: String(req.body.readTime || ""),
@@ -1453,7 +1501,16 @@ const createBlog = asyncHandler(async (req, res) => {
     highlightText: String(req.body.highlightText || ""),
     quote: String(req.body.quote || ""),
     quoteAuthor: String(req.body.quoteAuthor || ""),
-    translations: asBlogTranslations(req.body.translations),
+    translations: asBlogTranslations(req.body.translations, {
+      title,
+      excerpt: String(req.body.excerpt || ""),
+      category: String(req.body.category || ""),
+      bodySections,
+      highlightTitle: String(req.body.highlightTitle || ""),
+      highlightText: String(req.body.highlightText || ""),
+      quote: String(req.body.quote || ""),
+      quoteAuthor: String(req.body.quoteAuthor || ""),
+    }),
     published: req.body.published !== false,
     ...seo,
   });
@@ -1517,12 +1574,12 @@ const updateBlog = asyncHandler(async (req, res) => {
         content,
         image:
           req.body.image !== undefined
-            ? String(req.body.image || "")
-            : String(existing.image || ""),
+            ? sanitizeMediaUrl(req.body.image)
+            : sanitizeMediaUrl(existing.image || ""),
         gallery:
           req.body.gallery !== undefined
-            ? asStringArray(req.body.gallery)
-            : asStringArray(existing.gallery),
+            ? asStringArray(req.body.gallery).map(sanitizeMediaUrl)
+            : asStringArray(existing.gallery).map(sanitizeMediaUrl),
         category:
           req.body.category !== undefined
             ? String(req.body.category || "")
@@ -1558,8 +1615,44 @@ const updateBlog = asyncHandler(async (req, res) => {
             : String(existing.quoteAuthor || ""),
         translations:
           req.body.translations !== undefined
-            ? asBlogTranslations(req.body.translations)
-            : asBlogTranslations(existing.translations),
+            ? asBlogTranslations(req.body.translations, {
+                title,
+                excerpt:
+                  req.body.excerpt !== undefined
+                    ? String(req.body.excerpt || "")
+                    : String(existing.excerpt || ""),
+                category:
+                  req.body.category !== undefined
+                    ? String(req.body.category || "")
+                    : String(existing.category || ""),
+                bodySections,
+                highlightTitle:
+                  req.body.highlightTitle !== undefined
+                    ? String(req.body.highlightTitle || "")
+                    : String(existing.highlightTitle || ""),
+                highlightText:
+                  req.body.highlightText !== undefined
+                    ? String(req.body.highlightText || "")
+                    : String(existing.highlightText || ""),
+                quote:
+                  req.body.quote !== undefined
+                    ? String(req.body.quote || "")
+                    : String(existing.quote || ""),
+                quoteAuthor:
+                  req.body.quoteAuthor !== undefined
+                    ? String(req.body.quoteAuthor || "")
+                    : String(existing.quoteAuthor || ""),
+              })
+            : asBlogTranslations(existing.translations, {
+                title: existing.title,
+                excerpt: existing.excerpt,
+                category: existing.category,
+                bodySections: existing.bodySections,
+                highlightTitle: existing.highlightTitle,
+                highlightText: existing.highlightText,
+                quote: existing.quote,
+                quoteAuthor: existing.quoteAuthor,
+              }),
         published: mergedBody.published !== false,
         ...seo,
       },
@@ -1862,7 +1955,7 @@ const listGallery = asyncHandler(async (req, res) => {
   if (!assertSite(siteId)) {
     return res.status(400).json({ success: false, message: "Invalid site" });
   }
-  await ensureDefaultGallery(siteId);
+  await ensureAllSiteDefaults(siteId).catch(() => {});
   let items = await GalleryItem.find({ siteId }).sort({
     sortOrder: 1,
     createdAt: -1,
@@ -1902,7 +1995,7 @@ const createGalleryItem = asyncHandler(async (req, res) => {
   const item = await GalleryItem.create({
     siteId,
     title: asLocalized(req.body.title || "Gallery image"),
-    image: String(req.body.image || ""),
+    image: sanitizeMediaUrl(req.body.image),
     filter: rawFilter || "Style & Color",
     tall: Boolean(req.body.tall),
     wide: Boolean(req.body.wide),
@@ -1921,7 +2014,7 @@ const updateGalleryItem = asyncHandler(async (req, res) => {
     {
       $set: {
         title: asLocalized(req.body.title || "Gallery image"),
-        image: String(req.body.image || ""),
+        image: sanitizeMediaUrl(req.body.image),
         filter: rawFilter || "Style & Color",
         tall: Boolean(req.body.tall),
         wide: Boolean(req.body.wide),
@@ -1967,7 +2060,7 @@ const createCatalogue = asyncHandler(async (req, res) => {
     siteId,
     title: String(req.body.title || "").trim() || "Catalogue",
     category: String(req.body.category || ""),
-    image: String(req.body.image || ""),
+    image: sanitizeMediaUrl(req.body.image),
     pdfUrl: String(req.body.pdfUrl || ""),
     fileName: String(req.body.fileName || ""),
     downloadName: String(req.body.downloadName || ""),
@@ -1984,7 +2077,7 @@ const updateCatalogue = asyncHandler(async (req, res) => {
       $set: {
         title: String(req.body.title || "").trim() || "Catalogue",
         category: String(req.body.category || ""),
-        image: String(req.body.image || ""),
+        image: sanitizeMediaUrl(req.body.image),
         pdfUrl: String(req.body.pdfUrl || ""),
         fileName: String(req.body.fileName || ""),
         downloadName: String(req.body.downloadName || ""),
@@ -2013,7 +2106,7 @@ const listFaqs = asyncHandler(async (req, res) => {
   if (!assertSite(siteId)) {
     return res.status(400).json({ success: false, message: "Invalid site" });
   }
-  await ensureDefaultFaqs(siteId);
+  await ensureAllSiteDefaults(siteId).catch(() => {});
   const items = await FaqItem.find({ siteId }).sort({
     sortOrder: 1,
     createdAt: -1,
@@ -2108,17 +2201,56 @@ const syncSite = asyncHandler(async (req, res) => {
     home: Boolean(await HomePage.exists({ siteId })),
   };
 
-  // Seed empty collections only (existing ensure* helpers are insert-if-empty)
-  await Promise.all([
-    ensureDefaultProducts(siteId),
-    ensureDefaultBlogs(siteId),
-    ensureDefaultGallery(siteId),
-    ensureDefaultFaqs(siteId),
+  const { syncGalleryMissingOnly } = require("../scripts/syncGallerySafe");
+  const { syncBlogsMissingOnly } = require("../scripts/syncBlogsSafe");
+  const { syncProductsMissingOnly } = require("../scripts/syncProductsSafe");
+  const { syncFaqsMissingOnly } = require("../scripts/syncFaqsSafe");
+
+  await ensureDefaultGallery(siteId);
+
+  const [gallerySync, blogSync, productSync, faqSync] = await Promise.all([
+    syncGalleryMissingOnly(siteId, DEFAULT_GALLERY),
+    syncBlogsMissingOnly(siteId, DEFAULT_BLOGS),
+    syncProductsMissingOnly(siteId, DEFAULT_PRODUCTS, DEFAULT_FEATURE_HIGHLIGHTS),
+    syncFaqsMissingOnly(siteId, DEFAULT_FAQS),
   ]);
+
+  // Backfill product highlights + gallery for existing rows
+  await ensureDefaultProducts(siteId);
 
   // Taxonomy: create missing rows only — never overwrite edited categories
   const { syncTaxonomyMissingOnly } = require("../scripts/syncTaxonomySafe");
   const taxonomy = await syncTaxonomyMissingOnly(siteId);
+
+  // Fill empty landing templates (services/materials/kitchens) without overwriting edited content
+  const {
+    seedEmptyCategoryLandingSections,
+    repairCorruptCmsContent,
+  } = require("../scripts/repairThailandTaxonomyLib");
+  const repaired = await repairCorruptCmsContent(siteId).catch(() => ({
+    homeHubsRepaired: 0,
+    categoriesRepaired: 0,
+    mediaUrlsNormalized: 0,
+  }));
+  const landingsSeeded = await seedEmptyCategoryLandingSections(siteId).catch(
+    () => 0
+  );
+
+  const { repairAllThailandLocales } = require("../scripts/repairThailandLocales");
+  const localeRepair = await repairAllThailandLocales(siteId, {
+    productDefaults: DEFAULT_PRODUCTS,
+    galleryDefaults: DEFAULT_GALLERY,
+  }).catch(() => ({
+    products: { repaired: 0, total: 0 },
+    categories: { repaired: 0, total: 0 },
+    gallery: { repaired: 0, total: 0 },
+    faqs: { repaired: 0, total: 0 },
+    blogs: { repaired: 0, total: 0 },
+    totalRepaired: 0,
+  }));
+
+  localesRepaired.add(siteId);
+
   // Allow ensureDefaultCategories cache to refresh next list call
   taxonomyRepaired.delete(siteId);
   taxonomyRepaired.add(siteId);
@@ -2171,6 +2303,42 @@ const syncSite = asyncHandler(async (req, res) => {
     home: true,
   };
 
+  const [
+    servicesMenu,
+    materialsMenu,
+    locationsMenu,
+    locationServices,
+    galleryTotal,
+    guidesTotal,
+    productsTotal,
+    faqsTotal,
+  ] = await Promise.all([
+    Category.countDocuments({
+      siteId,
+      categoryType: "service",
+      $or: [{ parentId: null }, { parentId: { $exists: false } }],
+    }),
+    Category.countDocuments({
+      siteId,
+      categoryType: "material",
+      $or: [{ parentId: null }, { parentId: { $exists: false } }],
+    }),
+    Category.countDocuments({
+      siteId,
+      categoryType: "location",
+      $or: [{ parentId: null }, { parentId: { $exists: false } }],
+    }),
+    Category.countDocuments({
+      siteId,
+      categoryType: "service",
+      parentId: { $ne: null, $exists: true },
+    }),
+    GalleryItem.countDocuments({ siteId }),
+    Blog.countDocuments({ siteId }),
+    Product.countDocuments({ siteId }),
+    FaqItem.countDocuments({ siteId }),
+  ]);
+
   const dbName =
     mongoose.connection.name ||
     mongoose.connection.db?.databaseName ||
@@ -2193,9 +2361,28 @@ const syncSite = asyncHandler(async (req, res) => {
         faqs: Math.max(0, after.faqs - before.faqs),
         catalogues: Math.max(0, after.catalogues - before.catalogues),
         legal: legalCreated,
+        landings: landingsSeeded,
       },
       taxonomy,
+      gallerySync,
+      blogSync,
+      productSync,
+      faqSync,
       homeUpdated,
+      landingsSeeded,
+      repaired,
+      localeRepair,
+      nav: {
+        servicesMenu,
+        materialsMenu,
+        locationsMenu,
+        locationServices,
+        galleryTotal,
+        guidesTotal,
+        productsTotal,
+        faqsTotal,
+        categoriesTotal: after.categories,
+      },
       preserved: true,
     },
   });

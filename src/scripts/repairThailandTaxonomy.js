@@ -11,6 +11,7 @@ async function main() {
   const result = await repairThailandTaxonomy("thailand-kitchen");
   console.log(`Removed ${result.removed} legacy categories without slug/type`);
   console.log(`Upserted taxonomy rows: ${result.upserted}`);
+  console.log(`Kitchen landing sections seeded: ${result.sectionsSeeded || 0}`);
   console.log(`Total categories: ${result.total}, with slug+type: ${result.withSlug}`);
   process.exit(0);
 }
