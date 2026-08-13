@@ -5,6 +5,7 @@ import Link from "next/link";
 import { BlogPost } from "./blogData";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import { blogCategoryLabel, localizePost } from "./blogI18n";
+import { cmsImageNeedsUnoptimized, resolveCmsMediaUrl } from "../../lib/cmsMedia";
 
 interface Props {
   post: BlogPost;
@@ -22,6 +23,7 @@ export default function BlogCard({ post: rawPost }: Props) {
   const { t, locale } = useTranslation();
   const post = localizePost(rawPost, locale);
   const href = toBlogHref(post.slug);
+  const imageSrc = resolveCmsMediaUrl(post.image);
 
   return (
     <article className="group flex flex-col text-left h-full">
@@ -30,14 +32,12 @@ export default function BlogCard({ post: rawPost }: Props) {
         className="relative block w-full aspect-[16/11] rounded-[1.5rem] overflow-hidden"
       >
         <Image
-          src={post.image}
+          src={imageSrc}
           alt={post.title}
           fill
           className="object-cover transition-transform duration-500 group-hover:scale-105"
           sizes="(max-width: 768px) 100vw, 33vw"
-          unoptimized={
-            post.image.startsWith("/uploads") || post.image.startsWith("http")
-          }
+          unoptimized={cmsImageNeedsUnoptimized(imageSrc)}
         />
       </Link>
 

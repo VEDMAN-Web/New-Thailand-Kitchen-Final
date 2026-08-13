@@ -207,13 +207,26 @@ export default function Footer() {
       <div className="relative z-10 max-w-7xl mx-auto px-6 pt-16 lg:pt-20 pb-10">
         <div className="grid lg:grid-cols-4 md:grid-cols-2 gap-12 lg:gap-10">
           <div>
-            <Image
-              src={logoUrl}
-              alt="Thailand Kitchens"
-              width={150}
-              height={60}
-              unoptimized={remoteLogo}
-            />
+            <Link
+              href="/"
+              aria-label="Thailand Kitchens — Home"
+              className="inline-block cursor-pointer"
+              onClick={(e) => {
+                if (window.location.pathname === "/") {
+                  e.preventDefault();
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }
+              }}
+            >
+              <Image
+                src={logoUrl}
+                alt="Thailand Kitchens"
+                width={150}
+                height={60}
+                unoptimized={remoteLogo}
+                className="pointer-events-none"
+              />
+            </Link>
 
             <p className="mt-6 text-white/60 leading-7 text-sm max-w-xs">
               {tagline}

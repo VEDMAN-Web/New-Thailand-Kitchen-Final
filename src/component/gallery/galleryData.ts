@@ -12,6 +12,7 @@ export interface GalleryItem {
   filter: GalleryCategory;
   tall?: boolean;
   wide?: boolean;
+  sortOrder?: number;
 }
 
 export const galleryCategories: GalleryCategory[] = [

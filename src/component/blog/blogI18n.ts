@@ -90,8 +90,13 @@ export function localizePost(post: BlogPost, locale: Locale): BlogPost {
     excerpt: translated.excerpt || post.excerpt,
     category: translated.category || post.category,
     subsectionTitle: translated.subsectionTitle || post.subsectionTitle,
+    highlightText: translated.highlightText || post.highlightText,
     quote: translated.quote || post.quote,
     quoteAuthor: translated.quoteAuthor || post.quoteAuthor,
     content: translated.content?.length ? translated.content : post.content,
+    bodySections:
+      translated.bodySections?.length
+        ? translated.bodySections
+        : post.bodySections,
   };
 }

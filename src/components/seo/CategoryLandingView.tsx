@@ -55,6 +55,16 @@ export default function CategoryLandingView({
     "EN"
   );
   const ctaHref = String(category.ctaHref || "/contact").trim() || "/contact";
+  const footerHeading = pickCmsText(
+    category.footerCtaHeading,
+    `Ready to plan your ${title.toLowerCase()}?`,
+    "EN"
+  );
+  const footerBody = pickCmsText(
+    category.footerCtaBody,
+    "Speak with our design team for a free consultation and tailored quote.",
+    "EN"
+  );
   const tone = heroTone(category.categoryType);
   const type = String(category.categoryType || "");
 
@@ -262,11 +272,10 @@ export default function CategoryLandingView({
         <div className="max-w-7xl mx-auto px-5 sm:px-6 py-12 sm:py-14 lg:py-16 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
           <div>
             <h2 className="text-2xl md:text-3xl font-bold">
-              Ready to plan your {title.toLowerCase()}?
+              {footerHeading}
             </h2>
             <p className="mt-2 text-white/70 max-w-lg text-sm sm:text-base">
-              Speak with our design team for a free consultation and tailored
-              quote.
+              {footerBody}
             </p>
           </div>
           <Link

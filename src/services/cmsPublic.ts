@@ -8,6 +8,10 @@ import {
   type BlogPost,
   type BlogCategory,
 } from "../component/blog/blogData";
+import {
+  pickBlogCoverImage,
+  resolveCmsMediaUrl,
+} from "../lib/cmsMedia";
 
 const SITE_ID = "thailand-kitchen";
 
@@ -64,10 +68,16 @@ type CmsProduct = {
   _id: string;
   title: string;
   slug: string;
+  subtitle?: unknown;
+  sectionTag?: unknown;
   description: string;
   image: string;
   icon?: string;
   gallery?: string[];
+  contactImage?: string;
+  contactEyebrow?: unknown;
+  contactTitle?: unknown;
+  contactFormTitle?: unknown;
   pdfUrl?: string;
   category: string;
   featured: boolean;
@@ -164,6 +174,18 @@ function mapCmsProduct(p: CmsProduct, index: number): ProductItem {
     typeof p.title === "object" && p.title
       ? String((p.title as any).en || (p.title as any).th || "")
       : String(p.title || "");
+  const subtitleEn =
+    typeof p.subtitle === "object" && p.subtitle
+      ? String((p.subtitle as any).en || (p.subtitle as any).th || "").trim()
+      : typeof p.subtitle === "string"
+        ? p.subtitle.trim()
+        : "";
+  const sectionTagEn =
+    typeof p.sectionTag === "object" && p.sectionTag
+      ? String((p.sectionTag as any).en || (p.sectionTag as any).th || "").trim()
+      : typeof p.sectionTag === "string"
+        ? p.sectionTag.trim()
+        : "";
   const layoutType = mapLayout(categoryEn);
   const heroImages: [string, string, string] = [
     galleryImages[0] || image,
@@ -191,6 +213,9 @@ function mapCmsProduct(p: CmsProduct, index: number): ProductItem {
         return Boolean(t || d);
       }) || [];
 
+  const contactImage =
+    String(p.contactImage || "").trim() || image;
+
   return {
     ...template,
     id: 10000 + index,
@@ -201,9 +226,10 @@ function mapCmsProduct(p: CmsProduct, index: number): ProductItem {
     image,
     bestSeller: Boolean(p.featured),
     heroImages,
-    // Pass full localized category object so pickCmsText resolves TH/PL in ProductDetailNarrative
-    tag: (p.category as any) || categoryEn || "Collection",
-    headline: p.title as any,
+    // Narrative eyebrow: sectionTag, then category
+    tag: (sectionTagEn ? (p.sectionTag as any) : null) || (p.category as any) || categoryEn || "Collection",
+    // Narrative headline: subtitle, then title
+    headline: (subtitleEn ? (p.subtitle as any) : null) || (p.title as any),
     description: (p.description as any) || template.description,
     gallery: galleryImages.map((img) => ({
       image: img,
@@ -211,7 +237,10 @@ function mapCmsProduct(p: CmsProduct, index: number): ProductItem {
     })),
     features: features.length ? (features as any) : template.features,
     detailImages,
-    contactImage: image,
+    contactImage,
+    contactEyebrow: p.contactEyebrow as any,
+    contactTitle: p.contactTitle as any,
+    contactFormTitle: p.contactFormTitle as any,
     pdfUrl: p.pdfUrl || "",
     icon: p.icon || "",
     finish: (p.finish as any) || template.finish,
@@ -235,14 +264,23 @@ function sectionsToParagraphs(
 function mapBlogTranslation(value?: CmsBlogTranslation) {
   if (!value) return undefined;
   const content = sectionsToParagraphs(value.bodySections);
+  const bodySections = (value.bodySections || [])
+    .map((s) => ({
+      title: String(s.title || "").trim(),
+      content: String(s.content || "").trim(),
+      image: String(s.image || "").trim(),
+    }))
+    .filter((s) => s.title || s.content || s.image);
   const translated = {
     title: value.title?.trim() || undefined,
     excerpt: value.excerpt?.trim() || undefined,
     category: value.category?.trim() || undefined,
     subsectionTitle: value.highlightTitle?.trim() || undefined,
+    highlightText: value.highlightText?.trim() || undefined,
     quote: value.quote?.trim() || undefined,
     quoteAuthor: value.quoteAuthor?.trim() || undefined,
     content: content.length ? content : undefined,
+    bodySections: bodySections.length ? bodySections : undefined,
   };
   return Object.values(translated).some(Boolean) ? translated : undefined;
 }
@@ -273,12 +311,17 @@ function mapCmsBlog(b: CmsBlog, index: number): BlogPost {
     ? new Date((b as any).updatedAt).toISOString()
     : undefined;
 
+  const coverImage = pickBlogCoverImage(b);
+
   const gallery =
     b.gallery && b.gallery.length >= 2
-      ? ([b.gallery[0], b.gallery[1]] as [string, string])
+      ? ([
+          resolveCmsMediaUrl(b.gallery[0]) || coverImage,
+          resolveCmsMediaUrl(b.gallery[1]) || coverImage,
+        ] as [string, string])
       : ([
-          b.image || "/blog/blogImage (2).jpg",
-          "/blog/blogImage (3).jpg",
+          coverImage,
+          resolveCmsMediaUrl(b.gallery?.[0]) || coverImage,
         ] as [string, string]);
 
   return {
@@ -294,15 +337,23 @@ function mapCmsBlog(b: CmsBlog, index: number): BlogPost {
     readTime: (b.readTime || "5 MIN READ").toUpperCase().includes("MIN")
       ? (b.readTime || "5 MIN READ").toUpperCase()
       : `${b.readTime || "5"} MIN READ`,
-    image: b.image || "/blog/blogImage (1).jpg",
+    image: coverImage,
     gallery,
     featured: index === 0,
     subsectionTitle: b.highlightTitle || undefined,
+    highlightText: b.highlightText || undefined,
     quote: b.quote || undefined,
     quoteAuthor: b.quoteAuthor || undefined,
     content: paragraphs.length
       ? paragraphs
       : [b.highlightText || b.excerpt || b.title],
+    bodySections: (b.bodySections || [])
+      .map((s) => ({
+        title: String(s.title || "").trim(),
+        content: String(s.content || "").trim(),
+        image: resolveCmsMediaUrl(s.image),
+      }))
+      .filter((s) => s.title || s.content || s.image),
     translations: {
       th: mapBlogTranslation(b.translations?.th),
       pl: mapBlogTranslation(b.translations?.pl),
@@ -477,6 +528,8 @@ export type CmsCategory = {
   eyebrow?: unknown;
   ctaLabel?: unknown;
   ctaHref?: string;
+  footerCtaHeading?: unknown;
+  footerCtaBody?: unknown;
 };
 
 function mapCategoryFromApi(c: Record<string, unknown>): CmsCategory {
@@ -496,6 +549,8 @@ function mapCategoryFromApi(c: Record<string, unknown>): CmsCategory {
     eyebrow: c.eyebrow,
     ctaLabel: c.ctaLabel,
     ctaHref: String(c.ctaHref || "/contact").trim() || "/contact",
+    footerCtaHeading: c.footerCtaHeading,
+    footerCtaBody: c.footerCtaBody,
   };
 }
 
@@ -615,6 +670,7 @@ export type CmsGallery = {
   filter: string;
   tall?: boolean;
   wide?: boolean;
+  sortOrder?: number;
   locationTag?: string;
   layoutTag?: string;
   styleTag?: string;
@@ -636,6 +692,7 @@ export async function fetchMergedGallery(): Promise<CmsGallery[]> {
     filter: g.filter || "Style & Color",
     tall: Boolean(g.tall),
     wide: Boolean(g.wide),
+    sortOrder: Number(g.sortOrder) || 0,
     locationTag: String(g.locationTag || ""),
     layoutTag: String(g.layoutTag || ""),
     styleTag: String(g.styleTag || ""),

@@ -451,28 +451,21 @@ export function HubMobileNavSection({
   );
 
   return (
-    <div className="rounded-2xl border border-[#EEE8DF] bg-[#FAF8F5] overflow-hidden transition-shadow duration-300">
+    <div className="shrink-0">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className={`flex w-full items-center justify-between px-4 py-3.5 text-left font-medium transition-colors duration-200 ${
-          active ? "text-[#1A1A1A] font-bold" : "text-gray-600"
+        className={`flex w-full items-center justify-between py-3 px-4 rounded-full text-[15px] leading-normal text-left font-medium transition ${
+          active ? "text-[#1A1A1A] font-bold bg-[#F5F3EF]" : "text-gray-500 hover:bg-gray-50"
         }`}
       >
-        <span>{label}</span>
+        <span className="min-w-0 truncate">{label || copy.title}</span>
         <Chevron open={open} />
       </button>
 
-      <div
-        className="grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
-        style={{
-          gridTemplateRows: open ? "1fr" : "0fr",
-          opacity: open ? 1 : 0,
-        }}
-      >
-        <div className="overflow-hidden">
-          <div className="border-t border-[#EEE8DF] bg-white px-2 py-2 space-y-0.5 max-h-72 overflow-y-auto">
+      {open ? (
+        <div className="mx-2 mb-2 rounded-2xl border border-[#EEE8DF] bg-white px-2 py-2 space-y-0.5 max-h-72 overflow-y-auto">
             <Link
               href={config.href}
               onClick={onNavigate}
@@ -524,9 +517,8 @@ export function HubMobileNavSection({
                     onNavigate={onNavigate}
                   />
                 ))}
-          </div>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }

@@ -4,12 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { BlogPost } from "./blogData";
 import { useTranslation } from "../../i18n/LanguageProvider";
-import {
-  blogCategoryLabel,
-  formatBlogDate,
-  formatReadTime,
-  localizePost,
-} from "./blogI18n";
+import { blogCategoryLabel, formatBlogDate, formatReadTime, localizePost } from "./blogI18n";
+import { cmsImageNeedsUnoptimized, resolveCmsMediaUrl } from "../../lib/cmsMedia";
 
 interface Props {
   post: BlogPost;
@@ -28,6 +24,7 @@ export default function BlogFeaturedCard({ post: rawPost }: Props) {
   const post = localizePost(rawPost, locale);
   const imageLeft = post.featuredLayout !== "image-right";
   const href = toBlogHref(post.slug);
+  const imageSrc = resolveCmsMediaUrl(post.image);
 
   return (
     <article className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center w-full text-left">
@@ -38,14 +35,12 @@ export default function BlogFeaturedCard({ post: rawPost }: Props) {
         }`}
       >
         <Image
-          src={post.image}
+          src={imageSrc}
           alt={post.title}
           fill
           className="object-cover transition-transform duration-500 hover:scale-105"
           sizes="(max-width: 1024px) 100vw, 576px"
-          unoptimized={
-            post.image.startsWith("/uploads") || post.image.startsWith("http")
-          }
+          unoptimized={cmsImageNeedsUnoptimized(imageSrc)}
         />
       </Link>
 

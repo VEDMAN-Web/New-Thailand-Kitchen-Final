@@ -251,6 +251,28 @@ export function defaultCategorySections(input: {
     ];
   }
 
+  if (type === "built-in-furniture") {
+    return [
+      {
+        heading: `How we deliver ${title}`,
+        body: `Measure & brief|Design proposal|Material selection|Fabrication|Install & handover`,
+        image: imageA,
+        layout: "steps",
+      },
+      {
+        heading: `Built around your rooms`,
+        body: lead,
+        image: imageB,
+        layout: "image-right",
+      },
+      {
+        heading: `Ready to plan storage that lasts`,
+        body: `Book a consultation — we design wardrobes and built-ins to your walls, lifestyle, and finishes.`,
+        layout: "band",
+      },
+    ];
+  }
+
   if (type === "layout") {
     return [
       {

@@ -58,6 +58,13 @@ const Navbar = () => {
   const [searchIndex, setSearchIndex] = useState<NavSearchResult[] | null>(null);
   const desktopSearchRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const headerRowRef = useRef<HTMLDivElement>(null);
+  const logoRef = useRef<HTMLAnchorElement>(null);
+  const actionsRef = useRef<HTMLDivElement>(null);
+  const measureNavRef = useRef<HTMLDivElement>(null);
+  const mobileDrawerRef = useRef<HTMLDivElement>(null);
+  const desktopNavRef = useRef(false);
+  const [desktopNav, setDesktopNav] = useState<boolean | null>(null);
 
   const searchExpanded = searchHover || searchFocused || search.trim().length > 0;
   const showSearchResults = searchFocused || search.trim().length > 0;
@@ -132,7 +139,7 @@ const Navbar = () => {
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
   const navLinkClass = (href: string) =>
-    `shrink-0 rounded-full tracking-wide transition-colors duration-200 px-2 py-1.5 text-[12px] xl:px-2.5 xl:text-[13px] 2xl:px-3.5 2xl:py-2 2xl:text-sm ${
+    `shrink-0 rounded-full tracking-wide transition-colors duration-200 px-2 py-1.5 text-[11px] min-[1400px]:px-2.5 min-[1400px]:text-[13px] 2xl:px-3.5 2xl:py-2 2xl:text-sm ${
       isActive(href)
         ? "bg-[#F5F3EF] text-[#1A1A1A] font-bold"
         : "text-gray-500 font-medium hover:text-[#1A1A1A]"
@@ -144,11 +151,84 @@ const Navbar = () => {
   };
 
   useEffect(() => {
-    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    if (!mobileOpen) return;
+
+    const html = document.documentElement;
+    const body = document.body;
+    const scrollY = window.scrollY;
+    const prev = {
+      htmlOverflow: html.style.overflow,
+      bodyOverflow: body.style.overflow,
+      bodyPosition: body.style.position,
+      bodyTop: body.style.top,
+      bodyWidth: body.style.width,
+      bodyTouch: body.style.touchAction,
+    };
+
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.width = "100%";
+    body.style.touchAction = "none";
+
+    const onTouchMove = (event: TouchEvent) => {
+      const drawer = mobileDrawerRef.current;
+      const target = event.target;
+      if (!(target instanceof Node) || !drawer?.contains(target)) {
+        event.preventDefault();
+      }
+    };
+    document.addEventListener("touchmove", onTouchMove, { passive: false });
+
     return () => {
-      document.body.style.overflow = "";
+      document.removeEventListener("touchmove", onTouchMove);
+      html.style.overflow = prev.htmlOverflow;
+      body.style.overflow = prev.bodyOverflow;
+      body.style.position = prev.bodyPosition;
+      body.style.top = prev.bodyTop;
+      body.style.width = prev.bodyWidth;
+      body.style.touchAction = prev.bodyTouch;
+      window.scrollTo(0, scrollY);
     };
   }, [mobileOpen]);
+
+  useEffect(() => {
+    const update = () => {
+      const row = headerRowRef.current;
+      const measure = measureNavRef.current;
+      const logo = logoRef.current;
+      const actions = actionsRef.current;
+      if (!row || !measure || !logo || !actions) return;
+
+      let actionsWidth = actions.offsetWidth;
+      if (!desktopNavRef.current) {
+        actionsWidth = Math.max(0, actionsWidth - 44);
+      }
+
+      const needed =
+        logo.offsetWidth + measure.scrollWidth + actionsWidth + 32;
+      const fits = row.clientWidth >= 960 && needed <= row.clientWidth;
+      desktopNavRef.current = fits;
+      setDesktopNav(fits);
+      if (fits) setMobileOpen(false);
+    };
+
+    update();
+    const row = headerRowRef.current;
+    if (!row || typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", update);
+      return () => window.removeEventListener("resize", update);
+    }
+
+    const ro = new ResizeObserver(update);
+    ro.observe(row);
+    window.addEventListener("resize", update);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", update);
+    };
+  }, [navLinks, locale, consultationLabel]);
 
   useEffect(() => {
     setMobileOpen(false);
@@ -266,13 +346,23 @@ const Navbar = () => {
 
   return (
     <>
-      <header className="fixed top-0 left-0 w-full z-50 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.06)] overflow-visible">
-      <div className="w-full px-4 sm:px-6 xl:px-8 2xl:px-10 py-3">
-        <div className="flex items-center justify-between gap-2 xl:gap-3 2xl:gap-4">
+      <header className="fixed top-0 left-0 w-full z-50 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.06)]">
+      <div className="w-full px-3 sm:px-5 xl:px-6 2xl:px-10 py-2.5 sm:py-3">
+        <div ref={headerRowRef} className="relative flex items-center gap-2 sm:gap-3 min-[1400px]:gap-4">
           <Link
+            ref={logoRef}
             href="/"
-            className="flex-shrink-0"
-            onClick={() => setMobileOpen(false)}
+            aria-label="Thailand Kitchens — Home"
+            className="relative z-[70] shrink-0 cursor-pointer"
+            onClick={(e) => {
+              setMobileOpen(false);
+              setIsOpen(false);
+              // Already on home: still give clear feedback (scroll to top).
+              if (pathname === "/") {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }
+            }}
           >
             <Image
               src={logoSrc}
@@ -280,12 +370,44 @@ const Navbar = () => {
               width={200}
               height={72}
               priority
-              className="w-auto h-11 sm:h-12 xl:h-12 2xl:h-14"
+              unoptimized={
+                logoSrc.startsWith("http") || logoSrc.startsWith("/uploads")
+              }
+              className="pointer-events-none w-auto h-10 sm:h-11 min-[1400px]:h-12 2xl:h-14"
             />
           </Link>
 
-          <nav className="hidden lg:flex flex-1 min-w-0 justify-center overflow-visible">
-            <div className="flex items-center justify-center flex-nowrap bg-white rounded-full shadow-[0_4px_16px_rgba(0,0,0,0.08)] px-1.5 py-1 xl:px-2 xl:py-1.5 gap-0 max-w-full overflow-visible">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute left-0 top-0 h-0 overflow-hidden opacity-0"
+          >
+            <div
+              ref={measureNavRef}
+              className="inline-flex items-center flex-nowrap px-1 py-1 min-[1400px]:px-2 gap-0"
+            >
+              {navLinks.map((link) => {
+                const href = link.href === "/blog" ? "/guides" : link.href;
+                const hub = hubNavForHref(href);
+                return (
+                  <span key={`m-${link.href}`} className={navLinkClass(href)}>
+                    {link.label}
+                    {hub ? <span className="inline-block w-2.5 ml-1.5" /> : null}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+
+          <nav
+            className={`${
+              desktopNav === null
+                ? "hidden min-[1280px]:flex"
+                : desktopNav
+                  ? "flex"
+                  : "hidden"
+            } flex-1 min-w-0 justify-center`}
+          >
+            <div className="flex items-center justify-center flex-nowrap bg-white rounded-full shadow-[0_4px_16px_rgba(0,0,0,0.08)] px-1 py-1 min-[1400px]:px-2 min-[1400px]:py-1.5 gap-0 max-w-full">
               {navLinks.map((link) => {
                 const href = link.href === "/blog" ? "/guides" : link.href;
                 const hubConfig = hubNavForHref(href);
@@ -310,7 +432,10 @@ const Navbar = () => {
             </div>
           </nav>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div
+            ref={actionsRef}
+            className="ml-auto flex items-center gap-1.5 sm:gap-2 min-[1400px]:gap-3 shrink-0"
+          >
             <div
               className="relative hidden h-10 w-10 shrink-0 sm:block"
               ref={desktopSearchRef}
@@ -386,7 +511,7 @@ const Navbar = () => {
             <div className="relative hidden sm:flex items-center">
               <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="inline-flex items-center gap-2.5 bg-white hover:bg-gray-50 text-[#1A1A1A] px-4 lg:px-5 py-2.5 rounded-full font-semibold shadow-[0_4px_16px_rgba(0,0,0,0.08)] transition text-xs sm:text-sm whitespace-nowrap h-[42px]"
+                className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-[#1A1A1A] px-3 min-[1400px]:px-5 py-2.5 rounded-full font-semibold shadow-[0_4px_16px_rgba(0,0,0,0.08)] transition text-xs sm:text-sm whitespace-nowrap h-[42px]"
               >
                 <span className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full bg-[#F5F3EF] ring-1 ring-black/5">
                   <Image
@@ -397,7 +522,7 @@ const Navbar = () => {
                     className="rounded-full object-cover"
                   />
                 </span>
-                <span className="tracking-normal">{selectedLanguage.label}</span>
+                <span className="hidden min-[1400px]:inline tracking-normal">{selectedLanguage.label}</span>
                 <Image
                   src="/Arrow-down.png"
                   alt=""
@@ -438,7 +563,7 @@ const Navbar = () => {
             <button
               type="button"
               onClick={() => setEnquiryOpen(true)}
-              className="hidden sm:inline-flex items-center bg-white hover:bg-gray-50 text-[#1A1A1A] px-4 lg:px-5 py-2.5 rounded-full font-semibold shadow-[0_4px_16px_rgba(0,0,0,0.08)] transition text-xs sm:text-sm whitespace-nowrap h-[42px]"
+              className="hidden sm:inline-flex items-center bg-white hover:bg-gray-50 text-[#1A1A1A] px-3 min-[1400px]:px-5 py-2.5 rounded-full font-semibold shadow-[0_4px_16px_rgba(0,0,0,0.08)] transition text-xs sm:text-sm whitespace-nowrap h-[42px]"
             >
               {consultationLabel}
             </button>
@@ -453,7 +578,13 @@ const Navbar = () => {
               }}
               aria-label="Toggle menu"
               aria-expanded={mobileOpen}
-              className="lg:hidden w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-[0_4px_16px_rgba(0,0,0,0.08)] transition"
+              className={`${
+                desktopNav === null
+                  ? "flex min-[1280px]:hidden"
+                  : desktopNav
+                    ? "hidden"
+                    : "flex"
+              } w-10 h-10 items-center justify-center rounded-full bg-white shadow-[0_4px_16px_rgba(0,0,0,0.08)] transition`}
             >
               <div className="flex flex-col justify-center gap-1.5 w-5">
                 <span
@@ -478,13 +609,14 @@ const Navbar = () => {
       </div>
 
       <div
-        className={`lg:hidden absolute inset-x-0 top-full z-50 bg-white border-b border-black/5 shadow-[0_12px_40px_rgba(0,0,0,0.12)] overflow-hidden transition-all duration-300 ease-out ${
-          mobileOpen
-            ? "max-h-[min(80vh,640px)] opacity-100 pointer-events-auto visible"
-            : "max-h-0 opacity-0 pointer-events-none invisible"
+        ref={mobileDrawerRef}
+        className={`absolute inset-x-0 top-full z-50 bg-white border-b border-black/5 shadow-[0_12px_40px_rgba(0,0,0,0.12)] overscroll-contain transition-[height,opacity] duration-300 ease-out ${
+          desktopNav !== true && mobileOpen
+            ? "h-[calc(100dvh-4.5rem)] overflow-y-auto opacity-100 pointer-events-auto visible touch-pan-y"
+            : "h-0 overflow-hidden opacity-0 pointer-events-none invisible"
         }`}
       >
-        <nav className="flex flex-col px-4 sm:px-6 py-4 gap-1 overflow-y-auto max-h-[min(80vh,640px)]">
+        <nav className="flex flex-col px-4 sm:px-6 py-4 gap-1 pb-[max(1.25rem,env(safe-area-inset-bottom))] [&>*]:shrink-0">
           {navLinks.map((link) => {
             const href = link.href === "/blog" ? "/guides" : link.href;
             const hubConfig = hubNavForHref(href);
@@ -505,7 +637,7 @@ const Navbar = () => {
                 key={link.href}
                 href={href}
                 onClick={() => setMobileOpen(false)}
-                className={`py-3 px-4 rounded-full font-medium transition ${
+                className={`py-3 px-4 rounded-full text-[15px] font-medium transition ${
                   isActive(href)
                     ? "text-[#1A1A1A] font-bold bg-[#F5F3EF]"
                     : "text-gray-500 hover:bg-gray-50"
@@ -516,7 +648,7 @@ const Navbar = () => {
             );
           })}
 
-          <div className="sm:hidden pt-2">
+          <div className="sm:hidden pt-3 mt-2 border-t border-[#EEE8DF]">
             <input
               type="text"
               value={search}
@@ -560,7 +692,7 @@ const Navbar = () => {
               setMobileOpen(false);
               setEnquiryOpen(true);
             }}
-            className="sm:hidden mt-2 bg-[#1A1A1A] text-white px-5 py-3 rounded-full font-semibold text-center"
+            className="sm:hidden mt-3 bg-[#1A1A1A] text-white px-5 py-3 rounded-full font-semibold text-center"
           >
             {consultationLabel}
           </button>

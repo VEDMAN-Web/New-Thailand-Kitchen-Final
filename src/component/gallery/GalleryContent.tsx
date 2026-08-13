@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import {
@@ -38,7 +38,6 @@ export default function GalleryContent({ initialItems, initialFilters }: Props) 
   const searchParams = useSearchParams();
   const [active, setActive] = useState<string>("All");
 
-  // Use SSR data directly — no useEffect fetch, no flicker
   const itemsAll = initialItems?.length ? initialItems : galleryItems;
 
   const filters =
@@ -72,94 +71,146 @@ export default function GalleryContent({ initialItems, initialFilters }: Props) 
     if (match) setActive(match.id);
   }, [searchParams, filters]);
 
-  const items =
-    active === "All"
-      ? itemsAll
-      : itemsAll.filter((item) => {
-          // Legacy filter bucket OR SEO taxonomy tags (location/layout/style/material/property)
-          if (item.filter === active) return true;
-          const cms = item as CmsGallery;
-          const tags = [
-            cms.locationTag,
-            cms.layoutTag,
-            cms.styleTag,
-            cms.materialTag,
-            cms.propertyType,
-          ]
-            .filter(Boolean)
-            .map((t) => String(t).toLowerCase());
-          const needle = active.toLowerCase();
-          return tags.some(
-            (t) => t === needle || t.includes(needle) || needle.includes(t)
-          );
-        });
+  const items = useMemo(() => {
+    const list =
+      active === "All"
+        ? itemsAll
+        : itemsAll.filter((item) => {
+            if (item.filter === active) return true;
+            const cms = item as CmsGallery;
+            const tags = [
+              cms.locationTag,
+              cms.layoutTag,
+              cms.styleTag,
+              cms.materialTag,
+              cms.propertyType,
+            ]
+              .filter(Boolean)
+              .map((tag) => String(tag).toLowerCase());
+            const needle = active.toLowerCase();
+            return tags.some(
+              (tag) =>
+                tag === needle ||
+                tag.includes(needle) ||
+                needle.includes(tag)
+            );
+          });
+
+    return [...list].sort((a, b) => {
+      const ao = Number(a.sortOrder) || 0;
+      const bo = Number(b.sortOrder) || 0;
+      return ao - bo;
+    });
+  }, [active, itemsAll]);
 
   return (
     <section className="pb-16 lg:pb-24">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-8 lg:mb-10">
-          {filters.map((cat) => (
-            <button
-              key={cat.id}
-              type="button"
-              onClick={() => {
-                setActive(cat.id);
-                const url = new URL(window.location.href);
-                url.searchParams.set("tab", categoryToSlug(cat.id));
-                window.history.replaceState({}, "", url.toString());
-              }}
-              className={`px-5 py-2.5 rounded-full text-sm font-medium transition-colors ${
-                active === cat.id
-                  ? "bg-[#1A1A1A] text-white"
-                  : "text-[#4A4A4A] hover:text-[#1A1A1A]"
-              }`}
-            >
-              {cat.label ||
-                (cat.id in categoryKeyMap
-                  ? t(categoryKeyMap[cat.id as GalleryCategory])
-                  : cat.id)}
-            </button>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-2 gap-4 sm:gap-5 auto-rows-[150px] sm:auto-rows-[190px] lg:auto-rows-[215px] [grid-auto-flow:dense]">
-          {items.map((item, i) => {
-            const pos = i % 7;
-            const isTall = Boolean(item.tall) || pos === 0 || pos === 4;
-            const isWide = Boolean(item.wide) || pos === 6;
-            const imageSrc =
-              typeof item.image === "string" ? item.image.trim() : "";
-
-            const panClass =
-              isTall || isWide
-                ? "scale-[1.3] origin-left transition-transform duration-[3500ms] ease-linear will-change-transform group-hover:-translate-x-[14%]"
-                : "scale-[1.3] origin-top transition-transform duration-[3500ms] ease-linear will-change-transform group-hover:-translate-y-[14%]";
+          {filters.map((cat) => {
+            const count =
+              cat.id === "All"
+                ? itemsAll.length
+                : itemsAll.filter((item) => {
+                    if (item.filter === cat.id) return true;
+                    const cms = item as CmsGallery;
+                    const tags = [
+                      cms.locationTag,
+                      cms.layoutTag,
+                      cms.styleTag,
+                      cms.materialTag,
+                      cms.propertyType,
+                    ]
+                      .filter(Boolean)
+                      .map((tag) => String(tag).toLowerCase());
+                    const needle = cat.id.toLowerCase();
+                    return tags.some(
+                      (tag) =>
+                        tag === needle ||
+                        tag.includes(needle) ||
+                        needle.includes(tag)
+                    );
+                  }).length;
 
             return (
-              <article
-                key={String(item.id)}
-                className={`group relative overflow-hidden rounded-[1.25rem] sm:rounded-[1.5rem] ${
-                  isTall ? "row-span-2" : ""
-                } ${isWide ? "col-span-2 row-span-2" : ""}`}
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => {
+                  setActive(cat.id);
+                  const url = new URL(window.location.href);
+                  url.searchParams.set("tab", categoryToSlug(cat.id));
+                  window.history.replaceState({}, "", url.toString());
+                }}
+                className={`px-5 py-2.5 rounded-full text-sm font-medium transition-colors ${
+                  active === cat.id
+                    ? "bg-[#1A1A1A] text-white"
+                    : "text-[#4A4A4A] hover:text-[#1A1A1A]"
+                }`}
               >
-                {imageSrc ? (
-                  <Image
-                    src={imageSrc}
-                    alt={pickCmsText(item.title, "Gallery", locale)}
-                    fill
-                    className={`object-cover ${panClass}`}
-                    sizes={
-                      isWide ? "100vw" : "(max-width: 1024px) 50vw, 45vw"
-                    }
-                    unoptimized={
-                      imageSrc.startsWith("/uploads") || imageSrc.startsWith("http")
-                    }
-                  />
-                ) : null}
-              </article>
+                {cat.label ||
+                  (cat.id in categoryKeyMap
+                    ? t(categoryKeyMap[cat.id as GalleryCategory])
+                    : cat.id)}
+                <span
+                  className={`ml-1.5 text-[11px] ${
+                    active === cat.id ? "text-white/70" : "text-[#9CA3AF]"
+                  }`}
+                >
+                  {count}
+                </span>
+              </button>
             );
           })}
         </div>
+
+        {items.length === 0 ? (
+          <p className="py-16 text-center text-sm text-[#6B7280]">
+            No gallery images in this filter yet.
+          </p>
+        ) : (
+          /* CSS multi-column masonry — no empty grid holes */
+          <div className="columns-2 lg:columns-3 gap-4 sm:gap-5 [column-fill:_balance]">
+            {items.map((item) => {
+              const imageSrc =
+                typeof item.image === "string" ? item.image.trim() : "";
+              const title = pickCmsText(item.title, "Gallery", locale);
+              const preferTall = Boolean(item.tall);
+              const preferWide = Boolean(item.wide);
+
+              return (
+                <article
+                  key={String(item.id)}
+                  className="mb-4 sm:mb-5 break-inside-avoid group relative overflow-hidden rounded-[1.25rem] sm:rounded-[1.5rem] bg-[#EDEAE4]"
+                >
+                  <div
+                    className={`relative w-full overflow-hidden ${
+                      preferWide
+                        ? "aspect-[4/3]"
+                        : preferTall
+                          ? "aspect-[3/4]"
+                          : "aspect-[4/5]"
+                    }`}
+                  >
+                    {imageSrc ? (
+                      <Image
+                        src={imageSrc}
+                        alt={title}
+                        fill
+                        className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+                        sizes="(max-width: 1024px) 50vw, 33vw"
+                        unoptimized={
+                          imageSrc.startsWith("/uploads") ||
+                          imageSrc.startsWith("http")
+                        }
+                      />
+                    ) : null}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
       </div>
     </section>
   );

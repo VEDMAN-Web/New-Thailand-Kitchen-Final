@@ -14,6 +14,8 @@ export interface BlogTranslation {
   quote?: string;
   quoteAuthor?: string;
   content?: string[];
+  bodySections?: { title?: string; content?: string; image?: string }[];
+  highlightText?: string;
 }
 
 export interface BlogPost {
@@ -37,6 +39,9 @@ export interface BlogPost {
   featured?: boolean;
   featuredLayout?: "image-left" | "image-right";
   content: string[];
+  /** Structured body from admin — preferred over flattened content when present */
+  bodySections?: { title?: string; content?: string; image?: string }[];
+  highlightText?: string;
   translations?: { th?: BlogTranslation; pl?: BlogTranslation };
   author?: string;
   primaryCommercialPage?: string;

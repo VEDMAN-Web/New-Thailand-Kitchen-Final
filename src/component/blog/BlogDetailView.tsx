@@ -96,6 +96,10 @@ export default function BlogDetailView({ post: rawPost }: Props) {
   const [intro, ...remaining] = post.content;
   const afterQuote = remaining.slice(1);
   const beforeQuote = remaining[0];
+  const structuredSections = (post.bodySections || []).filter(
+    (s) => s.title || s.content || s.image
+  );
+  const useStructured = structuredSections.length > 0;
 
   return (
     <div className="w-full bg-[#F5F3EF]">
@@ -198,21 +202,85 @@ export default function BlogDetailView({ post: rawPost }: Props) {
               </aside>
 
               <div className="min-w-0 flex-1 text-left">
-                {intro ? (
-                  <p className="text-[#4A4A4A] text-[15px] sm:text-base leading-8">
-                    {intro}
-                  </p>
-                ) : null}
+                {useStructured ? (
+                  <div className="space-y-10">
+                    {structuredSections.map((section, index) => (
+                      <section key={`${section.title}-${index}`}>
+                        {section.title ? (
+                          <h2 className="text-2xl sm:text-[1.75rem] font-extrabold text-[#1A1A1A]">
+                            {section.title}
+                          </h2>
+                        ) : null}
+                        {section.content ? (
+                          <div className="mt-4 space-y-4">
+                            {section.content
+                              .split(/\n{2,}/)
+                              .map((p) => p.trim())
+                              .filter(Boolean)
+                              .map((paragraph, pIndex) => (
+                                <p
+                                  key={pIndex}
+                                  className="text-[#4A4A4A] text-[15px] sm:text-base leading-8 whitespace-pre-line"
+                                >
+                                  {paragraph}
+                                </p>
+                              ))}
+                          </div>
+                        ) : null}
+                        {section.image ? (
+                          <div className="relative mt-6 aspect-[16/10] w-full overflow-hidden rounded-[1.5rem]">
+                            <Image
+                              src={section.image}
+                              alt={section.title || post.title}
+                              fill
+                              className="object-cover"
+                              sizes="(max-width: 896px) 100vw, 720px"
+                              unoptimized={
+                                section.image.startsWith("http") ||
+                                section.image.startsWith("/uploads")
+                              }
+                            />
+                          </div>
+                        ) : null}
+                      </section>
+                    ))}
+                  </div>
+                ) : (
+                  <>
+                    {intro ? (
+                      <p className="text-[#4A4A4A] text-[15px] sm:text-base leading-8">
+                        {intro}
+                      </p>
+                    ) : null}
 
-                {post.subsectionTitle ? (
+                    {post.subsectionTitle ? (
+                      <h2 className="mt-10 text-2xl sm:text-[1.75rem] font-extrabold text-[#1A1A1A]">
+                        {post.subsectionTitle}
+                      </h2>
+                    ) : null}
+
+                    {post.highlightText ? (
+                      <p className="mt-5 text-[#4A4A4A] text-[15px] sm:text-base leading-8">
+                        {post.highlightText}
+                      </p>
+                    ) : null}
+
+                    {beforeQuote ? (
+                      <p className="mt-5 text-[#4A4A4A] text-[15px] sm:text-base leading-8">
+                        {beforeQuote}
+                      </p>
+                    ) : null}
+                  </>
+                )}
+
+                {useStructured && post.subsectionTitle ? (
                   <h2 className="mt-10 text-2xl sm:text-[1.75rem] font-extrabold text-[#1A1A1A]">
                     {post.subsectionTitle}
                   </h2>
                 ) : null}
-
-                {beforeQuote ? (
+                {useStructured && post.highlightText ? (
                   <p className="mt-5 text-[#4A4A4A] text-[15px] sm:text-base leading-8">
-                    {beforeQuote}
+                    {post.highlightText}
                   </p>
                 ) : null}
 
@@ -229,14 +297,16 @@ export default function BlogDetailView({ post: rawPost }: Props) {
                   </blockquote>
                 ) : null}
 
-                {afterQuote.map((paragraph, index) => (
-                  <p
-                    key={index}
-                    className="mt-5 text-[#4A4A4A] text-[15px] sm:text-base leading-8"
-                  >
-                    {paragraph}
-                  </p>
-                ))}
+                {!useStructured
+                  ? afterQuote.map((paragraph, index) => (
+                      <p
+                        key={index}
+                        className="mt-5 text-[#4A4A4A] text-[15px] sm:text-base leading-8"
+                      >
+                        {paragraph}
+                      </p>
+                    ))
+                  : null}
 
                 <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 gap-5">
                   {gallery.map((src, index) => (

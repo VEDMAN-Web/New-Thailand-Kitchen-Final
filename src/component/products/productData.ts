@@ -36,6 +36,9 @@ export interface ProductItem {
   features: ProductFeature[];
   detailImages: string[];
   contactImage: string;
+  contactEyebrow?: unknown;
+  contactTitle?: unknown;
+  contactFormTitle?: unknown;
   pdfUrl?: string;
   icon?: string;
   metaTitle?: string;

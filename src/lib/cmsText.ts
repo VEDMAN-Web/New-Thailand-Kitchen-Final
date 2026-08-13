@@ -4,6 +4,7 @@
  * Legacy plain strings: EN uses CMS; TH/PL prefer i18n then EN CMS.
  */
 import type { Locale } from "../i18n/translations";
+import { resolveCmsMediaUrl } from "./cmsMedia";
 
 function localeKey(locale: Locale): "en" | "th" | "pl" {
   if (locale === "TH") return "th";
@@ -39,17 +40,19 @@ export function pickCmsAsset(
   cmsValue: unknown,
   fallback: string = ""
 ): string {
+  let raw = "";
   if (typeof cmsValue === "string") {
-    const value = cmsValue.trim();
-    return value || fallback;
-  }
-  // Accidental localized map → use EN
-  if (cmsValue && typeof cmsValue === "object" && !Array.isArray(cmsValue)) {
+    raw = cmsValue.trim();
+  } else if (cmsValue && typeof cmsValue === "object" && !Array.isArray(cmsValue)) {
     const map = cmsValue as Partial<Record<"en" | "th" | "pl", unknown>>;
-    const en = typeof map.en === "string" ? map.en.trim() : "";
-    return en || fallback;
+    raw = typeof map.en === "string" ? map.en.trim() : "";
   }
-  return fallback;
+  if (!raw) return fallback;
+  if (/^(mailto:|tel:)/i.test(raw) || (raw.includes("@") && !raw.includes("/"))) {
+    return raw;
+  }
+  if (/^\+?[\d\s().-]{6,}$/.test(raw)) return raw;
+  return resolveCmsMediaUrl(raw, fallback);
 }
 
 /**

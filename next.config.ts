@@ -6,6 +6,9 @@ const rootDir = path.dirname(fileURLToPath(import.meta.url));
 const apiTarget = (
   process.env.BACKEND_URL?.trim() || "http://127.0.0.1:5000"
 ).replace(/\/+$/, "");
+const assetTarget = (
+  process.env.NEXT_PUBLIC_FRONTEND_URL?.trim() || ""
+).replace(/\/+$/, "");
 
 const nextConfig: NextConfig = {
   turbopack: {
@@ -33,7 +36,7 @@ const nextConfig: NextConfig = {
     ];
   },
   async rewrites() {
-    return [
+    const rewrites = [
       {
         source: "/cms-api/:path*",
         destination: `${apiTarget}/api/:path*`,
@@ -43,6 +46,27 @@ const nextConfig: NextConfig = {
         destination: `${apiTarget}/uploads/:path*`,
       },
     ];
+
+    if (assetTarget) {
+      for (const prefix of [
+        "products",
+        "product",
+        "blog",
+        "features",
+        "catlog",
+        "slider",
+        "testimonial",
+        "contactUs",
+        "video",
+      ]) {
+        rewrites.push({
+          source: `/${prefix}/:path*`,
+          destination: `${assetTarget}/${prefix}/:path*`,
+        });
+      }
+    }
+
+    return rewrites;
   },
 };
 
