@@ -147,6 +147,30 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
       { key: "heroPrimaryCtaHref", label: "Primary CTA Link" },
       { key: "heroSecondaryCtaLabel", label: "Secondary CTA Label", localized: true },
       { key: "heroSecondaryCtaHref", label: "Secondary CTA Link" },
+      {
+        key: "hero.__div_seo",
+        label: "Google / SEO (whole site home)",
+        type: "section-divider",
+        helpText: "Browser tab + Google listing for the home page (`/` / `/{locale}`).",
+      },
+      {
+        key: "homeSeo.metaTitle",
+        label: "Google title (browser tab)",
+        localized: true,
+        maxLength: 60,
+      },
+      {
+        key: "homeSeo.metaDescription",
+        label: "Google description",
+        localized: true,
+        type: "textarea",
+        maxLength: 160,
+      },
+      {
+        key: "homeSeo.indexable",
+        label: "Show home in Google sitemap (Indexable)",
+        type: "boolean",
+      },
     ],
   },
   {
@@ -205,7 +229,7 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
         label: "Carousel projects",
         type: "section-divider",
         helpText:
-          "Manage project cards below (cover image, title, order, visibility). Visible projects appear in the home carousel.",
+          "Toggle Featured ON for each project that should appear in the home carousel. If none are Featured, the carousel shows all projects.",
       },
     ],
   },
@@ -374,8 +398,9 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
         key: "aboutPage.__div_hero",
         label: "1 · Hero",
         type: "section-divider",
-        helpText: "Subtitle + intro under the page title. Hero banner uses Home → 2. About images.",
+        helpText: "Page title + subtitle + intro. Banner images use Home → 2. About images.",
       },
+      { key: "aboutHeroTitle", label: "Hero title (H1)", localized: true },
       { key: "aboutHeroSubtitle", label: "Hero subtitle", localized: true },
       { key: "aboutIntro", label: "Intro paragraph", localized: true, type: "textarea" },
       {
@@ -580,6 +605,31 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
     icon: FolderKanban,
     fields: [
       {
+        key: "projectsPage.__div_hero",
+        label: "1 · Page hero",
+        type: "section-divider",
+        helpText:
+          "Default headline for the All / listing view. Per-tab titles can still override via Showcases → showcase meta / Navigation mega-menu.",
+      },
+      {
+        key: "projectsPage.heroTitle",
+        label: "Big headline on page",
+        localized: true,
+        helpText: "Main headline visitors see at the top of /projects (All tab).",
+      },
+      {
+        key: "projectsPage.heroSubtitle",
+        label: "Intro line under headline",
+        localized: true,
+        type: "textarea",
+        helpText: "One short sentence under the headline.",
+      },
+      {
+        key: "projectsPage.__div_seo",
+        label: "2 · Google / SEO",
+        type: "section-divider",
+      },
+      {
         key: "projectsPage.indexable",
         label: "Show in Google sitemap (Indexable)",
         type: "boolean",
@@ -599,19 +649,6 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
         type: "textarea",
         maxLength: 160,
         helpText: "Short summary under the Google title (~150–160 characters).",
-      },
-      {
-        key: "projectsPage.heroTitle",
-        label: "Big headline on page",
-        localized: true,
-        helpText: "Main headline visitors see at the top of /projects.",
-      },
-      {
-        key: "projectsPage.heroSubtitle",
-        label: "Intro line under headline",
-        localized: true,
-        type: "textarea",
-        helpText: "One short sentence under the headline.",
       },
     ],
   },
@@ -664,17 +701,24 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
   {
     id: "contactPage",
     title: "Contact Page",
-    description: "/contact · SEO, map, showrooms · form in Home → 10. Contact",
+    description: "/contact · hero → form (Home Contact images) → map → showrooms → SEO",
     group: "pages",
     icon: MapPin,
     fields: [
       {
-        key: "contactPage.__div_seo",
-        label: "1 · Google / SEO",
+        key: "contactPage.__div_hero",
+        label: "1 · Hero",
         type: "section-divider",
-        helpText: "Browser tab and Google listing for /contact.",
+        helpText:
+          "Overrides Home → Contact title/subtitle on /contact when set. Form images still come from Home → 10. Contact.",
       },
-      ...pageSeoFields("contactPage"),
+      { key: "contactPage.heroTitle", label: "Hero title", localized: true },
+      {
+        key: "contactPage.heroSubtitle",
+        label: "Hero subtitle",
+        localized: true,
+        type: "textarea",
+      },
       {
         key: "contactPage.__div_location",
         label: "2 · Map section",
@@ -693,6 +737,13 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
       },
       { key: "contactPage.showroomsTitle", label: "Showrooms section title", localized: true },
       { key: "contactPage.showroomsSubtitle", label: "Showrooms section subtitle", localized: true },
+      {
+        key: "contactPage.__div_seo",
+        label: "4 · Google / SEO",
+        type: "section-divider",
+        helpText: "Browser tab and Google listing for /contact.",
+      },
+      ...pageSeoFields("contactPage"),
     ],
   },
   {
@@ -968,7 +1019,7 @@ const SITE_SECTIONS_IA: SiteSection[] = [
   iaHubSection(
     "iaInteriorDesign",
     "Interior Design",
-    "/interior-design · banner → intro → content blocks · catalogue items in Interior catalogue projects",
+    "/interior-design catalog · hub hero drives All-tab headline + SEO; cards in Interior catalogue",
     "interiorDesign",
     LayoutGrid,
     false,
@@ -1016,7 +1067,7 @@ const SITE_SECTIONS_IA: SiteSection[] = [
   iaHubSection(
     "iaAboutBrand",
     "About brands",
-    "/about/varsovia · /about/livo · /about/oppolia",
+    "/about shows brand Explore strip · /about/[brand] pages · hub fields seed brand defaults",
     "aboutBrand",
     BookOpen,
     true,
