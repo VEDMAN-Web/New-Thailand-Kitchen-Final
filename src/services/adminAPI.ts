@@ -89,6 +89,36 @@ export type SyncSiteReport = {
   added: Record<string, number>;
   taxonomy: { created: number; existing: number; total: number };
   homeUpdated: boolean;
+  landingsSeeded?: number;
+  repaired?: {
+    homeHubsRepaired: number;
+    categoriesRepaired: number;
+    mediaUrlsNormalized: number;
+  };
+  nav?: {
+    servicesMenu: number;
+    materialsMenu: number;
+    locationsMenu?: number;
+    locationServices: number;
+    galleryTotal?: number;
+    guidesTotal?: number;
+    productsTotal?: number;
+    faqsTotal?: number;
+    categoriesTotal: number;
+  };
+  gallerySync?: { created: number; existing: number; total: number };
+  blogSync?: { created: number; existing: number; total: number };
+  productSync?: { created: number; existing: number; total: number };
+  faqSync?: { created: number; existing: number; total: number };
+  localeRepair?: {
+    home?: { repaired: number; total: number };
+    products?: { repaired: number; total: number };
+    categories?: { repaired: number; total: number };
+    gallery?: { repaired: number; total: number };
+    faqs?: { repaired: number; total: number };
+    blogs?: { repaired: number; total: number };
+    totalRepaired?: number;
+  };
   preserved: boolean;
 };
 
@@ -112,6 +142,32 @@ export type CategoryItem = {
   description: LocalizedCmsText;
   image: string;
   icon?: string;
+  slug?: string;
+  categoryType?: string;
+  parentId?:
+    | string
+    | {
+        _id?: string;
+        slug?: string;
+        categoryType?: string;
+        title?: LocalizedCmsText;
+      }
+    | null;
+  metaTitle?: string;
+  metaDescription?: string;
+  canonicalUrl?: string;
+  indexable?: boolean;
+  eyebrow?: LocalizedCmsText;
+  ctaLabel?: LocalizedCmsText;
+  ctaHref?: string;
+  footerCtaHeading?: LocalizedCmsText;
+  footerCtaBody?: LocalizedCmsText;
+  sections?: Array<{
+    heading?: LocalizedCmsText;
+    body?: LocalizedCmsText;
+    image?: string;
+    layout?: string;
+  }>;
 };
 
 export async function listCategories(siteId: SiteId) {
@@ -237,6 +293,12 @@ export type BlogItem = {
   published: boolean;
   createdAt?: string;
   updatedAt?: string;
+  primaryCommercialPage?: string;
+  locationTag?: string;
+  serviceTag?: string;
+  materialTag?: string;
+  metaDescription?: string;
+  reviewer?: string;
 };
 
 export async function listBlogs(siteId: SiteId) {
@@ -440,6 +502,28 @@ export async function uploadMedia(
   }
 }
 
+export type ResolvedMediaUrl = {
+  success: boolean;
+  url: string;
+  kind: string;
+  hint?: string;
+  previewUrl?: string;
+  playable?: boolean;
+  provider?: string;
+};
+
+/** Resolve gallery page links (Pexels etc.) to preview thumbnails for admin. */
+export async function resolveMediaUrl(
+  url: string,
+  field: "image" | "video" = "image"
+) {
+  const { data } = await adminApi.get("/upload/resolve", {
+    params: { url, field },
+    timeout: 15000,
+  });
+  return data as ResolvedMediaUrl;
+}
+
 export type GalleryCmsItem = {
   _id: string;
   title: LocalizedCmsText;
@@ -448,6 +532,13 @@ export type GalleryCmsItem = {
   tall?: boolean;
   wide?: boolean;
   sortOrder?: number;
+  locationTag?: string;
+  layoutTag?: string;
+  styleTag?: string;
+  materialTag?: string;
+  propertyType?: string;
+  projectTitle?: string;
+  projectDesc?: string;
 };
 
 export async function listGallery(siteId: SiteId) {

@@ -38,7 +38,8 @@ export const ADMIN_HUBS: AdminHubMeta[] = [
     sitePath: "/services",
     categoryTypes: ["service"],
     defaultCategoryType: "service",
-    description: "Mega-menu service pages under /services.",
+    description:
+      "Same pages as the Services mega-menu (top-level only).",
   },
   {
     key: "materials",
@@ -47,16 +48,18 @@ export const ADMIN_HUBS: AdminHubMeta[] = [
     sitePath: "/materials",
     categoryTypes: ["material"],
     defaultCategoryType: "material",
-    description: "Material & finish pages under /materials.",
+    description:
+      "Same pages as the Materials mega-menu under /materials.",
   },
   {
     key: "locations",
     hubParam: "locations",
     label: "Locations",
     sitePath: "/locations",
-    categoryTypes: ["location"],
+    categoryTypes: ["location", "service"],
     defaultCategoryType: "location",
-    description: "Location pages under /locations.",
+    description:
+      "Same cities as the Locations mega-menu. Use “City services” for /locations/{city}/{service} pages.",
   },
   {
     key: "builtInFurniture",

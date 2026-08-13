@@ -13,15 +13,36 @@ export const CMS_LOCALES: { id: LocaleCode; label: string }[] = [
 
 export function localizedValue(
   value: unknown,
-  locale: LocaleCode = "en"
+  locale: LocaleCode = "en",
+  options?: { strict?: boolean }
 ): string {
   if (typeof value === "string") return value;
   if (value && typeof value === "object" && !Array.isArray(value)) {
     const map = value as Partial<Record<LocaleCode, unknown>>;
-    const resolved = map[locale] ?? map.en;
-    return typeof resolved === "string" ? resolved : "";
+    const raw =
+      typeof map[locale] === "string" ? String(map[locale]).trim() : "";
+    if (options?.strict) {
+      if (raw) return raw;
+      return locale === "en" && typeof map.en === "string"
+        ? String(map.en).trim()
+        : "";
+    }
+    if (raw) return raw;
+    return typeof map.en === "string" ? String(map.en).trim() : "";
   }
   return "";
+}
+
+/** True when the UI is showing English copy on a non-English tab. */
+export function isLocaleFallback(value: unknown, locale: LocaleCode): boolean {
+  if (locale === "en") return false;
+  if (typeof value === "string") return false;
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const map = value as Partial<Record<LocaleCode, unknown>>;
+  const localized =
+    typeof map[locale] === "string" ? String(map[locale]).trim() : "";
+  const en = typeof map.en === "string" ? String(map.en).trim() : "";
+  return !localized && Boolean(en);
 }
 
 export function writeLocalized(
@@ -53,16 +74,18 @@ export function asLocalizedForm(
   fallbackEn = ""
 ): Record<LocaleCode, string> {
   if (value && typeof value === "object" && !Array.isArray(value)) {
+    const en = String((value as any).en ?? "").trim() || fallbackEn;
     return {
-      en: String((value as any).en ?? "").trim() || fallbackEn,
-      th: String((value as any).th ?? "").trim(),
-      pl: String((value as any).pl ?? "").trim(),
+      en,
+      th: String((value as any).th ?? "").trim() || en,
+      pl: String((value as any).pl ?? "").trim() || en,
     };
   }
   if (typeof value === "string" && value.trim()) {
-    return { en: value.trim(), th: "", pl: "" };
+    const en = value.trim();
+    return { en, th: en, pl: en };
   }
-  return { en: fallbackEn, th: "", pl: "" };
+  return { en: fallbackEn, th: fallbackEn, pl: fallbackEn };
 }
 
 export function hasLocalizedText(value: unknown): boolean {

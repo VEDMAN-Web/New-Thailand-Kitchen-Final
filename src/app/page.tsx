@@ -1138,16 +1138,51 @@ function SectionEditor({
                 onChange({ ...data, items: next });
               }}
             />
-            <Field
-              locale={locale}
-              label="Rating (1-5)"
-              value={String(item.rating ?? 5)}
-              onChange={(v) => {
-                const next = [...items];
-                next[i] = { ...item, rating: Number(v) || 5 };
-                onChange({ ...data, items: next });
-              }}
-            />
+            <div className="max-w-[140px]">
+              <label className="mb-1.5 block text-xs font-semibold text-[#5C6370]">
+                Rating (1-5)
+              </label>
+              <input
+                type="number"
+                min={1}
+                max={5}
+                step={1}
+                inputMode="numeric"
+                value={
+                  typeof item.rating === "number" && item.rating >= 1
+                    ? item.rating
+                    : ""
+                }
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  const next = [...items];
+                  if (raw === "") {
+                    next[i] = { ...item, rating: "" };
+                    onChange({ ...data, items: next });
+                    return;
+                  }
+                  const n = Number(raw);
+                  if (!Number.isFinite(n)) return;
+                  next[i] = {
+                    ...item,
+                    rating: Math.min(5, Math.max(1, Math.round(n))),
+                  };
+                  onChange({ ...data, items: next });
+                }}
+                onBlur={() => {
+                  const n = Number(item.rating);
+                  const rating =
+                    Number.isFinite(n) && n >= 1 && n <= 5
+                      ? Math.round(n)
+                      : 5;
+                  if (item.rating === rating) return;
+                  const next = [...items];
+                  next[i] = { ...item, rating };
+                  onChange({ ...data, items: next });
+                }}
+                className="w-full rounded-lg border border-[#E2E5EA] bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A2332]/15 focus:border-[#1A2332]"
+              />
+            </div>
           </div>
         ))}
         <AddItemButton

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   CloudUpload,
+  ExternalLink,
   Link2,
   Loader2,
   Lightbulb,
@@ -11,30 +12,17 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
-import { uploadMedia } from "@/services/adminAPI";
+import { resolveMediaUrl, uploadMedia } from "@/services/adminAPI";
+import {
+  classifyMediaUrl,
+  isEmbedVideoUrl,
+  mediaUrlHint,
+  needsRemoteResolve,
+  toEmbedVideoSrc,
+} from "@/lib/adminMediaPreview";
 import { clsx } from "clsx";
 
 type Mode = "upload" | "url";
-
-function isEmbedUrl(url: string) {
-  return /youtube\.com|youtu\.be|vimeo\.com/i.test(url);
-}
-
-function toEmbedSrc(url: string) {
-  // Already embed path
-  if (/youtube\.com\/embed\//i.test(url)) return url;
-  const yt =
-    url.match(/youtu\.be\/([^?&/]+)/i) ||
-    url.match(/[?&]v=([^?&]+)/i) ||
-    url.match(/youtube\.com\/shorts\/([^?&/]+)/i);
-  if (yt?.[1]) {
-    const start = url.match(/[?&](?:t|start)=(\d+)/i)?.[1];
-    return `https://www.youtube.com/embed/${yt[1]}${start ? `?start=${start}` : ""}`;
-  }
-  const vimeo = url.match(/vimeo\.com\/(\d+)/i);
-  if (vimeo?.[1]) return `https://player.vimeo.com/video/${vimeo[1]}`;
-  return url;
-}
 
 export default function HeroVideoUpload({
   value,
@@ -50,9 +38,50 @@ export default function HeroVideoUpload({
   const [uploading, setUploading] = useState(false);
   const [urlDraft, setUrlDraft] = useState(value || "");
   const [dragOver, setDragOver] = useState(false);
+  const [remotePreviewUrl, setRemotePreviewUrl] = useState("");
+  const [remoteHint, setRemoteHint] = useState("");
+  const [resolving, setResolving] = useState(false);
 
   useEffect(() => {
     setUrlDraft(value || "");
+  }, [value]);
+
+  const urlKind = classifyMediaUrl(value);
+  const guidance = remoteHint || mediaUrlHint(urlKind, true);
+  const embed = value.trim() && isEmbedVideoUrl(value);
+  const directVideo =
+    urlKind === "direct-video" ||
+    (value.includes("/uploads/") && !embed);
+
+  useEffect(() => {
+    setRemotePreviewUrl("");
+    setRemoteHint("");
+
+    const trimmed = value.trim();
+    if (!trimmed || !needsRemoteResolve(classifyMediaUrl(trimmed))) return;
+
+    let cancelled = false;
+    setResolving(true);
+    void resolveMediaUrl(trimmed, "video")
+      .then((res) => {
+        if (cancelled) return;
+        if (res.previewUrl) setRemotePreviewUrl(res.previewUrl);
+        if (res.hint) setRemoteHint(res.hint);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setRemoteHint(
+            "Could not resolve this gallery link. Upload the video file or paste a direct .mp4 URL."
+          );
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setResolving(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [value]);
 
   const onFile = async (file?: File | null) => {
@@ -78,6 +107,13 @@ export default function HeroVideoUpload({
 
   const applyUrl = () => {
     const next = urlDraft.trim();
+    const kind = classifyMediaUrl(next);
+    if (kind === "pexels-video-page") {
+      toast.message("Pexels page link saved", {
+        description:
+          "Thumbnail preview only — the live site needs Upload or a direct .mp4 URL.",
+      });
+    }
     onChange(next);
     if (next) toast.success("Video URL saved");
   };
@@ -88,7 +124,6 @@ export default function HeroVideoUpload({
   };
 
   const preview = value.trim();
-  const embed = preview && isEmbedUrl(preview);
 
   return (
     <div className="space-y-3">
@@ -186,7 +221,7 @@ export default function HeroVideoUpload({
                   applyUrl();
                 }
               }}
-              placeholder="https://… or YouTube / CDN video URL"
+              placeholder="Direct .mp4 URL, YouTube, Vimeo, or upload instead"
               className="flex-1 rounded-lg border border-[#E2E5EA] bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A2332]/15 focus:border-[#1A2332]"
             />
             <button
@@ -199,11 +234,17 @@ export default function HeroVideoUpload({
           </div>
           <p className="flex items-start gap-1.5 text-[11px] text-[#9CA3AF]">
             <Lightbulb className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-            Paste a direct video URL from S3, CDN, cloud storage — or a YouTube
-            embed / watch link.
+            Use Upload, a direct .mp4 URL, or YouTube/Vimeo. Pexels page links
+            show thumbnail only — they will not autoplay on the live site.
           </p>
         </div>
       )}
+
+      {guidance ? (
+        <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] leading-relaxed text-amber-900">
+          {guidance}
+        </p>
+      ) : null}
 
       {preview ? (
         <div className="relative overflow-hidden rounded-xl bg-black">
@@ -216,21 +257,49 @@ export default function HeroVideoUpload({
             <X className="h-4 w-4" />
           </button>
 
-          {embed ? (
+          {resolving ? (
+            <div className="flex aspect-video items-center justify-center bg-[#111] text-sm text-white/70">
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              Resolving preview…
+            </div>
+          ) : embed ? (
             <iframe
               title="Hero video preview"
-              src={toEmbedSrc(preview)}
+              src={toEmbedVideoSrc(preview)}
               className="aspect-video w-full"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />
-          ) : (
+          ) : urlKind === "pexels-video-page" && remotePreviewUrl ? (
+            <div className="relative aspect-video w-full">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={remotePreviewUrl}
+                alt="Pexels thumbnail preview"
+                className="h-full w-full object-cover opacity-80"
+              />
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/45 px-4 text-center text-white">
+                <ExternalLink className="h-6 w-6" />
+                <p className="text-xs font-semibold">
+                  Pexels page link — upload or use direct .mp4 for live hero
+                </p>
+              </div>
+            </div>
+          ) : directVideo ? (
             <video
               key={preview}
               src={preview}
               controls
               className="aspect-video w-full bg-black"
             />
+          ) : (
+            <div className="flex aspect-video flex-col items-center justify-center gap-2 bg-[#111] px-4 text-center text-white/80">
+              <ExternalLink className="h-6 w-6" />
+              <p className="text-xs">
+                This URL cannot play as hero video. Upload a file or use a
+                direct .mp4 / YouTube / Vimeo link.
+              </p>
+            </div>
           )}
 
           <span className="absolute bottom-2 left-2 inline-flex items-center gap-1.5 rounded-md bg-black/75 px-2 py-1 text-[11px] font-semibold text-white">

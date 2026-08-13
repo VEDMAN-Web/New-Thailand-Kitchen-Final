@@ -21,6 +21,11 @@ import {
   type LocalizedText,
 } from "@/lib/localized";
 import {
+  buildDefaultCategorySections,
+  defaultEyebrowForType,
+  defaultFooterCtaFields,
+} from "@/lib/categoryPageTemplates";
+import {
   adminHubByParam,
   categoryTypeLabel,
 } from "@/lib/thailandHubs";
@@ -55,6 +60,8 @@ type CategoryForm = {
   eyebrow: LocalizedText;
   ctaLabel: LocalizedText;
   ctaHref: string;
+  footerCtaHeading: LocalizedText;
+  footerCtaBody: LocalizedText;
   sections: CategorySection[];
 };
 
@@ -86,6 +93,44 @@ function slugifyPreview(value: string) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+/** Same rule as site HubMegaMenu — only root pages appear in Services/Materials nav. */
+function isTopLevelCategory(item: {
+  parentId?: string | { _id?: string; slug?: string } | null;
+}) {
+  const parent = item.parentId;
+  if (!parent) return true;
+  if (typeof parent === "object") return false;
+  return !String(parent).trim();
+}
+
+function parentLocationSlug(item: CategoryItem): string {
+  const parent = (item as any).parentId;
+  if (parent && typeof parent === "object" && parent.slug) {
+    return String(parent.slug);
+  }
+  return "";
+}
+
+/** Canonical public path — mirrors frontend categoryPublicPath. */
+function categoryPublicPath(item: CategoryItem): string {
+  const type = String((item as any).categoryType || "");
+  const slug = String((item as any).slug || "").trim();
+  if (!slug) return categoryPublicBasePath(type);
+
+  const parent = (item as any).parentId;
+  if (
+    type === "service" &&
+    parent &&
+    typeof parent === "object" &&
+    String(parent.categoryType || "") === "location" &&
+    parent.slug
+  ) {
+    return `/locations/${parent.slug}/${slug}`;
+  }
+
+  return `${categoryPublicBasePath(type)}/${slug}`;
 }
 
 /** Parent options: location×service children must pick a location parent; others any non-self. */
@@ -120,6 +165,8 @@ export default function AdminCategoriesPage() {
     eyebrow: emptyLocalized(),
     ctaLabel: emptyLocalized(),
     ctaHref: "/contact",
+    footerCtaHeading: emptyLocalized(),
+    footerCtaBody: emptyLocalized(),
     sections: [],
   });
 
@@ -156,12 +203,47 @@ export default function AdminCategoriesPage() {
     const q = query.trim().toLowerCase();
     return items.filter((i) => {
       const type = String((i as any).categoryType || "");
-      if (hub && !hub.categoryTypes.includes(type)) return false;
-      if (typeFilter !== "all" && type !== typeFilter) return false;
+      if (hub) {
+        if (hub.key === "services") {
+          // Match site Services mega-menu: top-level services only
+          if (type !== "service" || !isTopLevelCategory(i)) return false;
+        } else if (hub.key === "materials") {
+          if (type !== "material" || !isTopLevelCategory(i)) return false;
+        } else if (hub.key === "locations") {
+          // Default / All = same as site Locations mega-menu (cities only).
+          // Filter "service" = city×service pages (/locations/bangkok/kitchen-design).
+          const isLocation = type === "location" && isTopLevelCategory(i);
+          const isLocationService =
+            type === "service" &&
+            !isTopLevelCategory(i) &&
+            String((i as any).parentId?.categoryType || "") === "location";
+
+          if (typeFilter === "service") {
+            if (!isLocationService) return false;
+          } else if (typeFilter === "location") {
+            if (!isLocation) return false;
+          } else {
+            // "all" mirrors the public mega-menu
+            if (!isLocation) return false;
+          }
+        } else if (!hub.categoryTypes.includes(type)) {
+          return false;
+        }
+      }
+      if (
+        hub?.key !== "locations" &&
+        typeFilter !== "all" &&
+        type !== typeFilter
+      ) {
+        return false;
+      }
       if (!q) return true;
       const title = localizedValue(i.title, "en").toLowerCase();
       const description = localizedValue(i.description, "en").toLowerCase();
-      return title.includes(q) || description.includes(q);
+      const path = categoryPublicPath(i).toLowerCase();
+      return (
+        title.includes(q) || description.includes(q) || path.includes(q)
+      );
     });
   }, [items, query, hub, typeFilter]);
 
@@ -194,22 +276,42 @@ export default function AdminCategoriesPage() {
   }, [form.categoryType, form.slug, form.title, form.parentId, items]);
 
   const openCreate = () => {
+    const type = hub?.defaultCategoryType || "service";
+    const footer = defaultFooterCtaFields("kitchen");
+    const preloadSections = [
+      "layout",
+      "style",
+      "property-type",
+      "service",
+      "material",
+      "built-in-furniture",
+    ].includes(type);
     setForm({
       title: emptyLocalized(),
       description: emptyLocalized(),
       image: "/products/Kitchen2.png",
       icon: "",
       slug: "",
-      categoryType: hub?.defaultCategoryType || "service",
+      categoryType: type,
       parentId: "",
       metaTitle: "",
       metaDescription: "",
       canonicalUrl: "",
       indexable: false,
-      eyebrow: emptyLocalized(),
-      ctaLabel: emptyLocalized(),
+      eyebrow: defaultEyebrowForType(type),
+      ctaLabel: asLocalizedForm("Request a consultation"),
       ctaHref: "/contact",
-      sections: [],
+      footerCtaHeading: footer.footerCtaHeading,
+      footerCtaBody: footer.footerCtaBody,
+      sections: preloadSections
+        ? buildDefaultCategorySections({
+            title: "New page",
+            description: "",
+            image: "/products/Kitchen2.png",
+            categoryType: type,
+            slug: "",
+          })
+        : [],
     });
     setEditing(null);
     setLocale("en");
@@ -219,21 +321,36 @@ export default function AdminCategoriesPage() {
   const openEdit = (item: CategoryItem) => {
     setEditing(item);
     const indexableValue = (item as any).indexable;
+    const type = (item as any).categoryType || "service";
+    const footerFallback = defaultFooterCtaFields(
+      localizedValue(asLocalizedForm(item.title), "en") || "kitchen"
+    );
+    const eyebrowForm = asLocalizedForm((item as any).eyebrow);
+    const footerHeadingForm = asLocalizedForm((item as any).footerCtaHeading);
+    const footerBodyForm = asLocalizedForm((item as any).footerCtaBody);
     setForm({
       title: asLocalizedForm(item.title),
       description: asLocalizedForm(item.description),
       image: item.image,
       icon: item.icon || "",
       slug: (item as any).slug || "",
-      categoryType: (item as any).categoryType || "service",
+      categoryType: type,
       parentId: (item as any).parentId?._id || (item as any).parentId || "",
       metaTitle: (item as any).metaTitle || "",
       metaDescription: (item as any).metaDescription || "",
       canonicalUrl: (item as any).canonicalUrl || "",
       indexable: indexableValue === true,
-      eyebrow: asLocalizedForm((item as any).eyebrow),
+      eyebrow: localizedValue(eyebrowForm, "en")
+        ? eyebrowForm
+        : defaultEyebrowForType(type),
       ctaLabel: asLocalizedForm((item as any).ctaLabel),
       ctaHref: String((item as any).ctaHref || "/contact"),
+      footerCtaHeading: localizedValue(footerHeadingForm, "en")
+        ? footerHeadingForm
+        : footerFallback.footerCtaHeading,
+      footerCtaBody: localizedValue(footerBodyForm, "en")
+        ? footerBodyForm
+        : footerFallback.footerCtaBody,
       sections: sectionsFromApi((item as any).sections),
     });
     setLocale("en");
@@ -270,6 +387,8 @@ export default function AdminCategoriesPage() {
         eyebrow: asLocalizedForm(form.eyebrow),
         ctaLabel: asLocalizedForm(form.ctaLabel),
         ctaHref: form.ctaHref || "/contact",
+        footerCtaHeading: asLocalizedForm(form.footerCtaHeading),
+        footerCtaBody: asLocalizedForm(form.footerCtaBody),
         sections: sectionsToApiPayload(form.sections),
       };
       if (modal === "create") {
@@ -363,7 +482,7 @@ export default function AdminCategoriesPage() {
                   : "bg-white text-[#5C6370] border-[#E2E5EA]"
               }`}
             >
-              All
+              {hub.key === "locations" ? "Menu cities" : "All"}
             </button>
             {hub.categoryTypes.map((t) => (
               <button
@@ -376,7 +495,9 @@ export default function AdminCategoriesPage() {
                     : "bg-white text-[#5C6370] border-[#E2E5EA]"
                 }`}
               >
-                {categoryTypeLabel(t)}
+                {hub.key === "locations" && t === "service"
+                  ? "City services"
+                  : categoryTypeLabel(t)}
               </button>
             ))}
           </div>
@@ -406,11 +527,14 @@ export default function AdminCategoriesPage() {
                     <span className="rounded-md bg-[#F4F5F7] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#5C6370]">
                       {categoryTypeLabel(String((item as any).categoryType || ""))}
                     </span>
+                    {!isTopLevelCategory(item) && parentLocationSlug(item) ? (
+                      <span className="rounded-md bg-[#EEF2F6] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#3D5A80]">
+                        Under {parentLocationSlug(item)}
+                      </span>
+                    ) : null}
                   </div>
                   <p className="mt-1 text-[11px] font-mono text-[#9CA3AF]">
-                    {categoryPublicBasePath(String((item as any).categoryType || ""))}
-                    /
-                    {(item as any).slug || "…"}
+                    {categoryPublicPath(item)}
                   </p>
                   <p className="mt-1 text-sm text-[#6B7280] line-clamp-2">
                     {localizedValue(item.description, "en")}
@@ -636,58 +760,151 @@ export default function AdminCategoriesPage() {
                     eyebrow: writeLocalized(f.eyebrow, locale, e.target.value),
                   }))
                 }
-                placeholder="Services"
+                placeholder="Layouts"
                 className="w-full rounded-lg border border-[#E2E5EA] px-3.5 py-2.5 text-sm"
               />
             </div>
 
-            <MediaUpload
-              label="Hero image"
-              kind="image"
-              value={form.image}
-              onChange={(v) => setForm((f) => ({ ...f, image: v }))}
-            />
-
-            <div className="grid sm:grid-cols-2 gap-3">
+            <div className="rounded-xl border border-[#E8EDF2] bg-[#F8FAFC] p-4 space-y-3">
               <div>
-                <label className="block text-xs font-semibold text-[#5C6370] mb-1.5">
-                  CTA label ({locale.toUpperCase()})
-                </label>
-                <input
-                  value={localizedValue(form.ctaLabel, locale)}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      ctaLabel: writeLocalized(
-                        f.ctaLabel,
-                        locale,
-                        e.target.value
-                      ),
-                    }))
-                  }
-                  className="w-full rounded-lg border border-[#E2E5EA] px-3.5 py-2.5 text-sm"
-                />
+                <p className="text-xs font-bold uppercase tracking-wide text-[#334155]">
+                  Hero · Top of page
+                </p>
+                <p className="text-[11px] text-[#6B7280] mt-0.5">
+                  Title, description, hero image and CTA shown in the first
+                  viewport.
+                </p>
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-[#5C6370] mb-1.5">
-                  CTA link
-                </label>
-                <input
-                  value={form.ctaHref}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, ctaHref: e.target.value }))
-                  }
-                  placeholder="/contact"
-                  className="w-full rounded-lg border border-[#E2E5EA] px-3.5 py-2.5 text-sm"
-                />
+              <MediaUpload
+                label="Hero image"
+                kind="image"
+                value={form.image}
+                onChange={(v) => setForm((f) => ({ ...f, image: v }))}
+              />
+              <p className="text-[11px] text-[#6B7280] -mt-1">
+                Used on: large image beside / behind the page title
+              </p>
+
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-[#5C6370] mb-1.5">
+                    CTA label ({locale.toUpperCase()})
+                  </label>
+                  <input
+                    value={localizedValue(form.ctaLabel, locale)}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        ctaLabel: writeLocalized(
+                          f.ctaLabel,
+                          locale,
+                          e.target.value
+                        ),
+                      }))
+                    }
+                    className="w-full rounded-lg border border-[#E2E5EA] px-3.5 py-2.5 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-[#5C6370] mb-1.5">
+                    CTA link
+                  </label>
+                  <input
+                    value={form.ctaHref}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, ctaHref: e.target.value }))
+                    }
+                    placeholder="/contact"
+                    className="w-full rounded-lg border border-[#E2E5EA] px-3.5 py-2.5 text-sm"
+                  />
+                </div>
               </div>
             </div>
 
             <SectionBlocksEditor
               locale={locale}
+              label="Body sections · below the hero"
               sections={form.sections}
               onChange={(sections) => setForm((f) => ({ ...f, sections }))}
+              onLoadTemplate={() => {
+                const title = localizedValue(form.title, "en") || "Kitchen";
+                const description = localizedValue(form.description, "en");
+                const sections = buildDefaultCategorySections({
+                  title,
+                  description,
+                  image: form.image,
+                  categoryType: form.categoryType,
+                  slug: form.slug,
+                });
+                const footer = defaultFooterCtaFields(title);
+                setForm((f) => ({
+                  ...f,
+                  sections,
+                  eyebrow: localizedValue(f.eyebrow, "en")
+                    ? f.eyebrow
+                    : defaultEyebrowForType(f.categoryType),
+                  footerCtaHeading: localizedValue(f.footerCtaHeading, "en")
+                    ? f.footerCtaHeading
+                    : footer.footerCtaHeading,
+                  footerCtaBody: localizedValue(f.footerCtaBody, "en")
+                    ? f.footerCtaBody
+                    : footer.footerCtaBody,
+                }));
+                toast.success("Default page template loaded");
+              }}
+              loadTemplateLabel="Load default page template"
             />
+
+            <div className="rounded-xl border border-[#E8EDF2] bg-[#1A2332] p-4 space-y-3 text-white">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wide text-white/80">
+                  Footer CTA · bottom of page
+                </p>
+                <p className="text-[11px] text-white/55 mt-0.5">
+                  Dark band at the bottom. Button uses the same CTA label / link
+                  as the hero.
+                </p>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-white/70 mb-1.5">
+                  Footer heading ({locale.toUpperCase()})
+                </label>
+                <input
+                  value={localizedValue(form.footerCtaHeading, locale)}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      footerCtaHeading: writeLocalized(
+                        f.footerCtaHeading,
+                        locale,
+                        e.target.value
+                      ),
+                    }))
+                  }
+                  className="w-full rounded-lg border border-white/20 bg-white/10 px-3.5 py-2.5 text-sm text-white placeholder:text-white/40"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-white/70 mb-1.5">
+                  Footer body ({locale.toUpperCase()})
+                </label>
+                <textarea
+                  rows={2}
+                  value={localizedValue(form.footerCtaBody, locale)}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      footerCtaBody: writeLocalized(
+                        f.footerCtaBody,
+                        locale,
+                        e.target.value
+                      ),
+                    }))
+                  }
+                  className="w-full rounded-lg border border-white/20 bg-white/10 px-3.5 py-2.5 text-sm text-white placeholder:text-white/40 resize-y"
+                />
+              </div>
+            </div>
 
             <div className="flex justify-end gap-2 pt-2">
               <button

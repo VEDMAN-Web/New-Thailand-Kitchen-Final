@@ -1,12 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import {
   BookOpen,
   Calendar,
   CheckCircle2,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
   ImagePlus,
@@ -22,14 +20,28 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import MediaUpload from "@/components/MediaUpload";
+import HeroVideoUpload from "@/components/HeroVideoUpload";
+import LocaleTabs from "@/components/LocaleTabs";
 import { useAdminAuth } from "@/lib/AdminAuthContext";
+import { CMS_SYNCED_EVENT } from "@/lib/adminSectionNav";
+import { resolveAdminMediaPreviewUrl } from "@/lib/adminMediaPreview";
+import {
+  asLocalizedForm,
+  emptyLocalized,
+  localizedValue,
+  writeLocalized,
+  type LocaleCode,
+  type LocalizedText,
+} from "@/lib/localized";
 import {
   createBlog,
   deleteBlog,
   generateBlogImageWithAI,
   generateBlogWithAI,
+  getHome,
   listBlogs,
   updateBlog,
+  updateHome,
   type BlogBodySection,
   type BlogItem,
   type BlogLocale,
@@ -141,6 +153,22 @@ const emptyForm = (): FormState => ({
   reviewer: "",
 });
 
+type GuidesHeroForm = {
+  eyebrow: LocalizedText;
+  title: LocalizedText;
+  relatedTitle: LocalizedText;
+  videoUrl: string;
+  shareLinks: { label: LocalizedText; href: string }[];
+};
+
+const emptyGuidesHero = (): GuidesHeroForm => ({
+  eyebrow: emptyLocalized(),
+  title: emptyLocalized(),
+  relatedTitle: emptyLocalized(),
+  videoUrl: "",
+  shareLinks: [],
+});
+
 function formatDateLabel(value?: string) {
   if (!value) return "—";
   const d = new Date(value);
@@ -153,7 +181,7 @@ export default function AdminBlogsPage() {
   const [items, setItems] = useState<BlogItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
-  const [typeFilter, setTypeFilter] = useState("All types");
+  const [typeFilter, setTypeFilter] = useState("All");
   const [view, setView] = useState<"grid" | "list">("grid");
   const [modal, setModal] = useState<"create" | "edit" | null>(null);
   const [editing, setEditing] = useState<BlogItem | null>(null);
@@ -165,14 +193,42 @@ export default function AdminBlogsPage() {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiCoverImage, setAiCoverImage] = useState("");
   const [aiImageLoading, setAiImageLoading] = useState(false);
+  const [hero, setHero] = useState<GuidesHeroForm>(emptyGuidesHero);
+  const [sections, setSections] = useState<Record<string, unknown>>({});
+  const [savingHero, setSavingHero] = useState(false);
+  const [heroLocale, setHeroLocale] = useState<LocaleCode>("en");
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await listBlogs(siteId);
+      const [res, homeRes] = await Promise.all([
+        listBlogs(siteId),
+        getHome(siteId),
+      ]);
       setItems(res.items || []);
+      const nextSections = homeRes.home?.sections || {};
+      setSections(nextSections);
+      const bp = (nextSections.blogPage || {}) as {
+        eyebrow?: unknown;
+        title?: unknown;
+        relatedTitle?: unknown;
+        videoUrl?: string;
+        shareLinks?: { label?: unknown; href?: string }[];
+      };
+      setHero({
+        eyebrow: asLocalizedForm(bp.eyebrow),
+        title: asLocalizedForm(bp.title),
+        relatedTitle: asLocalizedForm(bp.relatedTitle),
+        videoUrl: String(bp.videoUrl || ""),
+        shareLinks: Array.isArray(bp.shareLinks)
+          ? bp.shareLinks.map((l) => ({
+              label: asLocalizedForm(l?.label),
+              href: String(l?.href || ""),
+            }))
+          : [],
+      });
     } catch {
-      toast.error("Failed to load blogs");
+      toast.error("Failed to load guides");
     } finally {
       setLoading(false);
     }
@@ -182,12 +238,29 @@ export default function AdminBlogsPage() {
     load();
   }, [load]);
 
+  useEffect(() => {
+    const onSynced = () => {
+      void load();
+    };
+    window.addEventListener(CMS_SYNCED_EVENT, onSynced);
+    return () => window.removeEventListener(CMS_SYNCED_EVENT, onSynced);
+  }, [load]);
+
   const types = useMemo(() => {
     const set = new Set<string>();
     for (const item of items) {
       if (item.category?.trim()) set.add(item.category.trim());
     }
-    return ["All types", ...Array.from(set)];
+    return ["All", ...Array.from(set)];
+  }, [items]);
+
+  const typeCounts = useMemo(() => {
+    const counts: Record<string, number> = { All: items.length };
+    for (const item of items) {
+      const cat = item.category?.trim() || "Uncategorized";
+      counts[cat] = (counts[cat] || 0) + 1;
+    }
+    return counts;
   }, [items]);
 
   const filtered = useMemo(() => {
@@ -198,12 +271,45 @@ export default function AdminBlogsPage() {
         item.title.toLowerCase().includes(q) ||
         (item.category || "").toLowerCase().includes(q) ||
         (item.author || "").toLowerCase().includes(q) ||
-        (item.excerpt || "").toLowerCase().includes(q);
+        (item.excerpt || "").toLowerCase().includes(q) ||
+        (item.slug || "").toLowerCase().includes(q);
       const matchesType =
-        typeFilter === "All types" || item.category === typeFilter;
+        typeFilter === "All" || item.category === typeFilter;
       return matchesQuery && matchesType;
     });
   }, [items, query, typeFilter]);
+
+  const saveHero = async () => {
+    if (!localizedValue(hero.title, "en").trim()) {
+      toast.error("English Guides heading is required");
+      return;
+    }
+    setSavingHero(true);
+    try {
+      const next = {
+        ...sections,
+        blogPage: {
+          eyebrow: asLocalizedForm(hero.eyebrow),
+          title: asLocalizedForm(hero.title),
+          relatedTitle: asLocalizedForm(hero.relatedTitle),
+          videoUrl: hero.videoUrl.trim(),
+          shareLinks: hero.shareLinks
+            .map((l) => ({
+              label: asLocalizedForm(l.label),
+              href: l.href.trim(),
+            }))
+            .filter((l) => localizedValue(l.label, "en") || l.href),
+        },
+      };
+      await updateHome(siteId, next);
+      setSections(next);
+      toast.success("Guides page hero saved");
+    } catch {
+      toast.error("Failed to save Guides page content");
+    } finally {
+      setSavingHero(false);
+    }
+  };
 
   const openCreate = () => {
     setForm(emptyForm());
@@ -334,9 +440,12 @@ export default function AdminBlogsPage() {
   const isBase = lang === "en";
   const translations = safeTranslations(form.translations);
 
-  /** Read a translatable field for the active language. */
-  const fieldValue = (key: TranslatableField) =>
-    isBase ? form[key] : translations[lang][key];
+  /** Read a translatable field for the active language (falls back to English base). */
+  const fieldValue = (key: TranslatableField) => {
+    if (isBase) return form[key];
+    const translated = String(translations[lang][key] || "").trim();
+    return translated || String(form[key] || "");
+  };
 
   const setFieldValue = (key: TranslatableField, value: string) => {
     setForm((prev) => {
@@ -355,14 +464,18 @@ export default function AdminBlogsPage() {
   // Translated sections mirror the English section list position by position
   const sectionsForLang: BlogBodySection[] = isBase
     ? form.bodySections
-    : form.bodySections.map(
-        (_, i) =>
-          translations[lang].bodySections[i] || {
-            title: "",
-            content: "",
-            image: "",
-          }
-      );
+    : form.bodySections.map((section, i) => {
+        const translated = translations[lang].bodySections[i] || {
+          title: "",
+          content: "",
+          image: "",
+        };
+        return {
+          title: translated.title?.trim() || section.title || "",
+          content: translated.content?.trim() || section.content || "",
+          image: translated.image?.trim() || section.image || "",
+        };
+      });
 
   const updateSection = (
     index: number,
@@ -621,66 +734,168 @@ export default function AdminBlogsPage() {
   return (
     <>
     <div className="space-y-5">
-        <div className="rounded-xl border border-[#E8EDF2] bg-white px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
-          <div>
-            <p className="text-sm font-semibold text-[#1A2332]">
-              Guides page hero{" "}
-              <span className="font-mono text-xs font-normal text-[#6B7280]">
-                /guides
-              </span>
-            </p>
-            <p className="text-xs text-[#6B7280] mt-0.5">
-              Edit video banner, titles, related heading, and share links.
-            </p>
+        <div className="rounded-xl border border-[#E8EDF2] bg-white p-5 space-y-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="text-base font-bold text-[#1A2332]">
+                1 · Guides page hero{" "}
+                <span className="font-mono text-xs font-normal text-[#6B7280]">
+                  /guides
+                </span>
+              </h2>
+              <p className="text-xs text-[#6B7280] mt-1">
+                Banner video, titles, related heading, and share links.
+              </p>
+              <div className="mt-3">
+                <LocaleTabs locale={heroLocale} onChange={setHeroLocale} />
+              </div>
+            </div>
+            <button
+              type="button"
+              disabled={savingHero || loading}
+              onClick={saveHero}
+              className="rounded-lg bg-[#1A2332] text-white text-sm font-semibold px-4 py-2.5 disabled:opacity-60"
+            >
+              {savingHero ? "Saving…" : "Save hero content"}
+            </button>
           </div>
-          <Link
-            href="/?section=blogPage"
-            className="inline-flex items-center justify-center rounded-lg border border-[#E2E5EA] bg-[#F8FAFC] px-3 py-2 text-xs font-semibold text-[#1A2332] hover:bg-[#EEF0F3] shrink-0"
-          >
-            Edit Guides page content
-          </Link>
-        </div>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="relative w-[320px] max-w-full">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9CA3AF]" />
+
+          <div className="grid md:grid-cols-2 gap-3">
+            <label className="block text-xs font-semibold text-[#5C6370]">
+              Eyebrow ({heroLocale.toUpperCase()})
               <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search blogs by title, type, or author..."
-                className="h-11 w-full rounded-xl border border-[#E2E5EA] bg-white pl-10 pr-3 text-sm outline-none focus:ring-2 focus:ring-[#1A2332]/15"
+                value={localizedValue(hero.eyebrow, heroLocale)}
+                onChange={(e) =>
+                  setHero({
+                    ...hero,
+                    eyebrow: writeLocalized(
+                      hero.eyebrow,
+                      heroLocale,
+                      e.target.value
+                    ),
+                  })
+                }
+                className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm"
               />
-            </div>
-            <div className="relative">
-              <select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-                className="h-11 min-w-[140px] appearance-none rounded-xl border border-[#E2E5EA] bg-white px-4 pr-9 text-sm outline-none"
+            </label>
+            <label className="block text-xs font-semibold text-[#5C6370]">
+              Main heading ({heroLocale.toUpperCase()}) *
+              <input
+                value={localizedValue(hero.title, heroLocale)}
+                onChange={(e) =>
+                  setHero({
+                    ...hero,
+                    title: writeLocalized(hero.title, heroLocale, e.target.value),
+                  })
+                }
+                className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm"
+              />
+            </label>
+          </div>
+
+          <HeroVideoUpload
+            value={hero.videoUrl}
+            onChange={(v) => setHero({ ...hero, videoUrl: v })}
+          />
+
+          <label className="block text-xs font-semibold text-[#5C6370]">
+            Related articles heading ({heroLocale.toUpperCase()})
+            <input
+              value={localizedValue(hero.relatedTitle, heroLocale)}
+              onChange={(e) =>
+                setHero({
+                  ...hero,
+                  relatedTitle: writeLocalized(
+                    hero.relatedTitle,
+                    heroLocale,
+                    e.target.value
+                  ),
+                })
+              }
+              className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm"
+            />
+          </label>
+
+          <div className="border-t border-[#E8EAED] pt-4 space-y-3">
+            <p className="text-xs font-bold uppercase tracking-wide text-[#334155]">
+              Share links (detail page)
+            </p>
+            {hero.shareLinks.map((link, i) => (
+              <div
+                key={i}
+                className="rounded-xl border border-[#E8EAED] p-3 grid sm:grid-cols-[1fr_1fr_auto] gap-3 items-end"
               >
-                {types.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9CA3AF]" />
-            </div>
-            <div className="inline-flex rounded-xl border border-[#E2E5EA] bg-white p-1">
-              <button
-                type="button"
-                onClick={() => setView("grid")}
-                className={`rounded-lg p-2 ${view === "grid" ? "bg-[#EEF0F3]" : ""}`}
-              >
-                <LayoutGrid className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setView("list")}
-                className={`rounded-lg p-2 ${view === "list" ? "bg-[#EEF0F3]" : ""}`}
-              >
-                <List className="h-4 w-4" />
-              </button>
-            </div>
+                <label className="block text-xs font-semibold text-[#5C6370]">
+                  Label ({heroLocale.toUpperCase()})
+                  <input
+                    value={localizedValue(link.label, heroLocale)}
+                    onChange={(e) => {
+                      const next = [...hero.shareLinks];
+                      next[i] = {
+                        ...link,
+                        label: writeLocalized(
+                          link.label,
+                          heroLocale,
+                          e.target.value
+                        ),
+                      };
+                      setHero({ ...hero, shareLinks: next });
+                    }}
+                    className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm"
+                  />
+                </label>
+                <label className="block text-xs font-semibold text-[#5C6370]">
+                  URL
+                  <input
+                    value={link.href}
+                    onChange={(e) => {
+                      const next = [...hero.shareLinks];
+                      next[i] = { ...link, href: e.target.value };
+                      setHero({ ...hero, shareLinks: next });
+                    }}
+                    className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm"
+                  />
+                </label>
+                <button
+                  type="button"
+                  className="text-xs text-red-600 pb-3"
+                  onClick={() =>
+                    setHero({
+                      ...hero,
+                      shareLinks: hero.shareLinks.filter((_, idx) => idx !== i),
+                    })
+                  }
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() =>
+                setHero({
+                  ...hero,
+                  shareLinks: [
+                    ...hero.shareLinks,
+                    { label: emptyLocalized(), href: "" },
+                  ],
+                })
+              }
+              className="text-xs font-semibold text-[#1A2332] underline"
+            >
+              + Add share link
+            </button>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="text-base font-bold text-[#1A2332]">
+              2 · Guide posts ({items.length})
+            </h2>
+            <p className="text-xs text-[#6B7280] mt-1">
+              Same articles as /guides — cover, body sections, gallery, SEO.
+            </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button
@@ -701,9 +916,57 @@ export default function AdminBlogsPage() {
               className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#1A2332] text-white text-sm font-semibold px-4"
             >
               <Plus className="w-4 h-4" />
-              Create Blog
+              Create guide
             </button>
           </div>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="relative w-[320px] max-w-full">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9CA3AF]" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search by title, category, author, slug…"
+                className="h-11 w-full rounded-xl border border-[#E2E5EA] bg-white pl-10 pr-3 text-sm outline-none focus:ring-2 focus:ring-[#1A2332]/15"
+              />
+            </div>
+            <div className="inline-flex rounded-xl border border-[#E2E5EA] bg-white p-1">
+              <button
+                type="button"
+                onClick={() => setView("grid")}
+                className={`rounded-lg p-2 ${view === "grid" ? "bg-[#EEF0F3]" : ""}`}
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setView("list")}
+                className={`rounded-lg p-2 ${view === "list" ? "bg-[#EEF0F3]" : ""}`}
+              >
+                <List className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {types.map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setTypeFilter(t)}
+              className={`rounded-full px-3.5 py-1.5 text-xs font-semibold border ${
+                typeFilter === t
+                  ? "bg-[#1A2332] text-white border-[#1A2332]"
+                  : "bg-white text-[#5C6370] border-[#E2E5EA]"
+              }`}
+            >
+              {t}{" "}
+              <span className="opacity-70">{typeCounts[t] ?? 0}</span>
+            </button>
+          ))}
         </div>
 
         {loading ? (
@@ -714,7 +977,9 @@ export default function AdminBlogsPage() {
           </div>
         ) : view === "grid" ? (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {filtered.map((item) => (
+            {filtered.map((item) => {
+              const cover = resolveAdminMediaPreviewUrl(item.image);
+              return (
               <article
                 key={item._id}
                 className="overflow-hidden rounded-2xl border border-[#E8EAED] bg-white"
@@ -722,14 +987,14 @@ export default function AdminBlogsPage() {
                 <div className="relative h-44 bg-[#F3F4F6]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={item.image || "/blog/blogImage (1).jpg"}
+                    src={cover || "/products/Kitchen1.png"}
                     alt={item.title}
                     className="h-full w-full object-cover"
                     onError={(e) => {
                       const el = e.currentTarget;
                       if (el.dataset.fallback === "1") return;
                       el.dataset.fallback = "1";
-                      el.src = "/blog/blogImage (1).jpg";
+                      el.src = "/products/Kitchen1.png";
                     }}
                   />
                   <div className="absolute right-2 top-2 flex gap-1">
@@ -751,6 +1016,15 @@ export default function AdminBlogsPage() {
                   <span className="absolute bottom-2 left-2 rounded-full bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[#475569]">
                     {item.category || "Journal"}
                   </span>
+                  <span
+                    className={`absolute bottom-2 right-2 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${
+                      item.published !== false
+                        ? "bg-emerald-600 text-white"
+                        : "bg-[#94A3B8] text-white"
+                    }`}
+                  >
+                    {item.published !== false ? "Live" : "Draft"}
+                  </span>
                 </div>
                 <div className="space-y-2 p-4">
                   <div className="flex items-center gap-3 text-[11px] text-[#6B7280]">
@@ -766,6 +1040,9 @@ export default function AdminBlogsPage() {
                   <h3 className="line-clamp-2 text-base font-bold text-[#1A2332]">
                     {item.title}
                   </h3>
+                  <p className="font-mono text-[11px] text-[#9CA3AF]">
+                    /guides/{item.slug || "…"}
+                  </p>
                   <p className="line-clamp-2 text-sm text-[#6B7280]">
                     {item.excerpt || "—"}
                   </p>
@@ -774,7 +1051,8 @@ export default function AdminBlogsPage() {
                   </p>
                 </div>
               </article>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="space-y-3">
@@ -785,7 +1063,7 @@ export default function AdminBlogsPage() {
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={item.image || "/blog/blogImage (1).jpg"}
+                  src={resolveAdminMediaPreviewUrl(item.image) || "/products/Kitchen1.png"}
                   alt={item.title}
                   className="h-20 w-28 rounded-lg object-cover bg-[#F3F4F6]"
                 />
@@ -947,6 +1225,28 @@ export default function AdminBlogsPage() {
                       />
                     </label>
                   </div>
+                  {isBase ? (
+                    <label className="block text-xs font-semibold text-[#5C6370]">
+                      URL slug (optional — auto from title if blank)
+                      <input
+                        value={form.slug}
+                        onChange={(e) =>
+                          setForm({
+                            ...form,
+                            slug: e.target.value
+                              .toLowerCase()
+                              .replace(/[^a-z0-9-]/g, "-")
+                              .replace(/-+/g, "-"),
+                          })
+                        }
+                        placeholder="modern-kitchen-islands"
+                        className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-mono"
+                      />
+                      <span className="mt-1 block text-[11px] text-[#9CA3AF]">
+                        Live URL: /guides/{form.slug || "your-slug"}
+                      </span>
+                    </label>
+                  ) : null}
                   {isBase ? (
                     <div className="grid md:grid-cols-3 gap-3">
                       <label className="block text-xs font-semibold text-[#5C6370]">

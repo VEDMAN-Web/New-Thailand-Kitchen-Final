@@ -3192,10 +3192,17 @@ type TestimonialDraft = {
   role: unknown;
   quote: unknown;
   image: string;
-  rating: number;
+  /** Empty string while the admin clears the field to type a new rating. */
+  rating: number | "";
   visible: boolean;
   order: number;
 };
+
+function clampTestimonialRating(value: unknown): number {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return 5;
+  return Math.min(5, Math.max(1, Math.round(n)));
+}
 
 function emptyLocalized(value = "") {
   return { en: value, th: "", pl: "" };
@@ -3209,7 +3216,7 @@ function toTestimonialDraft(item?: VarsoviaRecord, index = 0): TestimonialDraft 
     role: item?.role ?? emptyLocalized(),
     quote: item?.quote ?? emptyLocalized(),
     image: String(item?.image ?? ""),
-    rating: Number(item?.rating ?? 5) || 5,
+    rating: clampTestimonialRating(item?.rating ?? 5),
     visible: item?.visible !== false,
     order: Number(item?.order ?? index) || index,
   };
@@ -3316,7 +3323,7 @@ function TestimonialsInlineEditor({ embedded = false }: { embedded?: boolean }) 
           role: draft.role,
           quote: draft.quote,
           image: draft.image,
-          rating: draft.rating,
+          rating: clampTestimonialRating(draft.rating),
           visible: draft.visible,
           order: index,
         };
@@ -3471,13 +3478,33 @@ function TestimonialsInlineEditor({ embedded = false }: { embedded?: boolean }) 
                     Rating (1-5)
                   </label>
                   <input
-                    type="text"
-                    value={String(draft.rating ?? 5)}
-                    onChange={(event) =>
-                      updateDraft(draft.clientKey, {
-                        rating: Number(event.target.value) || 5,
-                      })
+                    type="number"
+                    min={1}
+                    max={5}
+                    step={1}
+                    inputMode="numeric"
+                    value={
+                      typeof draft.rating === "number" && draft.rating >= 1
+                        ? draft.rating
+                        : ""
                     }
+                    onChange={(event) => {
+                      const raw = event.target.value;
+                      if (raw === "") {
+                        updateDraft(draft.clientKey, { rating: "" });
+                        return;
+                      }
+                      const n = Number(raw);
+                      if (!Number.isFinite(n)) return;
+                      updateDraft(draft.clientKey, {
+                        rating: Math.min(5, Math.max(1, Math.round(n))),
+                      });
+                    }}
+                    onBlur={() => {
+                      const rating = clampTestimonialRating(draft.rating);
+                      if (draft.rating === rating) return;
+                      updateDraft(draft.clientKey, { rating });
+                    }}
                     className={fieldClass}
                   />
                 </div>

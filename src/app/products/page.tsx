@@ -32,6 +32,7 @@ import {
   type LocaleCode,
   type LocalizedText,
 } from "@/lib/localized";
+import { CMS_SYNCED_EVENT } from "@/lib/adminSectionNav";
 
 type FeatureHighlight = { title: LocalizedText; description: LocalizedText };
 
@@ -45,6 +46,10 @@ type ProductForm = {
   image: string;
   icon: string;
   gallery: string[];
+  contactImage: string;
+  contactEyebrow: LocalizedText;
+  contactTitle: LocalizedText;
+  contactFormTitle: LocalizedText;
   pdfUrl: string;
   category: LocalizedText;
   featureHighlights: FeatureHighlight[];
@@ -57,6 +62,36 @@ type ProductForm = {
   metaDescription: string;
   indexable: boolean;
 };
+
+function gallerySlotMeta(index: number): { title: string; hint: string; label: string } {
+  const n = index + 1;
+  if (index === 0) {
+    return {
+      title: `Image ${String(n).padStart(2, "0")} · Hero main`,
+      label: "Hero main image",
+      hint: "Used on: large left image at the top of the product page",
+    };
+  }
+  if (index === 1) {
+    return {
+      title: `Image ${String(n).padStart(2, "0")} · Hero side (top)`,
+      label: "Hero side image (top)",
+      hint: "Used on: top-right image in the hero gallery",
+    };
+  }
+  if (index === 2) {
+    return {
+      title: `Image ${String(n).padStart(2, "0")} · Hero side (bottom)`,
+      label: "Hero side image (bottom)",
+      hint: "Used on: bottom-right image in the hero gallery",
+    };
+  }
+  return {
+    title: `Image ${String(n).padStart(2, "0")} · Slider / features slide ${n - 2}`,
+    label: `Gallery slide ${n}`,
+    hint: "Used on: mid-page image slider and the features side panel carousel",
+  };
+}
 
 const DEFAULT_FEATURE_HIGHLIGHTS: FeatureHighlight[] = [
   {
@@ -88,7 +123,11 @@ const empty: ProductForm = {
   description: emptyLocalized(),
   image: "/products/Kitchen2.png",
   icon: "",
-  gallery: ["", ""],
+  gallery: ["", "", ""],
+  contactImage: "",
+  contactEyebrow: emptyLocalized(),
+  contactTitle: emptyLocalized(),
+  contactFormTitle: emptyLocalized(),
   pdfUrl: "",
   category: emptyLocalized(),
   featureHighlights: DEFAULT_FEATURE_HIGHLIGHTS.map((h) => ({
@@ -146,6 +185,15 @@ export default function AdminProductsPage() {
     loadCategories();
   }, [load, loadCategories]);
 
+  useEffect(() => {
+    const onSynced = () => {
+      void load();
+      void loadCategories();
+    };
+    window.addEventListener(CMS_SYNCED_EVENT, onSynced);
+    return () => window.removeEventListener(CMS_SYNCED_EVENT, onSynced);
+  }, [load, loadCategories]);
+
   const openCreate = () => {
     setForm(empty);
     setEditing(null);
@@ -169,6 +217,7 @@ export default function AdminProductsPage() {
     const gallery = (item.gallery || [])
       .map((s) => String(s || "").trim())
       .filter(Boolean);
+    while (gallery.length < 3) gallery.push("");
     setEditing(item);
     setForm({
       title: asLocalizedForm(item.title),
@@ -179,7 +228,11 @@ export default function AdminProductsPage() {
       description: asLocalizedForm(item.description),
       image: item.image,
       icon: item.icon || "",
-      gallery: gallery.length ? gallery : ["", ""],
+      gallery,
+      contactImage: String((item as any).contactImage || ""),
+      contactEyebrow: asLocalizedForm((item as any).contactEyebrow),
+      contactTitle: asLocalizedForm((item as any).contactTitle),
+      contactFormTitle: asLocalizedForm((item as any).contactFormTitle),
       pdfUrl: item.pdfUrl || "",
       category: asLocalizedForm(item.category),
       featureHighlights: highlights.length
@@ -301,6 +354,10 @@ export default function AdminProductsPage() {
       image: form.image,
       icon: form.icon,
       gallery: form.gallery.map((s) => s.trim()).filter(Boolean),
+      contactImage: form.contactImage.trim(),
+      contactEyebrow: asLocalizedForm(form.contactEyebrow),
+      contactTitle: asLocalizedForm(form.contactTitle),
+      contactFormTitle: asLocalizedForm(form.contactFormTitle),
       pdfUrl: form.pdfUrl,
       featureHighlights,
       category: asLocalizedForm(form.category),
@@ -547,7 +604,7 @@ export default function AdminProductsPage() {
               <div className="space-y-3">
                 <div className="rounded-xl border border-[#E8EAED] p-4">
                   <p className="text-xs font-bold uppercase tracking-wide text-[#334155]">Basic Identity</p>
-                  <p className="text-[11px] text-[#94A3B8]">Core title and subtitle for this kitchen model</p>
+                  <p className="text-[11px] text-[#94A3B8]">Core title and narrative headline for this kitchen model</p>
                   <div className="mt-3 grid grid-cols-2 gap-3">
                     <label className="block text-xs font-semibold text-[#5C6370]">
                       Product Name *
@@ -559,7 +616,7 @@ export default function AdminProductsPage() {
                       />
                     </label>
                     <label className="block text-xs font-semibold text-[#5C6370]">
-                      Subtitle / Tagline *
+                      Narrative headline *
                       <input
                         required
                         value={localizedValue(form.subtitle, locale)}
@@ -568,6 +625,9 @@ export default function AdminProductsPage() {
                       />
                     </label>
                   </div>
+                  <p className="mt-1 text-[11px] text-[#94A3B8]">
+                    Headline appears under the orange series tag on the product detail page.
+                  </p>
                 </div>
 
                 <div className="rounded-xl border border-[#E8EAED] p-4">
@@ -594,10 +654,13 @@ export default function AdminProductsPage() {
                       >
                         <option value="">Select a category...</option>
                         {categoryList.map((cat) => {
-                          const title = typeof cat.title === 'object' ? (cat.title.en || cat.title.th || cat.title.pl) : cat.title;
+                          const title =
+                            localizedValue(cat.title, locale) ||
+                            localizedValue(cat.title, "en");
                           return (
                             <option key={cat._id} value={title}>
-                              {title} {cat.categoryType ? `(${cat.categoryType})` : ''}
+                              {title}{" "}
+                              {cat.categoryType ? `(${cat.categoryType})` : ""}
                             </option>
                           );
                         })}
@@ -622,13 +685,16 @@ export default function AdminProductsPage() {
                 </div>
 
                 <MediaUpload
-                  label="Main Product Image *"
+                  label="Listing / contact fallback image *"
                   kind="image"
                   value={form.image}
                   onChange={(v) => setForm({ ...form, image: v })}
                   previewSize="lg"
                   clearable
                 />
+                <p className="text-[11px] text-[#94A3B8] -mt-1">
+                  Used on product cards and as fallback when Contact side image is empty.
+                </p>
                 <MediaUpload
                   label="Icon (optional)"
                   kind="icon"
@@ -736,13 +802,16 @@ export default function AdminProductsPage() {
             {step === 2 ? (
               <div className="space-y-3">
                 <label className="block text-xs font-semibold text-[#5C6370]">
-                  Section Subhead / Series Tag *
+                  Narrative series tag (eyebrow) *
                   <input
                     value={localizedValue(form.sectionTag, locale)}
                     onChange={(e) => setForm({ ...form, sectionTag: writeLocalized(form.sectionTag, locale, e.target.value) })}
                     className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
                   />
                 </label>
+                <p className="text-[11px] text-[#94A3B8] -mt-1">
+                  Orange uppercase label above the narrative headline (e.g. Premium Finishes).
+                </p>
                 <label className="block text-xs font-semibold text-[#5C6370]">
                   Detailed Description *
                   <textarea
@@ -877,10 +946,11 @@ export default function AdminProductsPage() {
                 <div className="flex items-center justify-between gap-3 pt-2">
                   <div>
                     <p className="text-xs font-bold uppercase tracking-wide text-[#334155]">
-                      Feature Images
+                      Page images · hero + slider
                     </p>
                     <p className="text-[11px] text-[#94A3B8]">
-                      Add or remove images shown beside the highlights and in the product image slider
+                      Image 01–03 = hero gallery. Image 04+ = mid-page slider and features side panel.
+                      Each slot is a separate upload.
                     </p>
                   </div>
                   <button
@@ -896,24 +966,30 @@ export default function AdminProductsPage() {
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  {form.gallery.map((url, index) => (
+                  {form.gallery.map((url, index) => {
+                    const slot = gallerySlotMeta(index);
+                    return (
                     <div
                       key={`gallery-${index}`}
                       className="rounded-xl border border-[#E8EAED] p-3 space-y-2"
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <p className="text-xs font-semibold text-[#1A2332]">
-                          Image {String(index + 1).padStart(2, "0")}
-                        </p>
+                        <div>
+                          <p className="text-xs font-semibold text-[#1A2332]">
+                            {slot.title}
+                          </p>
+                          <p className="text-[11px] text-[#94A3B8]">{slot.hint}</p>
+                        </div>
                         <button
                           type="button"
                           className="text-xs font-semibold text-red-600 disabled:opacity-40"
-                          disabled={form.gallery.length <= 1}
+                          disabled={form.gallery.length <= 3 && index < 3}
                           onClick={() => {
                             const next = form.gallery.filter((_, i) => i !== index);
+                            while (next.length < 3) next.push("");
                             setForm({
                               ...form,
-                              gallery: next.length ? next : [""],
+                              gallery: next.length ? next : ["", "", ""],
                             });
                           }}
                         >
@@ -921,7 +997,7 @@ export default function AdminProductsPage() {
                         </button>
                       </div>
                       <MediaUpload
-                        label="Image"
+                        label={slot.label}
                         kind="image"
                         value={url}
                         onChange={(v) => {
@@ -933,7 +1009,86 @@ export default function AdminProductsPage() {
                         clearable
                       />
                     </div>
-                  ))}
+                    );
+                  })}
+                </div>
+
+                <div className="rounded-xl border border-[#E8EDF2] bg-[#F8FAFC] p-4 space-y-3">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wide text-[#334155]">
+                      Contact band · bottom of product page
+                    </p>
+                    <p className="text-[11px] text-[#94A3B8]">
+                      Eyebrow, titles, and the large side image next to the enquiry form.
+                    </p>
+                  </div>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    <label className="block text-xs font-semibold text-[#5C6370]">
+                      Contact eyebrow ({locale.toUpperCase()})
+                      <input
+                        value={localizedValue(form.contactEyebrow, locale)}
+                        onChange={(e) =>
+                          setForm({
+                            ...form,
+                            contactEyebrow: writeLocalized(
+                              form.contactEyebrow,
+                              locale,
+                              e.target.value
+                            ),
+                          })
+                        }
+                        placeholder="Premium Finishes"
+                        className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
+                      />
+                    </label>
+                    <label className="block text-xs font-semibold text-[#5C6370]">
+                      Contact title ({locale.toUpperCase()})
+                      <input
+                        value={localizedValue(form.contactTitle, locale)}
+                        onChange={(e) =>
+                          setForm({
+                            ...form,
+                            contactTitle: writeLocalized(
+                              form.contactTitle,
+                              locale,
+                              e.target.value
+                            ),
+                          })
+                        }
+                        placeholder="Contact US"
+                        className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
+                      />
+                    </label>
+                  </div>
+                  <label className="block text-xs font-semibold text-[#5C6370]">
+                    Contact form heading ({locale.toUpperCase()})
+                    <input
+                      value={localizedValue(form.contactFormTitle, locale)}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          contactFormTitle: writeLocalized(
+                            form.contactFormTitle,
+                            locale,
+                            e.target.value
+                          ),
+                        })
+                      }
+                      placeholder="Let's design a kitchen worthy of your island."
+                      className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
+                    />
+                  </label>
+                  <MediaUpload
+                    label="Contact side image"
+                    kind="image"
+                    value={form.contactImage}
+                    onChange={(v) => setForm({ ...form, contactImage: v })}
+                    previewSize="lg"
+                    clearable
+                  />
+                  <p className="text-[11px] text-[#94A3B8]">
+                    Used on: large photo beside the contact form. Falls back to listing image if empty.
+                  </p>
                 </div>
 
                 <MediaUpload

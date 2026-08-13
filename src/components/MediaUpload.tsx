@@ -1,9 +1,16 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { Loader2, Trash2, Upload } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ImageOff, Loader2, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
-import { uploadMedia } from "@/services/adminAPI";
+import { resolveMediaUrl, uploadMedia } from "@/services/adminAPI";
+import {
+  classifyMediaUrl,
+  mediaUrlHint,
+  needsRemoteResolve,
+  pexelsVideoThumbnailUrl,
+  resolveAdminMediaPreviewUrl,
+} from "@/lib/adminMediaPreview";
 import { clsx } from "clsx";
 
 type Kind = "image" | "icon" | "pdf" | "any";
@@ -30,16 +37,19 @@ export default function MediaUpload({
   kind?: Kind;
   accept?: string;
   hint?: string;
-  /** Override default Thailand /upload (e.g. Varsovia public media). */
   uploadFile?: (file: File, kind: Kind) => Promise<UploadResult>;
-  /** Image preview size in the admin form. */
   previewSize?: "sm" | "md" | "lg";
-  /** Show a clear/remove control when a value is set. */
   clearable?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const uploadingRef = useRef(false);
   const [uploading, setUploading] = useState(false);
+  const [previewFailed, setPreviewFailed] = useState(false);
+  const [previewLoaded, setPreviewLoaded] = useState(false);
+  const [remotePreviewUrl, setRemotePreviewUrl] = useState("");
+  const [resolving, setResolving] = useState(false);
+
+  const isImageField = kind === "image" || kind === "icon" || kind === "any";
 
   const defaultAccept =
     kind === "pdf"
@@ -48,8 +58,70 @@ export default function MediaUpload({
         ? "image/png,image/svg+xml,image/webp,image/jpeg"
         : "image/png,image/jpeg,image/webp,image/gif,image/svg+xml";
 
+  const urlKind = classifyMediaUrl(value);
+  const guidance = isImageField ? mediaUrlHint(urlKind, false) : "";
+
+  // Image fields only show image previews — never video players
+  const localThumb =
+    urlKind === "pexels-video-page" ? pexelsVideoThumbnailUrl(value) : "";
+  const previewUrl =
+    remotePreviewUrl ||
+    localThumb ||
+    (urlKind === "direct-image" || urlKind === "unknown" || value.startsWith("/")
+      ? resolveAdminMediaPreviewUrl(value)
+      : localThumb);
+
+  const wrongMediaForImageField =
+    isImageField &&
+    (urlKind === "pexels-video-page" ||
+      urlKind === "direct-video" ||
+      urlKind === "embed-video");
+
+  useEffect(() => {
+    setPreviewFailed(false);
+    setPreviewLoaded(false);
+    setRemotePreviewUrl("");
+
+    const trimmed = value.trim();
+    if (!trimmed || kind === "pdf" || !isImageField) return;
+
+    const classified = classifyMediaUrl(trimmed);
+
+    // Instant client-side thumbnail for Pexels video pages (still image)
+    if (classified === "pexels-video-page") {
+      const thumb = pexelsVideoThumbnailUrl(trimmed);
+      if (thumb) setRemotePreviewUrl(thumb);
+    }
+
+    if (!needsRemoteResolve(classified)) return;
+
+    let cancelled = false;
+    setResolving(true);
+    void resolveMediaUrl(trimmed, "image")
+      .then((res) => {
+        if (cancelled) return;
+        if (res.previewUrl && /\.(jpe?g|png|gif|webp|avif)(\?|#|$)/i.test(res.previewUrl)) {
+          setRemotePreviewUrl(res.previewUrl);
+        }
+      })
+      .catch(() => {
+        /* local hint + optional client thumb already cover this */
+      })
+      .finally(() => {
+        if (!cancelled) setResolving(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [value, kind, isImageField]);
+
   const onFile = async (file?: File | null) => {
     if (!file || uploadingRef.current) return;
+    if (file.type.startsWith("video/")) {
+      toast.error("This is an image field — upload a JPG, PNG, or WebP image.");
+      return;
+    }
     if (file.size > 50 * 1024 * 1024) {
       toast.error("File must be 50MB or smaller");
       return;
@@ -59,7 +131,7 @@ export default function MediaUpload({
     try {
       const res = uploadFile
         ? await uploadFile(file, kind)
-        : await uploadMedia(file, kind);
+        : await uploadMedia(file, kind === "icon" ? "icon" : "image");
       if (!res?.file?.url) throw new Error("No URL returned");
       onChange(res.file.url);
       toast.success("Uploaded");
@@ -72,31 +144,21 @@ export default function MediaUpload({
     }
   };
 
-  // Resolve preview URL: handle absolute URLs, /uploads proxy, and relative public assets
-  const resolvePreviewUrl = (url: string): string => {
-    if (!url) return "";
-    const trimmed = url.trim();
-    
-    // Already absolute URL — use as-is
-    if (/^https?:\/\//i.test(trimmed)) {
-      return trimmed;
-    }
-    
-    // Relative paths (starting with /) are now served via next.config.ts rewrites:
-    // - /uploads/* → backend uploads folder
-    // - /brandLogo/*, /products/*, /blog/*, etc. → frontend public folder
-    // So we can use them directly as same-origin paths in the admin panel
-    return trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
-  };
-
-  const previewUrl = resolvePreviewUrl(value);
-
-  const previewClass =
+  const shellClass =
     previewSize === "lg"
-      ? "mt-2 w-full max-h-72 rounded-xl border border-[#E8EAED] object-contain bg-[#F8FAFC]"
+      ? "mt-2 w-full min-h-40 rounded-xl border border-[#E2E5EA] bg-[#F8FAFC]"
       : previewSize === "md"
-        ? "mt-2 h-40 w-full max-w-md rounded-lg border border-[#E8EAED] object-contain bg-[#F8FAFC]"
-        : "mt-2 h-16 w-auto max-w-full rounded-md border border-[#E8EAED] object-contain bg-white";
+        ? "mt-2 h-40 w-full max-w-md rounded-lg border border-[#E2E5EA] bg-[#F8FAFC]"
+        : "mt-2 h-16 w-full max-w-xs rounded-md border border-[#E2E5EA] bg-[#F8FAFC]";
+
+  const imgClass =
+    previewSize === "lg"
+      ? "h-auto max-h-72 w-full object-contain"
+      : previewSize === "md"
+        ? "h-full w-full object-contain"
+        : "h-full w-auto max-w-full object-contain";
+
+  const showPreview = Boolean(value.trim()) && kind !== "pdf";
 
   return (
     <div>
@@ -108,7 +170,11 @@ export default function MediaUpload({
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder={kind === "pdf" ? "PDF URL or upload…" : "Image URL or upload…"}
+          placeholder={
+            kind === "pdf"
+              ? "PDF URL or upload…"
+              : "Paste image URL or upload…"
+          }
           className="flex-1 rounded-lg border border-[#E2E5EA] bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A2332]/15 focus:border-[#1A2332]"
         />
         <button
@@ -144,18 +210,71 @@ export default function MediaUpload({
         />
       </div>
       {hint ? <p className="mt-1 text-[11px] text-[#9CA3AF]">{hint}</p> : null}
-      {previewUrl && kind !== "pdf" ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={previewUrl}
-          alt=""
-          className={clsx(previewClass)}
-          onError={(e) => {
-            // Fallback: if preview fails, hide the broken image
-            e.currentTarget.style.display = "none";
-          }}
-        />
+
+      {guidance ? (
+        <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] leading-relaxed text-amber-900">
+          {guidance}
+        </p>
       ) : null}
+
+      {showPreview ? (
+        <div
+          className={clsx(
+            shellClass,
+            "relative overflow-hidden flex items-center justify-center"
+          )}
+        >
+          {resolving && !previewUrl ? (
+            <div className="flex items-center gap-2 text-[11px] text-[#6B7280]">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Loading preview…
+            </div>
+          ) : previewFailed || (!previewUrl && wrongMediaForImageField) ? (
+            <div className="flex flex-col items-center justify-center gap-1.5 px-3 text-center">
+              <ImageOff className="h-5 w-5 text-[#9CA3AF]" />
+              <p className="text-[11px] font-medium text-[#6B7280]">
+                {wrongMediaForImageField
+                  ? "Not a valid image URL for this field"
+                  : "Preview failed — use Upload or a direct image URL"}
+              </p>
+            </div>
+          ) : previewUrl ? (
+            <>
+              {!previewLoaded ? (
+                <div className="absolute inset-0 flex items-center justify-center text-[11px] text-[#9CA3AF]">
+                  Loading preview…
+                </div>
+              ) : null}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                key={previewUrl}
+                src={previewUrl}
+                alt=""
+                className={clsx(
+                  imgClass,
+                  previewLoaded ? "opacity-100" : "opacity-0"
+                )}
+                onLoad={() => {
+                  setPreviewLoaded(true);
+                  setPreviewFailed(false);
+                }}
+                onError={() => {
+                  setPreviewFailed(true);
+                  setPreviewLoaded(false);
+                }}
+              />
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center gap-1.5 px-3 text-center">
+              <ImageOff className="h-5 w-5 text-[#9CA3AF]" />
+              <p className="text-[11px] font-medium text-[#6B7280]">
+                Paste an image URL or upload an image
+              </p>
+            </div>
+          )}
+        </div>
+      ) : null}
+
       {value && kind === "pdf" ? (
         <p className="mt-2 truncate text-xs text-[#64748B]">{value}</p>
       ) : null}

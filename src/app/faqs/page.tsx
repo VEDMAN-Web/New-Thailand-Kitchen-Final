@@ -23,6 +23,7 @@ import {
   updateHome,
   type FaqCmsItem,
 } from "@/services/adminAPI";
+import { CMS_SYNCED_EVENT } from "@/lib/adminSectionNav";
 
 type FaqForm = {
   question: LocalizedText;
@@ -86,6 +87,14 @@ export default function AdminFaqsPage() {
 
   useEffect(() => {
     load();
+  }, [load]);
+
+  useEffect(() => {
+    const onSynced = () => {
+      void load();
+    };
+    window.addEventListener(CMS_SYNCED_EVENT, onSynced);
+    return () => window.removeEventListener(CMS_SYNCED_EVENT, onSynced);
   }, [load]);
 
   const filtered = useMemo(() => {

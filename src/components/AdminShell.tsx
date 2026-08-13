@@ -625,16 +625,43 @@ function AdminShellContent({
         const addedParts = Object.entries(report.added || {})
           .filter(([, n]) => Number(n) > 0)
           .map(([k, n]) => `${k}+${n}`);
+        const nav = report.nav;
+        const repaired = report.repaired;
+        const blogSync = report.blogSync;
+        const localeRepair = report.localeRepair;
         toast.success(res.message || "Sync complete", {
           id: toastId,
           description: [
             `DB: ${report.database}`,
+            nav
+              ? [
+                  `Site menu — Services:${nav.servicesMenu}`,
+                  `Materials:${nav.materialsMenu}`,
+                  `Locations:${nav.locationsMenu ?? "—"}`,
+                  `Gallery:${nav.galleryTotal ?? "—"}`,
+                  `Guides:${nav.guidesTotal ?? "—"}`,
+                  `Products:${nav.productsTotal ?? "—"}`,
+                  `FAQ:${nav.faqsTotal ?? "—"}`,
+                ].join(" · ")
+              : null,
+            localeRepair?.totalRepaired
+              ? `Locales filled — home:${localeRepair.home?.repaired ?? 0} · products:${localeRepair.products?.repaired ?? 0} · categories:${localeRepair.categories?.repaired ?? 0} · gallery:${localeRepair.gallery?.repaired ?? 0} · faqs:${localeRepair.faqs?.repaired ?? 0} · guides:${localeRepair.blogs?.repaired ?? 0}`
+              : null,
+            blogSync?.created
+              ? `Guides added:${blogSync.created}`
+              : null,
+            repaired &&
+            (repaired.homeHubsRepaired > 0 || repaired.categoriesRepaired > 0)
+              ? `Repaired probe/defaults — hubs:${repaired.homeHubsRepaired} · pages:${repaired.categoriesRepaired}`
+              : null,
             addedParts.length
               ? `Added: ${addedParts.join(", ")}`
               : "Nothing missing",
             report.homeUpdated ? "Home sections refreshed" : "Home unchanged",
-          ].join(" · "),
-          duration: 6000,
+          ]
+            .filter(Boolean)
+            .join(" · "),
+          duration: 8000,
         });
         emitCmsSynced({ site: "thailand-kitchen", report });
       }
@@ -942,9 +969,11 @@ function AdminShellContent({
                       "Never deletes or overwrites your existing content",
                     ]
                   : [
-                      "Reloads live CMS data into admin",
-                      "Fills only missing defaults",
-                      "Never deletes or overwrites your existing content",
+                      "Same MongoDB the public site uses — admin list reloads to match",
+                      "Services, Materials, Locations, Gallery, Guides, Products & FAQ counts mirror the live site",
+                      "Fills empty Thai/Polish fields from defaults and English copy where translations are missing",
+                      "Auto-removes smoke-test probe strings and fills missing landing defaults",
+                      "Never deletes real content — only repairs test markers & empty fields",
                     ]
                 ).map((line) => (
                   <li

@@ -1,11 +1,13 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { Images, Pencil, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import LocaleTabs from "@/components/LocaleTabs";
 import MediaUpload from "@/components/MediaUpload";
 import { useAdminAuth } from "@/lib/AdminAuthContext";
+import { CMS_SYNCED_EVENT } from "@/lib/adminSectionNav";
+import { resolveAdminMediaPreviewUrl } from "@/lib/adminMediaPreview";
 import {
   asLocalizedForm,
   emptyLocalized,
@@ -96,6 +98,7 @@ export default function AdminGalleryPage() {
   const [editing, setEditing] = useState<GalleryCmsItem | null>(null);
   const [form, setForm] = useState<GalleryForm>(emptyForm);
   const [locale, setLocale] = useState<LocaleCode>("en");
+  const [listFilter, setListFilter] = useState<string>("All");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -142,6 +145,33 @@ export default function AdminGalleryPage() {
     load();
   }, [load]);
 
+  useEffect(() => {
+    const onSynced = () => {
+      void load();
+    };
+    window.addEventListener(CMS_SYNCED_EVENT, onSynced);
+    return () => window.removeEventListener(CMS_SYNCED_EVENT, onSynced);
+  }, [load]);
+
+  const filterCounts = useMemo(() => {
+    const counts: Record<string, number> = { All: items.length };
+    for (const f of filters) {
+      if (f.id === "All") continue;
+      counts[f.id] = items.filter((i) => i.filter === f.id).length;
+    }
+    return counts;
+  }, [items, filters]);
+
+  const visibleItems = useMemo(() => {
+    const list =
+      listFilter === "All"
+        ? items
+        : items.filter((i) => i.filter === listFilter);
+    return [...list].sort(
+      (a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0)
+    );
+  }, [items, listFilter]);
+
   const saveHero = async () => {
     if (!localizedValue(hero.title, "en").trim()) {
       toast.error("English gallery heading is required");
@@ -184,7 +214,14 @@ export default function AdminGalleryPage() {
   };
 
   const openCreate = () => {
-    setForm(emptyForm);
+    setForm({
+      ...emptyForm,
+      filter:
+        listFilter !== "All"
+          ? listFilter
+          : filters.find((f) => f.id !== "All")?.id || "Style & Color",
+      sortOrder: items.length + 1,
+    });
     setEditing(null);
     setLocale("en");
     setModal("create");
@@ -253,15 +290,15 @@ export default function AdminGalleryPage() {
 
   return (
     <>
-    <div className="space-y-6">
+      <div className="space-y-6">
         <div className="bg-white rounded-xl border border-[#E8EAED] p-5 space-y-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <h2 className="text-base font-bold text-[#1A2332]">
-                Gallery Page Content
+                1 · Gallery page hero
               </h2>
               <p className="text-xs text-[#6B7280] mt-1">
-                Heading, paragraph and hero collage — edit per language.
+                Top of /gallery — eyebrow, heading, description, collage.
               </p>
               <div className="mt-3">
                 <LocaleTabs locale={locale} onChange={setLocale} />
@@ -273,7 +310,7 @@ export default function AdminGalleryPage() {
               onClick={saveHero}
               className="rounded-lg bg-[#1A2332] text-white text-sm font-semibold px-4 py-2.5 disabled:opacity-60"
             >
-              {savingHero ? "Saving…" : "Save Content"}
+              {savingHero ? "Saving…" : "Save hero content"}
             </button>
           </div>
 
@@ -326,45 +363,40 @@ export default function AdminGalleryPage() {
           </label>
 
           <div>
-            <p className="text-xs font-semibold text-[#5C6370] mb-2">
-              Hero collage images (optional)
+            <p className="text-xs font-semibold text-[#5C6370] mb-1">
+              Hero collage images
+            </p>
+            <p className="text-[11px] text-[#9CA3AF] mb-2">
+              Shown in the scrolling collage beside the heading on /gallery.
             </p>
             <div className="grid sm:grid-cols-2 gap-3">
-              <MediaUpload
-                label="Collage image 1"
-                kind="image"
-                value={hero.collage1}
-                onChange={(v) => setHero({ ...hero, collage1: v })}
-              />
-              <MediaUpload
-                label="Collage image 2"
-                kind="image"
-                value={hero.collage2}
-                onChange={(v) => setHero({ ...hero, collage2: v })}
-              />
-              <MediaUpload
-                label="Collage image 3"
-                kind="image"
-                value={hero.collage3}
-                onChange={(v) => setHero({ ...hero, collage3: v })}
-              />
-              <MediaUpload
-                label="Collage image 4"
-                kind="image"
-                value={hero.collage4}
-                onChange={(v) => setHero({ ...hero, collage4: v })}
-              />
+              {(
+                [
+                  ["collage1", "Collage 1 · top-left"],
+                  ["collage2", "Collage 2 · top-right"],
+                  ["collage3", "Collage 3 · bottom-left"],
+                  ["collage4", "Collage 4 · bottom-right"],
+                ] as const
+              ).map(([key, label]) => (
+                <MediaUpload
+                  key={key}
+                  label={label}
+                  kind="image"
+                  value={hero[key]}
+                  onChange={(v) => setHero({ ...hero, [key]: v })}
+                />
+              ))}
             </div>
           </div>
 
           <div className="border-t border-[#E8EAED] pt-4 space-y-3">
             <p className="text-xs font-semibold text-[#5C6370]">
-              Filter labels ({locale.toUpperCase()})
+              Filter tab labels ({locale.toUpperCase()})
             </p>
             {filters.map((f, i) => (
               <div
                 key={f.id + i}
-                className="grid sm:grid-cols-[140px_1fr] gap-3"
+                className="grid sm:grid-cols-[140px_1fr_auto] gap-3 items-end"
               >
                 <label className="block text-xs font-semibold text-[#5C6370]">
                   Id
@@ -394,16 +426,22 @@ export default function AdminGalleryPage() {
                     className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
                   />
                 </label>
+                <p className="text-xs text-[#6B7280] pb-2.5 whitespace-nowrap">
+                  {filterCounts[f.id] ?? 0} photos
+                </p>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="text-base font-bold text-[#1A2332]">Gallery Images</h2>
+            <h2 className="text-base font-bold text-[#1A2332]">
+              2 · Gallery photos ({items.length})
+            </h2>
             <p className="text-xs text-[#6B7280] mt-1">
-              Image titles support English / Thai / Polish.
+              Same images as the public /gallery grid. Filter tabs match the
+              site.
             </p>
           </div>
           <button
@@ -412,59 +450,111 @@ export default function AdminGalleryPage() {
             className="inline-flex items-center gap-2 rounded-lg bg-[#1A2332] text-white text-sm font-semibold px-4 py-2.5"
           >
             <Plus className="w-4 h-4" />
-            Add Image
+            Add photo
           </button>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {[
+            { id: "All", label: "All" as string | LocalizedText },
+            ...filters.filter((f) => f.id !== "All"),
+          ].map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              onClick={() => setListFilter(f.id)}
+              className={`rounded-full px-3.5 py-1.5 text-xs font-semibold border ${
+                listFilter === f.id
+                  ? "bg-[#1A2332] text-white border-[#1A2332]"
+                  : "bg-white text-[#5C6370] border-[#E2E5EA]"
+              }`}
+            >
+              {typeof f.label === "string"
+                ? f.label
+                : localizedValue(f.label, "en") || f.id}{" "}
+              <span className="opacity-70">{filterCounts[f.id] ?? 0}</span>
+            </button>
+          ))}
         </div>
 
         {loading ? (
           <p className="text-sm text-[#6B7280]">Loading…</p>
-        ) : items.length === 0 ? (
+        ) : visibleItems.length === 0 ? (
           <div className="bg-white rounded-xl border border-[#E8EAED] p-10 text-center text-[#6B7280]">
             <Images className="w-8 h-8 mx-auto mb-3 opacity-40" />
-            No gallery images yet.
+            No photos in this filter. Add one or switch tab.
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {items.map((item) => (
-              <div
-                key={item._id}
-                className="bg-white rounded-xl border border-[#E8EAED] overflow-hidden"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={item.image || "/products/Kitchen1.png"}
-                  alt={localizedValue(item.title, "en")}
-                  className="h-40 w-full object-cover bg-[#F3F4F6]"
-                />
-                <div className="p-4">
-                  <p className="font-semibold text-[#1A2332]">
-                    {localizedValue(item.title, "en")}
-                  </p>
-                  <p className="text-xs text-[#6B7280] mt-1">{item.filter}</p>
-                  <div className="flex justify-end gap-1 mt-3">
-                    <button
-                      type="button"
-                      onClick={() => openEdit(item)}
-                      className="p-2 rounded-lg hover:bg-[#F3F4F6]"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onDelete(item)}
-                      className="p-2 rounded-lg text-red-600 hover:bg-red-50"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+            {visibleItems.map((item, index) => {
+              const preview = resolveAdminMediaPreviewUrl(item.image);
+              return (
+                <div
+                  key={item._id}
+                  className="bg-white rounded-xl border border-[#E8EAED] overflow-hidden flex flex-col"
+                >
+                  <div className="relative h-44 bg-[#F3F4F6]">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={preview || "/products/Kitchen1.png"}
+                      alt={localizedValue(item.title, "en")}
+                      className="h-full w-full object-cover"
+                    />
+                    <span className="absolute left-2 top-2 rounded-md bg-black/70 px-2 py-0.5 text-[10px] font-semibold text-white">
+                      #{index + 1}
+                      {item.sortOrder ? ` · sort ${item.sortOrder}` : ""}
+                    </span>
+                    <div className="absolute right-2 top-2 flex gap-1">
+                      {item.tall ? (
+                        <span className="rounded-md bg-white/90 px-1.5 py-0.5 text-[10px] font-bold text-[#1A2332]">
+                          TALL
+                        </span>
+                      ) : null}
+                      {item.wide ? (
+                        <span className="rounded-md bg-white/90 px-1.5 py-0.5 text-[10px] font-bold text-[#1A2332]">
+                          WIDE
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+                  <div className="p-4 flex-1 flex flex-col">
+                    <p className="font-semibold text-[#1A2332]">
+                      {localizedValue(item.title, "en") || "Untitled"}
+                    </p>
+                    <p className="text-xs font-medium text-[#B38B6D] mt-1">
+                      Filter: {item.filter || "—"}
+                    </p>
+                    {(item as any).projectTitle ? (
+                      <p className="text-xs text-[#6B7280] mt-1 line-clamp-2">
+                        {(item as any).projectTitle}
+                      </p>
+                    ) : null}
+                    <div className="flex justify-end gap-1 mt-auto pt-3">
+                      <button
+                        type="button"
+                        onClick={() => openEdit(item)}
+                        className="inline-flex items-center gap-1 rounded-lg border border-[#E2E5EA] px-2.5 py-1.5 text-xs font-semibold hover:bg-[#F3F4F6]"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onDelete(item)}
+                        className="p-2 rounded-lg text-red-600 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
 
-      {modal && (
+      {modal ? (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
           <form
             onSubmit={onSubmit}
@@ -473,8 +563,13 @@ export default function AdminGalleryPage() {
             <div className="flex justify-between items-center mb-2 gap-3">
               <div>
                 <h3 className="font-bold text-lg">
-                  {modal === "create" ? "Add Gallery Image" : "Edit Gallery Image"}
+                  {modal === "create"
+                    ? "Add gallery photo"
+                    : "Edit gallery photo"}
                 </h3>
+                <p className="text-[11px] text-[#6B7280] mt-0.5">
+                  Changes appear on /gallery after save.
+                </p>
                 <div className="mt-2">
                   <LocaleTabs locale={locale} onChange={setLocale} />
                 </div>
@@ -497,13 +592,14 @@ export default function AdminGalleryPage() {
               />
             </label>
             <MediaUpload
-              label="Image"
+              label="Photo (shown in gallery grid)"
               kind="image"
               value={form.image}
               onChange={(v) => setForm({ ...form, image: v })}
+              previewSize="lg"
             />
             <label className="block text-xs font-semibold text-[#5C6370]">
-              Filter
+              Site filter tab
               <select
                 value={form.filter}
                 onChange={(e) => setForm({ ...form, filter: e.target.value })}
@@ -519,11 +615,55 @@ export default function AdminGalleryPage() {
               </select>
             </label>
 
-            {locale === "en" && (
+            {locale === "en" ? (
               <>
+                <div className="rounded-xl border border-[#E8EDF2] bg-[#F8FAFC] p-3 space-y-3">
+                  <p className="text-xs font-bold uppercase tracking-wide text-[#334155]">
+                    Layout on site
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className="flex items-center gap-2 text-sm text-[#1A2332]">
+                      <input
+                        type="checkbox"
+                        checked={form.tall}
+                        onChange={(e) =>
+                          setForm({ ...form, tall: e.target.checked })
+                        }
+                        className="rounded border-[#E2E5EA]"
+                      />
+                      Tall tile
+                    </label>
+                    <label className="flex items-center gap-2 text-sm text-[#1A2332]">
+                      <input
+                        type="checkbox"
+                        checked={form.wide}
+                        onChange={(e) =>
+                          setForm({ ...form, wide: e.target.checked })
+                        }
+                        className="rounded border-[#E2E5EA]"
+                      />
+                      Wide tile
+                    </label>
+                  </div>
+                  <label className="block text-xs font-semibold text-[#5C6370]">
+                    Sort order (lower = earlier)
+                    <input
+                      type="number"
+                      value={form.sortOrder}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          sortOrder: Number(e.target.value) || 0,
+                        })
+                      }
+                      className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
+                    />
+                  </label>
+                </div>
+
                 <div className="border-t border-[#E8EAED] pt-3 mt-2">
                   <p className="text-xs font-bold uppercase tracking-wide text-[#334155] mb-3">
-                    Project Metadata & Taxonomy
+                    Project metadata & taxonomy
                   </p>
                 </div>
 
@@ -531,7 +671,9 @@ export default function AdminGalleryPage() {
                   Project Title
                   <input
                     value={form.projectTitle}
-                    onChange={(e) => setForm({ ...form, projectTitle: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, projectTitle: e.target.value })
+                    }
                     placeholder="e.g. Modern Villa Kitchen - Phuket"
                     className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
                   />
@@ -542,8 +684,13 @@ export default function AdminGalleryPage() {
                   <textarea
                     rows={3}
                     value={form.projectDesc}
-                    onChange={(e) => setForm({ ...form, projectDesc: e.target.value.slice(0, 300) })}
-                    placeholder="Brief project description for SEO and discovery (max 300 chars)"
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        projectDesc: e.target.value.slice(0, 300),
+                      })
+                    }
+                    placeholder="Brief project description (max 300 chars)"
                     maxLength={300}
                     className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal resize-y"
                   />
@@ -554,38 +701,43 @@ export default function AdminGalleryPage() {
                     Location Tag
                     <input
                       value={form.locationTag}
-                      onChange={(e) => setForm({ ...form, locationTag: e.target.value })}
-                      placeholder="e.g. Bangkok, Phuket"
+                      onChange={(e) =>
+                        setForm({ ...form, locationTag: e.target.value })
+                      }
+                      placeholder="e.g. Bangkok"
                       className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
                     />
                   </label>
-
                   <label className="block text-xs font-semibold text-[#5C6370]">
                     Layout Tag
                     <input
                       value={form.layoutTag}
-                      onChange={(e) => setForm({ ...form, layoutTag: e.target.value })}
-                      placeholder="e.g. L-shaped, U-shaped"
+                      onChange={(e) =>
+                        setForm({ ...form, layoutTag: e.target.value })
+                      }
+                      placeholder="e.g. L-shaped"
                       className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
                     />
                   </label>
-
                   <label className="block text-xs font-semibold text-[#5C6370]">
                     Style Tag
                     <input
                       value={form.styleTag}
-                      onChange={(e) => setForm({ ...form, styleTag: e.target.value })}
-                      placeholder="e.g. Modern, Industrial"
+                      onChange={(e) =>
+                        setForm({ ...form, styleTag: e.target.value })
+                      }
+                      placeholder="e.g. Modern"
                       className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
                     />
                   </label>
-
                   <label className="block text-xs font-semibold text-[#5C6370]">
                     Material Tag
                     <input
                       value={form.materialTag}
-                      onChange={(e) => setForm({ ...form, materialTag: e.target.value })}
-                      placeholder="e.g. Marble, Oak"
+                      onChange={(e) =>
+                        setForm({ ...form, materialTag: e.target.value })
+                      }
+                      placeholder="e.g. Marble"
                       className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
                     />
                   </label>
@@ -595,17 +747,15 @@ export default function AdminGalleryPage() {
                   Property Type
                   <input
                     value={form.propertyType}
-                    onChange={(e) => setForm({ ...form, propertyType: e.target.value })}
-                    placeholder="e.g. Villa, Condo, Townhouse"
+                    onChange={(e) =>
+                      setForm({ ...form, propertyType: e.target.value })
+                    }
+                    placeholder="e.g. Villa"
                     className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
                   />
                 </label>
-
-                <p className="text-[11px] text-[#6B7280]">
-                  These taxonomy tags help with project discovery and SEO. They will be used for filtering and structured data.
-                </p>
               </>
-            )}
+            ) : null}
 
             <div className="flex justify-end gap-2 pt-2">
               <button
@@ -624,7 +774,7 @@ export default function AdminGalleryPage() {
             </div>
           </form>
         </div>
-      )}
+      ) : null}
     </>
   );
 }
