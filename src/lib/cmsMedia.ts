@@ -44,7 +44,16 @@ function encodeMediaPath(path: string): string {
   if (!path.startsWith("/")) return path;
   return path
     .split("/")
-    .map((segment, index) => (index === 0 ? segment : encodeURIComponent(segment)))
+    .map((segment, index) => {
+      if (index === 0) return segment;
+      let decoded = segment;
+      try {
+        decoded = decodeURIComponent(segment);
+      } catch {
+        decoded = segment;
+      }
+      return encodeURI(decoded);
+    })
     .join("/");
 }
 
