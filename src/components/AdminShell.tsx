@@ -125,9 +125,7 @@ const VARSOVIA_NAV: {
 
   // ── Hub pages (main site sections) ──
   {
-    href: "/varsovia?resource=site&section=iaFurniture",
-    resource: "site",
-    section: "iaFurniture",
+    href: "/varsovia/furniture",
     label: "Furniture",
     icon: Package,
     group: "pages",
@@ -502,6 +500,9 @@ function AdminShellContent({
     section?: string;
     hub?: string;
   }) => {
+    if (item.href === "/varsovia/furniture") {
+      return pathname === "/varsovia/furniture";
+    }
     if (item.resource) {
       if (pathname !== "/varsovia" || activeResource !== item.resource) {
         return false;
