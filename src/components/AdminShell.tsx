@@ -87,6 +87,13 @@ const THAILAND_NAV: {
     hub: "locations",
     group: "pages",
   },
+  {
+    href: "/categories?hub=built-in-furniture",
+    label: "Built-In Furniture",
+    icon: FolderKanban,
+    hub: "built-in-furniture",
+    group: "pages",
+  },
   { href: "/gallery", label: "Gallery", icon: Images, group: "pages" },
   { href: "/blogs", label: "Guides", icon: FileText, group: "pages" },
   {
@@ -98,35 +105,6 @@ const THAILAND_NAV: {
   },
   { href: "/faqs", label: "FAQ", icon: MessageCircleQuestion, group: "pages" },
 
-  // Extra site pages (not in the main header, still on the website)
-  {
-    href: "/categories?hub=built-in-furniture",
-    label: "Built-In Furniture",
-    icon: FolderKanban,
-    hub: "built-in-furniture",
-    group: "chrome",
-  },
-  {
-    href: "/?section=catalogue",
-    label: "Free Catalogue",
-    icon: BookOpen,
-    section: "catalogue",
-    group: "chrome",
-  },
-  {
-    href: "/?section=hubPages",
-    label: "Kitchens, Services, Materials, Locations",
-    icon: LayoutGrid,
-    section: "hubPages",
-    group: "chrome",
-  },
-  {
-    href: "/?section=siteChrome",
-    label: "Header & SEO",
-    icon: Settings,
-    section: "siteChrome",
-    group: "chrome",
-  },
   { href: "/privacy", label: "Privacy Policy", icon: Shield, group: "chrome" },
   { href: "/terms", label: "Terms & Conditions", icon: ScrollText, group: "chrome" },
 
@@ -350,6 +328,21 @@ const VARSOVIA_NAV: {
   },
 ];
 
+const THAILAND_HOME_SECTIONS = new Set([
+  "siteChrome",
+  "hero",
+  "partners",
+  "story",
+  "transition",
+  "productsPage",
+  "testimonials",
+  "statistics",
+  "advantages",
+  "faq",
+  "homeContact",
+  "footer",
+]);
+
 /** Home Site Settings sections — used so "Home Page" stays active while editing home blocks */
 const VARSOVIA_HOME_SECTIONS = new Set([
   "hero",
@@ -532,7 +525,12 @@ function AdminShellContent({
       );
     }
     if (item.href === "/") {
-      return pathname === "/" && !homeSection;
+      if (pathname !== "/") return false;
+      if (!homeSection) return true;
+      if (!THAILAND_HOME_SECTIONS.has(homeSection)) return false;
+      return !THAILAND_NAV.some(
+        (nav) => nav.section === homeSection && nav.href !== "/"
+      );
     }
     const pathOnly = item.href.split("?")[0];
     if (pathOnly === "/categories") {
@@ -713,7 +711,7 @@ function AdminShellContent({
                 );
               })}
               <p className="px-3 pb-1 pt-4 text-[10px] font-bold tracking-[0.14em] uppercase text-[#9CA3AF]">
-                More pages
+                Legal
               </p>
               {THAILAND_NAV.filter((i) => i.group === "chrome").map((item) => {
                 const { href, label, icon: Icon } = item;

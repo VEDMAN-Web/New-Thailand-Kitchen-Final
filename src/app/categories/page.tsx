@@ -768,11 +768,12 @@ export default function AdminCategoriesPage() {
             <div className="rounded-xl border border-[#E8EDF2] bg-[#F8FAFC] p-4 space-y-3">
               <div>
                 <p className="text-xs font-bold uppercase tracking-wide text-[#334155]">
-                  Hero · Top of page
+                  Hero · Full-bleed overlay
                 </p>
                 <p className="text-[11px] text-[#6B7280] mt-0.5">
-                  Title, description, hero image and CTA shown in the first
-                  viewport.
+                  Same banner as Materials: photo behind the title, gold tag,
+                  white heading, description, and pill button. Fields: tag,
+                  title, description, image, button label, button link.
                 </p>
               </div>
               <MediaUpload
@@ -782,7 +783,7 @@ export default function AdminCategoriesPage() {
                 onChange={(v) => setForm((f) => ({ ...f, image: v }))}
               />
               <p className="text-[11px] text-[#6B7280] -mt-1">
-                Used on: large image beside / behind the page title
+                Full-width background photo behind the heading
               </p>
 
               <div className="grid sm:grid-cols-2 gap-3">
