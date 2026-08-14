@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { cmsImageNeedsUnoptimized, resolveCmsMediaUrl } from "../../lib/cmsMedia";
 
 type Props = {
   eyebrow: string;
@@ -10,7 +11,7 @@ type Props = {
   ctaHref: string;
 };
 
-/** Full-bleed photo + dark overlay — used on Materials and all Kitchens pages. */
+/** Full-bleed photo + dark overlay — hubs and category pages (admin hero fields). */
 export default function OverlayHeroBanner({
   eyebrow,
   title,
@@ -19,8 +20,8 @@ export default function OverlayHeroBanner({
   ctaLabel,
   ctaHref,
 }: Props) {
-  const src = String(image || "").trim();
-  const remote = src.startsWith("/uploads") || src.startsWith("http");
+  const src = resolveCmsMediaUrl(image);
+  const remote = cmsImageNeedsUnoptimized(src);
 
   return (
     <section className="relative min-h-[70vh] flex items-end">

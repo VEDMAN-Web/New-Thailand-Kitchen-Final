@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 import { pickCmsText } from "../../lib/cmsText";
+import { resolveCmsMediaUrl } from "../../lib/cmsMedia";
 import type { CmsCategory } from "../../services/cmsPublic";
 import OverlayHeroBanner from "./OverlayHeroBanner";
 import HubContentBlock, {
@@ -20,27 +20,6 @@ type Props = {
   sectionLabel: string;
 };
 
-function heroTone(categoryType?: string) {
-  switch (categoryType) {
-    case "material":
-      return { soft: "#F3EEE6", accent: "#B38B6D", label: "Material story" };
-    case "service":
-      return { soft: "#EEF2F6", accent: "#1A2332", label: "Service" };
-    case "layout":
-      return { soft: "#F0F4EF", accent: "#2D6A4F", label: "Layout" };
-    case "style":
-      return { soft: "#F7F1EC", accent: "#8B5E3C", label: "Style" };
-    case "property-type":
-      return { soft: "#F5F3EF", accent: "#3D5A80", label: "Property" };
-    case "location":
-      return { soft: "#EEF6F2", accent: "#2D6A4F", label: "Location" };
-    case "built-in-furniture":
-      return { soft: "#F4F0EB", accent: "#1A2332", label: "Built-in" };
-    default:
-      return { soft: "#FAF8F5", accent: "#B38B6D", label: "Explore" };
-  }
-}
-
 export default function CategoryLandingView({
   category,
   related,
@@ -48,7 +27,7 @@ export default function CategoryLandingView({
 }: Props) {
   const title = pickCmsText(category.title, sectionLabel, "EN");
   const description = pickCmsText(category.description, "", "EN");
-  const image = String(category.image || "").trim() || "/products/Kitchen2.png";
+  const image = resolveCmsMediaUrl(category.image, "/products/Kitchen2.png");
   const eyebrow = pickCmsText(category.eyebrow, sectionLabel, "EN");
   const ctaLabel = pickCmsText(
     category.ctaLabel,
@@ -66,16 +45,15 @@ export default function CategoryLandingView({
     "Speak with our design team for a free consultation and tailored quote.",
     "EN"
   );
-  const tone = heroTone(category.categoryType);
-  const type = String(category.categoryType || "");
-
   const paragraphs = description
     .split(/\n{2,}/)
     .map((p) => p.trim())
     .filter(Boolean);
 
   const sections = resolvePageSections(
-    (category.sections || []) as ContentSectionBlock[],
+    Array.isArray(category.sections)
+      ? (category.sections as ContentSectionBlock[])
+      : undefined,
     defaultCategorySections({
       title,
       description,
@@ -85,118 +63,16 @@ export default function CategoryLandingView({
     })
   );
 
-  const isMaterial = type === "material";
-  const isKitchenPage =
-    type === "style" || type === "layout" || type === "property-type";
-  const isService = type === "service";
-  const overlayHero =
-    isMaterial || isKitchenPage || type === "built-in-furniture";
-
   return (
     <>
-      {overlayHero ? (
-        <OverlayHeroBanner
-          eyebrow={eyebrow}
-          title={title}
-          description={paragraphs[0] || ""}
-          image={image}
-          ctaLabel={ctaLabel}
-          ctaHref={ctaHref}
-        />
-      ) : isService ? (
-        <section style={{ backgroundColor: tone.soft }} className="border-b border-[#E8E4DC]">
-          <div className="max-w-7xl mx-auto px-5 sm:px-6 py-12 sm:py-16 lg:py-20">
-            <div className="max-w-3xl">
-              <p
-                className="text-xs tracking-[0.22em] uppercase font-semibold mb-3"
-                style={{ color: tone.accent }}
-              >
-                {eyebrow}
-              </p>
-              <h1 className="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl text-[#1A2332] leading-tight">
-                {title}
-              </h1>
-              {paragraphs[0] ? (
-                <p className="mt-5 text-[#5C6370] text-base leading-8">
-                  {paragraphs[0]}
-                </p>
-              ) : null}
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Link
-                  href={ctaHref}
-                  className="inline-flex items-center gap-2 rounded-full bg-[#1A2332] px-6 py-3 text-sm font-semibold text-white hover:bg-[#243044] transition"
-                >
-                  {ctaLabel}
-                  <span aria-hidden>→</span>
-                </Link>
-                <Link
-                  href="/gallery"
-                  className="inline-flex items-center gap-2 rounded-full border border-[#D8D2C8] bg-white px-6 py-3 text-sm font-semibold text-[#1A2332] hover:bg-[#FAF8F5] transition"
-                >
-                  View projects
-                </Link>
-              </div>
-            </div>
-            <div className="relative mt-10 aspect-[21/9] rounded-2xl overflow-hidden bg-[#E8E4DC]">
-              <Image
-                src={image}
-                alt={title}
-                fill
-                priority
-                className="object-cover"
-                sizes="100vw"
-                unoptimized={
-                  image.startsWith("/uploads") || image.startsWith("http")
-                }
-              />
-            </div>
-          </div>
-        </section>
-      ) : (
-        <section
-          className="border-b border-[#E8E4DC]"
-          style={{ backgroundColor: tone.soft }}
-        >
-          <div className="max-w-7xl mx-auto px-5 sm:px-6 py-10 sm:py-14 lg:py-20 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            <div>
-              <p
-                className="text-xs tracking-[0.22em] uppercase font-semibold mb-3"
-                style={{ color: tone.accent }}
-              >
-                {eyebrow}
-              </p>
-              <h1 className="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl text-[#1A2332] leading-tight">
-                {title}
-              </h1>
-              {paragraphs[0] ? (
-                <p className="mt-4 sm:mt-5 text-[#5C6370] text-sm sm:text-base leading-7 sm:leading-8">
-                  {paragraphs[0]}
-                </p>
-              ) : null}
-              <Link
-                href={ctaHref}
-                className="mt-7 sm:mt-8 inline-flex items-center gap-2 rounded-full bg-[#1A2332] px-5 sm:px-6 py-2.5 sm:py-3 text-sm font-semibold text-white hover:bg-[#243044] transition"
-              >
-                {ctaLabel}
-                <span aria-hidden>→</span>
-              </Link>
-            </div>
-            <div className="relative aspect-[4/3] rounded-2xl sm:rounded-[1.75rem] overflow-hidden shadow-[0_20px_50px_rgba(26,35,50,0.12)] bg-[#E8E4DC]">
-              <Image
-                src={image}
-                alt={title}
-                fill
-                className="object-cover"
-                priority
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                unoptimized={
-                  image.startsWith("/uploads") || image.startsWith("http")
-                }
-              />
-            </div>
-          </div>
-        </section>
-      )}
+      <OverlayHeroBanner
+        eyebrow={eyebrow}
+        title={title}
+        description={paragraphs[0] || ""}
+        image={image}
+        ctaLabel={ctaLabel}
+        ctaHref={ctaHref}
+      />
 
       <div className="max-w-7xl mx-auto px-5 sm:px-6 py-12 sm:py-16 lg:py-20 space-y-14 lg:space-y-24">
         {sections.map((block, index) => (

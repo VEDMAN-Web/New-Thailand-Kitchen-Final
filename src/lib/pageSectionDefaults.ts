@@ -412,15 +412,15 @@ export function sectionIsUsable(b: ContentSectionBlock) {
 }
 
 /**
- * Use CMS sections in admin-defined order when any exist.
- * Fall back to seeded defaults only when CMS has no usable sections.
+ * Use CMS sections when the field exists (including an empty list).
+ * Fall back to seeded defaults only when the CMS has never saved sections.
  */
 export function resolvePageSections(
   sections: ContentSectionBlock[] | undefined,
   fallback: ContentSectionBlock[]
 ): ContentSectionBlock[] {
-  const usable = (sections || []).filter(sectionIsUsable);
-  return usable.length > 0 ? usable : fallback;
+  if (!Array.isArray(sections)) return fallback;
+  return sections.filter(sectionIsUsable);
 }
 
 /** @deprecated Use resolvePageSections — kept for imports during migration */

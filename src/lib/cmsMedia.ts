@@ -22,11 +22,13 @@ export function resolveCmsMediaUrl(url: unknown, fallback = ""): string {
 
   if (/^(data:|blob:)/i.test(value)) return value;
 
+  const partnerPlaceholder = value.match(/\/brandLogo\/partner-(\d)\.svg$/i);
+  if (partnerPlaceholder) value = `/brandLogo/first (${partnerPlaceholder[1]}).png`;
+
   const uploadsPath = extractUploadsPath(value);
   if (uploadsPath) {
-    // Prefer same-origin /uploads so Next rewrites to the connected API.
-    if (/^https?:\/\//i.test(value)) return uploadsPath;
-    return uploadsPath;
+    if (/^https?:\/\//i.test(value)) return encodeMediaPath(uploadsPath);
+    return encodeMediaPath(uploadsPath);
   }
 
   if (/^https?:\/\//i.test(value)) return value;
@@ -34,7 +36,16 @@ export function resolveCmsMediaUrl(url: unknown, fallback = ""): string {
   if (value.includes("@") && !value.includes("/")) return value;
   if (/^\+?[\d\s().-]{6,}$/.test(value)) return value;
 
-  return value.startsWith("/") ? value : `/${value}`;
+  const path = value.startsWith("/") ? value : `/${value}`;
+  return encodeMediaPath(path);
+}
+
+function encodeMediaPath(path: string): string {
+  if (!path.startsWith("/")) return path;
+  return path
+    .split("/")
+    .map((segment, index) => (index === 0 ? segment : encodeURIComponent(segment)))
+    .join("/");
 }
 
 export function isEmbedVideoUrl(url: string): boolean {
@@ -75,7 +86,7 @@ export function isDirectImageUrl(url: string): boolean {
     /\.(jpe?g|png|gif|webp|avif|svg)(\?|$)/i.test(value) ||
     value.includes("/uploads/images/") ||
     value.includes("/uploads/icons/") ||
-    /^\/(products|product|features|blog|catlog|slider|testimonial|contactUs)\//i.test(
+    /^\/(products|product|features|blog|catlog|slider|testimonial|contactUs|brandLogo|footer|icon)\//i.test(
       value
     )
   );

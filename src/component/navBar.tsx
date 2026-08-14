@@ -12,7 +12,7 @@ import {
   type NavSearchResult,
 } from "./navSearch";
 import ConsultationEnquiryModal from "./ConsultationEnquiryModal";
-import { useCmsSection } from "../lib/CmsHomeContext";
+import { useCms, useCmsSection } from "../lib/CmsHomeContext";
 import { pickCmsText } from "../lib/cmsText";
 import {
   HubDesktopNavItem,
@@ -44,6 +44,7 @@ const Navbar = () => {
   const pathname = usePathname();
   const router = useRouter();
   const { locale, setLocale, t } = useTranslation();
+  const { loading: cmsLoading } = useCms();
   const navCms = useCmsSection<{
     logoUrl?: string;
     links?: { label?: string; href?: string }[];
@@ -74,6 +75,7 @@ const Navbar = () => {
     (l) => l?.href && pickCmsText(l?.label, "", "EN")
   );
   const navLinks = useMemo(() => {
+    const seen = new Set<string>();
     const raw =
       cmsLinks.length > 0
         ? cmsLinks.map((l) => {
@@ -88,19 +90,20 @@ const Navbar = () => {
               ),
             };
           })
-        : defaultNavLinks.map((l) => ({
-            href: l.href,
-            label: t(l.labelKey),
-          }));
+        : cmsLoading
+          ? []
+          : defaultNavLinks.map((l) => ({
+              href: l.href,
+              label: t(l.labelKey),
+            }));
 
-    const seen = new Set<string>();
     return raw.filter((link) => {
       const key = link.href === "/blog" ? "/guides" : link.href;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
     });
-  }, [cmsLinks, locale, t]);
+  }, [cmsLinks, cmsLoading, locale, t]);
 
   const overflowNavLinks = useMemo(() => {
     if (!searchExpanded) return [];

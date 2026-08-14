@@ -89,7 +89,7 @@ export default function HomeFaqSection() {
   const HOME_FAQ_LIMIT = 5;
 
   const items = useMemo(() => {
-    if (dedicatedFaqs) {
+    if (dedicatedFaqs !== null) {
       return dedicatedFaqs
         .map((item, index) => ({
           id: `home-faq-${index}`,

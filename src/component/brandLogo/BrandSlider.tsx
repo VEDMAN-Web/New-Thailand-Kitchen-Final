@@ -3,12 +3,13 @@
 import Image from "next/image";
 import { brands } from "./brandData";
 import { useCmsSection } from "../../lib/CmsHomeContext";
+import { resolveCmsMediaUrl } from "../../lib/cmsMedia";
 
 function isUsableLogo(src?: string | null): src is string {
   if (!src) return false;
   const trimmed = src.trim();
   if (!trimmed) return false;
-  // Bad CMS default that does not exist in /public
+  if (/\/brandLogo\/partner-\d\.svg$/i.test(trimmed)) return false;
   if (trimmed === "/brand/brand.png" || trimmed.endsWith("/brand/brand.png")) {
     return false;
   }
@@ -21,7 +22,7 @@ export default function BrandSlider() {
   }>("partners");
 
   const cmsLogos = (partners?.logos || [])
-    .map((l) => l.image)
+    .map((l) => String(l.image || ""))
     .filter(isUsableLogo);
 
   const logos = cmsLogos.length > 0 ? cmsLogos : brands;
@@ -34,7 +35,7 @@ export default function BrandSlider() {
           {loop.map((logo, index) => (
             <div key={`${logo}-${index}`} className="flex-shrink-0 mx-10 lg:mx-16">
               <Image
-                src={logo}
+                src={resolveCmsMediaUrl(logo)}
                 alt="brand"
                 width={150}
                 height={60}

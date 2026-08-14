@@ -482,6 +482,16 @@ export async function fetchMergedFaqs(): Promise<CmsFaq[]> {
     }));
   }
 
+  const home = await fetchHomeSections().catch(() => null);
+  const homeItems = Array.isArray(home?.faq?.items) ? home.faq.items : [];
+  if (homeItems.length) {
+    return homeItems.map((f: Record<string, unknown>, index: number) => ({
+      id: 40000 + index,
+      question: f.question || "",
+      answer: f.answer || "",
+    }));
+  }
+
   return [];
 }
 

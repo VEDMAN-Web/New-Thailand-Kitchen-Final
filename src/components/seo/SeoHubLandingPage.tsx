@@ -1,5 +1,3 @@
-import Image from "next/image";
-import Link from "next/link";
 import { fetchHomeSections } from "../../services/cmsPublic";
 import { pickCmsText } from "../../lib/cmsText";
 import Breadcrumbs from "./Breadcrumbs";
@@ -39,7 +37,11 @@ function resolveHubData(
     ? kitchensSectionByKey(kitchensSubKey)
     : null;
 
-  const cmsSections = (sub?.sections?.length ? sub.sections : root.sections) || [];
+  const cmsSections = kitchensSubKey
+    ? (Array.isArray(sub?.sections) ? sub.sections : undefined)
+    : Array.isArray(root.sections)
+      ? root.sections
+      : undefined;
   const sections = resolvePageSections(
     cmsSections,
     defaultHubSections(hubKey, kitchensSubKey)
@@ -74,8 +76,6 @@ function resolveHubData(
     ),
     ctaHref: String(sub?.ctaHref || root.ctaHref || "/contact").trim(),
     sections,
-    accent: sectionMeta?.accent || config.accent,
-    accentSoft: sectionMeta?.accentSoft || "#FAF8F5",
     currentHref: kitchensSubKey
       ? kitchensSectionByKey(kitchensSubKey)?.href || config.href
       : config.href,
@@ -109,151 +109,14 @@ export default async function SeoHubLandingPage({
         currentHref={data.currentHref}
       />
 
-      {hubKey === "materials" ||
-      hubKey === "kitchens" ||
-      hubKey === "builtInFurniture" ? (
-        <OverlayHeroBanner
-          eyebrow={data.eyebrow}
-          title={data.title}
-          description={data.description}
-          image={data.heroImage}
-          ctaLabel={data.ctaLabel}
-          ctaHref={data.ctaHref}
-        />
-      ) : hubKey === "services" && !kitchensSubKey ? (
-        <section
-          className="border-b border-[#E8E4DC]"
-          style={{ backgroundColor: data.accentSoft }}
-        >
-          <div className="max-w-7xl mx-auto px-5 sm:px-6 py-12 sm:py-16 lg:py-20">
-            <div className="max-w-3xl">
-              <p
-                className="text-xs tracking-[0.22em] uppercase font-semibold mb-3"
-                style={{ color: data.accent }}
-              >
-                {data.eyebrow}
-              </p>
-              <h1 className="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl text-[#1A2332] leading-tight">
-                {data.title}
-              </h1>
-              <p className="mt-5 text-[#5C6370] text-base leading-8">
-                {data.description}
-              </p>
-              <Link
-                href={data.ctaHref}
-                className="mt-8 inline-flex items-center gap-2 rounded-full bg-[#1A2332] px-6 py-3 text-sm font-semibold text-white hover:bg-[#243044] transition"
-              >
-                {data.ctaLabel}
-                <span aria-hidden>→</span>
-              </Link>
-            </div>
-            {data.heroImage ? (
-              <div className="relative mt-10 aspect-[21/9] rounded-2xl overflow-hidden bg-[#E8E4DC]">
-                <Image
-                  src={data.heroImage}
-                  alt={data.title}
-                  fill
-                  priority
-                  className="object-cover"
-                  sizes="100vw"
-                  unoptimized={
-                    data.heroImage.startsWith("/uploads") ||
-                    data.heroImage.startsWith("http")
-                  }
-                />
-              </div>
-            ) : null}
-          </div>
-        </section>
-      ) : hubKey === "locations" && !kitchensSubKey ? (
-        <section className="grid grid-cols-1 lg:grid-cols-2 min-h-[60vh]">
-          <div
-            className="flex flex-col justify-center px-5 sm:px-10 lg:px-14 py-14"
-            style={{ backgroundColor: data.accentSoft }}
-          >
-            <p
-              className="text-xs tracking-[0.22em] uppercase font-semibold mb-3"
-              style={{ color: data.accent }}
-            >
-              {data.eyebrow}
-            </p>
-            <h1 className="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl text-[#1A2332] leading-tight">
-              {data.title}
-            </h1>
-            <p className="mt-5 text-[#5C6370] text-base leading-8 max-w-lg">
-              {data.description}
-            </p>
-            <Link
-              href={data.ctaHref}
-              className="mt-8 inline-flex w-fit items-center gap-2 rounded-full bg-[#1A2332] px-6 py-3 text-sm font-semibold text-white hover:bg-[#243044] transition"
-            >
-              {data.ctaLabel}
-              <span aria-hidden>→</span>
-            </Link>
-          </div>
-          <div className="relative min-h-[280px] lg:min-h-full bg-[#E8E4DC]">
-            {data.heroImage ? (
-              <Image
-                src={data.heroImage}
-                alt={data.title}
-                fill
-                priority
-                className="object-cover"
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                unoptimized={
-                  data.heroImage.startsWith("/uploads") ||
-                  data.heroImage.startsWith("http")
-                }
-              />
-            ) : null}
-          </div>
-        </section>
-      ) : (
-        <section
-          className="border-b border-[#E8E4DC]"
-          style={{ backgroundColor: data.accentSoft }}
-        >
-          <div className="max-w-7xl mx-auto px-5 sm:px-6 py-10 sm:py-14 lg:py-20 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            <div>
-              <p
-                className="text-xs tracking-[0.22em] uppercase font-semibold mb-3"
-                style={{ color: data.accent }}
-              >
-                {data.eyebrow}
-              </p>
-              <h1 className="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl text-[#1A2332] leading-tight">
-                {data.title}
-              </h1>
-              <p className="mt-4 sm:mt-5 text-[#5C6370] text-sm sm:text-base leading-7 sm:leading-8 max-w-xl">
-                {data.description}
-              </p>
-              <Link
-                href={data.ctaHref}
-                className="mt-7 sm:mt-8 inline-flex items-center gap-2 rounded-full bg-[#1A2332] px-5 sm:px-6 py-2.5 sm:py-3 text-sm font-semibold text-white hover:bg-[#243044] transition"
-              >
-                {data.ctaLabel}
-                <span aria-hidden>→</span>
-              </Link>
-            </div>
-            {data.heroImage ? (
-              <div className="relative aspect-[4/3] rounded-2xl sm:rounded-[1.75rem] overflow-hidden shadow-[0_20px_50px_rgba(26,35,50,0.12)]">
-                <Image
-                  src={data.heroImage}
-                  alt={data.title}
-                  fill
-                  className="object-cover"
-                  priority
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                  unoptimized={
-                    data.heroImage.startsWith("/uploads") ||
-                    data.heroImage.startsWith("http")
-                  }
-                />
-              </div>
-            ) : null}
-          </div>
-        </section>
-      )}
+      <OverlayHeroBanner
+        eyebrow={data.eyebrow}
+        title={data.title}
+        description={data.description}
+        image={data.heroImage}
+        ctaLabel={data.ctaLabel}
+        ctaHref={data.ctaHref}
+      />
 
       <div className="max-w-7xl mx-auto px-5 sm:px-6 py-12 sm:py-16 lg:py-20 space-y-14 lg:space-y-24">
         {data.sections.map((block, index) => (
