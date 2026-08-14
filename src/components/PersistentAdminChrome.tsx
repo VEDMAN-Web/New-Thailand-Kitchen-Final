@@ -41,7 +41,6 @@ function ChromeInner({ children }: { children: React.ReactNode }) {
   } else if (pathname === "/") {
     if (section === "contactPage") title = "Contact";
     else if (section === "catalogue") title = "Free Catalogue";
-    else if (section === "hubPages") title = "Kitchens, Services, Materials, Locations";
     else if (section === "siteChrome") title = "Header & SEO";
     else if (section === "faqPage") title = "FAQ Page";
     else if (section === "blogPage") title = "Guides Page";

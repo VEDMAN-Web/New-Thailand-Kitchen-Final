@@ -43,6 +43,7 @@ import {
   generateBlogWithAI,
 } from "@/services/adminAPI";
 import { toPublicMediaUrl } from "@/lib/publicMediaUrl";
+import { resolveAdminMediaPreviewUrl } from "@/lib/adminMediaPreview";
 import {
   ADMIN_SECTION_EVENT,
   CMS_SYNCED_EVENT,
@@ -3887,7 +3888,7 @@ function ResourceManager({
                       <div className="relative h-40 w-full bg-[#F3F4F6]">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                          src={image || "/products/Kitchen1.png"}
+                          src={resolveAdminMediaPreviewUrl(image || "/products/Kitchen1.png")}
                           alt={title}
                           className="h-full w-full object-cover"
                           onError={(event) => {
@@ -6067,7 +6068,7 @@ function FieldControl({
         {isPreviewable ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={urlValue}
+            src={resolveAdminMediaPreviewUrl(urlValue)}
             alt=""
             className="mt-2 h-40 w-full max-w-md rounded-lg border border-[#E8EAED] object-contain bg-[#F8FAFC]"
             onError={(e) => {
@@ -6206,7 +6207,7 @@ function SmallInput({
       {isPreviewable ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={trimmed}
+          src={resolveAdminMediaPreviewUrl(trimmed)}
           alt=""
           className="mt-2 h-28 w-full rounded-lg border border-[#E8EAED] object-contain bg-[#F8FAFC]"
           onError={(e) => {

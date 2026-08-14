@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { FolderOpen, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
@@ -30,6 +29,7 @@ import {
   categoryTypeLabel,
 } from "@/lib/thailandHubs";
 import { CMS_SYNCED_EVENT } from "@/lib/adminSectionNav";
+import HubLandingEditor from "@/components/HubLandingEditor";
 import {
   createCategory,
   deleteCategory,
@@ -421,31 +421,11 @@ export default function AdminCategoriesPage() {
     <>
     <div className="space-y-6">
         {hub ? (
-          <div className="rounded-xl border border-[#E8EDF2] bg-white px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
-            <div>
-              <p className="text-sm font-semibold text-[#1A2332]">
-                {hub.label}{" "}
-                <span className="font-mono text-xs font-normal text-[#6B7280]">
-                  {hub.sitePath}
-                </span>
-              </p>
-              <p className="text-xs text-[#6B7280] mt-0.5">{hub.description}</p>
-            </div>
-            <Link
-              href={`/?section=hubPages&hub=${hub.key}`}
-              className="inline-flex items-center justify-center rounded-lg border border-[#E2E5EA] bg-[#F8FAFC] px-3 py-2 text-xs font-semibold text-[#1A2332] hover:bg-[#EEF0F3] shrink-0"
-            >
-              Edit {hub.label} page
-            </Link>
-          </div>
+          <HubLandingEditor hub={hub} />
         ) : (
           <p className="text-xs text-[#6B7280]">
             Pick a hub from the sidebar (Kitchens, Services, Materials,
-            Locations) to edit mega-menu pages. Overview pages are under{" "}
-            <Link href="/?section=hubPages" className="underline font-semibold">
-              Kitchens, Services, Materials, Locations
-            </Link>
-            .
+            Locations, Built-In Furniture) to edit that page.
           </p>
         )}
 
@@ -771,9 +751,9 @@ export default function AdminCategoriesPage() {
                   Hero · Full-bleed overlay
                 </p>
                 <p className="text-[11px] text-[#6B7280] mt-0.5">
-                  Same banner as Materials: photo behind the title, gold tag,
-                  white heading, description, and pill button. Fields: tag,
-                  title, description, image, button label, button link.
+                  Same overlay banner as Kitchens, Materials, and Services:
+                  photo behind the title, gold tag, white heading, description,
+                  and pill button.
                 </p>
               </div>
               <MediaUpload

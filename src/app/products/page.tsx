@@ -23,6 +23,7 @@ import {
   type ProductItem,
 } from "@/services/adminAPI";
 import MediaUpload from "@/components/MediaUpload";
+import { resolveAdminMediaPreviewUrl } from "@/lib/adminMediaPreview";
 import LocaleTabs from "@/components/LocaleTabs";
 import {
   asLocalizedForm,
@@ -498,7 +499,7 @@ export default function AdminProductsPage() {
                 <div className="relative h-40 w-full bg-[#F3F4F6]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={item.image || "/products/Kitchen1.png"}
+                    src={resolveAdminMediaPreviewUrl(item.image || "/products/Kitchen1.png")}
                     alt={localizedValue(item.title, "en")}
                     className="h-full w-full object-cover"
                     onError={(e) => {

@@ -13,6 +13,8 @@ const PUBLIC_ASSET_PREFIXES = [
   "/testimonial/",
   "/footer/",
   "/icon/",
+  "/video/",
+  "/logo1.svg",
   "/contactUs/",
   "/images/",
   "/assets/",
@@ -160,27 +162,42 @@ export function toEmbedVideoSrc(url: string): string {
   return trimmed;
 }
 
+export function aliasLegacyMediaPath(path: string): string {
+  const match = path.match(/\/brandLogo\/partner-(\d)\.svg$/i);
+  if (match) return `/brandLogo/first (${match[1]}).png`;
+  return path;
+}
+
+export function encodeMediaPath(path: string): string {
+  const raw = path.startsWith("/") ? path : `/${path}`;
+  return raw
+    .split("/")
+    .map((segment, index) => (index === 0 ? segment : encodeURIComponent(segment)))
+    .join("/");
+}
+
 export function resolveAdminMediaPreviewUrl(url: string): string {
-  const trimmed = normalizeMediaPath(url);
+  const trimmed = aliasLegacyMediaPath(normalizeMediaPath(url));
   if (!trimmed) return "";
 
-  if (/^(https?:|data:|blob:)/i.test(trimmed)) {
+  if (/^(data:|blob:)/i.test(trimmed)) {
     return trimmed;
   }
 
-  const path = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
-
-  if (path.startsWith("/uploads/")) {
-    return path;
+  if (/^https?:\/\//i.test(trimmed)) {
+    try {
+      const parsed = new URL(trimmed);
+      const pathname = encodeMediaPath(parsed.pathname);
+      if (pathname.startsWith("/uploads/") || isPublicSiteAssetPath(pathname)) {
+        return `${pathname}${parsed.search}`;
+      }
+      return `${parsed.origin}${pathname}${parsed.search}`;
+    } catch {
+      return trimmed;
+    }
   }
 
-  if (isPublicSiteAssetPath(path)) {
-    const frontend = (process.env.NEXT_PUBLIC_FRONTEND_URL || "")
-      .trim()
-      .replace(/\/+$/, "");
-    if (frontend) return `${frontend}${path}`;
-  }
-
+  const path = encodeMediaPath(trimmed.startsWith("/") ? trimmed : `/${trimmed}`);
   return path;
 }
 

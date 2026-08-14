@@ -96,8 +96,12 @@ const nextConfig: NextConfig = {
         destination: `${frontendTarget}/icon/:path*`,
       },
       {
-        source: "/contactUs/:path*",
-        destination: `${frontendTarget}/contactUs/:path*`,
+        source: "/video/:path*",
+        destination: `${frontendTarget}/video/:path*`,
+      },
+      {
+        source: "/images/:path*",
+        destination: `${frontendTarget}/images/:path*`,
       },
     ];
   },

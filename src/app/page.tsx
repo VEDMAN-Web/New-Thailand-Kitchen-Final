@@ -20,7 +20,6 @@ import {
   MessageCircleQuestion,
   MapPin,
   Settings,
-  LayoutGrid,
 } from "lucide-react";
 import { toast } from "sonner";
 import MediaUpload from "@/components/MediaUpload";
@@ -153,13 +152,6 @@ const SECTION_META = [
     group: "pages" as SectionGroup,
   },
   {
-    key: "hubPages",
-    title: "Kitchens, Services, Materials, Locations",
-    desc: "Overview pages for Kitchens, Services, Materials, Locations & Built-In Furniture",
-    icon: LayoutGrid,
-    group: "pages" as SectionGroup,
-  },
-  {
     key: "contactPage",
     title: "Contact Page",
     desc: "Contact hero, locations & craft image",
@@ -286,11 +278,6 @@ function isSectionComplete(key: string, sections: Sections): boolean {
       return Boolean(localizedValue(s.title, "en") || s.videoUrl || localizedValue(s.label, "en") || localizedValue(s.homeTitle, "en"));
     case "blogPage":
       return Boolean(localizedValue(s.title, "en") || s.videoUrl || localizedValue(s.eyebrow, "en"));
-    case "hubPages":
-      return Boolean(
-        localizedValue(s.kitchens?.title, "en") ||
-          localizedValue(s.services?.title, "en")
-      );
     case "faqPage":
       return Boolean(localizedValue(s.title, "en") || s.videoUrl || localizedValue(s.eyebrow, "en"));
     case "contactPage":
@@ -311,6 +298,12 @@ export default function AdminHomePage() {
   // Read deep-link once on mount + listen for sidebar section picks (no Next navigation).
   useEffect(() => {
     const fromUrl = readAdminSectionFromUrl();
+    if (fromUrl === "hubPages" && typeof window !== "undefined") {
+      const hub = new URLSearchParams(window.location.search).get("hub") || "kitchens";
+      const param = hub === "builtInFurniture" ? "built-in-furniture" : hub;
+      window.location.replace(`/categories?hub=${param}`);
+      return;
+    }
     if (isSectionKey(fromUrl)) setActive(fromUrl);
 
     const onSection = (event: Event) => {
@@ -320,20 +313,6 @@ export default function AdminHomePage() {
     window.addEventListener(ADMIN_SECTION_EVENT, onSection);
     return () => window.removeEventListener(ADMIN_SECTION_EVENT, onSection);
   }, []);
-
-  // Focus a specific hub block when linked as /?section=hubPages&hub=kitchens
-  useEffect(() => {
-    if (active !== "hubPages" || typeof window === "undefined") return;
-    const hubKey = new URLSearchParams(window.location.search).get("hub");
-    if (!hubKey) return;
-    const timer = window.setTimeout(() => {
-      document.getElementById(`hub-${hubKey}`)?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }, 120);
-    return () => window.clearTimeout(timer);
-  }, [active, loading]);
 
   const selectSection = (key: string) => {
     if (key === active) return;
@@ -1619,6 +1598,7 @@ function SectionEditor({
   }
 
   if (sectionKey === "hubPages") {
+    return null;
     const hubs: { order: string; key: string; label: string; path: string }[] = [
       { order: "1", key: "kitchens", label: "Kitchens", path: "/kitchens" },
       { order: "2", key: "services", label: "Services", path: "/services" },
