@@ -119,7 +119,7 @@ export default function HomeFaqSection() {
         <p className="text-[#E0905A] text-xs tracking-[0.28em] uppercase font-medium mb-3">
           {eyebrow}
         </p>
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8 lg:mb-10">
+                <div className="max-w-4xl flex flex-col sm:flex-row sm:items-end sm:justify-start gap-4 sm:gap-8 mb-8 lg:mb-10">
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-[#1A1A1A]">
             {title}
           </h2>
