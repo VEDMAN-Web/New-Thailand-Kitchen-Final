@@ -884,7 +884,12 @@ function SiteSettings() {
           </div>
           )}
 
-          <div className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-[#E8EAED] bg-white">
+          <div
+            className={clsx(
+              "flex min-h-0 flex-col overflow-hidden rounded-xl border border-[#E8EAED] bg-white",
+              activeSection?.group === "chrome" ? "mx-auto w-full max-w-3xl" : ""
+            )}
+          >
             <div className="min-h-0 flex-1 overflow-y-auto p-5 lg:p-6">
               <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
                 <div>
