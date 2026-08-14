@@ -45,6 +45,7 @@ export type FieldType =
   | "office-list"
   | "search-page-list"
   | "footer-nav"
+  | "main-nav"
   | "inquiry-form"
   | "select"
   | "ia-children-list"
@@ -790,7 +791,7 @@ const SITE_SECTIONS_CHROME: SiteSection[] = [
     group: "chrome",
     icon: Navigation,
     fields: [
-      { key: "mainNavigation", label: "Main Navigation (JSON)", type: "json" },
+      { key: "mainNavigation", label: "Main Navigation", type: "main-nav" },
       { key: "searchPages", label: "Search Result Pages", type: "search-page-list" },
     ],
   },

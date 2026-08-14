@@ -94,6 +94,7 @@ type FieldType =
   | "office-list"
   | "search-page-list"
   | "footer-nav"
+  | "main-nav"
   | "inquiry-form"
   | "select"
   | "ia-children-list"
@@ -938,6 +939,7 @@ function SiteSettings() {
                     field.type === "office-list" ||
                     field.type === "search-page-list" ||
                     field.type === "footer-nav" ||
+                    field.type === "main-nav" ||
                     field.type === "inquiry-form" ||
                     field.type === "ia-children-list";
                   const value = field.localized
@@ -4109,6 +4111,7 @@ export function ResourceManager({
                     field.type === "office-list" ||
                     field.type === "search-page-list" ||
                     field.type === "footer-nav" ||
+                    field.type === "main-nav" ||
                     field.type === "inquiry-form" ||
                     field.type === "ia-children-list";
                   const raw = getAtPath(form, field.key);
@@ -5281,6 +5284,207 @@ function FieldControl({
             <Plus size={14} /> Add search page
           </button>
         </div>
+      </div>
+    );
+  }
+
+  if (field.type === "main-nav") {
+    const nav =
+      value && typeof value === "object" && !Array.isArray(value)
+        ? (value as Record<string, unknown>)
+        : { version: 3, items: [] };
+    const items = Array.isArray(nav.items)
+      ? (nav.items as Record<string, unknown>[])
+      : [];
+
+    const patchNav = (partial: Record<string, unknown>) =>
+      onChange({ version: nav.version ?? 3, ...nav, ...partial });
+
+    const emptyItem = (): Record<string, unknown> => ({
+      id: `item-${items.length + 1}-${Date.now()}`,
+      label: { en: "" },
+      href: "/",
+      menuKind: "none",
+      enabled: true,
+      order: items.length + 1,
+    });
+
+    const updateItem = (
+      index: number,
+      updater: (current: Record<string, unknown>) => Record<string, unknown>
+    ) =>
+      patchNav({
+        items: items.map((current, i) => (i === index ? updater(current) : current)),
+      });
+
+    const updateMenuLinks = (
+      index: number,
+      updater: (links: Record<string, unknown>[]) => Record<string, unknown>[]
+    ) =>
+      updateItem(index, (current) => {
+        const curMenu =
+          current.menu && typeof current.menu === "object"
+            ? (current.menu as Record<string, unknown>)
+            : {};
+        const curLinks = Array.isArray(curMenu.links)
+          ? (curMenu.links as Record<string, unknown>[])
+          : [];
+        return { ...current, menu: { ...curMenu, links: updater(curLinks) } };
+      });
+
+    return (
+      <div className="md:col-span-2 space-y-4">
+        <FieldLabel field={field} />
+        <p className="mb-1 text-xs text-[#6B7280]">
+          These are the top header buttons on the live Varsovia site. Add, remove,
+          rename, or turn any button off here. If a button has its own dropdown
+          menu, its sub-links are listed underneath it — edit those the same way.
+          Changes here go live on varsovia.design as soon as you save.
+        </p>
+
+        {items.map((item, index) => {
+          const menu =
+            item.menu && typeof item.menu === "object"
+              ? (item.menu as Record<string, unknown>)
+              : null;
+          const menuLinks =
+            menu && Array.isArray(menu.links)
+              ? (menu.links as Record<string, unknown>[])
+              : [];
+          const hasMenu = Boolean(item.menuKind) && item.menuKind !== "none";
+
+          return (
+            <div
+              key={item.id ? String(item.id) : index}
+              className="rounded-xl border border-[#E2E5EA] bg-[#FAFBFC] p-4 space-y-3"
+            >
+              <div className="flex flex-wrap items-end justify-between gap-3">
+                <div className="grid flex-1 gap-3 md:grid-cols-3">
+                  <SmallInput
+                    label="Button label"
+                    value={localizedValue(item.label, locale)}
+                    onChange={(next) =>
+                      updateItem(index, (current) =>
+                        setEntryLocalized(current, "label", next)
+                      )
+                    }
+                  />
+                  <SmallInput
+                    label="Link"
+                    value={String(item.href ?? "")}
+                    onChange={(next) =>
+                      updateItem(index, (current) => ({ ...current, href: next }))
+                    }
+                  />
+                  <label className="flex items-end gap-2 pb-2 text-xs font-semibold text-[#5C6370]">
+                    <input
+                      type="checkbox"
+                      checked={item.enabled !== false}
+                      onChange={(event) =>
+                        updateItem(index, (current) => ({
+                          ...current,
+                          enabled: event.target.checked,
+                        }))
+                      }
+                      className="h-4 w-4 accent-[#1A2332]"
+                    />
+                    Shown
+                  </label>
+                </div>
+                <ListButtons
+                  index={index}
+                  length={items.length}
+                  onMove={(from, direction) => {
+                    const target = from + direction;
+                    if (target < 0 || target >= items.length) return;
+                    const next = [...items];
+                    [next[from], next[target]] = [next[target], next[from]];
+                    patchNav({
+                      items: next.map((entry, i) => ({ ...entry, order: i + 1 })),
+                    });
+                  }}
+                  onRemove={() =>
+                    patchNav({
+                      items: items
+                        .filter((_, i) => i !== index)
+                        .map((entry, i) => ({ ...entry, order: i + 1 })),
+                    })
+                  }
+                />
+              </div>
+
+              {hasMenu ? (
+                <div className="ml-1 space-y-2 border-l-2 border-[#E2E5EA] pl-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-[#9CA3AF]">
+                    Dropdown links under &quot;{localizedValue(item.label, "en") || "this button"}&quot;
+                  </p>
+                  {menuLinks.map((link, linkIndex) => (
+                    <div
+                      key={linkIndex}
+                      className="grid gap-2 rounded-lg border border-[#E8EAED] bg-white p-3 md:grid-cols-[1fr_1fr_auto]"
+                    >
+                      <SmallInput
+                        label="Title"
+                        value={localizedValue(link.title, locale)}
+                        onChange={(next) =>
+                          updateMenuLinks(index, (links) =>
+                            links.map((l, li) =>
+                              li === linkIndex ? setEntryLocalized(l, "title", next) : l
+                            )
+                          )
+                        }
+                      />
+                      <SmallInput
+                        label="Link"
+                        value={String(link.href ?? "")}
+                        onChange={(next) =>
+                          updateMenuLinks(index, (links) =>
+                            links.map((l, li) =>
+                              li === linkIndex ? { ...l, href: next } : l
+                            )
+                          )
+                        }
+                      />
+                      <div className="flex items-end pb-1">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateMenuLinks(index, (links) =>
+                              links.filter((_, li) => li !== linkIndex)
+                            )
+                          }
+                          className="text-xs text-red-600"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      updateMenuLinks(index, (links) => [
+                        ...links,
+                        { title: { en: "" }, subtitle: { en: "" }, href: "" },
+                      ])
+                    }
+                    className="inline-flex items-center gap-2 rounded-lg border border-dashed border-[#B9C0CA] px-3 py-2 text-xs font-semibold text-[#5C6370]"
+                  >
+                    <Plus size={14} /> Add dropdown link
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          );
+        })}
+
+        <button
+          type="button"
+          onClick={() => patchNav({ items: [...items, emptyItem()] })}
+          className="inline-flex items-center gap-2 rounded-lg border border-dashed border-[#B9C0CA] px-3 py-2 text-xs font-semibold text-[#5C6370]"
+        >
+          <Plus size={14} /> Add nav button
+        </button>
       </div>
     );
   }
