@@ -809,7 +809,15 @@ function SiteSettings() {
       {loadingContent ? (
         <p className="text-sm text-[#6B7280]">Loading sections…</p>
       ) : (
-        <div className="grid min-h-0 flex-1 grid-cols-1 items-stretch gap-5 xl:grid-cols-[340px_1fr]">
+        <div
+          className={clsx(
+            "grid min-h-0 flex-1 items-stretch gap-5",
+            activeSection?.group === "chrome"
+              ? "grid-cols-1"
+              : "grid-cols-1 xl:grid-cols-[340px_1fr]"
+          )}
+        >
+          {activeSection?.group === "chrome" ? null : (
           <div className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-[#E8EAED] bg-white">
             <div className="flex items-center justify-between border-b border-[#E8EAED] px-4 py-3">
               <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#5C6370]">
@@ -874,6 +882,7 @@ function SiteSettings() {
               })}
             </ul>
           </div>
+          )}
 
           <div className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-[#E8EAED] bg-white">
             <div className="min-h-0 flex-1 overflow-y-auto p-5 lg:p-6">
