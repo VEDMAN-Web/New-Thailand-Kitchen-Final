@@ -19,38 +19,16 @@ function mergeLinkList(raw, fallback) {
       href: String(l.href || "").trim(),
     }));
   }
-  return raw.map((l, i) => ({
-    label: mergeLocalized(l?.label, fb[i]?.label || ""),
-    href: String(l?.href || fb[i]?.href || "").trim(),
-  }));
+  return raw
+    .map((l) => ({
+      label: mergeLocalized(l?.label, ""),
+      href: String(l?.href || "").trim(),
+    }))
+    .filter((l) => l.href);
 }
 
-/** Nav links: union CMS overrides with default IA routes (preserves default order). */
 function mergeNavLinks(raw, fallback) {
-  const fb = Array.isArray(fallback) ? fallback : [];
-  if (!Array.isArray(raw) || !raw.length) {
-    return mergeLinkList(raw, fb);
-  }
-  const cmsByHref = new Map();
-  for (const l of raw) {
-    const href = String(l?.href || "").trim();
-    if (!href) continue;
-    cmsByHref.set(href, mergeLocalized(l?.label, ""));
-  }
-  const merged = fb.map((l) => {
-    const href = String(l.href || "").trim();
-    const defaultLabel = mergeLocalized(l.label, l.label);
-    return {
-      href,
-      label: cmsByHref.get(href) || defaultLabel,
-    };
-  });
-  for (const [href, label] of cmsByHref) {
-    if (!fb.some((l) => String(l.href || "").trim() === href)) {
-      merged.push({ href, label });
-    }
-  }
-  return merged;
+  return mergeLinkList(raw, fallback);
 }
 
 function normalizeLocalizedHomeSections(raw = {}) {
