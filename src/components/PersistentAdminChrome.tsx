@@ -17,6 +17,7 @@ const TITLE_BY_PATH: Record<string, string> = {
   "/terms": "Terms & Conditions",
   "/users": "Users",
   "/varsovia": "Varsovia Kitchen CMS",
+  "/varsovia/furniture": "Furniture",
 };
 
 function ChromeInner({ children }: { children: React.ReactNode }) {
@@ -35,6 +36,10 @@ function ChromeInner({ children }: { children: React.ReactNode }) {
     (pathname.startsWith("/varsovia")
       ? "Varsovia Kitchen CMS"
       : "Admin");
+
+  if (pathname === "/varsovia/furniture") {
+    title = "Furniture";
+  }
 
   if (pathname === "/categories" && hub) {
     title = hub.label;
