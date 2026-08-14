@@ -3561,7 +3561,7 @@ function TestimonialsInlineEditor({ embedded = false }: { embedded?: boolean }) 
   );
 }
 
-function ResourceManager({
+export function ResourceManager({
   resource,
   embedded = false,
 }: {
