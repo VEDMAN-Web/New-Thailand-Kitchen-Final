@@ -137,7 +137,7 @@ function normalizeLocalizedHomeSections(raw = {}) {
         !/\/brandLogo\/partner-\d\.svg$/i.test(l.image)
     );
   const partners = {
-    logos: logosProvided ? mappedLogos : defaults.partners.logos,
+    logos: mappedLogos.length > 0 ? mappedLogos : defaults.partners.logos,
   };
 
   const statsItems = Array.isArray(src.statistics?.items)

@@ -414,7 +414,12 @@ function enrichHomeSections(sections) {
   if (!next.statistics || !Array.isArray(next.statistics.items)) {
     next.statistics = { items: defaults.statistics.items };
   }
-  if (!next.partners || !Array.isArray(next.partners.logos)) {
+  if (
+    !next.partners ||
+    !Array.isArray(next.partners.logos) ||
+    next.partners.logos.filter((l) => l && String(l.image || l.logo || "").trim())
+      .length === 0
+  ) {
     next.partners = { logos: defaults.partners.logos };
   }
   if (!next.productsPage) {
@@ -653,6 +658,15 @@ const getHome = asyncHandler(async (req, res) => {
   }
 
   const sections = enrichHomeSections(home.sections || {});
+  const storedLogos = home.sections?.partners?.logos;
+  const storedUsable = Array.isArray(storedLogos)
+    ? storedLogos.filter((l) => l && String(l.image || l.logo || "").trim()).length
+    : 0;
+  if (storedUsable === 0 && sections.partners?.logos?.length) {
+    home.sections = { ...(home.sections || {}), partners: sections.partners };
+    home.markModified("sections");
+    await home.save();
+  }
 
   return res.json({ success: true, home: { sections } });
 });
