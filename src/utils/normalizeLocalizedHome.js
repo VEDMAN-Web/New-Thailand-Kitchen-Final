@@ -14,10 +14,12 @@ function mergeLinkList(raw, fallback) {
       href: String(l.href || "").trim(),
     }));
   }
-  return raw.map((l, i) => ({
-    label: mergeLocalized(l?.label, fb[i]?.label || ""),
-    href: String(l?.href || fb[i]?.href || "").trim(),
-  }));
+  return raw
+    .map((l) => ({
+      label: mergeLocalized(l?.label, ""),
+      href: String(l?.href || "").trim(),
+    }))
+    .filter((l) => l.href);
 }
 
 function normalizeLocalizedHomeSections(raw = {}) {
