@@ -18,6 +18,13 @@ const TITLE_BY_PATH: Record<string, string> = {
   "/users": "Users",
   "/varsovia": "Varsovia Kitchen CMS",
   "/varsovia/furniture": "Furniture",
+  "/varsovia/interior-design": "Interior Design",
+  "/varsovia/complete-interiors": "Complete Interiors",
+  "/varsovia/services": "Services",
+  "/varsovia/locations": "Locations",
+  "/varsovia/for-developers": "For Developers",
+  "/varsovia/journal": "Journal",
+  "/varsovia/about-brand": "About brands",
 };
 
 function ChromeInner({ children }: { children: React.ReactNode }) {
