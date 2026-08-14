@@ -200,12 +200,12 @@ const DEFAULT_HOME_SECTIONS = {
   },
   partners: {
     logos: [
-      { name: "Partner 1", image: "/brandLogo/first (1).png" },
-      { name: "Partner 2", image: "/brandLogo/first (2).png" },
-      { name: "Partner 3", image: "/brandLogo/first (3).png" },
-      { name: "Partner 4", image: "/brandLogo/first (4).png" },
-      { name: "Partner 5", image: "/brandLogo/first (5).png" },
-      { name: "Partner 6", image: "/brandLogo/first (6).png" },
+      { name: "", image: "/brandLogo/first (1).png" },
+      { name: "", image: "/brandLogo/first (2).png" },
+      { name: "", image: "/brandLogo/first (3).png" },
+      { name: "", image: "/brandLogo/first (4).png" },
+      { name: "", image: "/brandLogo/first (5).png" },
+      { name: "", image: "/brandLogo/first (6).png" },
     ],
   },
   faq: {

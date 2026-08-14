@@ -475,7 +475,7 @@ function enrichHomeSections(sections) {
     next.hero = { ...defaults.hero, ...next.hero, ...defaults.hero };
   }
 
-  return normalizeHomeSections(next);
+  return sanitizeMediaUrlsDeep(normalizeHomeSections(next));
 }
 
 async function ensureAllSiteDefaults(siteId) {
@@ -517,6 +517,7 @@ const {
   findProbePath,
   repairHubPages,
   sanitizeMediaUrl,
+  sanitizeMediaUrlsDeep,
 } = require("../utils/cmsContentGuard");
 const {
   asLocalized: asLocalizedRaw,

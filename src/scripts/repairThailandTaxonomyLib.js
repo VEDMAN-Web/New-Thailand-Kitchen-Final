@@ -2,7 +2,7 @@
  * Upsert full Thailand Kitchen SEO category taxonomy (idempotent).
  * Also seeds empty landing sections for kitchens + services + materials (non-destructive).
  */
-const { Category, HomePage } = require("../model/cmsModels");
+const { Category, HomePage, Product, Blog, GalleryItem, CatalogueItem } = require("../model/cmsModels");
 const { THAILAND_TAXONOMY } = require("../seed/thailandTaxonomy");
 const {
   buildDefaultCategorySections,
@@ -143,6 +143,30 @@ async function repairCorruptCmsContent(siteId = "thailand-kitchen") {
   }
 
   categoriesRepaired = await seedEmptyCategoryLandingSections(siteId);
+
+  const collections = [
+    { model: Product, fields: ["image", "icon", "gallery"] },
+    { model: GalleryItem, fields: ["image"] },
+    { model: Blog, fields: ["image", "gallery", "bodySections"] },
+    { model: CatalogueItem, fields: ["image", "pdfUrl"] },
+  ];
+  for (const { model, fields } of collections) {
+    const docs = await model.find({ siteId });
+    for (const doc of docs) {
+      let dirty = false;
+      for (const field of fields) {
+        const before = doc[field];
+        const after = sanitizeMediaUrlsDeep(before);
+        if (JSON.stringify(before) !== JSON.stringify(after)) {
+          doc[field] = after;
+          if (typeof after === "object") doc.markModified(field);
+          dirty = true;
+          mediaUrlsNormalized += 1;
+        }
+      }
+      if (dirty) await doc.save();
+    }
+  }
 
   return {
     homeHubsRepaired,

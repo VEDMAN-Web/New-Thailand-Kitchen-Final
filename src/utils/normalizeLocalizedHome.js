@@ -13,7 +13,7 @@ const {
 
 function mergeLinkList(raw, fallback) {
   const fb = Array.isArray(fallback) ? fallback : [];
-  if (!Array.isArray(raw) || !raw.length) {
+  if (!Array.isArray(raw)) {
     return fb.map((l) => ({
       label: mergeLocalized(l.label, l.label),
       href: String(l.href || "").trim(),
@@ -88,72 +88,79 @@ function normalizeLocalizedHomeSections(raw = {}) {
   };
 
   const transitionSrc = src.transition || {};
+  const pillarsProvided =
+    Array.isArray(transitionSrc.pillars) || Array.isArray(transitionSrc.items);
   const pillarsRaw = Array.isArray(transitionSrc.pillars)
     ? transitionSrc.pillars
     : Array.isArray(transitionSrc.items)
       ? transitionSrc.items
       : [];
   const transition = {
-    pillars:
-      pillarsRaw.length > 0
-        ? pillarsRaw.map((p, i) => ({
-            title: mergeLocalized(
-              p.title,
-              defaults.transition.pillars[i]?.title || ""
-            ),
-            description: mergeLocalized(
-              p.description,
-              defaults.transition.pillars[i]?.description || ""
-            ),
-            icon: String(p.icon || "").trim(),
-          }))
-        : defaults.transition.pillars,
+    pillars: pillarsProvided
+      ? pillarsRaw.map((p, i) => ({
+          title: mergeLocalized(
+            p.title,
+            defaults.transition.pillars[i]?.title || ""
+          ),
+          description: mergeLocalized(
+            p.description,
+            defaults.transition.pillars[i]?.description || ""
+          ),
+          icon: String(p.icon || "").trim(),
+        }))
+      : defaults.transition.pillars,
   };
 
   const partnersSrc = src.partners || {};
+  const logosProvided =
+    Array.isArray(partnersSrc.logos) || Array.isArray(partnersSrc.items);
   const logosRaw = Array.isArray(partnersSrc.logos)
     ? partnersSrc.logos
     : Array.isArray(partnersSrc.items)
       ? partnersSrc.items
       : [];
   const mappedLogos = logosRaw
-    .map((l) => ({
-      name: String(l.name || l.title || "Partner"),
-      image: String(l.image || l.logo || "").trim(),
-    }))
+    .map((l) => {
+      let image = String(l.image || l.logo || "").trim();
+      const placeholder = image.match(/\/brandLogo\/partner-(\d)\.svg$/i);
+      if (placeholder) image = `/brandLogo/first (${placeholder[1]}).png`;
+      return {
+        name: String(l.name || l.title || "").trim(),
+        image,
+      };
+    })
     .filter(
       (l) =>
         l.image &&
         !l.image.includes("/brand/brand.png") &&
-        l.image !== "/brand/brand.png"
+        l.image !== "/brand/brand.png" &&
+        !/\/brandLogo\/partner-\d\.svg$/i.test(l.image)
     );
   const partners = {
-    logos: mappedLogos.length > 0 ? mappedLogos : defaults.partners.logos,
+    logos: logosProvided ? mappedLogos : defaults.partners.logos,
   };
 
-  const statsItems =
-    Array.isArray(src.statistics?.items) && src.statistics.items.length
-      ? src.statistics.items.map((it, i) => ({
-          label: mergeLocalized(
-            it.label,
-            defaults.statistics.items[i]?.label || ""
-          ),
-          value: String(it.value || "").replace(/\+$/, "") || it.value || "",
-          suffix: String(
-            it.suffix != null && typeof it.suffix !== "object"
-              ? it.suffix
-              : String(it.value || "").endsWith("+")
-                ? "+"
-                : ""
-          ),
-        }))
-      : defaults.statistics.items;
+  const statsItems = Array.isArray(src.statistics?.items)
+    ? src.statistics.items.map((it, i) => ({
+        label: mergeLocalized(
+          it.label,
+          defaults.statistics.items[i]?.label || ""
+        ),
+        value: String(it.value || "").replace(/\+$/, "") || it.value || "",
+        suffix: String(
+          it.suffix != null && typeof it.suffix !== "object"
+            ? it.suffix
+            : String(it.value || "").endsWith("+")
+              ? "+"
+              : ""
+        ),
+      }))
+    : defaults.statistics.items;
 
   const advantagesSrc = src.advantages || {};
-  const advantagesItemsRaw =
-    Array.isArray(advantagesSrc.items) && advantagesSrc.items.length
-      ? advantagesSrc.items
-      : defaults.advantages.items;
+  const advantagesItemsRaw = Array.isArray(advantagesSrc.items)
+    ? advantagesSrc.items
+    : defaults.advantages.items;
   const advantages = {
     eyebrow: mergeLocalized(
       advantagesSrc.eyebrow,
@@ -171,10 +178,9 @@ function normalizeLocalizedHomeSections(raw = {}) {
   };
 
   const testimonialsSrc = src.testimonials || {};
-  const testimonialsItemsRaw =
-    Array.isArray(testimonialsSrc.items) && testimonialsSrc.items.length
-      ? testimonialsSrc.items
-      : defaults.testimonials.items;
+  const testimonialsItemsRaw = Array.isArray(testimonialsSrc.items)
+    ? testimonialsSrc.items
+    : defaults.testimonials.items;
   const testimonials = {
     eyebrow: mergeLocalized(
       testimonialsSrc.eyebrow,

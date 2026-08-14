@@ -41,26 +41,32 @@ function sectionsContainProbe(sections) {
 }
 
 function sanitizeMediaUrl(url) {
-  const s = String(url || "").trim();
+  let s = String(url || "").trim();
   if (!s) return "";
   if (/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?\//i.test(s)) {
-    return s.replace(/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?/i, "");
+    s = s.replace(/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?/i, "");
   }
+  const partnerPlaceholder = s.match(/\/brandLogo\/partner-(\d)\.svg$/i);
+  if (partnerPlaceholder) return `/brandLogo/first (${partnerPlaceholder[1]}).png`;
   return s;
+}
+
+function looksLikeMediaString(value) {
+  const s = String(value || "");
+  if (!s) return false;
+  return (
+    /\/(uploads|brandLogo|products|product|features|blog|catlog|slider|testimonial|contactUs|footer|icon|video|gallery)\//i.test(
+      s
+    ) ||
+    /\.(png|jpe?g|webp|svg|gif|avif|mp4|webm)(\?|#|$)/i.test(s) ||
+    /localhost|127\.0\.0\.1/i.test(s)
+  );
 }
 
 function sanitizeMediaUrlsDeep(value) {
   if (value == null) return value;
   if (typeof value === "string") {
-    if (
-      value.startsWith("http://127.0.0.1") ||
-      value.startsWith("http://localhost") ||
-      value.startsWith("https://127.0.0.1") ||
-      value.startsWith("https://localhost")
-    ) {
-      return sanitizeMediaUrl(value);
-    }
-    return value;
+    return looksLikeMediaString(value) ? sanitizeMediaUrl(value) : value;
   }
   if (Array.isArray(value)) {
     return value.map((entry) => sanitizeMediaUrlsDeep(entry));
