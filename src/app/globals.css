@@ -118,9 +118,3 @@ body {
   will-change: transform;
 }
 
-.tk-footer-wordmark-text {
-  font-size: 92px;
-  font-weight: 500;
-  font-family: inherit;
-  letter-spacing: -0.03em;
-}

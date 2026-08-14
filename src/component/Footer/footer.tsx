@@ -70,67 +70,6 @@ function scrollToFooterTarget(href: string) {
   smoothScrollAfterNav(href);
 }
 
-function FooterWordmark() {
-  return (
-    <div aria-hidden className="relative w-[80%] mx-auto overflow-hidden py-2">
-      <svg
-        viewBox="0 0 1440 110"
-        className="tk-footer-wordmark-svg relative z-[1] block w-full h-[clamp(2.75rem,9vw,7rem)]"
-        preserveAspectRatio="none"
-      >
-        <defs>
-          <linearGradient
-            id="tkFooterWordmarkShine"
-            gradientUnits="userSpaceOnUse"
-            x1="-420"
-            y1="0"
-            x2="80"
-            y2="0"
-          >
-            <stop offset="0%" stopColor="rgba(255,255,255,0)" />
-            <stop offset="38%" stopColor="rgba(179,139,109,0)" />
-            <stop offset="50%" stopColor="rgba(232,210,180,0.95)" />
-            <stop offset="62%" stopColor="rgba(179,139,109,0)" />
-            <stop offset="100%" stopColor="rgba(255,255,255,0)" />
-            <animate
-              attributeName="x1"
-              values="-420;1440"
-              dur="3.2s"
-              repeatCount="indefinite"
-            />
-            <animate
-              attributeName="x2"
-              values="80;1940"
-              dur="3.2s"
-              repeatCount="indefinite"
-            />
-          </linearGradient>
-        </defs>
-        <text
-          x="0"
-          y="86"
-          textLength="1440"
-          lengthAdjust="spacingAndGlyphs"
-          fill="rgba(255,255,255,0.22)"
-          className="tk-footer-wordmark-text"
-        >
-          Thailand Kitchen
-        </text>
-        <text
-          x="0"
-          y="86"
-          textLength="1440"
-          lengthAdjust="spacingAndGlyphs"
-          fill="url(#tkFooterWordmarkShine)"
-          className="tk-footer-wordmark-text"
-        >
-          Thailand Kitchen
-        </text>
-      </svg>
-    </div>
-  );
-}
-
 export default function Footer() {
   const { t, locale } = useTranslation();
   const router = useRouter();
@@ -309,13 +248,13 @@ export default function Footer() {
               ))}
             </div>
 
-            <p className="mt-6 mb-0 text-white text-sm leading-6 max-w-sm">
+            <p className="mt-6 mb-0 text-white text-sm leading-6 whitespace-nowrap">
               {t("footer.copartnered")}{" "}
               <a
                 href="https://www.oppoliahome.com/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="whitespace-nowrap underline decoration-white/35 underline-offset-2 hover:decoration-white transition"
+                className="underline decoration-white/35 underline-offset-2 hover:decoration-white transition"
               >
                 {t("footer.oppoliaHomes")}
               </a>
@@ -375,30 +314,21 @@ export default function Footer() {
                   </p>
                 </div>
               ))}
-              <div className="pl-12 flex flex-row flex-wrap items-center gap-x-4 gap-y-1">
-                <Link
-                  href="/privacy"
-                  className="text-white/70 text-[11px] leading-4 hover:text-white transition"
-                >
-                  {t("footer.privacy")}
-                </Link>
-                <Link
-                  href="/terms"
-                  className="text-white/70 text-[11px] leading-4 hover:text-white transition"
-                >
-                  {t("footer.terms")}
-                </Link>
-              </div>
             </div>
           </div>
         </div>
       </div>
 
       <div className="relative z-10 mt-6 border-t border-white/10">
-        <FooterWordmark />
-        <p className="relative z-10 px-6 pb-8 text-center text-white/40 text-xs">
-          {t("footer.rights", { year: new Date().getFullYear() })}
-        </p>
+        <div className="relative z-10 flex flex-wrap items-center justify-center gap-x-10 gap-y-2 px-6 py-8 text-white/40 text-xs">
+          <span>{t("footer.rights", { year: new Date().getFullYear() })}</span>
+          <Link href="/privacy" className="hover:text-white/70 transition">
+            {t("footer.privacy")}
+          </Link>
+          <Link href="/terms" className="hover:text-white/70 transition">
+            {t("footer.terms")}
+          </Link>
+        </div>
       </div>
     </footer>
   );
