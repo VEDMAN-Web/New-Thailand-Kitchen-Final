@@ -251,8 +251,11 @@ const DEFAULT_PRODUCTS = [
 ];
 
 async function ensureDefaultProducts(siteId) {
-  const { syncProductsMissingOnly } = require("../scripts/syncProductsSafe");
-  await syncProductsMissingOnly(siteId, DEFAULT_PRODUCTS, DEFAULT_FEATURE_HIGHLIGHTS);
+  const count = await Product.countDocuments({ siteId });
+  if (count === 0) {
+    const { syncProductsMissingOnly } = require("../scripts/syncProductsSafe");
+    await syncProductsMissingOnly(siteId, DEFAULT_PRODUCTS, DEFAULT_FEATURE_HIGHLIGHTS);
+  }
 
   const existing = await Product.find({ siteId }).select("slug image featureHighlights gallery").lean();
   if (!existing.length) return;
@@ -361,6 +364,8 @@ async function ensureDefaultGallery(siteId) {
 }
 
 async function ensureDefaultFaqs(siteId) {
+  const count = await FaqItem.countDocuments({ siteId });
+  if (count > 0) return;
   const { syncFaqsMissingOnly } = require("../scripts/syncFaqsSafe");
   await syncFaqsMissingOnly(siteId, DEFAULT_FAQS);
 }
@@ -373,13 +378,14 @@ async function ensureDefaultCategories(siteId) {
     repairThailandTaxonomy,
     seedEmptyCategoryLandingSections,
   } = require("../scripts/repairThailandTaxonomyLib");
-  if (!taxonomyRepaired.has(siteId)) {
+  const count = await Category.countDocuments({ siteId });
+  if (count === 0) {
     await repairThailandTaxonomy(siteId);
     taxonomyRepaired.add(siteId);
-  } else {
-    // Cheap non-destructive fill for landings still missing sections
-    await seedEmptyCategoryLandingSections(siteId).catch(() => {});
+  } else if (!taxonomyRepaired.has(siteId)) {
+    taxonomyRepaired.add(siteId);
   }
+  await seedEmptyCategoryLandingSections(siteId).catch(() => {});
 }
 
 /**
@@ -390,25 +396,25 @@ function enrichHomeSections(sections) {
   const defaults = structuredClone(DEFAULT_HOME_SECTIONS);
   const next = { ...sections };
 
-  if (!Array.isArray(next.testimonials?.items) || next.testimonials.items.length < 3) {
+  if (!next.testimonials || !Array.isArray(next.testimonials.items)) {
     next.testimonials = { items: defaults.testimonials.items };
   }
-  if (!Array.isArray(next.faq?.items) || next.faq.items.length < 8) {
+  if (!next.faq || !Array.isArray(next.faq.items)) {
     next.faq = { items: defaults.faq.items };
   }
-  if (!Array.isArray(next.catalogue?.items) || next.catalogue.items.length < 4) {
+  if (!next.catalogue || !Array.isArray(next.catalogue.items)) {
     next.catalogue = { items: defaults.catalogue.items };
   }
-  if (!Array.isArray(next.advantages?.items) || next.advantages.items.length < 3) {
+  if (!next.advantages || !Array.isArray(next.advantages.items)) {
     next.advantages = { items: defaults.advantages.items };
   }
-  if (!Array.isArray(next.transition?.pillars) || next.transition.pillars.length < 4) {
+  if (!next.transition || !Array.isArray(next.transition.pillars)) {
     next.transition = { pillars: defaults.transition.pillars };
   }
-  if (!Array.isArray(next.statistics?.items) || next.statistics.items.length < 3) {
+  if (!next.statistics || !Array.isArray(next.statistics.items)) {
     next.statistics = { items: defaults.statistics.items };
   }
-  if (!Array.isArray(next.partners?.logos) || next.partners.logos.length < 6) {
+  if (!next.partners || !Array.isArray(next.partners.logos)) {
     next.partners = { logos: defaults.partners.logos };
   }
   if (!next.productsPage) {
@@ -646,15 +652,6 @@ const getHome = asyncHandler(async (req, res) => {
   }
 
   const sections = enrichHomeSections(home.sections || {});
-
-  // Persist enriched/normalized shape so admin shows full site content
-  const before = JSON.stringify(home.sections || {});
-  const after = JSON.stringify(sections);
-  if (before !== after) {
-    home.sections = sections;
-    home.markModified("sections");
-    await home.save();
-  }
 
   return res.json({ success: true, home: { sections } });
 });
@@ -1381,6 +1378,8 @@ const DEFAULT_BLOGS = [
 ];
 
 async function ensureDefaultBlogs(siteId) {
+  const count = await Blog.countDocuments({ siteId });
+  if (count > 0) return;
   const { syncBlogsMissingOnly } = require("../scripts/syncBlogsSafe");
   await syncBlogsMissingOnly(siteId, DEFAULT_BLOGS);
 }

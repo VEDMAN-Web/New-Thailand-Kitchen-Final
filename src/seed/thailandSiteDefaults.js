@@ -236,7 +236,7 @@ const DEFAULT_HOME_SECTIONS = {
     homeLinks: [
       { label: {"en":"Our Story","th":"เรื่องราวของเรา","pl":"Nasza historia"}, href: "/#our-service" },
       { label: {"en":"Free Catalogue","th":"แคตตาล็อกฟรี","pl":"Darmowy katalog"}, href: "/catalogue" },
-      { label: {"en":"Our Global Partner","th":"พาร์ทเนอร์ระดับโลก","pl":"Partner globalny"}, href: "/#brands" },
+      { label: {"en":"Co-partnered","th":"โคพาร์ทเนอร์","pl":"Co-partnered"}, href: "/#brands" },
       { label: {"en":"Contact","th":"ติดต่อ","pl":"Kontakt"}, href: "/contact" },
     ],
     productLinks: [

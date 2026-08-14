@@ -27,8 +27,30 @@ function mergeLinkList(raw, fallback) {
     .filter((l) => l.href);
 }
 
+/** Nav links: CMS list is source of truth (order + add/remove). Defaults only fill labels. */
 function mergeNavLinks(raw, fallback) {
-  return mergeLinkList(raw, fallback);
+  const fb = Array.isArray(fallback) ? fallback : [];
+  if (!Array.isArray(raw) || !raw.length) {
+    return mergeLinkList(raw, fb);
+  }
+  const fbByHref = new Map();
+  for (const l of fb) {
+    const href = String(l.href || "").trim();
+    if (href) fbByHref.set(href, l);
+  }
+  const seen = new Set();
+  const merged = [];
+  for (const l of raw) {
+    const href = String(l?.href || "").trim();
+    if (!href || seen.has(href)) continue;
+    seen.add(href);
+    const def = fbByHref.get(href);
+    merged.push({
+      href,
+      label: mergeLocalized(l?.label, def?.label || l?.label || ""),
+    });
+  }
+  return merged.length ? merged : mergeLinkList([], fb);
 }
 
 function normalizeLocalizedHomeSections(raw = {}) {
@@ -187,10 +209,9 @@ function normalizeLocalizedHomeSections(raw = {}) {
   };
 
   const catalogueSrc = src.catalogue || {};
-  const catalogueItemsRaw =
-    Array.isArray(catalogueSrc.items) && catalogueSrc.items.length
-      ? catalogueSrc.items
-      : defaults.catalogue.items;
+  const catalogueItemsRaw = Array.isArray(catalogueSrc.items)
+    ? catalogueSrc.items
+    : defaults.catalogue.items;
   const catalogue = {
     eyebrow: mergeLocalized(catalogueSrc.eyebrow, defaults.catalogue.eyebrow),
     title: mergeLocalized(catalogueSrc.title, defaults.catalogue.title),
@@ -206,28 +227,19 @@ function normalizeLocalizedHomeSections(raw = {}) {
       catalogueSrc.pageDescription,
       defaults.catalogue.pageDescription || ""
     ),
-    items: catalogueItemsRaw.map((c, i) => ({
-      title: mergeLocalized(c.title, defaults.catalogue.items[i]?.title || "Catalogue"),
-      category: mergeLocalized(
-        c.category,
-        defaults.catalogue.items[i]?.category || ""
-      ),
-      image: String(c.image || defaults.catalogue.items[i]?.image || "").trim(),
+    items: catalogueItemsRaw.map((c) => ({
+      title: mergeLocalized(c.title, "Catalogue"),
+      category: mergeLocalized(c.category, ""),
+      image: String(c.image || "").trim(),
       pdfUrl: String(c.pdfUrl || "").trim(),
-      fileName: String(c.fileName || defaults.catalogue.items[i]?.fileName || "").trim(),
-      downloadName: String(
-        c.downloadName ||
-          c.fileName ||
-          defaults.catalogue.items[i]?.downloadName ||
-          ""
-      ).trim(),
+      fileName: String(c.fileName || "").trim(),
+      downloadName: String(c.downloadName || c.fileName || "").trim(),
     })),
   };
 
-  const faqItemsRaw =
-    Array.isArray(src.faq?.items) && src.faq.items.length
-      ? src.faq.items
-      : defaults.faq.items;
+  const faqItemsRaw = Array.isArray(src.faq?.items)
+    ? src.faq.items
+    : defaults.faq.items;
   const faqSrc = src.faq || {};
   const faq = {
     eyebrow: mergeLocalizedFillEmpty(
