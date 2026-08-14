@@ -23,7 +23,6 @@ type LanguageContextValue = {
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
 export const STORAGE_KEY = "tk-locale";
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
 function isLocale(value: unknown): value is Locale {
   return value === "EN" || value === "TH" || value === "PL";
@@ -47,11 +46,6 @@ function readStoredLocale(): Locale | null {
 function persistLocale(locale: Locale) {
   try {
     localStorage.setItem(STORAGE_KEY, locale);
-  } catch {
-    /* ignore */
-  }
-  try {
-    document.cookie = `${STORAGE_KEY}=${locale};path=/;max-age=${COOKIE_MAX_AGE};samesite=lax`;
   } catch {
     /* ignore */
   }
@@ -105,7 +99,6 @@ export function LanguageProvider({
       setLocaleState(saved);
     }
     applyDocumentLocale(saved);
-    persistLocale(saved);
   }, [initialLocale]);
 
   useEffect(() => {

@@ -13,20 +13,12 @@ export default function FaqSection({ initialFaqs }: { initialFaqs?: CmsFaq[] }) 
 
   // Use SSR data directly — no useEffect, no flicker
   const items =
-    initialFaqs && initialFaqs.length > 0
+    initialFaqs !== undefined
       ? initialFaqs.map((item, index) => ({
           id: item.id ?? index + 1,
-          question: pickCmsText(
-            item.question,
-            t(`faq.q${index + 1}` as TranslationKey),
-            locale
-          ),
-          answer: pickCmsText(
-            item.answer,
-            t(`faq.a${index + 1}` as TranslationKey),
-            locale
-          ),
-        }))
+          question: pickCmsText(item.question, "", locale),
+          answer: pickCmsText(item.answer, "", locale),
+        })).filter((item) => item.question || item.answer)
       : faqItems.map((item) => ({
           id: item.id,
           question: t(`faq.q${item.id}` as TranslationKey),

@@ -107,7 +107,7 @@ export default function BlogHero() {
           <p className="text-[#E0905A] text-xs tracking-[0.3em] uppercase font-semibold mb-4">
             {eyebrow}
           </p>
-          <h1 className="text-white text-4xl sm:text-5xl md:text-6xl font-extrabold leading-none">
+          <h1 className="text-white text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight">
             {title}
           </h1>
         </div>

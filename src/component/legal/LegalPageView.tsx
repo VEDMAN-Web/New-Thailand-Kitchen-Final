@@ -62,7 +62,7 @@ export default function LegalPageView({
           <p className="text-xs tracking-[0.2em] uppercase text-[#E0905A] font-semibold">
             {updated}
           </p>
-          <h1 className="mt-3 text-3xl sm:text-4xl font-semibold text-[#1A1A1A]">
+          <h1 className="mt-3 text-3xl md:text-4xl lg:text-5xl font-extrabold text-[#1A1A1A]">
             {title}
           </h1>
           <p className="mt-3 text-sm sm:text-base text-[#6B6B6B] leading-7">

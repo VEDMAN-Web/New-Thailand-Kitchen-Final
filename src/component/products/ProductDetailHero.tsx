@@ -51,7 +51,7 @@ export default function ProductDetailHero({ product }: Props) {
             <p className="text-white/80 text-xs sm:text-sm tracking-wide mb-1.5">
               TK / {name}
             </p>
-            <h1 className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] font-extrabold leading-none">
+            <h1 className="text-white text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight">
               {name}
             </h1>
           </div>

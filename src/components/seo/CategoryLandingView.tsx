@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { pickCmsText } from "../../lib/cmsText";
 import type { CmsCategory } from "../../services/cmsPublic";
+import OverlayHeroBanner from "./OverlayHeroBanner";
 import HubContentBlock, {
   type ContentSectionBlock,
 } from "./HubContentBlock";
@@ -85,44 +86,23 @@ export default function CategoryLandingView({
   );
 
   const isMaterial = type === "material";
+  const isKitchenPage =
+    type === "style" || type === "layout" || type === "property-type";
   const isService = type === "service";
-  const isStyle = type === "style";
+  const overlayHero =
+    isMaterial || isKitchenPage || type === "built-in-furniture";
 
   return (
     <>
-      {isMaterial ? (
-        <section className="relative min-h-[70vh] flex items-end">
-          <Image
-            src={image}
-            alt={title}
-            fill
-            priority
-            className="object-cover"
-            sizes="100vw"
-            unoptimized={image.startsWith("/uploads") || image.startsWith("http")}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#1A2332]/90 via-[#1A2332]/35 to-transparent" />
-          <div className="relative z-10 max-w-7xl mx-auto w-full px-5 sm:px-6 pb-12 sm:pb-16 pt-32">
-            <p className="text-[#D4B896] text-xs tracking-[0.22em] uppercase font-semibold mb-3">
-              {eyebrow}
-            </p>
-            <h1 className="font-sans text-4xl sm:text-5xl md:text-6xl text-white leading-tight max-w-3xl">
-              {title}
-            </h1>
-            {paragraphs[0] ? (
-              <p className="mt-4 max-w-xl text-white/80 text-sm sm:text-base leading-7">
-                {paragraphs[0]}
-              </p>
-            ) : null}
-            <Link
-              href={ctaHref}
-              className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-[#1A2332] hover:bg-[#F5F3EF] transition"
-            >
-              {ctaLabel}
-              <span aria-hidden>→</span>
-            </Link>
-          </div>
-        </section>
+      {overlayHero ? (
+        <OverlayHeroBanner
+          eyebrow={eyebrow}
+          title={title}
+          description={paragraphs[0] || ""}
+          image={image}
+          ctaLabel={ctaLabel}
+          ctaHref={ctaHref}
+        />
       ) : isService ? (
         <section style={{ backgroundColor: tone.soft }} className="border-b border-[#E8E4DC]">
           <div className="max-w-7xl mx-auto px-5 sm:px-6 py-12 sm:py-16 lg:py-20">
@@ -133,7 +113,7 @@ export default function CategoryLandingView({
               >
                 {eyebrow}
               </p>
-              <h1 className="font-sans text-4xl sm:text-5xl text-[#1A2332] leading-tight">
+              <h1 className="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl text-[#1A2332] leading-tight">
                 {title}
               </h1>
               {paragraphs[0] ? (
@@ -172,48 +152,6 @@ export default function CategoryLandingView({
             </div>
           </div>
         </section>
-      ) : isStyle ? (
-        <section className="grid grid-cols-1 lg:grid-cols-2 min-h-[70vh]">
-          <div
-            className="flex flex-col justify-center px-5 sm:px-10 lg:px-14 py-14"
-            style={{ backgroundColor: tone.soft }}
-          >
-            <p
-              className="text-xs tracking-[0.22em] uppercase font-semibold mb-3"
-              style={{ color: tone.accent }}
-            >
-              {eyebrow}
-            </p>
-            <h1 className="font-sans text-4xl sm:text-5xl text-[#1A2332] leading-tight">
-              {title}
-            </h1>
-            {paragraphs[0] ? (
-              <p className="mt-5 text-[#5C6370] text-base leading-8 max-w-lg">
-                {paragraphs[0]}
-              </p>
-            ) : null}
-            <Link
-              href={ctaHref}
-              className="mt-8 inline-flex w-fit items-center gap-2 rounded-full bg-[#1A2332] px-6 py-3 text-sm font-semibold text-white hover:bg-[#243044] transition"
-            >
-              {ctaLabel}
-              <span aria-hidden>→</span>
-            </Link>
-          </div>
-          <div className="relative min-h-[320px] lg:min-h-full">
-            <Image
-              src={image}
-              alt={title}
-              fill
-              priority
-              className="object-cover"
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              unoptimized={
-                image.startsWith("/uploads") || image.startsWith("http")
-              }
-            />
-          </div>
-        </section>
       ) : (
         <section
           className="border-b border-[#E8E4DC]"
@@ -227,7 +165,7 @@ export default function CategoryLandingView({
               >
                 {eyebrow}
               </p>
-              <h1 className="font-sans text-3xl sm:text-4xl md:text-5xl text-[#1A2332] leading-tight">
+              <h1 className="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl text-[#1A2332] leading-tight">
                 {title}
               </h1>
               {paragraphs[0] ? (
@@ -271,7 +209,7 @@ export default function CategoryLandingView({
       <section className="bg-[#1A2332] text-white">
         <div className="max-w-7xl mx-auto px-5 sm:px-6 py-12 sm:py-14 lg:py-16 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
           <div>
-            <h2 className="text-2xl md:text-3xl font-bold">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold">
               {footerHeading}
             </h2>
             <p className="mt-2 text-white/70 max-w-lg text-sm sm:text-base">

@@ -128,7 +128,7 @@ export default function GalleryHero() {
             <p className="text-[#E0905A] text-xs tracking-[0.28em] uppercase font-semibold mb-4">
               {eyebrow}
             </p>
-            <h1 className="text-[#1A1A1A] text-4xl sm:text-5xl lg:text-[3.25rem] font-extrabold leading-[1.05]">
+            <h1 className="text-[#1A1A1A] text-3xl md:text-4xl lg:text-5xl font-extrabold leading-[1.05]">
               {title}
             </h1>
             <p className="mt-5 text-[#6B6B6B] text-sm sm:text-base leading-7 max-w-lg">

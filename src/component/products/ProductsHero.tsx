@@ -54,7 +54,7 @@ export default function ProductsHero() {
           <p className="text-white/80 text-xs tracking-[0.28em] uppercase font-medium mb-3">
             {label}
           </p>
-          <h1 className="text-white text-4xl sm:text-5xl md:text-6xl font-extrabold leading-none">
+          <h1 className="text-white text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight">
             {title}
           </h1>
         </div>

@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Download, X } from "lucide-react";
 import { toast } from "sonner";
-import { products } from "./catlogData";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import type { TranslationKey } from "../../i18n/translations";
 import { createContact } from "../../services/contactAPI";
@@ -66,9 +65,7 @@ function validateGateForm(
 
 export default function CatlogSection() {
   const { t, locale } = useTranslation();
-  const [catalogItems, setCatalogItems] = useState<CmsCatalogue[]>(
-    products.map((p) => ({ ...p, pdfUrl: "" }))
-  );
+  const [catalogItems, setCatalogItems] = useState<CmsCatalogue[]>([]);
   const items = catalogItems;
   const [active, setActive] = useState<number | null>(null);
   const [unlocked, setUnlocked] = useState(false);
@@ -82,7 +79,7 @@ export default function CatlogSection() {
 
   useEffect(() => {
     fetchMergedCatalogues().then((list) => {
-      if (list?.length) setCatalogItems(list);
+      setCatalogItems(Array.isArray(list) ? list : []);
     });
   }, []);
 

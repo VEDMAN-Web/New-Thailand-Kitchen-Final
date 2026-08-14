@@ -3,6 +3,7 @@ import Link from "next/link";
 import { fetchHomeSections } from "../../services/cmsPublic";
 import { pickCmsText } from "../../lib/cmsText";
 import Breadcrumbs from "./Breadcrumbs";
+import OverlayHeroBanner from "./OverlayHeroBanner";
 import HubContentBlock from "./HubContentBlock";
 import {
   hubNavByKey,
@@ -108,42 +109,17 @@ export default async function SeoHubLandingPage({
         currentHref={data.currentHref}
       />
 
-      {hubKey === "materials" && !kitchensSubKey ? (
-        <section className="relative min-h-[62vh] flex items-end">
-          {data.heroImage ? (
-            <Image
-              src={data.heroImage}
-              alt={data.title}
-              fill
-              priority
-              className="object-cover"
-              sizes="100vw"
-              unoptimized={
-                data.heroImage.startsWith("/uploads") ||
-                data.heroImage.startsWith("http")
-              }
-            />
-          ) : null}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#1A2332]/90 via-[#1A2332]/30 to-transparent" />
-          <div className="relative z-10 max-w-7xl mx-auto w-full px-5 sm:px-6 pb-12 sm:pb-16 pt-28">
-            <p className="text-[#D4B896] text-xs tracking-[0.22em] uppercase font-semibold mb-3">
-              {data.eyebrow}
-            </p>
-            <h1 className="font-sans text-4xl sm:text-5xl md:text-6xl text-white leading-tight max-w-3xl">
-              {data.title}
-            </h1>
-            <p className="mt-4 max-w-xl text-white/80 text-sm sm:text-base leading-7">
-              {data.description}
-            </p>
-            <Link
-              href={data.ctaHref}
-              className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-[#1A2332] hover:bg-[#F5F3EF] transition"
-            >
-              {data.ctaLabel}
-              <span aria-hidden>→</span>
-            </Link>
-          </div>
-        </section>
+      {hubKey === "materials" ||
+      hubKey === "kitchens" ||
+      hubKey === "builtInFurniture" ? (
+        <OverlayHeroBanner
+          eyebrow={data.eyebrow}
+          title={data.title}
+          description={data.description}
+          image={data.heroImage}
+          ctaLabel={data.ctaLabel}
+          ctaHref={data.ctaHref}
+        />
       ) : hubKey === "services" && !kitchensSubKey ? (
         <section
           className="border-b border-[#E8E4DC]"
@@ -157,7 +133,7 @@ export default async function SeoHubLandingPage({
               >
                 {data.eyebrow}
               </p>
-              <h1 className="font-sans text-4xl sm:text-5xl text-[#1A2332] leading-tight">
+              <h1 className="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl text-[#1A2332] leading-tight">
                 {data.title}
               </h1>
               <p className="mt-5 text-[#5C6370] text-base leading-8">
@@ -201,7 +177,7 @@ export default async function SeoHubLandingPage({
             >
               {data.eyebrow}
             </p>
-            <h1 className="font-sans text-4xl sm:text-5xl text-[#1A2332] leading-tight">
+            <h1 className="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl text-[#1A2332] leading-tight">
               {data.title}
             </h1>
             <p className="mt-5 text-[#5C6370] text-base leading-8 max-w-lg">
@@ -245,7 +221,7 @@ export default async function SeoHubLandingPage({
               >
                 {data.eyebrow}
               </p>
-              <h1 className="font-sans text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] text-[#1A2332] leading-tight">
+              <h1 className="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl text-[#1A2332] leading-tight">
                 {data.title}
               </h1>
               <p className="mt-4 sm:mt-5 text-[#5C6370] text-sm sm:text-base leading-7 sm:leading-8 max-w-xl">

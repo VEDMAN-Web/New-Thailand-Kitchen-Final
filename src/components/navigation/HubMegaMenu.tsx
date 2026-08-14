@@ -2,11 +2,14 @@
 
 import Link from "next/link";
 import {
+  createContext,
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useRef,
   useState,
+  type ReactNode,
 } from "react";
 import { useCms } from "../../lib/CmsHomeContext";
 import { pickCmsText } from "../../lib/cmsText";
@@ -25,6 +28,19 @@ import { KITCHENS_SECTIONS } from "../kitchens/kitchensConfig";
 /** Delay before close — forgiving for diagonal mouse travel (Varsovia / Google-style). */
 const HOVER_CLOSE_MS = 220;
 const EASE_OUT = "cubic-bezier(0.22, 1, 0.36, 1)";
+
+const MegaOpenContext = createContext<{
+  openKey: string | null;
+  setOpenKey: (key: string | null) => void;
+}>({ openKey: null, setOpenKey: () => {} });
+
+export function HubMegaProvider({ children }: { children: ReactNode }) {
+  const [openKey, setOpenKey] = useState<string | null>(null);
+  const value = useMemo(() => ({ openKey, setOpenKey }), [openKey]);
+  return (
+    <MegaOpenContext.Provider value={value}>{children}</MegaOpenContext.Provider>
+  );
+}
 
 function isTopLevelCategory(c: CmsCategory) {
   if (!c.parentId) return true;
@@ -332,9 +348,9 @@ export function HubDesktopNavItem({
 }) {
   const { categories } = useCms();
   const { t } = useTranslation();
+  const { openKey, setOpenKey } = useContext(MegaOpenContext);
+  const open = openKey === config.key;
   const copy = useHubCopy(config, locale);
-  const [open, setOpen] = useState(false);
-  const [rendered, setRendered] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const overviewLabel = t("nav.overview");
@@ -357,15 +373,15 @@ export function HubDesktopNavItem({
 
   const scheduleClose = useCallback(() => {
     clearCloseTimer();
-    closeTimer.current = setTimeout(() => setOpen(false), HOVER_CLOSE_MS);
-  }, [clearCloseTimer]);
+    closeTimer.current = setTimeout(() => {
+      setOpenKey((current) => (current === config.key ? null : current));
+    }, HOVER_CLOSE_MS);
+  }, [clearCloseTimer, config.key, setOpenKey]);
 
   const handleEnter = useCallback(() => {
     clearCloseTimer();
-    setRendered(true);
-    // Next frame so CSS can animate from closed → open
-    requestAnimationFrame(() => setOpen(true));
-  }, [clearCloseTimer]);
+    setOpenKey(config.key);
+  }, [clearCloseTimer, config.key, setOpenKey]);
 
   const handleLeave = useCallback(
     (e: React.MouseEvent) => {
@@ -384,11 +400,13 @@ export function HubDesktopNavItem({
       const root = rootRef.current;
       const target = e.target;
       if (!root || !(target instanceof Node) || !root.contains(target)) {
-        setOpen(false);
+        setOpenKey((current) => (current === config.key ? null : current));
       }
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setOpenKey((current) => (current === config.key ? null : current));
+      }
     };
     document.addEventListener("mousedown", onDoc);
     document.addEventListener("keydown", onKey);
@@ -399,18 +417,8 @@ export function HubDesktopNavItem({
   }, []);
 
   useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
-
-  // Keep panel mounted briefly after close so exit animation can play
-  useEffect(() => {
-    if (open) {
-      setRendered(true);
-      return;
-    }
-    const t = setTimeout(() => setRendered(false), 220);
-    return () => clearTimeout(t);
-  }, [open]);
+    setOpenKey(null);
+  }, [pathname, setOpenKey]);
 
   const panelWidthClass =
     config.layout === "grouped"
@@ -430,8 +438,7 @@ export function HubDesktopNavItem({
         aria-haspopup="true"
         onClick={() => {
           clearCloseTimer();
-          if (!open) setRendered(true);
-          setOpen((v) => !v);
+          setOpenKey(open ? null : config.key);
         }}
         className={`${linkClassName} inline-flex items-center gap-1.5 transition-colors duration-200 ${
           open ? "text-[#1A1A1A] font-bold" : ""
@@ -442,7 +449,7 @@ export function HubDesktopNavItem({
       </button>
 
       {/* Hover bridge + panel — always absolute so nav pill never expands */}
-      {rendered ? (
+      {open ? (
         <div
           className={`absolute left-1/2 top-full z-[70] ${panelWidthClass} -translate-x-1/2 pt-3`}
           style={{
@@ -468,7 +475,7 @@ export function HubDesktopNavItem({
                 overviewLabel={overviewLabel}
                 title={copy.title}
                 exploreLabel={exploreLabel}
-                onNavigate={() => setOpen(false)}
+                onNavigate={() => setOpenKey(null)}
               />
             ) : (
               <FlatMegaPanel
@@ -478,6 +485,7 @@ export function HubDesktopNavItem({
                 overviewLabel={overviewLabel}
                 title={copy.title}
                 exploreLabel={exploreLabel}
+                onNavigate={() => setOpenKey(null)}
               />
             )}
           </div>

@@ -23,13 +23,6 @@ export default function CataloguePageClient({
   const { t, locale } = useTranslation();
   const cms = useCmsSection<CatalogueCms>("catalogue");
 
-  const item = initialCatalogues[0] ?? null;
-
-  const cover = item?.image || "/catlog/catlog.png";
-  const remoteCover =
-    cover.startsWith("http") || cover.startsWith("/uploads");
-  const title = pickCmsText(item?.title, t("catalogue.fileTitle"), locale);
-  const category = pickCmsText(item?.category, t("catalogue.edition"), locale);
   const pageEyebrow = pickCmsText(
     cms?.pageEyebrow || cms?.eyebrow,
     t("catalogue.eyebrow"),
@@ -45,11 +38,6 @@ export default function CataloguePageClient({
     t("catalogue.description"),
     locale
   );
-  const href =
-    item?.pdfUrl ||
-    (item?.pdf ? `/catlog/${item.pdf}` : "/catlog/catalogue.pdf");
-  const downloadName =
-    item?.downloadName || "Thailand-Kitchens-Catalogue.pdf";
 
   return (
     <div className="w-full min-h-screen bg-[#F5F3EF]">
@@ -65,42 +53,73 @@ export default function CataloguePageClient({
             {pageDescription}
           </p>
 
-          <div className="mt-10 mx-auto max-w-md rounded-[1.75rem] overflow-hidden bg-white shadow-[0_12px_40px_rgba(0,0,0,0.06)]">
-            <div className="relative w-full aspect-[4/5]">
-              <Image
-                src={cover}
-                alt="Catalogue cover"
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 448px"
-                priority
-                unoptimized={remoteCover}
-              />
+          {initialCatalogues.length === 0 ? (
+            <p className="mt-10 text-sm text-[#6B6B6B]">{t("home.catalog.empty")}</p>
+          ) : (
+            <div className="mt-10 mx-auto grid max-w-3xl gap-8 sm:grid-cols-2">
+              {initialCatalogues.map((entry, index) => {
+                const coverImg = entry.image || "/catlog/catlog.png";
+                const remote =
+                  coverImg.startsWith("http") || coverImg.startsWith("/uploads");
+                const cardTitle = pickCmsText(
+                  entry.title,
+                  t("catalogue.fileTitle"),
+                  locale
+                );
+                const cardCategory = pickCmsText(
+                  entry.category,
+                  t("catalogue.edition"),
+                  locale
+                );
+                const cardHref =
+                  entry.pdfUrl ||
+                  (entry.pdf ? `/catlog/${entry.pdf}` : "");
+                const cardName =
+                  entry.downloadName || "Thailand-Kitchens-Catalogue.pdf";
+                return (
+                  <div
+                    key={entry.id ?? index}
+                    className="rounded-[1.75rem] overflow-hidden bg-white shadow-[0_12px_40px_rgba(0,0,0,0.06)] text-left"
+                  >
+                    <div className="relative w-full aspect-[4/5]">
+                      <Image
+                        src={coverImg}
+                        alt=""
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, 320px"
+                        unoptimized={remote}
+                      />
+                    </div>
+                    <div className="p-6">
+                      <p className="text-[11px] tracking-[0.18em] uppercase text-[#E0905A] font-semibold mb-1">
+                        {cardCategory}
+                      </p>
+                      <h2 className="text-lg font-bold uppercase tracking-wide text-[#1A1A1A]">
+                        {cardTitle}
+                      </h2>
+                      {cardHref ? (
+                        <a
+                          href={cardHref}
+                          download={cardName}
+                          target={cardHref.startsWith("http") ? "_blank" : undefined}
+                          rel={
+                            cardHref.startsWith("http")
+                              ? "noopener noreferrer"
+                              : undefined
+                          }
+                          className="mt-6 inline-flex items-center justify-center gap-2 w-full bg-[#1A1A1A] text-white px-6 py-3.5 rounded-full text-sm font-semibold hover:bg-black transition"
+                        >
+                          <Download size={18} />
+                          {t("catalogue.download")}
+                        </a>
+                      ) : null}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-            <div className="p-6 sm:p-8">
-              <p className="text-[11px] tracking-[0.18em] uppercase text-[#E0905A] font-semibold mb-1">
-                {category}
-              </p>
-              <h2 className="text-lg font-bold uppercase tracking-wide text-[#1A1A1A]">
-                {title}
-              </h2>
-              <a
-                href={href}
-                download={downloadName}
-                target={href.startsWith("http") ? "_blank" : undefined}
-                rel={
-                  href.startsWith("http") ? "noopener noreferrer" : undefined
-                }
-                className="mt-6 inline-flex items-center justify-center gap-2 w-full bg-[#1A1A1A] text-white px-6 py-3.5 rounded-full text-sm font-semibold hover:bg-black transition"
-              >
-                <Download size={18} />
-                {t("catalogue.download")}
-              </a>
-              <p className="mt-3 text-xs text-[#9A9A9A]">
-                {t("catalogue.note")}
-              </p>
-            </div>
-          </div>
+          )}
         </div>
       </section>
     </div>

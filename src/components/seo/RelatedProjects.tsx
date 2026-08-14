@@ -22,7 +22,7 @@ export default function RelatedProjects({
   return (
     <section className="w-full bg-[#F5F3EF] border-t border-[#E8E4DC]">
       <div className="max-w-7xl mx-auto px-6 py-12 lg:py-16">
-        <h2 className="font-sans text-3xl md:text-4xl text-[#1A2332] mb-8">
+        <h2 className="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-8">
           {heading}
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

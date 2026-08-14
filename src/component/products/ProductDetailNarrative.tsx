@@ -40,7 +40,7 @@ export default function ProductDetailNarrative({ product }: Props) {
           {tag}
         </p>
       </div>
-      <h2 className="text-3xl sm:text-4xl lg:text-[2.75rem] font-semibold text-[#1A1A1A] leading-tight">
+      <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-[#1A1A1A] leading-tight">
         {headline}
       </h2>
       <p className="mt-5 sm:mt-6 text-[#5A5A5A] text-sm sm:text-base leading-7 sm:leading-8 max-w-3xl">

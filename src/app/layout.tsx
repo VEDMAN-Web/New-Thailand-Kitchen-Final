@@ -1,15 +1,11 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import Script from "next/script";
-import { cookies } from "next/headers";
 import { Manrope } from "next/font/google";
 import Providers from "../lib/react-query";
 import Navbar from "../component/navBar";
 import Footer from "../component/Footer/footer";
 import { Toaster } from "sonner";
-import { fetchHomeSections, fetchMergedProducts, fetchMergedCategories, type HomeSections } from "../services/cmsPublic";
-import { pickCmsText } from "../lib/cmsText";
-import type { Locale } from "../i18n/translations";
 import { SITE_ORIGIN } from "../lib/siteUrl";
 import JsonLd from "../components/seo/JsonLd";
 
@@ -18,10 +14,6 @@ const manrope = Manrope({
   variable: "--font-manrope",
   display: "swap",
 });
-
-function parseLocale(value: unknown): Locale {
-  return value === "TH" || value === "PL" || value === "EN" ? value : "EN";
-}
 
 const localeBootScript = `
 try {
@@ -37,63 +29,22 @@ try {
 } catch (e) {}
 `;
 
-export async function generateMetadata(): Promise<Metadata> {
-  const sections = await fetchHomeSections();
-  const seo = (sections?.seo || {}) as {
-    title?: unknown;
-    description?: unknown;
-    ogImage?: string;
-  };
-  const jar = await cookies();
-  const locale = parseLocale(jar.get("tk-locale")?.value);
-  const title = pickCmsText(seo.title, "Thailand Kitchens", locale);
-  const description = pickCmsText(
-    seo.description,
-    "Thailand Kitchens Website",
-    locale
-  );
-  const ogImage =
-    typeof seo.ogImage === "string" ? seo.ogImage.trim() : "";
-  return {
-    title,
-    description,
-    openGraph: {
-      title,
-      description,
-      ...(ogImage ? { images: [{ url: ogImage }] } : {}),
-    },
-  };
-}
+export const metadata: Metadata = {
+  title: "Thailand Kitchens",
+  description: "Thailand Kitchens Website",
+};
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const jar = await cookies();
-  const initialLocale = parseLocale(jar.get("tk-locale")?.value);
-  const htmlLang =
-    initialLocale === "TH" ? "th" : initialLocale === "PL" ? "pl" : "en";
-
-  // Server-side fetch CMS data to eliminate flicker on initial load
-  const [homeSections, products, categories] = await Promise.all([
-    fetchHomeSections().catch(() => ({})),
-    fetchMergedProducts().catch(() => []),
-    fetchMergedCategories().catch(() => []),
-  ]);
-
-  const seo = (homeSections as HomeSections)?.seo as {
-    ga4MeasurementId?: string;
-  } | undefined;
-  const ga4Id =
-    (typeof seo?.ga4MeasurementId === "string" && seo.ga4MeasurementId.trim()) ||
-    process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID?.trim() ||
-    "";
+  const ga4Id = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID?.trim() || "";
 
   return (
     <html
-      lang={htmlLang}
-      data-locale={initialLocale}
+      lang="en"
+      data-locale="EN"
       className={manrope.variable}
       suppressHydrationWarning
     >
@@ -132,14 +83,7 @@ gtag('config', '${ga4Id}');
             </Script>
           </>
         ) : null}
-        <Providers
-          initialLocale={initialLocale}
-          initialCmsData={{
-            sections: homeSections,
-            products,
-            categories,
-          }}
-        >
+        <Providers initialLocale="EN">
           <Navbar />
           {children}
           <Footer />

@@ -3,11 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useTranslation } from "../../i18n/LanguageProvider";
-import type { TranslationKey } from "../../i18n/translations";
 import { useCmsSection } from "../../lib/CmsHomeContext";
 import { pickCmsText } from "../../lib/cmsText";
 import { fetchMergedFaqs } from "../../services/cmsPublic";
-import { faqItems } from "./faqData";
 
 type HomeFaqCms = {
   eyebrow?: unknown;
@@ -91,36 +89,29 @@ export default function HomeFaqSection() {
   const HOME_FAQ_LIMIT = 5;
 
   const items = useMemo(() => {
-    const source =
-      dedicatedFaqs && dedicatedFaqs.length
-        ? dedicatedFaqs
-        : (faqCms?.items || []).filter(
-            (i) =>
-              pickCmsText(i?.question, "", "EN") ||
-              pickCmsText(i?.answer, "", "EN")
-          );
-
-    const mapped = source.length
-      ? source.map((item, index) => ({
+    if (dedicatedFaqs) {
+      return dedicatedFaqs
+        .map((item, index) => ({
           id: `home-faq-${index}`,
-          question: pickCmsText(
-            item.question,
-            t(`faq.q${index + 1}` as TranslationKey),
-            locale
-          ),
-          answer: pickCmsText(
-            item.answer,
-            t(`faq.a${index + 1}` as TranslationKey),
-            locale
-          ),
+          question: pickCmsText(item.question, "", locale),
+          answer: pickCmsText(item.answer, "", locale),
         }))
-      : faqItems.map((item) => ({
-          id: `static-faq-${item.id}`,
-          question: t(`faq.q${item.id}` as TranslationKey),
-          answer: t(`faq.a${item.id}` as TranslationKey),
-        }));
-    return mapped.slice(0, HOME_FAQ_LIMIT);
-  }, [dedicatedFaqs, faqCms, locale, t]);
+        .filter((item) => item.question || item.answer)
+        .slice(0, HOME_FAQ_LIMIT);
+    }
+
+    const source = (faqCms?.items || []).filter(
+      (i) =>
+        pickCmsText(i?.question, "", "EN") || pickCmsText(i?.answer, "", "EN")
+    );
+    return source
+      .map((item, index) => ({
+        id: `home-faq-${index}`,
+        question: pickCmsText(item.question, "", locale),
+        answer: pickCmsText(item.answer, "", locale),
+      }))
+      .slice(0, HOME_FAQ_LIMIT);
+  }, [dedicatedFaqs, faqCms, locale]);
 
   return (
     <section id="home-faq" className="bg-[#F5F3EF] pt-10 lg:pt-12 pb-16 lg:pb-20 scroll-mt-28">
@@ -129,7 +120,7 @@ export default function HomeFaqSection() {
           {eyebrow}
         </p>
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8 lg:mb-10">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold text-[#1A1A1A]">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-[#1A1A1A]">
             {title}
           </h2>
           <Link

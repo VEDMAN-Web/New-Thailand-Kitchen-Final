@@ -125,7 +125,7 @@ export default function BlogDetailView({ post: rawPost }: Props) {
                 {post.reviewer ? ` · Reviewed by ${post.reviewer}` : ""}
               </p>
 
-              <h1 className="text-3xl sm:text-4xl lg:text-[2.75rem] font-extrabold text-[#1A1A1A] leading-tight">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-[#1A1A1A] leading-tight">
                 {post.title}
               </h1>
 

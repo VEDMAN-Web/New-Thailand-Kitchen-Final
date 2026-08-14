@@ -16,6 +16,7 @@ import { useCmsSection } from "../lib/CmsHomeContext";
 import { pickCmsText } from "../lib/cmsText";
 import {
   HubDesktopNavItem,
+  HubMegaProvider,
   HubMobileNavSection,
   hubNavByHref,
 } from "../components/navigation/HubMegaMenu";
@@ -55,16 +56,13 @@ const Navbar = () => {
   const [search, setSearch] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [enquiryOpen, setEnquiryOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [searchIndex, setSearchIndex] = useState<NavSearchResult[] | null>(null);
   const desktopSearchRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const headerRowRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLAnchorElement>(null);
-  const actionsRef = useRef<HTMLDivElement>(null);
-  const measureNavRef = useRef<HTMLDivElement>(null);
   const mobileDrawerRef = useRef<HTMLDivElement>(null);
-  const desktopNavRef = useRef(false);
-  const [desktopNav, setDesktopNav] = useState<boolean | null>(null);
 
   const searchExpanded = searchHover || searchFocused || search.trim().length > 0;
   const showSearchResults = searchFocused || search.trim().length > 0;
@@ -103,6 +101,33 @@ const Navbar = () => {
       return true;
     });
   }, [cmsLinks, locale, t]);
+
+  const overflowNavLinks = useMemo(() => {
+    if (!searchExpanded) return [];
+    const keep = new Set([
+      "/",
+      "/kitchens",
+      "/products",
+      "/services",
+      "/materials",
+      "/locations",
+    ]);
+    return navLinks.filter((link) => {
+      const href = link.href === "/blog" ? "/guides" : link.href;
+      return !keep.has(href);
+    });
+  }, [navLinks, searchExpanded]);
+
+  const visibleNavLinks = useMemo(() => {
+    if (!overflowNavLinks.length) return navLinks;
+    const hidden = new Set(
+      overflowNavLinks.map((l) => (l.href === "/blog" ? "/guides" : l.href))
+    );
+    return navLinks.filter((link) => {
+      const href = link.href === "/blog" ? "/guides" : link.href;
+      return !hidden.has(href);
+    });
+  }, [navLinks, overflowNavLinks]);
   const consultationLabel = pickCmsText(
     navCms?.consultationLabel,
     t("nav.consultation"),
@@ -144,6 +169,10 @@ const Navbar = () => {
         ? "bg-[#F5F3EF] text-[#1A1A1A] font-bold"
         : "text-gray-500 font-medium hover:text-[#1A1A1A]"
     }`;
+
+  useEffect(() => {
+    if (!searchExpanded) setMoreOpen(false);
+  }, [searchExpanded]);
 
   const hubNavForHref = (href: string) => {
     const normalized = href.replace(/\/+$/, "") || "/";
@@ -194,45 +223,9 @@ const Navbar = () => {
   }, [mobileOpen]);
 
   useEffect(() => {
-    const update = () => {
-      const row = headerRowRef.current;
-      const measure = measureNavRef.current;
-      const logo = logoRef.current;
-      const actions = actionsRef.current;
-      if (!row || !measure || !logo || !actions) return;
-
-      let actionsWidth = actions.offsetWidth;
-      if (!desktopNavRef.current) {
-        actionsWidth = Math.max(0, actionsWidth - 44);
-      }
-
-      const needed =
-        logo.offsetWidth + measure.scrollWidth + actionsWidth + 32;
-      const fits = row.clientWidth >= 960 && needed <= row.clientWidth;
-      desktopNavRef.current = fits;
-      setDesktopNav(fits);
-      if (fits) setMobileOpen(false);
-    };
-
-    update();
-    const row = headerRowRef.current;
-    if (!row || typeof ResizeObserver === "undefined") {
-      window.addEventListener("resize", update);
-      return () => window.removeEventListener("resize", update);
-    }
-
-    const ro = new ResizeObserver(update);
-    ro.observe(row);
-    window.addEventListener("resize", update);
-    return () => {
-      ro.disconnect();
-      window.removeEventListener("resize", update);
-    };
-  }, [navLinks, locale, consultationLabel]);
-
-  useEffect(() => {
     setMobileOpen(false);
     setIsOpen(false);
+    setMoreOpen(false);
     setSearchHover(false);
     setSearchFocused(false);
     setSearch("");
@@ -377,38 +370,10 @@ const Navbar = () => {
             />
           </Link>
 
-          <div
-            aria-hidden
-            className="pointer-events-none absolute left-0 top-0 h-0 overflow-hidden opacity-0"
-          >
-            <div
-              ref={measureNavRef}
-              className="inline-flex items-center flex-nowrap px-1 py-1 min-[1400px]:px-2 gap-0"
-            >
-              {navLinks.map((link) => {
-                const href = link.href === "/blog" ? "/guides" : link.href;
-                const hub = hubNavForHref(href);
-                return (
-                  <span key={`m-${link.href}`} className={navLinkClass(href)}>
-                    {link.label}
-                    {hub ? <span className="inline-block w-2.5 ml-1.5" /> : null}
-                  </span>
-                );
-              })}
-            </div>
-          </div>
-
-          <nav
-            className={`${
-              desktopNav === null
-                ? "hidden min-[1280px]:flex"
-                : desktopNav
-                  ? "flex"
-                  : "hidden"
-            } flex-1 min-w-0 justify-center`}
-          >
+          <nav className="hidden min-[1280px]:flex flex-1 min-w-0 justify-center">
+            <HubMegaProvider>
             <div className="flex items-center justify-center flex-nowrap bg-white rounded-full shadow-[0_4px_16px_rgba(0,0,0,0.08)] px-1 py-1 min-[1400px]:px-2 min-[1400px]:py-1.5 gap-0 max-w-full">
-              {navLinks.map((link) => {
+              {visibleNavLinks.map((link) => {
                 const href = link.href === "/blog" ? "/guides" : link.href;
                 const hubConfig = hubNavForHref(href);
                 if (hubConfig) {
@@ -429,15 +394,62 @@ const Navbar = () => {
                   </Link>
                 );
               })}
+              {overflowNavLinks.length > 0 ? (
+                <div className="relative shrink-0">
+                  <button
+                    type="button"
+                    aria-label="More"
+                    aria-expanded={moreOpen}
+                    onClick={() => {
+                      setMoreOpen((open) => !open);
+                      setIsOpen(false);
+                    }}
+                    className={`shrink-0 rounded-full px-2.5 py-1.5 text-[13px] font-semibold tracking-widest transition-colors ${
+                      moreOpen ||
+                      overflowNavLinks.some((l) =>
+                        isActive(l.href === "/blog" ? "/guides" : l.href)
+                      )
+                        ? "bg-[#F5F3EF] text-[#1A1A1A]"
+                        : "text-gray-500 hover:text-[#1A1A1A]"
+                    }`}
+                  >
+                    ···
+                  </button>
+                  {moreOpen ? (
+                    <div className="absolute right-0 top-full z-[80] mt-2 min-w-[11rem] overflow-hidden rounded-xl border border-black/5 bg-white py-1 shadow-[0_8px_28px_rgba(0,0,0,0.12)]">
+                      {overflowNavLinks.map((link) => {
+                        const href =
+                          link.href === "/blog" ? "/guides" : link.href;
+                        return (
+                          <Link
+                            key={link.href}
+                            href={href}
+                            onClick={() => setMoreOpen(false)}
+                            className={`block px-4 py-2.5 text-sm transition hover:bg-[#F5F3EF] ${
+                              isActive(href)
+                                ? "font-semibold text-[#1A1A1A]"
+                                : "font-medium text-gray-500"
+                            }`}
+                          >
+                            {link.label}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
+            </HubMegaProvider>
           </nav>
 
-          <div
-            ref={actionsRef}
-            className="ml-auto flex items-center gap-1.5 sm:gap-2 min-[1400px]:gap-3 shrink-0"
-          >
+          <div className="ml-auto flex items-center gap-1.5 sm:gap-2 min-[1400px]:gap-3 shrink-0">
             <div
-              className="relative hidden h-10 w-10 shrink-0 sm:block"
+              className={`relative hidden h-10 shrink-0 overflow-visible sm:block transition-[width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                searchExpanded
+                  ? "w-[min(234px,calc(100vw-10rem))]"
+                  : "w-10"
+              }`}
               ref={desktopSearchRef}
               onMouseEnter={() => {
                 setIsOpen(false);
@@ -447,12 +459,11 @@ const Navbar = () => {
                 if (!searchFocused && !search.trim()) setSearchHover(false);
               }}
             >
-              {/* Fixed icon slot — bar expands left as overlay so nav never reflows */}
               <div
-                className={`absolute right-0 top-1/2 z-[60] flex -translate-y-1/2 items-center overflow-hidden rounded-full transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                className={`flex h-10 w-full items-center overflow-hidden rounded-full transition-colors duration-300 ${
                   searchExpanded
-                    ? "h-10 w-[min(234px,calc(100vw-8rem))] gap-1 border border-[#D4C4B0] bg-[#F5F3EF] pl-4 pr-1 shadow-[0_8px_22px_rgba(0,0,0,0.10)]"
-                    : "h-10 w-10 justify-center border border-transparent bg-transparent shadow-none"
+                    ? "gap-1 border border-[#D4C4B0] bg-[#F5F3EF] pl-4 pr-1 shadow-[0_8px_22px_rgba(0,0,0,0.10)]"
+                    : "justify-end border border-transparent bg-transparent shadow-none"
                 }`}
               >
                 <input
@@ -578,13 +589,7 @@ const Navbar = () => {
               }}
               aria-label="Toggle menu"
               aria-expanded={mobileOpen}
-              className={`${
-                desktopNav === null
-                  ? "flex min-[1280px]:hidden"
-                  : desktopNav
-                    ? "hidden"
-                    : "flex"
-              } w-10 h-10 items-center justify-center rounded-full bg-white shadow-[0_4px_16px_rgba(0,0,0,0.08)] transition`}
+              className="flex min-[1280px]:hidden w-10 h-10 items-center justify-center rounded-full bg-white shadow-[0_4px_16px_rgba(0,0,0,0.08)] transition"
             >
               <div className="flex flex-col justify-center gap-1.5 w-5">
                 <span
@@ -611,7 +616,7 @@ const Navbar = () => {
       <div
         ref={mobileDrawerRef}
         className={`absolute inset-x-0 top-full z-50 bg-white border-b border-black/5 shadow-[0_12px_40px_rgba(0,0,0,0.12)] overscroll-contain transition-[height,opacity] duration-300 ease-out ${
-          desktopNav !== true && mobileOpen
+          mobileOpen
             ? "h-[calc(100dvh-4.5rem)] overflow-y-auto opacity-100 pointer-events-auto visible touch-pan-y"
             : "h-0 overflow-hidden opacity-0 pointer-events-none invisible"
         }`}

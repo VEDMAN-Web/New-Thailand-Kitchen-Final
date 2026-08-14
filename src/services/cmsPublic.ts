@@ -54,7 +54,12 @@ async function cmsFetch(path: string) {
   const base = cmsBase();
   const url = `${base}${path.startsWith("/") ? path : `/${path}`}`;
   try {
-    const res = await fetch(url, { cache: "no-store" });
+    const res = await fetch(
+      url,
+      typeof window === "undefined"
+        ? { next: { revalidate: 60 } }
+        : { cache: "no-store" }
+    );
     if (!res.ok) return null;
     return res.json();
   } catch {
@@ -440,11 +445,8 @@ export type CmsCatalogue = {
 };
 
 export async function fetchMergedCatalogues(): Promise<CmsCatalogue[]> {
-  const { products } = await import("../component/catlog/catlogData");
   const home = await fetchHomeSections();
 
-  // Prefer Home Management → Free Catalogue (admin source of truth),
-  // including an empty list after all items are removed.
   if (home && Array.isArray(home.catalogue?.items)) {
     return (home.catalogue.items as any[]).map((c, index) => ({
       id: 31000 + index,
@@ -457,26 +459,7 @@ export async function fetchMergedCatalogues(): Promise<CmsCatalogue[]> {
     }));
   }
 
-  const dedicated = (await cmsFetch(`/cms/${SITE_ID}/catalogues`)) as
-    | { items?: any[] }
-    | null;
-
-  const fromDedicated = (dedicated?.items || []).map((c, index) => ({
-    id: 30000 + index,
-    category: c.category ?? "Catalogue",
-    title: c.title ?? "Catalogue",
-    image: String(c.image || "/catlog/catlog.png"),
-    pdf: String(c.fileName || ""),
-    pdfUrl: String(c.pdfUrl || ""),
-    downloadName: String(c.downloadName || c.fileName || "catalogue.pdf"),
-  }));
-
-  if (fromDedicated.length) return fromDedicated;
-
-  return products.map((p) => ({
-    ...p,
-    pdfUrl: "",
-  }));
+  return [];
 }
 
 export type CmsFaq = {
@@ -491,23 +474,14 @@ export async function fetchMergedFaqs(): Promise<CmsFaq[]> {
   const dedicated = (await cmsFetch(`/cms/${SITE_ID}/faqs`)) as
     | { items?: any[] }
     | null;
-  const fromDedicated = (dedicated?.items || []).map((f, index) => ({
-    id: f._id || 40000 + index,
-    question: f.question || "",
-    answer: f.answer || "",
-  }));
-  if (fromDedicated.length) return fromDedicated;
-
-  // Fallback: home FAQ section, then empty (FaqSection uses static faqData).
-  const home = await fetchHomeSections();
-  const homeItems = (home?.faq?.items || []) as any[];
-  if (homeItems.length) {
-    return homeItems.map((f, index) => ({
-      id: 41000 + index,
+  if (dedicated && Array.isArray(dedicated.items)) {
+    return dedicated.items.map((f, index) => ({
+      id: f._id || 40000 + index,
       question: f.question || "",
       answer: f.answer || "",
     }));
   }
+
   return [];
 }
 

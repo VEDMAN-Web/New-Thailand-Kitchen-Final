@@ -11,6 +11,7 @@ const assetTarget = (
 ).replace(/\/+$/, "");
 
 const nextConfig: NextConfig = {
+  outputFileTracingRoot: rootDir,
   turbopack: {
     root: rootDir,
   },
@@ -31,7 +32,7 @@ const nextConfig: NextConfig = {
       { source: "/styles/:slug", destination: "/kitchens/styles/:slug", permanent: true },
       { source: "/projects", destination: "/gallery", permanent: true },
       { source: "/portfolio", destination: "/gallery", permanent: true },
-      { source: "/about", destination: "/#our-service", permanent: true },
+      { source: "/about", destination: "/", permanent: false },
       { source: "/catalog", destination: "/catalogue", permanent: true },
     ];
   },

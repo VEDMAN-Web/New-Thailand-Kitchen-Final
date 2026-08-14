@@ -62,7 +62,7 @@ export default function ContactHero() {
         <div className="absolute inset-0 bg-black/40" />
 
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 max-w-3xl mx-auto">
-          <h1 className="text-white text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight">
+          <h1 className="text-white text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight">
             {title} {titleAccent}
           </h1>
           <p className="mt-5 text-white/90 text-sm sm:text-base leading-7 max-w-2xl">

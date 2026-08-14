@@ -80,7 +80,7 @@ export default function FaqHero() {
           >
             {eyebrow}
           </p>
-          <h1 className="text-white text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight">
+          <h1 className="text-white text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight">
             {title}
           </h1>
         </div>

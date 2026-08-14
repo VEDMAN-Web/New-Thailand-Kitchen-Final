@@ -82,7 +82,7 @@ export default function HubContentBlock({
             Next step
           </p>
           {heading ? (
-            <h2 className="font-sans text-2xl sm:text-3xl md:text-4xl leading-tight">
+            <h2 className="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl leading-tight">
               {heading}
             </h2>
           ) : null}
@@ -102,7 +102,7 @@ export default function HubContentBlock({
         <p className="text-[#B38B6D] text-3xl mb-4" aria-hidden>
           “
         </p>
-        <blockquote className="font-sans text-2xl sm:text-3xl md:text-4xl text-[#1A2332] leading-snug max-w-3xl mx-auto">
+        <blockquote className="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl text-[#1A2332] leading-snug max-w-3xl mx-auto">
           {heading}
         </blockquote>
         {body ? (
@@ -122,7 +122,7 @@ export default function HubContentBlock({
       <section>
         <SectionEyebrow index={index} label="Highlights" />
         {heading ? (
-          <h2 className="font-sans text-2xl sm:text-3xl md:text-4xl text-[#1A2332] mb-8 max-w-2xl leading-tight">
+          <h2 className="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-8 max-w-2xl leading-tight">
             {heading}
           </h2>
         ) : null}
@@ -170,7 +170,7 @@ export default function HubContentBlock({
         <div>
           <SectionEyebrow index={index} label="Process" />
           {heading ? (
-            <h2 className="font-sans text-2xl sm:text-3xl md:text-4xl text-[#1A2332] mb-8 leading-tight">
+            <h2 className="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-8 leading-tight">
               {heading}
             </h2>
           ) : null}
@@ -216,7 +216,7 @@ export default function HubContentBlock({
     return (
       <section className="rounded-2xl sm:rounded-3xl bg-[#FAF8F5] border border-[#E8E4DC] px-5 sm:px-8 py-8 sm:py-10">
         {heading ? (
-          <h2 className="font-sans text-2xl sm:text-3xl text-[#1A2332] mb-6 text-center">
+          <h2 className="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-6 text-center">
             {heading}
           </h2>
         ) : null}
@@ -258,7 +258,7 @@ export default function HubContentBlock({
         <div className={image ? "lg:order-1" : ""}>
           <SectionEyebrow index={index} label="What matters" />
           {heading ? (
-            <h2 className="font-sans text-2xl sm:text-3xl md:text-4xl text-[#1A2332] mb-6 leading-tight">
+            <h2 className="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-6 leading-tight">
               {heading}
             </h2>
           ) : null}
@@ -293,7 +293,7 @@ export default function HubContentBlock({
             Spotlight
           </p>
           {heading ? (
-            <h2 className="font-sans text-2xl sm:text-3xl md:text-4xl leading-tight">
+            <h2 className="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl leading-tight">
               {heading}
             </h2>
           ) : null}
@@ -337,7 +337,7 @@ export default function HubContentBlock({
         <div className="max-w-3xl">
           <SectionEyebrow index={index} label="Feature" />
           {heading ? (
-            <h2 className="font-sans text-2xl sm:text-3xl md:text-4xl text-[#1A2332] mb-4 leading-tight">
+            <h2 className="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-4 leading-tight">
               {heading}
             </h2>
           ) : null}
@@ -356,7 +356,7 @@ export default function HubContentBlock({
       <section className="max-w-3xl">
         <SectionEyebrow index={index} />
         {heading ? (
-          <h2 className="font-sans text-2xl sm:text-3xl md:text-4xl text-[#1A2332] mb-4">
+          <h2 className="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-4">
             {heading}
           </h2>
         ) : null}
@@ -394,7 +394,7 @@ export default function HubContentBlock({
       <div className={imageLeft ? "lg:order-2" : "lg:order-1"}>
         <SectionEyebrow index={index} />
         {heading ? (
-          <h2 className="font-sans text-2xl sm:text-3xl md:text-4xl text-[#1A2332] mb-4 leading-tight">
+          <h2 className="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-4 leading-tight">
             {heading}
           </h2>
         ) : null}
