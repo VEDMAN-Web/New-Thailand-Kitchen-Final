@@ -70,7 +70,7 @@ const nextConfig: NextConfig = {
       "/contactUs",
       "/gallery",
     ].map((prefix) => ({
-      source: `${prefix}/:path*`,
+      source: `${prefix}/:path+`,
       destination: `${frontendTarget}${prefix}/:path*`,
     }));
 
