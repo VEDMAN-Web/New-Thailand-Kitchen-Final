@@ -9,7 +9,9 @@ import {
   useMemo,
   useRef,
   useState,
+  type Dispatch,
   type ReactNode,
+  type SetStateAction,
 } from "react";
 import { useCms } from "../../lib/CmsHomeContext";
 import { pickCmsText } from "../../lib/cmsText";
@@ -31,7 +33,7 @@ const EASE_OUT = "cubic-bezier(0.22, 1, 0.36, 1)";
 
 const MegaOpenContext = createContext<{
   openKey: string | null;
-  setOpenKey: (key: string | null) => void;
+  setOpenKey: Dispatch<SetStateAction<string | null>>;
 }>({ openKey: null, setOpenKey: () => {} });
 
 export function HubMegaProvider({ children }: { children: ReactNode }) {
