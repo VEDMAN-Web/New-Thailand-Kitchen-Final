@@ -68,14 +68,14 @@ const nextConfig: NextConfig = {
       "/video",
       "/images",
       "/contactUs",
+      "/gallery",
     ].map((prefix) => ({
       source: `${prefix}/:path*`,
       destination: `${frontendTarget}${prefix}/:path*`,
     }));
 
     return {
-      beforeFiles: apiRewrites,
-      afterFiles: siteAssetRewrites,
+      beforeFiles: [...apiRewrites, ...siteAssetRewrites],
     };
   },
 };

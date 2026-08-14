@@ -9,7 +9,7 @@ import {
   mediaUrlHint,
   needsRemoteResolve,
   pexelsVideoThumbnailUrl,
-  resolveAdminMediaPreviewUrl,
+  resolveAdminMediaPreviewFallbacks,
 } from "@/lib/adminMediaPreview";
 import { clsx } from "clsx";
 
@@ -45,6 +45,7 @@ export default function MediaUpload({
   const uploadingRef = useRef(false);
   const [uploading, setUploading] = useState(false);
   const [previewFailed, setPreviewFailed] = useState(false);
+  const [previewIndex, setPreviewIndex] = useState(0);
   const [remotePreviewUrl, setRemotePreviewUrl] = useState("");
   const [resolving, setResolving] = useState(false);
 
@@ -62,12 +63,11 @@ export default function MediaUpload({
 
   const localThumb =
     urlKind === "pexels-video-page" ? pexelsVideoThumbnailUrl(value) : "";
-  const previewUrl =
-    remotePreviewUrl ||
-    localThumb ||
-    (urlKind === "direct-image" || urlKind === "unknown" || value.startsWith("/")
-      ? resolveAdminMediaPreviewUrl(value)
-      : localThumb);
+  const fallbacks =
+    remotePreviewUrl || localThumb
+      ? [remotePreviewUrl || localThumb]
+      : resolveAdminMediaPreviewFallbacks(value);
+  const previewUrl = fallbacks[Math.min(previewIndex, Math.max(fallbacks.length - 1, 0))] || "";
 
   const wrongMediaForImageField =
     isImageField &&
@@ -77,6 +77,7 @@ export default function MediaUpload({
 
   useEffect(() => {
     setPreviewFailed(false);
+    setPreviewIndex(0);
     setRemotePreviewUrl("");
     setResolving(false);
 
@@ -252,6 +253,10 @@ export default function MediaUpload({
                   setPreviewFailed(false);
                 }}
                 onError={() => {
+                  if (previewIndex + 1 < fallbacks.length) {
+                    setPreviewIndex((i) => i + 1);
+                    return;
+                  }
                   setPreviewFailed(true);
                 }}
                 ref={(el) => {

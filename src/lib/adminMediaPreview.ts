@@ -15,10 +15,18 @@ const PUBLIC_ASSET_PREFIXES = [
   "/icon/",
   "/video/",
   "/logo1.svg",
+  "/logo1.png",
   "/contactUs/",
   "/images/",
   "/assets/",
+  "/gallery/",
 ];
+
+function publicFrontendOrigin(): string {
+  return (
+    process.env.NEXT_PUBLIC_FRONTEND_URL?.trim() || "http://localhost:3000"
+  ).replace(/\/+$/, "");
+}
 
 export type MediaUrlKind =
   | "empty"
@@ -201,11 +209,11 @@ export function resolveAdminMediaPreviewUrl(url: string): string {
       const parsed = new URL(trimmed);
       const localHost = /^(localhost|127\.0\.0\.1)$/i.test(parsed.hostname);
       const pathname = encodeMediaPath(parsed.pathname);
-      if (
-        localHost &&
-        (pathname.startsWith("/uploads/") || isPublicSiteAssetPath(pathname))
-      ) {
+      if (localHost && pathname.startsWith("/uploads/")) {
         return `${pathname}${parsed.search}`;
+      }
+      if (localHost && isPublicSiteAssetPath(pathname)) {
+        return `${publicFrontendOrigin()}${pathname}${parsed.search}`;
       }
       // CDN / Cloudinary / production uploads — use the URL as stored
       return trimmed;
@@ -214,7 +222,42 @@ export function resolveAdminMediaPreviewUrl(url: string): string {
     }
   }
 
-  return encodeMediaPath(trimmed.startsWith("/") ? trimmed : `/${trimmed}`);
+  const path = encodeMediaPath(trimmed.startsWith("/") ? trimmed : `/${trimmed}`);
+  if (path.startsWith("/uploads/")) return path;
+  if (path.startsWith("/api/")) return path;
+  // Admin (3001) has no public/ images — load them from the live frontend origin.
+  if (isPublicSiteAssetPath(path) || path.startsWith("/")) {
+    return `${publicFrontendOrigin()}${path}`;
+  }
+  return path;
+}
+
+/** Same-origin rewrite fallback if the frontend origin is unreachable. */
+export function resolveAdminMediaPreviewFallbacks(url: string): string[] {
+  const primary = resolveAdminMediaPreviewUrl(url);
+  const trimmed = aliasLegacyMediaPath(normalizeMediaPath(url));
+  if (!trimmed) return [];
+  if (/^(data:|blob:)/i.test(trimmed)) return [trimmed];
+
+  let path = trimmed;
+  if (/^https?:\/\//i.test(trimmed)) {
+    try {
+      path = new URL(trimmed).pathname;
+    } catch {
+      path = trimmed;
+    }
+  }
+  path = encodeMediaPath(path.startsWith("/") ? path : `/${path}`);
+
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const candidate of [primary, path, `${publicFrontendOrigin()}${path}`]) {
+    if (candidate && !seen.has(candidate)) {
+      seen.add(candidate);
+      out.push(candidate);
+    }
+  }
+  return out;
 }
 
 export function needsRemoteResolve(kind: MediaUrlKind): boolean {
