@@ -88,7 +88,9 @@ export function classifyMediaUrl(url: string): MediaUrlKind {
 
   if (
     /\.(png|jpe?g|gif|webp|svg|avif)(\?|#|$)/i.test(value) ||
-    /images\.pexels\.com|images\.unsplash\.com/i.test(value) ||
+    /images\.pexels\.com|images\.unsplash\.com|res\.cloudinary\.com|images\.unsplash/i.test(
+      value
+    ) ||
     /^data:image\//i.test(value)
   ) {
     return "direct-image";
@@ -168,11 +170,21 @@ export function aliasLegacyMediaPath(path: string): string {
   return path;
 }
 
+/** Encode spaces in path segments; keep parentheses so Next can serve public files. */
 export function encodeMediaPath(path: string): string {
   const raw = path.startsWith("/") ? path : `/${path}`;
   return raw
     .split("/")
-    .map((segment, index) => (index === 0 ? segment : encodeURIComponent(segment)))
+    .map((segment, index) => {
+      if (index === 0) return segment;
+      let decoded = segment;
+      try {
+        decoded = decodeURIComponent(segment);
+      } catch {
+        decoded = segment;
+      }
+      return encodeURI(decoded);
+    })
     .join("/");
 }
 
@@ -187,18 +199,22 @@ export function resolveAdminMediaPreviewUrl(url: string): string {
   if (/^https?:\/\//i.test(trimmed)) {
     try {
       const parsed = new URL(trimmed);
+      const localHost = /^(localhost|127\.0\.0\.1)$/i.test(parsed.hostname);
       const pathname = encodeMediaPath(parsed.pathname);
-      if (pathname.startsWith("/uploads/") || isPublicSiteAssetPath(pathname)) {
+      if (
+        localHost &&
+        (pathname.startsWith("/uploads/") || isPublicSiteAssetPath(pathname))
+      ) {
         return `${pathname}${parsed.search}`;
       }
-      return `${parsed.origin}${pathname}${parsed.search}`;
+      // CDN / Cloudinary / production uploads — use the URL as stored
+      return trimmed;
     } catch {
       return trimmed;
     }
   }
 
-  const path = encodeMediaPath(trimmed.startsWith("/") ? trimmed : `/${trimmed}`);
-  return path;
+  return encodeMediaPath(trimmed.startsWith("/") ? trimmed : `/${trimmed}`);
 }
 
 export function needsRemoteResolve(kind: MediaUrlKind): boolean {

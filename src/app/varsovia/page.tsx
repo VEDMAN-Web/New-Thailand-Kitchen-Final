@@ -6070,6 +6070,7 @@ function FieldControl({
           <img
             src={resolveAdminMediaPreviewUrl(urlValue)}
             alt=""
+            referrerPolicy="no-referrer"
             className="mt-2 h-40 w-full max-w-md rounded-lg border border-[#E8EAED] object-contain bg-[#F8FAFC]"
             onError={(e) => {
               e.currentTarget.style.display = "none";

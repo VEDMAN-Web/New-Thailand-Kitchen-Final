@@ -45,7 +45,6 @@ export default function MediaUpload({
   const uploadingRef = useRef(false);
   const [uploading, setUploading] = useState(false);
   const [previewFailed, setPreviewFailed] = useState(false);
-  const [previewLoaded, setPreviewLoaded] = useState(false);
   const [remotePreviewUrl, setRemotePreviewUrl] = useState("");
   const [resolving, setResolving] = useState(false);
 
@@ -61,7 +60,6 @@ export default function MediaUpload({
   const urlKind = classifyMediaUrl(value);
   const guidance = isImageField ? mediaUrlHint(urlKind, false) : "";
 
-  // Image fields only show image previews — never video players
   const localThumb =
     urlKind === "pexels-video-page" ? pexelsVideoThumbnailUrl(value) : "";
   const previewUrl =
@@ -79,15 +77,14 @@ export default function MediaUpload({
 
   useEffect(() => {
     setPreviewFailed(false);
-    setPreviewLoaded(false);
     setRemotePreviewUrl("");
+    setResolving(false);
 
     const trimmed = value.trim();
     if (!trimmed || kind === "pdf" || !isImageField) return;
 
     const classified = classifyMediaUrl(trimmed);
 
-    // Instant client-side thumbnail for Pexels video pages (still image)
     if (classified === "pexels-video-page") {
       const thumb = pexelsVideoThumbnailUrl(trimmed);
       if (thumb) setRemotePreviewUrl(thumb);
@@ -97,6 +94,10 @@ export default function MediaUpload({
 
     let cancelled = false;
     setResolving(true);
+    const timer = window.setTimeout(() => {
+      if (!cancelled) setResolving(false);
+    }, 4000);
+
     void resolveMediaUrl(trimmed, "image")
       .then((res) => {
         if (cancelled) return;
@@ -104,15 +105,15 @@ export default function MediaUpload({
           setRemotePreviewUrl(res.previewUrl);
         }
       })
-      .catch(() => {
-        /* local hint + optional client thumb already cover this */
-      })
+      .catch(() => {})
       .finally(() => {
         if (!cancelled) setResolving(false);
+        window.clearTimeout(timer);
       });
 
     return () => {
       cancelled = true;
+      window.clearTimeout(timer);
     };
   }, [value, kind, isImageField]);
 
@@ -240,27 +241,23 @@ export default function MediaUpload({
             </div>
           ) : previewUrl ? (
             <>
-              {!previewLoaded ? (
-                <div className="absolute inset-0 flex items-center justify-center text-[11px] text-[#9CA3AF]">
-                  Loading preview…
-                </div>
-              ) : null}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 key={previewUrl}
                 src={previewUrl}
                 alt=""
-                className={clsx(
-                  imgClass,
-                  previewLoaded ? "opacity-100" : "opacity-0"
-                )}
+                referrerPolicy="no-referrer"
+                className={imgClass}
                 onLoad={() => {
-                  setPreviewLoaded(true);
                   setPreviewFailed(false);
                 }}
                 onError={() => {
                   setPreviewFailed(true);
-                  setPreviewLoaded(false);
+                }}
+                ref={(el) => {
+                  if (el?.complete && el.naturalWidth > 0) {
+                    setPreviewFailed(false);
+                  }
                 }}
               />
             </>

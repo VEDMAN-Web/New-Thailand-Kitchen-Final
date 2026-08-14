@@ -44,7 +44,7 @@ const nextConfig: NextConfig = {
   ],
   // Same-origin /api → Express (works for localhost AND LAN IP like 192.168.x.x)
   async rewrites() {
-    return [
+    const apiRewrites = [
       {
         source: "/api/:path*",
         destination: `${apiTarget}/api/:path*`,
@@ -53,57 +53,30 @@ const nextConfig: NextConfig = {
         source: "/uploads/:path*",
         destination: `${apiTarget}/uploads/:path*`,
       },
-      // Proxy frontend public static assets for admin preview
-      // These folders exist in the frontend's /public directory
-      {
-        source: "/brandLogo/:path*",
-        destination: `${frontendTarget}/brandLogo/:path*`,
-      },
-      {
-        source: "/products/:path*",
-        destination: `${frontendTarget}/products/:path*`,
-      },
-      {
-        source: "/blog/:path*",
-        destination: `${frontendTarget}/blog/:path*`,
-      },
-      {
-        source: "/features/:path*",
-        destination: `${frontendTarget}/features/:path*`,
-      },
-      {
-        source: "/catlog/:path*",
-        destination: `${frontendTarget}/catlog/:path*`,
-      },
-      {
-        source: "/slider/:path*",
-        destination: `${frontendTarget}/slider/:path*`,
-      },
-      {
-        source: "/testimonial/:path*",
-        destination: `${frontendTarget}/testimonial/:path*`,
-      },
-      {
-        source: "/product/:path*",
-        destination: `${frontendTarget}/product/:path*`,
-      },
-      {
-        source: "/footer/:path*",
-        destination: `${frontendTarget}/footer/:path*`,
-      },
-      {
-        source: "/icon/:path*",
-        destination: `${frontendTarget}/icon/:path*`,
-      },
-      {
-        source: "/video/:path*",
-        destination: `${frontendTarget}/video/:path*`,
-      },
-      {
-        source: "/images/:path*",
-        destination: `${frontendTarget}/images/:path*`,
-      },
     ];
+    const siteAssetRewrites = [
+      "/brandLogo",
+      "/products",
+      "/blog",
+      "/features",
+      "/catlog",
+      "/slider",
+      "/testimonial",
+      "/product",
+      "/footer",
+      "/icon",
+      "/video",
+      "/images",
+      "/contactUs",
+    ].map((prefix) => ({
+      source: `${prefix}/:path*`,
+      destination: `${frontendTarget}${prefix}/:path*`,
+    }));
+
+    return {
+      beforeFiles: apiRewrites,
+      afterFiles: siteAssetRewrites,
+    };
   },
 };
 
