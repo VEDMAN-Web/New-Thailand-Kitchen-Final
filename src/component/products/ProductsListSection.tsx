@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import ProductCard from "./ProductCard";
 import {
   productFilterTabs,
@@ -116,6 +116,7 @@ export default function ProductsListSection({
   initialCategory?: string;
 }) {
   const { t } = useTranslation();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [layout, setLayout] = useState<string>(initialCategory || "All");
   const [page, setPage] = useState(1);
@@ -207,6 +208,10 @@ export default function ProductsListSection({
               onClick={() => {
                 setLayout(item);
                 setPage(1);
+                router.push(
+                  item === "All" ? "/products" : `/products/${tabToSlug(item)}`,
+                  { scroll: false }
+                );
               }}
               className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-sm font-medium transition ${
                 isActive
