@@ -74,11 +74,13 @@ export default function CategoryLandingView({
         ctaHref={ctaHref}
       />
 
-      <div className="max-w-7xl mx-auto px-5 sm:px-6 py-12 sm:py-16 lg:py-20 space-y-14 lg:space-y-24">
-        {sections.map((block, index) => (
-          <HubContentBlock key={index} block={block} index={index} />
-        ))}
-      </div>
+      {sections.length > 0 ? (
+        <div className="max-w-7xl mx-auto px-5 sm:px-6 py-12 sm:py-16 lg:py-20 space-y-14 lg:space-y-24">
+          {sections.map((block, index) => (
+            <HubContentBlock key={index} block={block} index={index} />
+          ))}
+        </div>
+      ) : null}
 
       <RelatedProjects items={related} />
 
