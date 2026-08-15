@@ -120,7 +120,12 @@ export default async function SeoHubLandingPage({
 
       <div className="max-w-7xl mx-auto px-5 sm:px-6 py-12 sm:py-16 lg:py-20 space-y-14 lg:space-y-24">
         {data.sections.map((block, index) => (
-          <HubContentBlock key={index} block={block} index={index} />
+          <HubContentBlock
+            key={index}
+            block={block}
+            index={index}
+            hubHref={kitchensSubKey ? undefined : data.config.href}
+          />
         ))}
       </div>
     </main>

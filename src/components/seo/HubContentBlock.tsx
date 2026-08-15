@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { pickCmsText } from "../../lib/cmsText";
 import type { Locale } from "../../i18n/translations";
 
@@ -8,6 +9,15 @@ export type ContentSectionBlock = {
   image?: string;
   layout?: string;
 };
+
+/** Slugify a card title to match the CMS category slug convention (e.g. "Kitchen Design" -> "kitchen-design"). */
+function slugifyCardTitle(title: string): string {
+  return title
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
 
 function splitItems(body: string): string[] {
   if (!body.trim()) return [];
@@ -61,10 +71,13 @@ export default function HubContentBlock({
   block,
   index,
   locale = "EN",
+  hubHref,
 }: {
   block: ContentSectionBlock;
   index: number;
   locale?: Locale;
+  /** Base path of the current hub (e.g. "/services"). When set, "cards" layout items link to `${hubHref}/${slug}`. */
+  hubHref?: string;
 }) {
   const heading = pickCmsText(block.heading, "", locale);
   const body = pickCmsText(block.body, "", locale);
@@ -129,20 +142,43 @@ export default function HubContentBlock({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
           {cards.map((item, i) => {
             const { title, desc } = splitTitleDesc(item);
-            return (
-              <div
-                key={`${title}-${i}`}
-                className="rounded-2xl bg-white border border-[#E8E4DC] p-5 sm:p-6"
-              >
+            const href = hubHref
+              ? `${hubHref}/${slugifyCardTitle(title)}`
+              : null;
+            const cardBody = (
+              <>
                 <p className="text-[10px] font-semibold tracking-[0.16em] uppercase text-[#B38B6D] mb-2">
                   {String(i + 1).padStart(2, "0")}
                 </p>
-                <h3 className="text-base sm:text-lg font-semibold text-[#1A2332]">
+                <h3 className="text-base sm:text-lg font-semibold text-[#1A2332] flex items-center gap-2">
                   {title}
+                  {href ? (
+                    <span aria-hidden className="text-[#B38B6D]">
+                      →
+                    </span>
+                  ) : null}
                 </h3>
                 {desc ? (
                   <p className="mt-2 text-sm text-[#5C6370] leading-6">{desc}</p>
                 ) : null}
+              </>
+            );
+            const cardClassName =
+              "rounded-2xl bg-white border border-[#E8E4DC] p-5 sm:p-6" +
+              (href
+                ? " transition-all hover:border-[#B38B6D] hover:shadow-[0_8px_24px_rgba(26,35,50,0.08)] hover:-translate-y-0.5"
+                : "");
+            return href ? (
+              <Link
+                key={`${title}-${i}`}
+                href={href}
+                className={cardClassName}
+              >
+                {cardBody}
+              </Link>
+            ) : (
+              <div key={`${title}-${i}`} className={cardClassName}>
+                {cardBody}
               </div>
             );
           })}
