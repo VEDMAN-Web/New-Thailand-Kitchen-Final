@@ -6,7 +6,9 @@ import Providers from "../lib/react-query";
 import Navbar from "../component/navBar";
 import Footer from "../component/Footer/footer";
 import { Toaster } from "sonner";
-import { SITE_ORIGIN } from "../lib/siteUrl";
+import { SITE_ORIGIN, ogImageUrl } from "../lib/siteUrl";
+import { pickCmsText } from "../lib/cmsText";
+import { fetchHomeSections } from "../services/cmsPublic";
 import JsonLd from "../components/seo/JsonLd";
 
 const manrope = Manrope({
@@ -29,10 +31,51 @@ try {
 } catch (e) {}
 `;
 
-export const metadata: Metadata = {
-  title: "Thailand Kitchens",
-  description: "Thailand Kitchens Website",
-};
+const FALLBACK_TITLE = "Thailand Kitchens";
+const FALLBACK_DESCRIPTION =
+  "Custom Thai kitchen design and cabinetry — timeless craftsmanship for every home.";
+
+/**
+ * Site-wide default metadata (title/description/OG image), sourced from the
+ * admin panel's Header & SEO fields when set. This is the fallback every page
+ * inherits unless it defines its own generateMetadata — so any page without
+ * page-specific metadata still gets a real title/description/image instead of
+ * a blank/generic social preview.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const home = await fetchHomeSections().catch(() => ({}) as Record<string, unknown>);
+  const seo = (home as { seo?: Record<string, unknown> })?.seo || {};
+  const hero = (home as { hero?: Record<string, unknown> })?.hero || {};
+
+  const title = pickCmsText(seo.title, FALLBACK_TITLE, "EN");
+  const description = pickCmsText(seo.description, FALLBACK_DESCRIPTION, "EN");
+  const image = ogImageUrl(
+    (seo.ogImage as string) || (hero.image as string) || ""
+  );
+
+  return {
+    metadataBase: new URL(SITE_ORIGIN),
+    // No `template` here — child pages already append " | Thailand Kitchens"
+    // to their own titles, and Next.js applies a parent template even to a
+    // child's plain-string title, which would double up the suffix.
+    title,
+    description,
+    openGraph: {
+      type: "website",
+      siteName: FALLBACK_TITLE,
+      title,
+      description,
+      url: SITE_ORIGIN,
+      images: [{ url: image, width: 1200, height: 630, alt: title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [image],
+    },
+  };
+}
 
 export default function RootLayout({
   children,

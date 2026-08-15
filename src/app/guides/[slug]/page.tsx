@@ -6,7 +6,8 @@ import JsonLd from "../../../components/seo/JsonLd";
 import { blogPosts } from "../../../component/blog/blogData";
 import { fetchBlogBySlug } from "../../../services/cmsPublic";
 import { pickCmsText } from "../../../lib/cmsText";
-import { absoluteUrl } from "../../../lib/siteUrl";
+import { absoluteUrl, ogImageUrl } from "../../../lib/siteUrl";
+import { pickBlogCoverImage } from "../../../lib/cmsMedia";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -38,12 +39,28 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     (post as any).metaDescription || pickCmsText(post.excerpt, "", "EN");
 
   const canonical = absoluteUrl(`/guides/${post.slug}`);
+  const image = ogImageUrl(pickBlogCoverImage(post));
 
   return {
     title,
     description,
     alternates: {
       canonical,
+    },
+    openGraph: {
+      type: "article",
+      title,
+      description,
+      url: canonical,
+      images: [{ url: image, width: 1200, height: 630, alt: title }],
+      publishedTime: post.dateISO || undefined,
+      modifiedTime: post.updatedISO || undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [image],
     },
   };
 }

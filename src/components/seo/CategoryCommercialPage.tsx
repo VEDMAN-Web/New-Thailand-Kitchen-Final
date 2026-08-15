@@ -21,7 +21,7 @@ import {
   categorySectionLabel,
   type CategoryType,
 } from "../../lib/categoryRoutes";
-import { absoluteUrl, SITE_ORIGIN } from "../../lib/siteUrl";
+import { absoluteUrl, ogImageUrl, SITE_ORIGIN } from "../../lib/siteUrl";
 
 function normalizeSlug(slug: string) {
   return String(slug || "")
@@ -71,11 +71,27 @@ export async function generateCategoryMetadata(
     category.metaDescription || pickCmsText(category.description, "", "EN");
 
   const path = categoryPublicPath(category);
+  const canonical = category.canonicalUrl || absoluteUrl(path);
+  const image = ogImageUrl(category.image);
+
   const metadata: Metadata = {
     title,
     description,
     alternates: {
-      canonical: category.canonicalUrl || absoluteUrl(path),
+      canonical,
+    },
+    openGraph: {
+      type: "website",
+      title,
+      description,
+      url: canonical,
+      images: [{ url: image, width: 1200, height: 630, alt: title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [image],
     },
   };
 

@@ -1,5 +1,7 @@
+import type { Metadata } from "next";
 import { fetchHomeSections } from "../../services/cmsPublic";
 import { pickCmsText } from "../../lib/cmsText";
+import { absoluteUrl, ogImageUrl } from "../../lib/siteUrl";
 import Breadcrumbs from "./Breadcrumbs";
 import OverlayHeroBanner from "./OverlayHeroBanner";
 import HubContentBlock from "./HubContentBlock";
@@ -79,6 +81,41 @@ function resolveHubData(
     currentHref: kitchensSubKey
       ? kitchensSectionByKey(kitchensSubKey)?.href || config.href
       : config.href,
+  };
+}
+
+/** Shared Open Graph / Twitter Card metadata for every hub (and kitchens sub-hub) route. */
+export async function generateHubMetadata(
+  hubKey: HubNavKey,
+  kitchensSubKey?: KitchensSectionKey
+): Promise<Metadata> {
+  const home = await fetchHomeSections().catch(() => ({}));
+  const hubPages = (home as { hubPages?: Record<string, HubPageCms> })
+    ?.hubPages;
+  const data = resolveHubData(hubPages, hubKey, kitchensSubKey);
+
+  const title = `${data.title} | Thailand Kitchens`;
+  const description = data.description;
+  const canonical = absoluteUrl(data.currentHref);
+  const image = ogImageUrl(data.heroImage);
+
+  return {
+    title,
+    description,
+    alternates: { canonical },
+    openGraph: {
+      type: "website",
+      title,
+      description,
+      url: canonical,
+      images: [{ url: image, width: 1200, height: 630, alt: data.title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [image],
+    },
   };
 }
 

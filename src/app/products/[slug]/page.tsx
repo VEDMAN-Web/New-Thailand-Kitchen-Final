@@ -16,7 +16,7 @@ import {
   fetchProductBySlug,
 } from "../../../services/cmsPublic";
 import { pickCmsText } from "../../../lib/cmsText";
-import { absoluteUrl } from "../../../lib/siteUrl";
+import { absoluteUrl, ogImageUrl } from "../../../lib/siteUrl";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -77,9 +77,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const categoryTab = tabFromSlugValue(normalized, knownTabs);
 
   if (categoryTab) {
+    const tabTitle = `${categoryTab} Kitchens | Thailand Kitchens`;
+    const tabDescription = `Browse our ${categoryTab} kitchen collection.`;
+    const tabImage = ogImageUrl(items.find((p) => p.image)?.image);
+    const tabUrl = absoluteUrl(`/products/${normalized}`);
     return {
-      title: `${categoryTab} Kitchens | Thailand Kitchens`,
-      description: `Browse our ${categoryTab} kitchen collection.`,
+      title: tabTitle,
+      description: tabDescription,
+      openGraph: {
+        type: "website",
+        title: tabTitle,
+        description: tabDescription,
+        url: tabUrl,
+        images: [{ url: tabImage, width: 1200, height: 630, alt: tabTitle }],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: tabTitle,
+        description: tabDescription,
+        images: [tabImage],
+      },
     };
   }
 
@@ -95,12 +112,27 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const description =
     product.metaDescription ||
     pickCmsText((product as any).description || "", "", "EN");
+  const canonical = absoluteUrl(`/products/${product.slug}`);
+  const image = ogImageUrl(product.image);
 
   const metadata: Metadata = {
     title,
     description,
     alternates: {
-      canonical: absoluteUrl(`/products/${product.slug}`),
+      canonical,
+    },
+    openGraph: {
+      type: "website",
+      title,
+      description,
+      url: canonical,
+      images: [{ url: image, width: 1200, height: 630, alt: title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [image],
     },
   };
 
