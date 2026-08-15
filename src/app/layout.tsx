@@ -6,7 +6,7 @@ import PersistentAdminChrome from "@/components/PersistentAdminChrome";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "TRUSTPRIME Admin",
+  title: "TK & VD Admin Panel",
   description: "Multi-site CMS for Thailand Kitchen brands",
 };
 
