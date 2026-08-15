@@ -2,6 +2,7 @@ const express = require("express");
 const { protect } = require("../middleware/authMiddleware");
 const { upload } = require("../config/upload");
 const { uploadFile, deleteUpload } = require("../controller/uploadController");
+const { resolveMedia } = require("../controller/mediaResolveController");
 
 const router = express.Router();
 
@@ -34,6 +35,7 @@ function uploadSingle(req, res, next) {
 }
 
 // JWT-protected media uploads for admin CMS
+router.get("/resolve", protect, resolveMedia);
 router.post("/", protect, uploadSingle, uploadFile);
 router.delete("/", protect, deleteUpload);
 

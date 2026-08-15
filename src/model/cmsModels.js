@@ -25,9 +25,82 @@ const categorySchema = new mongoose.Schema(
     description: { type: mongoose.Schema.Types.Mixed, default: "" },
     image: { type: String, default: "" },
     icon: { type: String, default: "" },
+    // SEO & Taxonomy Fields
+    slug: { 
+      type: String, 
+      default: "", 
+      trim: true, 
+      lowercase: true,
+      index: true,
+      validate: {
+        validator: function(v) {
+          // Allow empty OR valid URL-safe slug (lowercase letters, numbers, hyphens only)
+          return !v || /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(v);
+        },
+        message: 'Slug must be URL-safe (lowercase letters, numbers, and hyphens only)'
+      }
+    },
+    categoryType: { 
+      type: String, 
+      enum: ["service", "material", "style", "layout", "property-type", "location", "built-in-furniture", ""], 
+      default: "",
+      index: true 
+    },
+    parentId: { 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: "CmsCategory", 
+      default: null,
+      index: true
+    },
+    metaTitle: { 
+      type: String, 
+      default: "",
+      maxlength: [60, 'Meta title cannot exceed 60 characters'],
+      trim: true
+    },
+    metaDescription: { 
+      type: String, 
+      default: "",
+      maxlength: [160, 'Meta description cannot exceed 160 characters'],
+      trim: true
+    },
+    canonicalUrl: { 
+      type: String, 
+      default: "",
+      trim: true
+    },
+    indexable: { 
+      type: Boolean, 
+      default: false, 
+      index: true 
+    },
+    /** Rich landing page blocks (heading, body, image, layout). */
+    sections: {
+      type: mongoose.Schema.Types.Mixed,
+      default: [],
+    },
+    eyebrow: { type: mongoose.Schema.Types.Mixed, default: "" },
+    ctaLabel: { type: mongoose.Schema.Types.Mixed, default: "" },
+    ctaHref: { type: String, default: "/contact", trim: true },
+    footerCtaHeading: { type: mongoose.Schema.Types.Mixed, default: "" },
+    footerCtaBody: { type: mongoose.Schema.Types.Mixed, default: "" },
   },
   { timestamps: true }
 );
+
+// Unique per site + type + slug + parent (allows same service slug under different locations).
+categorySchema.index(
+  { siteId: 1, categoryType: 1, slug: 1, parentId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      slug: { $type: "string", $gt: "" },
+      categoryType: { $type: "string", $gt: "" },
+    },
+  }
+);
+categorySchema.index({ siteId: 1, categoryType: 1 });
+categorySchema.index({ siteId: 1, indexable: 1 });
 
 const productSchema = new mongoose.Schema(
   {
@@ -41,6 +114,11 @@ const productSchema = new mongoose.Schema(
     image: { type: String, default: "" },
     icon: { type: String, default: "" },
     gallery: { type: [String], default: [] },
+    /** Side image on product detail contact band (falls back to `image`). */
+    contactImage: { type: String, default: "" },
+    contactEyebrow: { type: mongoose.Schema.Types.Mixed, default: "" },
+    contactTitle: { type: mongoose.Schema.Types.Mixed, default: "" },
+    contactFormTitle: { type: mongoose.Schema.Types.Mixed, default: "" },
     pdfUrl: { type: String, default: "" },
     featureHighlights: {
       type: [
@@ -57,11 +135,30 @@ const productSchema = new mongoose.Schema(
     material: { type: mongoose.Schema.Types.Mixed, default: "" },
     style: { type: mongoose.Schema.Types.Mixed, default: "" },
     color: { type: mongoose.Schema.Types.Mixed, default: "" },
+    // SEO Fields
+    metaTitle: { 
+      type: String, 
+      default: "",
+      maxlength: [60, 'Meta title cannot exceed 60 characters'],
+      trim: true
+    },
+    metaDescription: { 
+      type: String, 
+      default: "",
+      maxlength: [160, 'Meta description cannot exceed 160 characters'],
+      trim: true
+    },
+    indexable: { 
+      type: Boolean, 
+      default: false,
+      index: true
+    },
   },
   { timestamps: true }
 );
 
 productSchema.index({ siteId: 1, slug: 1 }, { unique: true });
+productSchema.index({ siteId: 1, indexable: 1 });
 
 /** Per-locale copy for a blog. Empty fields fall back to the English base. */
 const blogTranslationSchema = new mongoose.Schema(
@@ -119,11 +216,48 @@ const blogSchema = new mongoose.Schema(
       pl: { type: blogTranslationSchema, default: () => ({}) },
     },
     published: { type: Boolean, default: true },
+    // SEO & Linking Fields
+    primaryCommercialPage: { 
+      type: String, 
+      default: "",
+      trim: true
+    },
+    locationTag: { 
+      type: String, 
+      default: "",
+      trim: true,
+      index: true
+    },
+    serviceTag: { 
+      type: String, 
+      default: "",
+      trim: true,
+      index: true
+    },
+    materialTag: { 
+      type: String, 
+      default: "",
+      trim: true
+    },
+    metaDescription: { 
+      type: String, 
+      default: "",
+      maxlength: [160, 'Meta description cannot exceed 160 characters'],
+      trim: true
+    },
+    reviewer: { 
+      type: String, 
+      default: "",
+      trim: true
+    },
   },
   { timestamps: true }
 );
 
 blogSchema.index({ siteId: 1, slug: 1 }, { unique: true });
+blogSchema.index({ siteId: 1, published: 1 });
+blogSchema.index({ siteId: 1, locationTag: 1 });
+blogSchema.index({ siteId: 1, serviceTag: 1 });
 
 const legalPageSchema = new mongoose.Schema(
   {
@@ -156,19 +290,59 @@ const galleryItemSchema = new mongoose.Schema(
     filter: {
       type: String,
       default: "Style & Color",
-      enum: [
-        "Layout & Space",
-        "Storage",
-        "Style & Color",
-        "Materials",
-      ],
+      trim: true,
+      maxlength: [80, "Gallery filter cannot exceed 80 characters"],
     },
     tall: { type: Boolean, default: false },
     wide: { type: Boolean, default: false },
     sortOrder: { type: Number, default: 0 },
+    // Project Tagging Fields
+    locationTag: { 
+      type: String, 
+      default: "",
+      trim: true,
+      index: true
+    },
+    layoutTag: { 
+      type: String, 
+      default: "",
+      trim: true,
+      index: true
+    },
+    styleTag: { 
+      type: String, 
+      default: "",
+      trim: true
+    },
+    materialTag: { 
+      type: String, 
+      default: "",
+      trim: true
+    },
+    propertyType: { 
+      type: String, 
+      default: "",
+      trim: true,
+      index: true
+    },
+    projectTitle: { 
+      type: String, 
+      default: "",
+      trim: true
+    },
+    projectDesc: { 
+      type: String, 
+      default: "",
+      maxlength: [300, 'Project description cannot exceed 300 characters'],
+      trim: true
+    },
   },
   { timestamps: true }
 );
+
+galleryItemSchema.index({ siteId: 1, locationTag: 1 });
+galleryItemSchema.index({ siteId: 1, layoutTag: 1 });
+galleryItemSchema.index({ siteId: 1, propertyType: 1 });
 
 const catalogueItemSchema = new mongoose.Schema(
   {

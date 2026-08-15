@@ -156,6 +156,13 @@ const DEFAULT_HOME_SECTIONS = {
   catalogue: {
     eyebrow: L("Design Inspiration", "แรงบันดาลใจการออกแบบ", "Inspiracje projektowe"),
     title: L("Our Latest Catalogue", "แคตตาล็อกล่าสุดของเรา", "Nasz najnowszy katalog"),
+    pageEyebrow: L("Free Download", "ดาวน์โหลดฟรี", "Darmowe pobieranie"),
+    pageTitle: L("Catalogue", "แคตตาล็อก", "Katalog"),
+    pageDescription: L(
+      "Download our latest kitchen catalogue — layouts, materials, and finishes crafted for Thailand.",
+      "ดาวน์โหลดแคตตาล็อกครัวล่าสุด — เลย์เอาต์ วัสดุ และผิวสำเร็จที่ออกแบบสำหรับประเทศไทย",
+      "Pobierz nasz najnowszy katalog kuchni — układy, materiały i wykończenia stworzone dla Tajlandii."
+    ),
     items: [
       {
         title: L("2026 EDITION", "ฉบับ 2026", "EDYCJA 2026"),
@@ -193,12 +200,12 @@ const DEFAULT_HOME_SECTIONS = {
   },
   partners: {
     logos: [
-      { name: "Partner 1", image: "/brandLogo/first (1).png" },
-      { name: "Partner 2", image: "/brandLogo/first (2).png" },
-      { name: "Partner 3", image: "/brandLogo/first (3).png" },
-      { name: "Partner 4", image: "/brandLogo/first (4).png" },
-      { name: "Partner 5", image: "/brandLogo/first (5).png" },
-      { name: "Partner 6", image: "/brandLogo/first (6).png" },
+      { name: "", image: "/brandLogo/first (1).png" },
+      { name: "", image: "/brandLogo/first (2).png" },
+      { name: "", image: "/brandLogo/first (3).png" },
+      { name: "", image: "/brandLogo/first (4).png" },
+      { name: "", image: "/brandLogo/first (5).png" },
+      { name: "", image: "/brandLogo/first (6).png" },
     ],
   },
   faq: {
@@ -229,7 +236,7 @@ const DEFAULT_HOME_SECTIONS = {
     homeLinks: [
       { label: {"en":"Our Story","th":"เรื่องราวของเรา","pl":"Nasza historia"}, href: "/#our-service" },
       { label: {"en":"Free Catalogue","th":"แคตตาล็อกฟรี","pl":"Darmowy katalog"}, href: "/catalogue" },
-      { label: {"en":"Our Global Partner","th":"พาร์ทเนอร์ระดับโลก","pl":"Partner globalny"}, href: "/#brands" },
+      { label: {"en":"Co-partnered","th":"โคพาร์ทเนอร์","pl":"Co-partnered"}, href: "/#brands" },
       { label: {"en":"Contact","th":"ติดต่อ","pl":"Kontakt"}, href: "/contact" },
     ],
     productLinks: [
@@ -238,13 +245,18 @@ const DEFAULT_HOME_SECTIONS = {
     ],
   },
   nav: {
+    logoUrl: "/logo1.svg",
     consultationLabel: {"en":"Free Consultation","th":"ปรึกษาฟรี","pl":"Bezpłatna konsultacja"},
     searchPlaceholder: {"en":"Search...","th":"ค้นหา...","pl":"Szukaj..."},
     links: [
       { label: {"en":"Home","th":"หน้าแรก","pl":"Strona główna"}, href: "/" },
+      { label: {"en":"Kitchens","th":"ครัว","pl":"Kuchnie"}, href: "/kitchens" },
       { label: {"en":"Products","th":"ผลิตภัณฑ์","pl":"Produkty"}, href: "/products" },
+      { label: {"en":"Services","th":"บริการ","pl":"Usługi"}, href: "/services" },
+      { label: {"en":"Materials","th":"วัสดุ","pl":"Materiały"}, href: "/materials" },
+      { label: {"en":"Locations","th":"พื้นที่บริการ","pl":"Lokalizacje"}, href: "/locations" },
       { label: {"en":"Gallery","th":"แกลเลอรี","pl":"Galeria"}, href: "/gallery" },
-      { label: {"en":"Blog","th":"บล็อก","pl":"Blog"}, href: "/blog" },
+      { label: {"en":"Guides","th":"คู่มือ","pl":"Poradniki"}, href: "/guides" },
       { label: {"en":"Contact","th":"ติดต่อ","pl":"Kontakt"}, href: "/contact" },
       { label: {"en":"FAQ","th":"คำถามที่พบบ่อย","pl":"FAQ"}, href: "/faq" },
     ],
@@ -257,6 +269,7 @@ const DEFAULT_HOME_SECTIONS = {
       "Strona Thailand Kitchens"
     ),
     ogImage: "",
+    ga4MeasurementId: "",
   },
   galleryPage: {
     eyebrow: {"en":"The Gallery · Vol. 04","th":"แกลเลอรี · ฉบับที่ 04","pl":"Galeria · Wyd. 04"},
@@ -287,7 +300,7 @@ const DEFAULT_HOME_SECTIONS = {
   blogPage: {
     eyebrow: {"en":"The Journal","th":"วารสาร","pl":"Dziennik"},
     title: {"en":"Blogs","th":"บล็อก","pl":"Blog"},
-    videoUrl: "/blog/Video.mp4",
+    videoUrl: "/product/productVideo.mp4",
     relatedTitle: {"en":"Related Journal Entries","th":"บทความที่เกี่ยวข้อง","pl":"Powiązane wpisy"},
     shareLinks: [
       { label: L("Facebook", "Facebook", "Facebook"), href: "https://www.facebook.com/ThailandKitchens/" },
@@ -300,6 +313,16 @@ const DEFAULT_HOME_SECTIONS = {
     eyebrow: {"en":"FAQ","th":"คำถามที่พบบ่อย","pl":"FAQ"},
     title: {"en":"Most Frequent Questions","th":"คำถามที่พบบ่อยที่สุด","pl":"Najczęściej zadawane pytania"},
     videoUrl: "/video/faq-autoplay.mp4",
+  },
+  homeContact: {
+    eyebrow: L("Free Design Consultation", "ปรึกษาออกแบบฟรี", "Bezpłatna konsultacja projektowa"),
+    title: L("Get in Touch", "ติดต่อเรา", "Skontaktuj się"),
+    formTitle: L(
+      "Let's design a kitchen worthy of your island",
+      "มาออกแบบครัวที่คู่ควรกับเกาะของคุณ",
+      "Zaprojektujmy kuchnię godną Twojej wyspy"
+    ),
+    image: "/contactUs/contact.png",
   },
   contactPage: {
     title: {"en":"Connect","th":"เชื่อมต่อ","pl":"Połącz się"},
@@ -327,6 +350,270 @@ const DEFAULT_HOME_SECTIONS = {
         ),
       },
     ],
+  },
+  hubPages: {
+    kitchens: {
+      title: L("Kitchens", "ครัว", "Kuchnie"),
+      description: L(
+        "Explore kitchen layouts, styles, and solutions by property type.",
+        "สำรวจเลย์เอาต์ สไตล์ และโซลูชันครัวตามประเภทที่อยู่อาศัย",
+        "Poznaj układy, style i rozwiązania kuchni według typu nieruchomości."
+      ),
+      eyebrow: L("Kitchen Design", "การออกแบบครัว", "Projektowanie kuchni"),
+      heroImage: "/products/Kitchen1.png",
+      ctaLabel: L("Book a free consultation", "จองปรึกษาฟรี", "Umów bezpłatną konsultację"),
+      ctaHref: "/contact",
+      sections: [
+        {
+          heading: L("Crafted for how you live", "ออกแบบตามวิถีชีวิตของคุณ", "Stworzone pod Twój styl życia"),
+          body: L(
+            "From island layouts to villa-scale kitchens, every project starts with your space, light, and daily routines.",
+            "ตั้งแต่ครัวเกาะไปจนถึงครัวในวิลล่า ทุกโปรเจกต์เริ่มจากพื้นที่ แสง และกิจวัตรประจำวันของคุณ",
+            "Od wysp kuchennych po kuchnie w willach — każdy projekt zaczyna się od Twojej przestrzeni i codziennych nawyków."
+          ),
+          image: "/products/Kitchen2.png",
+          layout: "image-left",
+        },
+        {
+          heading: L("Design, make, install", "ออกแบบ ผลิต ติดตั้ง", "Projekt, produkcja, montaż"),
+          body: L(
+            "One team takes you from concept drawings through manufacturing and on-site installation.",
+            "ทีมเดียวดูแลตั้งแต่แบบร่าง การผลิต ไปจนถึงติดตั้งหน้างาน",
+            "Jeden zespół prowadzi Cię od szkiców przez produkcję aż po montaż na miejscu."
+          ),
+          image: "/products/Kitchen4.png",
+          layout: "image-right",
+        },
+      ],
+      subsections: {
+        layouts: {
+          title: L("Kitchen Layouts", "เลย์เอาต์ครัว", "Układy kuchni"),
+          description: L(
+            "Island, U-shape, L-shape, galley, and other kitchen layouts.",
+            "ครัวเกาะ รูปตัว U รูปตัว L ทางเดินแคบ และเลย์เอาต์อื่นๆ",
+            "Wyspy, kształt U, kształt L, galeryjne i inne układy kuchni."
+          ),
+          sections: [
+            {
+              heading: L("Layouts that work for your space", "เลย์เอาต์ที่เหมาะกับพื้นที่ของคุณ", "Układy dopasowane do przestrzeni"),
+              body: L(
+                "Island, L-shape, U-shape, galley, and straight runs planned around how you cook and live.",
+                "ครัวเกาะ รูปตัว L รูปตัว U ทางเดินแคบ และแนวตรง ออกแบบตามวิถีการใช้ชีวิต",
+                "Wyspy, L, U, galeria i proste ciągi zaplanowane pod Twój sposób gotowania."
+              ),
+              image: "/products/Kitchen2.png",
+              layout: "image-left",
+            },
+            {
+              heading: L("Measured for Thai homes", "วัดเพื่อบ้านไทย", "Dopasowane do tajskich domów"),
+              body: L(
+                "Every layout accounts for humidity, ventilation, and daily kitchen use in Thailand.",
+                "ทุกเลย์เอาต์คำนึงถึงความชื้น การระบายอากาศ และการใช้งานครัวในไทย",
+                "Każdy układ uwzględnia wilgoć, wentylację i codzienne użytkowanie w Tajlandii."
+              ),
+              image: "/products/Kitchen4.png",
+              layout: "image-right",
+            },
+          ],
+        },
+        styles: {
+          title: L("Kitchen Styles", "สไตล์ครัว", "Style kuchni"),
+          description: L(
+            "Modern, tropical, minimal, and heritage kitchen styles.",
+            "สไตล์ครัวโมเดิร์น ทรอปิคอล มินิมอล และมรดก",
+            "Nowoczesne, tropikalne, minimalistyczne i klasyczne style kuchni."
+          ),
+          sections: [
+            {
+              heading: L("Styles with lasting character", "สไตล์ที่มีเอกลักษณ์ยาวนาน", "Style z charakterem"),
+              body: L(
+                "Modern, minimal, contemporary, and traditional Thai — calm, warm, and timeless.",
+                "โมเดิร์น มินิมอล คอนเทมโพแรรี และไทยดั้งเดิม — อบอุ่นและเหนือกาลเวลา",
+                "Nowoczesny, minimal, contemporary i tradycyjny tajski — spokojny i ponadczasowy."
+              ),
+              image: "/products/Kitchen5.png",
+              layout: "image-left",
+            },
+            {
+              heading: L("Detail that carries the look", "รายละเอียดที่สร้างลุค", "Detal, który buduje styl"),
+              body: L(
+                "Hardware, profiles, and materials specified together for a coherent finish.",
+                "ฮาร์ดแวร์ โปรไฟล์ และวัสดุเลือกให้สอดคล้องกันทั้งชุด",
+                "Okucia, profile i materiały dobrane w spójną całość."
+              ),
+              image: "/products/Kitchen3.png",
+              layout: "image-right",
+            },
+          ],
+        },
+        byProperty: {
+          title: L("Kitchens by Property", "ครัวตามประเภทที่อยู่อาศัย", "Kuchnie według typu nieruchomości"),
+          description: L(
+            "Kitchen solutions for villas, condos, hotels, and developers.",
+            "โซลูชันครัวสำหรับวิลล่า คอนโด โรงแรม และโครงการพัฒนา",
+            "Rozwiązania kuchenne dla willi, apartamentów, hoteli i deweloperów."
+          ),
+          sections: [
+            {
+              heading: L("Solutions by property type", "โซลูชันตามประเภทที่อยู่อาศัย", "Rozwiązania według typu nieruchomości"),
+              body: L(
+                "Villas, condos, apartments, and townhouses each need a different balance of storage and scale.",
+                "วิลล่า คอนโด อพาร์ตเมนต์ และทาวน์เฮาส์ต้องการสัดส่วนพื้นที่เก็บของและขนาดที่ต่างกัน",
+                "Wille, condo, apartamenty i szeregowce wymagają innego balansu przechowywania i skali."
+              ),
+              image: "/products/Kitchen1.png",
+              layout: "image-left",
+            },
+            {
+              heading: L("Built for developers and hotels", "สำหรับดีเวลลอปเปอร์และโรงแรม", "Dla deweloperów i hoteli"),
+              body: L(
+                "Repeatable modules and durable finishes that scale across units.",
+                "โมดูลที่ทำซ้ำได้และผิวสำเร็จทนทาน ขยายได้หลายยูนิต",
+                "Powtarzalne moduły i trwałe wykończenia skalowane na wiele jednostek."
+              ),
+              image: "/products/Kitchen6.png",
+              layout: "image-right",
+            },
+          ],
+        },
+      },
+    },
+    services: {
+      title: L("Services", "บริการ", "Usługi"),
+      description: L(
+        "Kitchen design, installation, renovation, and related services.",
+        "ออกแบบ ติดตั้ง ปรับปรุงครัว และบริการที่เกี่ยวข้อง",
+        "Projektowanie, montaż, renowacja kuchni i powiązane usługi."
+      ),
+      eyebrow: L("Our Services", "บริการของเรา", "Nasze usługi"),
+      heroImage: "/products/Kitchen3.png",
+      ctaLabel: L("Book a free consultation", "จองปรึกษาฟรี", "Umów bezpłatną konsultację"),
+      ctaHref: "/contact",
+      sections: [
+        {
+          heading: L("End-to-end kitchen delivery", "บริการครัวครบวงจร", "Kompleksowa realizacja kuchni"),
+          body: L(
+            "Design, manufacturing, delivery, and installation — one team from first sketch to final handover.",
+            "ออกแบบ ผลิต จัดส่ง และติดตั้ง — ทีมเดียวตั้งแต่ร่างแรกจนส่งมอบ",
+            "Projekt, produkcja, dostawa i montaż — jeden zespół od pierwszego szkicu do odbioru."
+          ),
+          image: "/products/Kitchen4.png",
+          layout: "image-left",
+        },
+        {
+          heading: L("Renovation without the chaos", "ปรับปรุงโดยไม่ยุ่งเหยิง", "Remont bez chaosu"),
+          body: L(
+            "Phased installs and protected living areas so your home stays livable while we work.",
+            "ติดตั้งเป็นระยะและกันพื้นที่อยู่อาศัย เพื่อให้บ้านยังใช้ชีวิตได้ระหว่างงาน",
+            "Etapowy montaż i ochrona stref mieszkalnych, by dom pozostał funkcjonalny."
+          ),
+          image: "/products/Kitchen3.png",
+          layout: "image-right",
+        },
+      ],
+    },
+    materials: {
+      title: L("Materials", "วัสดุ", "Materiały"),
+      description: L(
+        "Cabinet materials, finishes, worktops, and hardware.",
+        "วัสดุตู้ ผิวสำเร็จ เคาน์เตอร์ และฮาร์ดแวร์",
+        "Materiały szafek, wykończenia, blaty i okucia."
+      ),
+      eyebrow: L("Materials & Finishes", "วัสดุและผิวสำเร็จ", "Materiały i wykończenia"),
+      heroImage: "/products/Kitchen5.png",
+      ctaLabel: L("Book a free consultation", "จองปรึกษาฟรี", "Umów bezpłatną konsultację"),
+      ctaHref: "/contact",
+      sections: [
+        {
+          heading: L("Materials you can trust", "วัสดุที่ไว้วางใจได้", "Materiały, którym możesz zaufać"),
+          body: L(
+            "We specify finishes and worktops for Thailand's climate — humidity, heat, and daily use.",
+            "เราเลือกผิวสำเร็จและเคาน์เตอร์ให้เหมาะกับอากาศไทย — ความชื้น ความร้อน และการใช้งานจริง",
+            "Dobieramy wykończenia i blaty pod klimat Tajlandii — wilgoć, ciepło i codzienne użytkowanie."
+          ),
+          image: "/features/image2.png",
+          layout: "image-left",
+        },
+        {
+          heading: L("Hardware and surfaces that last", "ฮาร์ดแวร์และพื้นผิวที่ทนทาน", "Okucia i powierzchnie na lata"),
+          body: L(
+            "Brass, lacquer, teak, marble, and quartz — selected for touch, durability, and how they age.",
+            "ทองเหลือง แลคเกอร์ ไม้สัก หินอ่อน และควอตซ์ — เลือกเพื่อสัมผัส ความทนทาน และการเปลี่ยนตามกาลเวลา",
+            "Mosiądz, lakier, tek, marmur i kwarc — dobrane pod dotyk, trwałość i starzenie."
+          ),
+          image: "/products/Kitchen5.png",
+          layout: "image-right",
+        },
+      ],
+    },
+    locations: {
+      title: L("Locations", "พื้นที่ให้บริการ", "Lokalizacje"),
+      description: L(
+        "Kitchen projects and services across Thailand.",
+        "โปรเจกต์และบริการครัวทั่วประเทศไทย",
+        "Projekty i usługi kuchenne w całej Tajlandii."
+      ),
+      eyebrow: L("Across Thailand", "ทั่วประเทศไทย", "W całej Tajlandii"),
+      heroImage: "/product/product.png",
+      ctaLabel: L("Book a free consultation", "จองปรึกษาฟรี", "Umów bezpłatną konsultację"),
+      ctaHref: "/contact",
+      sections: [
+        {
+          heading: L("Local teams across Thailand", "ทีมท้องถิ่นทั่วไทย", "Lokalne zespoły w Tajlandii"),
+          body: L(
+            "From Bangkok to Phuket, Samui, Pattaya, and Chiang Mai — surveys, fabrication, and install close to your project.",
+            "จากกรุงเทพฯ ถึงภูเก็ต สมุย พัทยา และเชียงใหม่ — สำรวจ ผลิต และติดตั้งใกล้โปรเจกต์ของคุณ",
+            "Od Bangkoku po Phuket, Samui, Pattayę i Chiang Mai — pomiary, produkcja i montaż blisko projektu."
+          ),
+          image: "/products/Kitchen1.png",
+          layout: "image-left",
+        },
+        {
+          heading: L("Service where you live", "บริการใกล้บ้านคุณ", "Obsługa tam, gdzie mieszkasz"),
+          body: L(
+            "Consultation, design, and aftercare with people who know local standards and climate.",
+            "ปรึกษา ออกแบบ และดูแลหลังการขายโดยทีมที่เข้าใจมาตรฐานท้องถิ่นและสภาพอากาศ",
+            "Konsultacje, projekt i serwis z ludźmi, którzy znają lokalne standardy i klimat."
+          ),
+          image: "/products/Kitchen6.png",
+          layout: "image-right",
+        },
+      ],
+    },
+    builtInFurniture: {
+      title: L("Built-In Furniture", "เฟอร์นิเจอร์บิวท์อิน", "Meble na wymiar"),
+      description: L(
+        "Wardrobes, closets, vanities, and other built-in furniture pages.",
+        "ตู้เสื้อผ้า ตู้บิวท์อิน เคาน์เตอร์ห้องน้ำ และเฟอร์นิเจอร์บิวท์อินอื่นๆ",
+        "Szafy, zabudowy, blaty łazienkowe i inne meble na wymiar."
+      ),
+      eyebrow: L("Built-In Furniture", "เฟอร์นิเจอร์บิวท์อิน", "Meble na wymiar"),
+      heroImage: "/products/Kitchen2.png",
+      ctaLabel: L("Book a free consultation", "จองปรึกษาฟรี", "Umów bezpłatną konsultację"),
+      ctaHref: "/contact",
+      sections: [
+        {
+          heading: L("Built-ins that fit the architecture", "บิวท์อินที่เข้ากับสถาปัตยกรรม", "Zabudowy dopasowane do architektury"),
+          body: L(
+            "Wardrobes, vanities, and entertainment units planned to the millimetre.",
+            "ตู้เสื้อผ้า เคาน์เตอร์ห้องน้ำ และตู้ทีวี วางแผนละเอียดระดับมิลลิเมตร",
+            "Szafy, toaletki i szafki RTV planowane z dokładnością do milimetra."
+          ),
+          image: "/products/Kitchen2.png",
+          layout: "image-left",
+        },
+        {
+          heading: L("Same craft as our kitchens", "งานคราฟต์เดียวกับครัวของเรา", "Ten sam kunszt co nasze kuchnie"),
+          body: L(
+            "Shared materials and finishing so built-ins feel like one interior language.",
+            "วัสดุและผิวสำเร็จร่วมกัน ทำให้บิวท์อินดูเป็นภาษาเดียวกันทั้งบ้าน",
+            "Wspólne materiały i wykończenia, by zabudowa tworzyła jeden język wnętrza."
+          ),
+          image: "/products/Kitchen5.png",
+          layout: "image-right",
+        },
+      ],
+    },
   },
 };
 

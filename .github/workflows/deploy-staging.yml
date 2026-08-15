@@ -1,0 +1,3 @@
+name: Auto-deploy to staging (backend API)
+on: {push: {branches: [thailand-kitchen-backend-staging]}}
+jobs: {deploy: {runs-on: ubuntu-latest, steps: [{name: "SSH into droplet and run staging deploy script", uses: "appleboy/ssh-action@v1.0.3", with: {host: "${{ secrets.SSH_HOST }}", username: "${{ secrets.SSH_USER }}", key: "${{ secrets.SSH_PRIVATE_KEY }}", script: "bash /var/www/deploy_scripts/staging_thailand_kitchen_server.sh"}}]}}

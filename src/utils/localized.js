@@ -78,6 +78,16 @@ function localizedString(value, locale = "en") {
   return map[key] || map.en || "";
 }
 
+function fillEmptyLocalesFromEn(value) {
+  const cur = asLocalized(value);
+  if (!cur.en && !cur.th && !cur.pl) return cur;
+  return {
+    en: cur.en,
+    th: cur.th || cur.en,
+    pl: cur.pl || cur.en,
+  };
+}
+
 /** True if any locale has text (or legacy string). */
 function hasLocalizedText(value) {
   if (typeof value === "string") return Boolean(value.trim());
@@ -95,6 +105,7 @@ module.exports = {
   asLocalized,
   mergeLocalized,
   mergeLocalizedFillEmpty,
+  fillEmptyLocalesFromEn,
   L,
   localeKey,
   localizedString,

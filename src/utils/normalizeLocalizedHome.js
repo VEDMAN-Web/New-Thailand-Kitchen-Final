@@ -5,10 +5,15 @@
  */
 const { DEFAULT_HOME_SECTIONS } = require("../seed/thailandSiteDefaults");
 const { mergeLocalized, mergeLocalizedFillEmpty, asLocalized } = require("./localized");
+const {
+  sectionsContainProbe,
+  sectionContainsProbe,
+  sanitizeMediaUrl,
+} = require("./cmsContentGuard");
 
 function mergeLinkList(raw, fallback) {
   const fb = Array.isArray(fallback) ? fallback : [];
-  if (!Array.isArray(raw) || !raw.length) {
+  if (!Array.isArray(raw)) {
     return fb.map((l) => ({
       label: mergeLocalized(l.label, l.label),
       href: String(l.href || "").trim(),
@@ -20,6 +25,32 @@ function mergeLinkList(raw, fallback) {
       href: String(l?.href || "").trim(),
     }))
     .filter((l) => l.href);
+}
+
+/** Nav links: CMS list is source of truth (order + add/remove). Defaults only fill labels. */
+function mergeNavLinks(raw, fallback) {
+  const fb = Array.isArray(fallback) ? fallback : [];
+  if (!Array.isArray(raw) || !raw.length) {
+    return mergeLinkList(raw, fb);
+  }
+  const fbByHref = new Map();
+  for (const l of fb) {
+    const href = String(l.href || "").trim();
+    if (href) fbByHref.set(href, l);
+  }
+  const seen = new Set();
+  const merged = [];
+  for (const l of raw) {
+    const href = String(l?.href || "").trim();
+    if (!href || seen.has(href)) continue;
+    seen.add(href);
+    const def = fbByHref.get(href);
+    merged.push({
+      href,
+      label: mergeLocalized(l?.label, def?.label || l?.label || ""),
+    });
+  }
+  return merged.length ? merged : mergeLinkList([], fb);
 }
 
 function normalizeLocalizedHomeSections(raw = {}) {
@@ -57,72 +88,79 @@ function normalizeLocalizedHomeSections(raw = {}) {
   };
 
   const transitionSrc = src.transition || {};
+  const pillarsProvided =
+    Array.isArray(transitionSrc.pillars) || Array.isArray(transitionSrc.items);
   const pillarsRaw = Array.isArray(transitionSrc.pillars)
     ? transitionSrc.pillars
     : Array.isArray(transitionSrc.items)
       ? transitionSrc.items
       : [];
   const transition = {
-    pillars:
-      pillarsRaw.length > 0
-        ? pillarsRaw.map((p, i) => ({
-            title: mergeLocalized(
-              p.title,
-              defaults.transition.pillars[i]?.title || ""
-            ),
-            description: mergeLocalized(
-              p.description,
-              defaults.transition.pillars[i]?.description || ""
-            ),
-            icon: String(p.icon || "").trim(),
-          }))
-        : defaults.transition.pillars,
+    pillars: pillarsProvided
+      ? pillarsRaw.map((p, i) => ({
+          title: mergeLocalized(
+            p.title,
+            defaults.transition.pillars[i]?.title || ""
+          ),
+          description: mergeLocalized(
+            p.description,
+            defaults.transition.pillars[i]?.description || ""
+          ),
+          icon: String(p.icon || "").trim(),
+        }))
+      : defaults.transition.pillars,
   };
 
   const partnersSrc = src.partners || {};
+  const logosProvided =
+    Array.isArray(partnersSrc.logos) || Array.isArray(partnersSrc.items);
   const logosRaw = Array.isArray(partnersSrc.logos)
     ? partnersSrc.logos
     : Array.isArray(partnersSrc.items)
       ? partnersSrc.items
       : [];
   const mappedLogos = logosRaw
-    .map((l) => ({
-      name: String(l.name || l.title || "Partner"),
-      image: String(l.image || l.logo || "").trim(),
-    }))
+    .map((l) => {
+      let image = String(l.image || l.logo || "").trim();
+      const placeholder = image.match(/\/brandLogo\/partner-(\d)\.svg$/i);
+      if (placeholder) image = `/brandLogo/first (${placeholder[1]}).png`;
+      return {
+        name: String(l.name || l.title || "").trim(),
+        image,
+      };
+    })
     .filter(
       (l) =>
         l.image &&
         !l.image.includes("/brand/brand.png") &&
-        l.image !== "/brand/brand.png"
+        l.image !== "/brand/brand.png" &&
+        !/\/brandLogo\/partner-\d\.svg$/i.test(l.image)
     );
   const partners = {
     logos: mappedLogos.length > 0 ? mappedLogos : defaults.partners.logos,
   };
 
-  const statsItems =
-    Array.isArray(src.statistics?.items) && src.statistics.items.length
-      ? src.statistics.items.map((it, i) => ({
-          label: mergeLocalized(
-            it.label,
-            defaults.statistics.items[i]?.label || ""
-          ),
-          value: String(it.value || "").replace(/\+$/, "") || it.value || "",
-          suffix: String(
-            it.suffix != null && typeof it.suffix !== "object"
-              ? it.suffix
-              : String(it.value || "").endsWith("+")
-                ? "+"
-                : ""
-          ),
-        }))
-      : defaults.statistics.items;
+  const statsItems = Array.isArray(src.statistics?.items)
+    ? src.statistics.items.map((it, i) => ({
+        label: mergeLocalized(
+          it.label,
+          defaults.statistics.items[i]?.label || ""
+        ),
+        value: String(it.value || "").replace(/\+$/, "") || it.value || "",
+        suffix: String(
+          it.suffix != null && typeof it.suffix !== "object"
+            ? it.suffix
+            : String(it.value || "").endsWith("+")
+              ? "+"
+              : ""
+        ),
+      }))
+    : defaults.statistics.items;
 
   const advantagesSrc = src.advantages || {};
-  const advantagesItemsRaw =
-    Array.isArray(advantagesSrc.items) && advantagesSrc.items.length
-      ? advantagesSrc.items
-      : defaults.advantages.items;
+  const advantagesItemsRaw = Array.isArray(advantagesSrc.items)
+    ? advantagesSrc.items
+    : defaults.advantages.items;
   const advantages = {
     eyebrow: mergeLocalized(
       advantagesSrc.eyebrow,
@@ -140,10 +178,9 @@ function normalizeLocalizedHomeSections(raw = {}) {
   };
 
   const testimonialsSrc = src.testimonials || {};
-  const testimonialsItemsRaw =
-    Array.isArray(testimonialsSrc.items) && testimonialsSrc.items.length
-      ? testimonialsSrc.items
-      : defaults.testimonials.items;
+  const testimonialsItemsRaw = Array.isArray(testimonialsSrc.items)
+    ? testimonialsSrc.items
+    : defaults.testimonials.items;
   const testimonials = {
     eyebrow: mergeLocalized(
       testimonialsSrc.eyebrow,
@@ -169,40 +206,46 @@ function normalizeLocalizedHomeSections(raw = {}) {
       image: String(
         it.image || defaults.testimonials.items[i]?.image || ""
       ).trim(),
-      rating: Number(it.rating) || 5,
+      rating: (() => {
+        const n = Number(it.rating);
+        if (!Number.isFinite(n)) return 5;
+        return Math.min(5, Math.max(1, Math.round(n)));
+      })(),
     })),
   };
 
   const catalogueSrc = src.catalogue || {};
-  const catalogueItemsRaw =
-    Array.isArray(catalogueSrc.items) && catalogueSrc.items.length
-      ? catalogueSrc.items
-      : defaults.catalogue.items;
+  const catalogueItemsRaw = Array.isArray(catalogueSrc.items)
+    ? catalogueSrc.items
+    : defaults.catalogue.items;
   const catalogue = {
     eyebrow: mergeLocalized(catalogueSrc.eyebrow, defaults.catalogue.eyebrow),
     title: mergeLocalized(catalogueSrc.title, defaults.catalogue.title),
-    items: catalogueItemsRaw.map((c, i) => ({
-      title: mergeLocalized(c.title, defaults.catalogue.items[i]?.title || "Catalogue"),
-      category: mergeLocalized(
-        c.category,
-        defaults.catalogue.items[i]?.category || ""
-      ),
-      image: String(c.image || defaults.catalogue.items[i]?.image || "").trim(),
+    pageEyebrow: mergeLocalized(
+      catalogueSrc.pageEyebrow,
+      defaults.catalogue.pageEyebrow || defaults.catalogue.eyebrow
+    ),
+    pageTitle: mergeLocalized(
+      catalogueSrc.pageTitle,
+      defaults.catalogue.pageTitle || defaults.catalogue.title
+    ),
+    pageDescription: mergeLocalized(
+      catalogueSrc.pageDescription,
+      defaults.catalogue.pageDescription || ""
+    ),
+    items: catalogueItemsRaw.map((c) => ({
+      title: mergeLocalized(c.title, "Catalogue"),
+      category: mergeLocalized(c.category, ""),
+      image: String(c.image || "").trim(),
       pdfUrl: String(c.pdfUrl || "").trim(),
-      fileName: String(c.fileName || defaults.catalogue.items[i]?.fileName || "").trim(),
-      downloadName: String(
-        c.downloadName ||
-          c.fileName ||
-          defaults.catalogue.items[i]?.downloadName ||
-          ""
-      ).trim(),
+      fileName: String(c.fileName || "").trim(),
+      downloadName: String(c.downloadName || c.fileName || "").trim(),
     })),
   };
 
-  const faqItemsRaw =
-    Array.isArray(src.faq?.items) && src.faq.items.length
-      ? src.faq.items
-      : defaults.faq.items;
+  const faqItemsRaw = Array.isArray(src.faq?.items)
+    ? src.faq.items
+    : defaults.faq.items;
   const faqSrc = src.faq || {};
   const faq = {
     eyebrow: mergeLocalizedFillEmpty(
@@ -248,6 +291,9 @@ function normalizeLocalizedHomeSections(raw = {}) {
 
   const navSrc = src.nav || {};
   const nav = {
+    logoUrl: String(
+      navSrc.logoUrl || defaults.nav.logoUrl || "/logo1.svg"
+    ).trim(),
     consultationLabel: mergeLocalized(
       navSrc.consultationLabel,
       defaults.nav.consultationLabel
@@ -256,7 +302,7 @@ function normalizeLocalizedHomeSections(raw = {}) {
       navSrc.searchPlaceholder,
       defaults.nav.searchPlaceholder
     ),
-    links: mergeLinkList(navSrc.links, defaults.nav.links),
+    links: mergeNavLinks(navSrc.links, defaults.nav.links),
   };
 
   const seoSrc = src.seo || {};
@@ -264,6 +310,9 @@ function normalizeLocalizedHomeSections(raw = {}) {
     title: mergeLocalized(seoSrc.title, defaults.seo.title),
     description: mergeLocalized(seoSrc.description, defaults.seo.description),
     ogImage: String(seoSrc.ogImage || defaults.seo.ogImage || "").trim(),
+    ga4MeasurementId: String(
+      seoSrc.ga4MeasurementId || defaults.seo.ga4MeasurementId || ""
+    ).trim(),
   };
 
   const galleryPageSrc = src.galleryPage || {};
@@ -374,6 +423,25 @@ function normalizeLocalizedHomeSections(raw = {}) {
     ).trim(),
   };
 
+  const homeContactSrc = src.homeContact || {};
+  const homeContact = {
+    eyebrow: mergeLocalized(
+      homeContactSrc.eyebrow,
+      defaults.homeContact?.eyebrow || ""
+    ),
+    title: mergeLocalized(
+      homeContactSrc.title,
+      defaults.homeContact?.title || ""
+    ),
+    formTitle: mergeLocalized(
+      homeContactSrc.formTitle,
+      defaults.homeContact?.formTitle || ""
+    ),
+    image: String(
+      homeContactSrc.image || defaults.homeContact?.image || ""
+    ).trim(),
+  };
+
   const contactPageSrc = src.contactPage || {};
   const contactLocationsRaw = Array.isArray(contactPageSrc.locations)
     ? contactPageSrc.locations
@@ -416,6 +484,79 @@ function normalizeLocalizedHomeSections(raw = {}) {
     locations: contactLocations,
   };
 
+  const hubKeys = [
+    "kitchens",
+    "services",
+    "materials",
+    "locations",
+    "builtInFurniture",
+  ];
+  const kitchenSubKeys = ["layouts", "styles", "byProperty"];
+
+  function mergeContentSections(src = [], def = []) {
+    if (sectionsContainProbe(src)) {
+      return structuredClone(Array.isArray(def) ? def : []);
+    }
+
+    const list =
+      Array.isArray(src) && src.length
+        ? src
+        : Array.isArray(def)
+          ? def
+          : [];
+    return list.map((block, i) => {
+      const defBlock = def[i] || {};
+      if (sectionContainsProbe(block)) {
+        return {
+          heading: defBlock?.heading || "",
+          body: defBlock?.body || "",
+          image: sanitizeMediaUrl(defBlock?.image || ""),
+          layout: String(defBlock?.layout || "image-left").trim(),
+        };
+      }
+      return {
+        heading: mergeLocalizedFillEmpty(block?.heading, defBlock?.heading || ""),
+        body: mergeLocalizedFillEmpty(block?.body, defBlock?.body || ""),
+        image: sanitizeMediaUrl(block?.image || defBlock?.image || ""),
+        layout: String(block?.layout || defBlock?.layout || "image-left").trim(),
+      };
+    });
+  }
+
+  function mergeHubBlock(src = {}, def = {}) {
+    return {
+      title: mergeLocalizedFillEmpty(src.title, def.title || ""),
+      description: mergeLocalizedFillEmpty(
+        src.description,
+        def.description || ""
+      ),
+      eyebrow: mergeLocalizedFillEmpty(src.eyebrow, def.eyebrow || ""),
+      heroImage: String(src.heroImage || def.heroImage || "").trim(),
+      ctaLabel: mergeLocalizedFillEmpty(src.ctaLabel, def.ctaLabel || ""),
+      ctaHref: String(src.ctaHref || def.ctaHref || "/contact").trim(),
+      sections: mergeContentSections(src.sections, def.sections),
+    };
+  }
+
+  const hubPages = {};
+  for (const key of hubKeys) {
+    const hubSrc = src.hubPages?.[key] || {};
+    const hubDef = defaults.hubPages?.[key] || {};
+    const nextHub = mergeHubBlock(hubSrc, hubDef);
+
+    if (key === "kitchens") {
+      const subsections = {};
+      for (const subKey of kitchenSubKeys) {
+        const subSrc = hubSrc.subsections?.[subKey] || {};
+        const subDef = hubDef.subsections?.[subKey] || {};
+        subsections[subKey] = mergeHubBlock(subSrc, subDef);
+      }
+      nextHub.subsections = subsections;
+    }
+
+    hubPages[key] = nextHub;
+  }
+
   return {
     hero,
     statistics: { items: statsItems },
@@ -433,7 +574,9 @@ function normalizeLocalizedHomeSections(raw = {}) {
     productsPage,
     blogPage,
     faqPage,
+    homeContact,
     contactPage,
+    hubPages,
   };
 }
 

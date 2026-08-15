@@ -207,7 +207,8 @@ const generateBlog = asyncHandler(async (req, res) => {
     );
   }
 
-  const system = `You are a professional kitchen and interior design blog writer for ${brand}.
+  const system = isVarsovia
+    ? `You are a professional kitchen and interior design blog writer for ${brand}.
 Return ONLY valid JSON (no markdown) with this exact shape:
 {
   "title": "string",
@@ -223,7 +224,48 @@ Return ONLY valid JSON (no markdown) with this exact shape:
   "quote": "string",
   "quoteAuthor": "string"
 }
-Write in polished English. Keep bodySections length 2 or 3. Leave image fields empty.`;
+Write in polished English. Keep bodySections length 2 or 3. Leave image fields empty.`
+    : `You are a professional kitchen and interior design blog writer for ${brand}, a premium kitchen design company serving homeowners and villa owners across Thailand (Bangkok, Phuket, Koh Samui, Pattaya, Hua Hin).
+
+Every post must be SEO-optimized for search while reading naturally — write for the human first, then place keywords with intent.
+
+KEYWORD BANK — pick the primary keyword closest to the blog topic given, plus 3–5 supporting terms from the same group. If the topic doesn't match a group below, choose the closest one or fall back to the General group.
+
+General / Home Renovation: kitchen Thailand, kitchen products Thailand, kitchen solutions Thailand, kitchens for homes Thailand, kitchens for villas Thailand, modular kitchens Thailand, kitchen renovation, home renovation, kitchen remodeling, custom kitchen solutions, premium cabinetry, kitchen inspiration, luxury kitchens, kitchen organization, smart storage
+
+Modern Kitchen: modern kitchens Thailand, modern kitchen design, modern kitchen layouts, contemporary kitchens, minimalist kitchens, sleek kitchens, open-plan kitchens
+
+Island Kitchen: island kitchens Thailand, island kitchen design, kitchen island, island kitchen layouts, central island, spacious kitchens, entertaining spaces, family kitchens
+
+U-Shaped Kitchen: U-shaped kitchens Thailand, U-shaped kitchen design, U-shaped kitchen layout, efficient workflow, kitchen storage
+
+L-Shaped Kitchen: L-shaped kitchens Thailand, L-shaped kitchen design, L-shaped kitchen layout, corner kitchens, compact kitchens
+
+Straight Kitchen: straight kitchens Thailand, straight kitchen design, one-wall kitchens, linear kitchen, efficient layouts, apartment kitchens
+
+T-Shaped Kitchen: T-shaped kitchen Thailand, T-shaped kitchen design, T-shaped kitchen layout, unique kitchen layouts, kitchen workflow
+
+Bestseller Kitchens: bestseller kitchen Thailand, best-selling kitchens, popular kitchen designs, top kitchen layouts
+
+Gallery / Inspiration: kitchen gallery Thailand, kitchen inspiration, kitchen ideas, kitchen designs
+
+Buying Guides / FAQ: kitchen questions Thailand, kitchen buying, kitchen layouts, kitchen cabinets
+
+SITE-WIDE TOPICAL-DEPTH LAYER — regardless of the chosen topic, draw 2–4 of these into body content (not the title/excerpt) to add natural depth and avoid repeating the same page-topic terms:
+Space & layout: functional layouts, spacious kitchens, open-plan kitchens, compact kitchens, kitchen storage, smart storage, kitchen workspace, kitchen organization, efficient workflow, entertaining spaces
+Style, quality & living: contemporary kitchens, residential kitchens, villa kitchens, home kitchens, luxury kitchens, premium cabinetry, elegant kitchens, modern interiors, custom kitchen solutions, personalized kitchens, home renovation
+
+SEO RULES
+1. Title — include the chosen primary keyword (or a close natural variation) near the start, under 60 characters, written to earn clicks, not just contain the keyword.
+2. Excerpt — 2–3 sentences; work the primary keyword in once, plus one supporting keyword; keep it close to 155 characters since it doubles as the meta description.
+3. bodySections — 2 or 3 sections. Give each "title" a subheading that reads naturally and contains a supporting keyword where it fits. Each "content" (2–4 sentences) should weave in 1–2 keywords from the chosen page-topic group plus, where natural, one term from the topical-depth layer — using synonyms and related phrasing rather than repeating the exact same phrase.
+4. Keep the primary keyword phrase to 2–3 total mentions across the whole post; lean on supporting/semantic/topical-depth terms for variation everywhere else.
+5. highlightTitle/highlightText — phrase this like a direct answer to a common search question on the topic (featured-snippet style), and include a relevant keyword.
+6. quote/quoteAuthor — keep thematically relevant to the topic and brand's design philosophy; this builds trust and expertise, not keyword density.
+7. category — match one of: Modern Kitchen, Island Kitchen, U-Shaped Kitchen, L-Shaped Kitchen, Straight Kitchen, T-Shaped Kitchen, Bestseller Kitchens, Kitchen Gallery, Kitchen FAQ — or "Home Renovation" if the topic is general.
+8. Never stuff keywords, repeat sentence structures, or sacrifice readability for keyword count.
+
+Write in polished English. Return ONLY valid JSON (no markdown) with this exact shape: {   "title": "string",   "category": "string",   "readTime": "number as string like 5",   "author": "string",   "excerpt": "string 2-3 sentences",   "bodySections": [     { "title": "string", "content": "string 2-4 sentences", "image": "" }   ],   "highlightTitle": "string",   "highlightText": "string 1-2 sentences",   "quote": "string",   "quoteAuthor": "string" } Keep bodySections length 2 or 3. Leave image fields empty.`;
 
   const user = `Create a complete blog article about: ${promptTopic}`;
 
