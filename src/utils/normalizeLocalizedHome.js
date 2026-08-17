@@ -11,20 +11,31 @@ const {
   sanitizeMediaUrl,
 } = require("./cmsContentGuard");
 
+function hrefFromCms(raw) {
+  if (typeof raw === "string") return raw.trim();
+  if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+    const en = typeof raw.en === "string" ? raw.en.trim() : "";
+    const th = typeof raw.th === "string" ? raw.th.trim() : "";
+    const pl = typeof raw.pl === "string" ? raw.pl.trim() : "";
+    return en || th || pl;
+  }
+  return "";
+}
+
 function mergeLinkList(raw, fallback) {
   const fb = Array.isArray(fallback) ? fallback : [];
   if (!Array.isArray(raw)) {
     return fb.map((l) => ({
       label: mergeLocalized(l.label, l.label),
-      href: String(l.href || "").trim(),
+      href: hrefFromCms(l.href),
     }));
   }
   return raw
     .map((l) => ({
       label: mergeLocalized(l?.label, ""),
-      href: String(l?.href || "").trim(),
+      href: hrefFromCms(l?.href),
     }))
-    .filter((l) => l.href);
+    .filter((l) => l.href && l.href !== "[object Object]");
 }
 
 /** Nav links: CMS list is source of truth (order + add/remove). Defaults only fill labels. */
@@ -35,13 +46,13 @@ function mergeNavLinks(raw, fallback) {
   }
   const fbByHref = new Map();
   for (const l of fb) {
-    const href = String(l.href || "").trim();
+    const href = hrefFromCms(l.href);
     if (href) fbByHref.set(href, l);
   }
   const seen = new Set();
   const merged = [];
   for (const l of raw) {
-    const href = String(l?.href || "").trim();
+    const href = hrefFromCms(l?.href);
     if (!href || seen.has(href)) continue;
     seen.add(href);
     const def = fbByHref.get(href);
@@ -73,7 +84,9 @@ function normalizeLocalizedHomeSections(raw = {}) {
       defaults.hero.buttonText
     ),
     image: String(heroSrc.image || defaults.hero.image || "").trim(),
-    videoUrl: String(heroSrc.videoUrl || "").trim(),
+    videoUrl: String(
+      heroSrc.videoUrl || defaults.hero.videoUrl || ""
+    ).trim(),
   };
 
   const storySrc = src.story || {};
@@ -146,7 +159,8 @@ function normalizeLocalizedHomeSections(raw = {}) {
           it.label,
           defaults.statistics.items[i]?.label || ""
         ),
-        value: String(it.value || "").replace(/\+$/, "") || it.value || "",
+        value: String(it.value ?? "")
+          .replace(/[^\d]/g, ""),
         suffix: String(
           it.suffix != null && typeof it.suffix !== "object"
             ? it.suffix

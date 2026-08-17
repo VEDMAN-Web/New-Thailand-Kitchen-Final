@@ -467,6 +467,24 @@ function enrichHomeSections(sections) {
     next.seo = defaults.seo;
   }
 
+  const fillEmptyVideo = (section, defaultUrl) => {
+    if (!section || typeof section !== "object") return section;
+    if (String(section.videoUrl || "").trim()) return section;
+    if (!defaultUrl) return section;
+    return { ...section, videoUrl: defaultUrl };
+  };
+  next.hero = fillEmptyVideo(next.hero || defaults.hero, defaults.hero.videoUrl);
+  next.productsPage = fillEmptyVideo(
+    next.productsPage,
+    defaults.productsPage.videoUrl
+  );
+  next.blogPage = fillEmptyVideo(next.blogPage, defaults.blogPage.videoUrl);
+  next.faqPage = fillEmptyVideo(next.faqPage, defaults.faqPage.videoUrl);
+  next.contactPage = fillEmptyVideo(
+    next.contactPage,
+    defaults.contactPage.videoUrl
+  );
+
   // Align placeholder seed hero with live marketing copy when still on old defaults
   const oldHeroTitles = new Set([
     "Craft kitchens with soul",

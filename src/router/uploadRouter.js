@@ -34,8 +34,8 @@ function uploadSingle(req, res, next) {
   });
 }
 
-// JWT-protected media uploads for admin CMS
-router.get("/resolve", protect, resolveMedia);
+// Public GET: resolve Pexels/Unsplash page links to CDN files (allowlisted hosts only).
+router.get("/resolve", resolveMedia);
 router.post("/", protect, uploadSingle, uploadFile);
 router.delete("/", protect, deleteUpload);
 

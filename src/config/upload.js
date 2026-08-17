@@ -32,9 +32,22 @@ const ALLOWED_VIDEO = new Set([
   "video/x-msvideo",
 ]);
 
-function folderFor(kind, mime) {
+function isPdfFile(file) {
+  const name = String(file.originalname || "").toLowerCase();
+  const mime = String(file.mimetype || "").toLowerCase();
+  return (
+    ALLOWED_PDF.has(mime) ||
+    mime === "application/x-pdf" ||
+    mime === "application/acrobat" ||
+    name.endsWith(".pdf")
+  );
+}
+
+function folderFor(kind, mime, originalname) {
   if (kind === "icon") return "icons";
-  if (kind === "pdf" || ALLOWED_PDF.has(mime)) return "pdfs";
+  if (kind === "pdf" || ALLOWED_PDF.has(mime) || /\.pdf$/i.test(originalname || "")) {
+    return "pdfs";
+  }
   if (kind === "video" || ALLOWED_VIDEO.has(mime)) return "videos";
   if (ALLOWED_IMAGE.has(mime)) return "images";
   return "misc";
@@ -42,8 +55,8 @@ function folderFor(kind, mime) {
 
 const storage = multer.diskStorage({
   destination(req, file, cb) {
-    const kind = String(req.body?.kind || req.query?.kind || "image").toLowerCase();
-    const folder = folderFor(kind, file.mimetype);
+    const kind = String(req.query?.kind || req.body?.kind || "image").toLowerCase();
+    const folder = folderFor(kind, file.mimetype, file.originalname);
     const dest = path.join(UPLOAD_ROOT, folder);
     fs.mkdirSync(dest, { recursive: true });
     cb(null, dest);
@@ -64,11 +77,13 @@ function isVideoFile(file) {
 }
 
 function fileFilter(req, file, cb) {
-  const kind = String(req.body?.kind || req.query?.kind || "image").toLowerCase();
-  if (kind === "pdf") {
-    if (ALLOWED_PDF.has(file.mimetype) || file.originalname?.toLowerCase().endsWith(".pdf")) {
-      return cb(null, true);
+  // Query is available before multipart body fields; body.kind can still be empty here.
+  const kind = String(req.query?.kind || req.body?.kind || "image").toLowerCase();
+  if (kind === "pdf" || isPdfFile(file)) {
+    if (kind === "image" || kind === "icon") {
+      return cb(new Error("This is an image field — upload a JPG, PNG, or WebP."));
     }
+    if (isPdfFile(file)) return cb(null, true);
     return cb(new Error("Only PDF files are allowed"));
   }
   if (kind === "video") {
@@ -78,9 +93,7 @@ function fileFilter(req, file, cb) {
   if (ALLOWED_IMAGE.has(file.mimetype)) return cb(null, true);
   if (
     kind === "any" &&
-    (ALLOWED_IMAGE.has(file.mimetype) ||
-      ALLOWED_PDF.has(file.mimetype) ||
-      isVideoFile(file))
+    (ALLOWED_IMAGE.has(file.mimetype) || isPdfFile(file) || isVideoFile(file))
   ) {
     return cb(null, true);
   }

@@ -50,7 +50,7 @@ const DEFAULT_HOME_SECTIONS = {
     description: {"en":"From custom cabinetry to complete kitchen transformations, we bring decades of Thai craftsmanship to every home we design.","th":"ตั้งแต่ตู้ครัวสั่งทำไปจนถึงการเปลี่ยนโฉมครัวทั้งหลัง เรานำทศวรรษแห่งงานฝีมือไทยมาสู่ทุกบ้านที่เราออกแบบ","pl":"Od zabudowy na wymiar po kompleksowe metamorfozy kuchni — od dekad wnosimy tajskie rzemiosło do każdego domu, który projektujemy."},
     buttonText: {"en":"Explore","th":"สำรวจ","pl":"Odkryj"},
     image: "/products/Kitchen2.png",
-    videoUrl: "",
+    videoUrl: "/video/2.mp4",
   },
   statistics: {
     items: [
