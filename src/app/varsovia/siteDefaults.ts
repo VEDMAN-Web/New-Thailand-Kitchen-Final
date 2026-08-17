@@ -206,6 +206,7 @@ export const VARSOVIA_SITE_DEFAULTS: SiteRecord = {
       subtitle: en("Interiors made for the way you actually live"),
       ctaLabel: en("Explore More"),
       ctaHref: "/interior-design",
+      itemCtaLabel: en("Explore interiors"),
     },
     partners: {
       title: en("Our Global Partners"),

@@ -49,7 +49,9 @@ export type FieldType =
   | "inquiry-form"
   | "select"
   | "ia-children-list"
-  | "section-divider";
+  | "section-divider"
+  /** Renders an inline list editor (FAQs, showcase cards, team, articles). */
+  | "embedded-resource";
 
 export type Field = {
   key: string;
@@ -80,6 +82,8 @@ export type SiteSection = {
   icon: LucideIcon;
   /** Optional group label in the Site Settings rail */
   group?: "home" | "pages" | "chrome";
+  /** One scrolling form in live-page order (no tab cards). */
+  stackFields?: boolean;
 };
 
 function pageSeoFields(prefix: string): Field[] {
@@ -184,7 +188,10 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
     icon: BookOpen,
     fields: [
       { key: "aboutTitle", label: "About Varsovia Title", localized: true },
+      { key: "aboutSubtitle", label: "About Varsovia Subtitle", localized: true },
       { key: "aboutText", label: "About Varsovia Text", localized: true, type: "textarea" },
+      { key: "aboutCtaLabel", label: "Learn more button label", localized: true },
+      { key: "aboutCtaHref", label: "Learn more button link", helpText: "e.g. #projects or /about" },
       {
         key: "aboutImages",
         label: "About Images — home collage (3 slots)",
@@ -255,7 +262,7 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
         key: "catalogue.__div_items",
         label: "Catalogue PDFs",
         type: "section-divider",
-        helpText: "Add cover image + PDF for each brochure. Background collage uses Contact images (section 10).",
+        helpText: "Add cover image + PDF for each brochure. Title and cover are what visitors see.",
       },
     ],
   },
@@ -276,11 +283,12 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
       { key: "sectionCopy.products.subtitle", label: "Our Products Subtitle", localized: true },
       { key: "sectionCopy.products.ctaLabel", label: "Button label", localized: true },
       { key: "sectionCopy.products.ctaHref", label: "Button link", helpText: "e.g. /interior-design" },
+      { key: "sectionCopy.products.itemCtaLabel", label: "Card button label", localized: true, helpText: "Shown on each product card, e.g. Explore interiors" },
       {
         key: "products.__div_items",
         label: "Product cards",
         type: "section-divider",
-        helpText: "Manage product cards below (image, title, description, category, order, visibility).",
+        helpText: "Each home card uses image, title, description, and category only.",
       },
     ],
   },
@@ -303,7 +311,7 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
         key: "testimonials.__div_items",
         label: "Customer reviews",
         type: "section-divider",
-        helpText: "Add quotes, names, photos, and star ratings below.",
+        helpText: "Add name, photo, quote, and star rating below.",
       },
     ],
   },
@@ -349,7 +357,7 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
         key: "partners.__div_items",
         label: "Partner logos",
         type: "section-divider",
-        helpText: "Add partner name, logo, website link, and visibility below.",
+        helpText: "Add partner name and logo below. Only the logo strip shows on the home page.",
       },
     ],
   },
@@ -383,11 +391,6 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
           "Image 7 — Contact collage tile 7",
         ],
       },
-      { key: "phone", label: "Phone" },
-      { key: "email", label: "Email" },
-      { key: "address", label: "Address", localized: true, type: "textarea" },
-      { key: "contactPhone", label: "Footer Contact Phone" },
-      { key: "mobileWhatsapp", label: "Footer Mobile / WhatsApp Number" },
     ],
   },
   {
@@ -463,12 +466,13 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
     description: "/team · Our Team",
     group: "pages",
     icon: BriefcaseBusiness,
+    stackFields: true,
     fields: [
       {
         key: "teamPage.__div_hero",
         label: "1 · Hero",
         type: "section-divider",
-        helpText: "Top banner on /team. Member photos are managed under Team members.",
+        helpText: "Top banner on /team — same order as the live page.",
       },
       { key: "teamPage.heroTitle", label: "Hero title", localized: true },
       { key: "teamPage.heroSubtitle", label: "Hero subtitle", localized: true },
@@ -483,7 +487,7 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
         key: "teamPage.__div_teams",
         label: "3 · Team sections",
         type: "section-divider",
-        helpText: "Headings above each team grid. Rosters come from Team members.",
+        helpText: "Headings above each team grid, then the member photos — same as live /team.",
       },
       { key: "teamPage.designTitle", label: "Design team title", localized: true },
       { key: "teamPage.designEyebrow", label: "Design team eyebrow", localized: true },
@@ -491,6 +495,13 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
       { key: "teamPage.architectTitle", label: "Architect team title", localized: true },
       { key: "teamPage.architectEyebrow", label: "Architect team eyebrow", localized: true },
       { key: "teamPage.architectBody", label: "Architect team intro", localized: true, type: "textarea" },
+      {
+        key: "teamPage.__embed_members",
+        label: "Team members",
+        type: "embedded-resource",
+        itemKey: "teamPage",
+        helpText: "Photos and roles on the Design / Architect grids.",
+      },
       {
         key: "teamPage.__div_tools",
         label: "4 · Design tools",
@@ -606,13 +617,14 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
     description: "/projects · Showcase",
     group: "pages",
     icon: FolderKanban,
+    stackFields: true,
     fields: [
       {
         key: "projectsPage.__div_hero",
         label: "1 · Page hero",
         type: "section-divider",
         helpText:
-          "Default headline for the All / listing view. Per-tab titles can still override via Showcases → showcase meta / Navigation mega-menu.",
+          "Default headline for the All / listing view. Per-tab titles are in Showcase projects below.",
       },
       {
         key: "projectsPage.heroTitle",
@@ -628,8 +640,20 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
         helpText: "One short sentence under the headline.",
       },
       {
+        key: "projectsPage.__div_items",
+        label: "2 · Showcase projects",
+        type: "section-divider",
+        helpText: "Project cards on /projects — same order as the live listing.",
+      },
+      {
+        key: "projectsPage.__embed_items",
+        label: "Showcase items",
+        type: "embedded-resource",
+        itemKey: "projectsPage",
+      },
+      {
         key: "projectsPage.__div_seo",
-        label: "2 · Google / SEO",
+        label: "3 · Google / SEO",
         type: "section-divider",
       },
       {
@@ -658,21 +682,35 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
   {
     id: "faqPage",
     title: "FAQ",
-    description: "/faq · FAQ",
+    description: "/faq · Hero → topics & Q&A",
     group: "pages",
     icon: MessageSquareQuote,
+    stackFields: true,
     fields: [
       {
         key: "faqPage.__div_hero",
         label: "1 · Hero",
         type: "section-divider",
-        helpText: "Title and subtitle at the top of /faq. Questions are managed under FAQs in the sidebar.",
+        helpText: "Title and subtitle at the top of /faq — same as the live page.",
       },
       { key: "faqPage.heroTitle", label: "Hero title", localized: true },
       { key: "faqPage.heroSubtitle", label: "Hero subtitle", localized: true, type: "textarea" },
       {
+        key: "faqPage.__div_qa",
+        label: "2 · Topics & questions",
+        type: "section-divider",
+        helpText:
+          "Left: topic list. Right: questions and answers. Same layout as live /faq.",
+      },
+      {
+        key: "faqPage.__embed_faqs",
+        label: "Questions and answers",
+        type: "embedded-resource",
+        itemKey: "faqPage",
+      },
+      {
         key: "faqPage.__div_seo",
-        label: "2 · Google / SEO",
+        label: "3 · Google / SEO",
         type: "section-divider",
       },
       ...pageSeoFields("faqPage"),
@@ -769,24 +807,6 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
 
 const SITE_SECTIONS_CHROME: SiteSection[] = [
   {
-    id: "brand",
-    title: "Brand & Flags",
-    description: "Logos and navbar language flags",
-    group: "chrome",
-    icon: ImageIcon,
-    fields: [
-      { key: "brandLogoMark", label: "Logo Mark", media: "image" },
-      { key: "brandLogoMarkOnDark", label: "Logo Mark (on dark)", media: "image" },
-      { key: "brandLogoLockup", label: "Logo Lockup", media: "image" },
-      { key: "brandLogoLockupOnDark", label: "Logo Lockup (on dark)", media: "image" },
-      { key: "brandWordmarkLine1", label: "Wordmark Line 1", localized: true },
-      { key: "brandWordmarkLine2", label: "Wordmark Line 2", localized: true },
-      { key: "localeFlags.en", label: "Flag — English", media: "image" },
-      { key: "localeFlags.th", label: "Flag — Thai", media: "image" },
-      { key: "localeFlags.pl", label: "Flag — Polish", media: "image" },
-    ],
-  },
-  {
     id: "navigation",
     title: "Navigation",
     description: "Header menu & search pages",
@@ -805,30 +825,15 @@ const SITE_SECTIONS_CHROME: SiteSection[] = [
     icon: Share2,
     fields: [
       { key: "footerBio", label: "Footer Description", localized: true, type: "textarea" },
+      { key: "email", label: "Email" },
+      { key: "contactPhone", label: "Contact phone" },
+      { key: "mobileWhatsapp", label: "Mobile / WhatsApp number" },
       { key: "whatsappUrl", label: "WhatsApp URL" },
       { key: "facebookUrl", label: "Facebook URL" },
       { key: "instagramUrl", label: "Instagram URL" },
       { key: "xUrl", label: "X (Twitter) URL" },
       { key: "footerOffices", label: "Footer Offices", type: "office-list" },
       { key: "footerNavigation", label: "Footer Navigation", type: "footer-nav" },
-    ],
-  },
-  {
-    id: "interior",
-    title: "Interior Mode",
-    description: "/interior-design · CMS vs hybrid source",
-    group: "chrome",
-    icon: LayoutGrid,
-    fields: [
-      {
-        key: "interiorCatalogMode",
-        label: "Interior Catalogue Source",
-        type: "select",
-        options: [
-          { value: "hybrid", label: "Hybrid — sample projects + CMS projects" },
-          { value: "api", label: "CMS only — show just my projects" },
-        ],
-      },
     ],
   },
 ];
@@ -1120,13 +1125,19 @@ function journalSiteSection(): SiteSection {
     label: "5 · All articles",
     type: "section-divider",
     helpText:
-      "Article cards on /journal (“All articles”). Cover, date, read time, title — manage the list below. Sync from DB mirrors the live article set.",
+      "Article cards on /journal (“All articles”). Cover, date, read time, title — same list as the live page.",
+  };
+  const articlesEmbed: Field = {
+    key: "pages.journal.__embed_articles",
+    label: "All articles",
+    type: "embedded-resource",
+    itemKey: "iaJournal",
   };
 
   if (seoIdx >= 0) {
-    fields.splice(seoIdx, 0, articlesDivider);
+    fields.splice(seoIdx, 0, articlesDivider, articlesEmbed);
   } else {
-    fields.push(articlesDivider);
+    fields.push(articlesDivider, articlesEmbed);
   }
 
   // Hero field labels match live banner

@@ -17,6 +17,7 @@ import {
 import {
   getVarsoviaSite,
   updateVarsoviaSite,
+  uploadVarsoviaMedia,
   varsoviaErrorMessage,
 } from "@/services/varsoviaAPI";
 import { IA_HUB_PATHS } from "@/app/varsovia/iaPagesDefaults";
@@ -269,6 +270,7 @@ function ContentSectionsEditor({
             kind="image"
             value={sec.image || ""}
             onChange={(image) => update(index, { image })}
+            uploadFile={uploadVarsoviaMedia}
           />
           <div className="grid sm:grid-cols-2 gap-3">
             <label className="block text-xs font-semibold text-[#5C6370]">
@@ -465,6 +467,7 @@ export default function VarsoviaHubLandingEditor({
             onChange={(image) =>
               setDraft((d) => ({ ...d, hero: { ...d.hero, image } }))
             }
+            uploadFile={uploadVarsoviaMedia}
           />
           <div className="grid sm:grid-cols-2 gap-3">
             <TextField

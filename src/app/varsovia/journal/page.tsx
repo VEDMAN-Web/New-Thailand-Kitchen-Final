@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import LocaleTabs from "@/components/LocaleTabs";
 import VarsoviaHubLandingEditor from "@/components/VarsoviaHubLandingEditor";
 import IaChildrenListEditor from "@/app/varsovia/IaChildrenListEditor";
+import { ResourceManager } from "@/app/varsovia/page";
 import { CMS_SYNCED_EVENT } from "@/lib/adminSectionNav";
 import {
   asLocalizedForm,
@@ -301,6 +302,13 @@ export default function VarsoviaJournalPage() {
             })}
           </div>
         )}
+
+        <div className="border-t border-[#E8EAED] pt-8">
+          <p className="mb-4 text-sm font-semibold text-[#1A2332]">
+            All articles — same cards as live /journal
+          </p>
+          <ResourceManager resource="blogs" embedded />
+        </div>
       </div>
 
       {modal ? (

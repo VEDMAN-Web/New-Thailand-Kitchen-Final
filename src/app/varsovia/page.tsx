@@ -108,7 +108,8 @@ type FieldType =
   | "inquiry-form"
   | "select"
   | "ia-children-list"
-  | "section-divider";
+  | "section-divider"
+  | "embedded-resource";
 type Field = {
   key: string;
   label: string;
@@ -186,6 +187,47 @@ const VISIBLE_FIELD: Field = {
   type: "boolean",
 };
 
+const PROJECT_CATEGORY_OPTIONS = [
+  { value: "Kitchen", label: "Kitchen" },
+  { value: "Bedroom", label: "Bedroom" },
+  { value: "Bathroom", label: "Bathroom" },
+  { value: "Door & Windows", label: "Door & Windows" },
+  { value: "Whole House Solutions", label: "Whole House Solutions" },
+  { value: "Furniture", label: "Furniture" },
+];
+
+/** Home Featured Projects carousel only shows image + overlay text. */
+const FEATURED_HOME_FIELDS: Field[] = [
+  { key: "title", label: "Title", localized: true, required: true },
+  { key: "location", label: "Location", localized: true },
+  {
+    key: "category",
+    label: "Category",
+    type: "select",
+    options: PROJECT_CATEGORY_OPTIONS,
+  },
+  { key: "description", label: "Description", localized: true, type: "textarea" },
+  { key: "coverImage", label: "Image", media: "image" },
+  { key: "featured", label: "Show on homepage", type: "boolean" },
+  VISIBLE_FIELD,
+  { key: "order", label: "Order", type: "number" },
+];
+
+/** Home Our Products cards only show image + title + description + category. */
+const PRODUCTS_HOME_FIELDS: Field[] = [
+  { key: "title", label: "Title", localized: true, required: true },
+  { key: "description", label: "Description", localized: true, type: "textarea" },
+  {
+    key: "category",
+    label: "Category",
+    type: "select",
+    options: PROJECT_CATEGORY_OPTIONS,
+  },
+  { key: "image", label: "Image", media: "image" },
+  VISIBLE_FIELD,
+  { key: "order", label: "Order", type: "number" },
+];
+
 const CONFIGS: Record<VarsoviaResource, ResourceConfig> = {
   products: {
     label: "Our Products",
@@ -200,32 +242,7 @@ const CONFIGS: Record<VarsoviaResource, ResourceConfig> = {
       emptyLabel: "No products found.",
       fallbackBadge: "Kitchen",
     },
-    fields: [
-      { key: "title", label: "Title", localized: true, required: true },
-      { key: "description", label: "Description", localized: true, type: "textarea" },
-      { key: "fullDescription", label: "Full Description", localized: true, type: "textarea" },
-      { key: "slug", label: "Slug" },
-      { key: "image", label: "Cover Image (1)", media: "image" },
-      {
-        key: "gallery",
-        label: "Gallery Images (detail page)",
-        type: "string-list",
-        media: "image",
-        minItems: 4,
-        listLabels: [
-          "Gallery Image 1",
-          "Gallery Image 2",
-          "Gallery Image 3",
-          "Gallery Image 4",
-        ],
-      },
-      { key: "features", label: "Features", type: "localized-string-list", itemKey: "text" },
-      { key: "specs", label: "Specifications", type: "spec-list" },
-      { key: "category", label: "Category" },
-      { key: "featured", label: "Featured", type: "boolean" },
-      VISIBLE_FIELD,
-      { key: "order", label: "Order", type: "number" },
-    ],
+    fields: PRODUCTS_HOME_FIELDS,
   },
   projects: {
     label: "Featured Projects",
@@ -264,14 +281,7 @@ const CONFIGS: Record<VarsoviaResource, ResourceConfig> = {
           "Gallery Image 5",
         ],
       },
-      { key: "category", label: "Category", type: "select", options: [
-        { value: "Kitchen", label: "Kitchen" },
-        { value: "Bedroom", label: "Bedroom" },
-        { value: "Bathroom", label: "Bathroom" },
-        { value: "Door & Windows", label: "Door & Windows" },
-        { value: "Whole House Solutions", label: "Whole House Solutions" },
-        { value: "Furniture", label: "Furniture" },
-      ] },
+      { key: "category", label: "Category", type: "select", options: PROJECT_CATEGORY_OPTIONS },
       { key: "subcategory", label: "Subcategory" },
       { key: "shape", label: "Shape" },
       { key: "style", label: "Style" },
@@ -349,7 +359,6 @@ const CONFIGS: Record<VarsoviaResource, ResourceConfig> = {
     titleKey: "name",
     fields: [
       { key: "name", label: "Name", localized: true, required: true },
-      { key: "role", label: "Role", localized: true },
       { key: "quote", label: "Quote", localized: true, type: "textarea", required: true },
       { key: "image", label: "Photo", media: "image" },
       { key: "rating", label: "Rating (1-5)", type: "number" },
@@ -363,11 +372,8 @@ const CONFIGS: Record<VarsoviaResource, ResourceConfig> = {
     titleKey: "title",
     fields: [
       { key: "title", label: "Title", localized: true, required: true },
-      { key: "category", label: "Category", localized: true },
       { key: "coverImage", label: "Cover Image", media: "image" },
       { key: "downloadUrl", label: "PDF File", media: "pdf" },
-      { key: "fileName", label: "Legacy file name (optional)" },
-      { key: "downloadName", label: "Download name" },
       VISIBLE_FIELD,
       { key: "order", label: "Order", type: "number" },
     ],
@@ -442,8 +448,7 @@ const CONFIGS: Record<VarsoviaResource, ResourceConfig> = {
     titleKey: "name",
     fields: [
       { key: "name", label: "Name", localized: true, required: true },
-      { key: "logo", label: "Logo URL", media: "icon" },
-      { key: "website", label: "Website" },
+      { key: "logo", label: "Logo", media: "icon" },
       VISIBLE_FIELD,
       { key: "order", label: "Order", type: "number" },
     ],
@@ -588,20 +593,35 @@ export default function VarsoviaManagerPage() {
   );
 }
 
+const VARSOVIA_RESOURCE_ALIASES: Record<string, string> = {
+  faqs: "faqPage",
+  showcases: "projectsPage",
+  "team-members": "teamPage",
+  blogs: "iaJournal",
+};
+
+function aliasVarsoviaNav(detail: VarsoviaNavDetail): VarsoviaNavDetail {
+  const section = VARSOVIA_RESOURCE_ALIASES[detail.resource];
+  if (!section) return detail;
+  return { resource: "site", section };
+}
+
 function VarsoviaManagerContent() {
   const search = useSearchParams();
-  const [nav, setNav] = useState<VarsoviaNavDetail>(() => ({
-    resource: search.get("resource") || "site",
-    section: search.get("section"),
-  }));
+  const [nav, setNav] = useState<VarsoviaNavDetail>(() =>
+    aliasVarsoviaNav({
+      resource: search.get("resource") || "site",
+      section: search.get("section"),
+    })
+  );
 
   useEffect(() => {
-    setNav(readVarsoviaNavFromUrl());
+    setNav(aliasVarsoviaNav(readVarsoviaNavFromUrl()));
     const onNav = (event: Event) => {
       const detail = (event as CustomEvent<VarsoviaNavDetail>).detail;
-      if (detail?.resource) setNav(detail);
+      if (detail?.resource) setNav(aliasVarsoviaNav(detail));
     };
-    const onPop = () => setNav(readVarsoviaNavFromUrl());
+    const onPop = () => setNav(aliasVarsoviaNav(readVarsoviaNavFromUrl()));
     window.addEventListener(VARSOVIA_NAV_EVENT, onNav);
     window.addEventListener("popstate", onPop);
     return () => {
@@ -609,6 +629,13 @@ function VarsoviaManagerContent() {
       window.removeEventListener("popstate", onPop);
     };
   }, []);
+
+  useEffect(() => {
+    const fromUrl = readVarsoviaNavFromUrl();
+    const section = VARSOVIA_RESOURCE_ALIASES[fromUrl.resource];
+    if (!section) return;
+    writeVarsoviaNav("site", section);
+  }, [nav.resource, nav.section]);
 
   const requested = nav.resource || "site";
   const active =
@@ -645,7 +672,11 @@ function HomeSectionItemsPanel({ sectionId }: { sectionId: string }) {
     case "featured":
       return (
         <div className="mt-8 border-t border-[#E8EAED] pt-8">
-          <ResourceManager resource="projects" embedded />
+          <ResourceManager
+            resource="projects"
+            embedded
+            fields={FEATURED_HOME_FIELDS}
+          />
         </div>
       );
     case "catalogue":
@@ -657,7 +688,11 @@ function HomeSectionItemsPanel({ sectionId }: { sectionId: string }) {
     case "products":
       return (
         <div className="mt-8 border-t border-[#E8EAED] pt-8">
-          <ResourceManager resource="products" embedded />
+          <ResourceManager
+            resource="products"
+            embedded
+            fields={PRODUCTS_HOME_FIELDS}
+          />
         </div>
       );
     case "testimonials":
@@ -693,6 +728,24 @@ function HomeSectionItemsPanel({ sectionId }: { sectionId: string }) {
           <ResourceManager resource="blogs" embedded />
         </div>
       );
+    case "faqPage":
+      return (
+        <div className="mt-2">
+          <FaqsInlineEditor embedded />
+        </div>
+      );
+    case "projectsPage":
+      return (
+        <div className="mt-2">
+          <ShowcasesInlineEditor embedded />
+        </div>
+      );
+    case "teamPage":
+      return (
+        <div className="mt-2">
+          <TeamInlineEditor embedded />
+        </div>
+      );
     default:
       return null;
   }
@@ -706,6 +759,7 @@ function isVarsoviaSectionComplete(
   if (!section.fields.length) return false;
   return section.fields.some((field) => {
     if (field.type === "section-divider") return false;
+    if (field.type === "embedded-resource") return false;
     const raw = getAtPath(content, field.key);
     if (field.type === "boolean") return typeof raw === "boolean";
     if (field.localized) return Boolean(localizedValue(raw, locale).trim());
@@ -824,6 +878,20 @@ function SiteSettings() {
 
     setSavingContent(true);
     try {
+      const statsInvalid = [content.stats, (content.teamPage as { stats?: unknown } | undefined)?.stats]
+        .filter(Array.isArray)
+        .some((list) =>
+          (list as { value?: unknown }[]).some((row) => {
+            const raw = localizedValue(row?.value, "en").trim();
+            return raw !== "" && /[A-Za-z]/.test(raw);
+          })
+        );
+      if (statsInvalid) {
+        toast.error("Statistics values must be numbers only.");
+        setSavingContent(false);
+        return;
+      }
+
       if (siteDirty) {
         const updated = await updateVarsoviaSite(content);
         const merged = mergeVarsoviaSiteDefaults(
@@ -882,7 +950,8 @@ function SiteSettings() {
     () => splitFieldsIntoTabs(activeSection?.fields || []),
     [activeSection]
   );
-  const useSectionTabs = sectionTabs.length >= 2;
+  const useSectionTabs =
+    !activeSection.stackFields && sectionTabs.length >= 2;
   const activeTabFields = useSectionTabs
     ? sectionTabs[Math.min(pageTab, sectionTabs.length - 1)]?.fields || []
     : activeSection.fields;
@@ -1107,6 +1176,16 @@ function SiteSettings() {
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {activeTabFields.map((field) => {
+                  if (field.type === "embedded-resource") {
+                    if (useSectionTabs) return null;
+                    return (
+                      <div key={field.key} className="md:col-span-2">
+                        <HomeSectionItemsPanel
+                          sectionId={field.itemKey || active}
+                        />
+                      </div>
+                    );
+                  }
                   if (field.type === "section-divider") {
                     if (useSectionTabs) return null;
                     return (
@@ -1174,7 +1253,31 @@ function SiteSettings() {
                 })}
               </div>
 
-              <HomeSectionItemsPanel sectionId={active} />
+              {useSectionTabs
+                ? (activeSection.fields || [])
+                    .filter((field) => field.type === "embedded-resource")
+                    .map((field) => {
+                      const onThisTab = activeTabFields.some(
+                        (item) => item.key === field.key
+                      );
+                      return (
+                        <div
+                          key={field.key}
+                          className={onThisTab ? "mt-4" : "hidden"}
+                        >
+                          <HomeSectionItemsPanel
+                            sectionId={field.itemKey || active}
+                          />
+                        </div>
+                      );
+                    })
+                : null}
+
+              {(activeSection.fields || []).some(
+                (field) => field.type === "embedded-resource"
+              ) ? null : (
+                <HomeSectionItemsPanel sectionId={active} />
+              )}
             </div>
           </div>
         </div>
@@ -1382,45 +1485,24 @@ function CataloguesInlineEditor({ embedded = false }: { embedded?: boolean }) {
                   </button>
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div>
-                    <label className="mb-1.5 block text-xs font-semibold text-[#5C6370]">
-                      Title
-                    </label>
-                    <input
-                      type="text"
-                      value={localizedValue(draft.title, locale)}
-                      onChange={(event) =>
-                        updateDraft(draft.clientKey, {
-                          title: writeLocalizedField(
-                            draft.title,
-                            locale,
-                            event.target.value
-                          ),
-                        })
-                      }
-                      className={fieldClass}
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1.5 block text-xs font-semibold text-[#5C6370]">
-                      Category
-                    </label>
-                    <input
-                      type="text"
-                      value={localizedValue(draft.category, locale)}
-                      onChange={(event) =>
-                        updateDraft(draft.clientKey, {
-                          category: writeLocalizedField(
-                            draft.category,
-                            locale,
-                            event.target.value
-                          ),
-                        })
-                      }
-                      className={fieldClass}
-                    />
-                  </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold text-[#5C6370]">
+                    Title
+                  </label>
+                  <input
+                    type="text"
+                    value={localizedValue(draft.title, locale)}
+                    onChange={(event) =>
+                      updateDraft(draft.clientKey, {
+                        title: writeLocalizedField(
+                          draft.title,
+                          locale,
+                          event.target.value
+                        ),
+                      })
+                    }
+                    className={fieldClass}
+                  />
                 </div>
 
                 <MediaUpload
@@ -1442,39 +1524,6 @@ function CataloguesInlineEditor({ embedded = false }: { embedded?: boolean }) {
                   }
                   uploadFile={uploadVarsoviaMedia}
                 />
-
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div>
-                    <label className="mb-1.5 block text-xs font-semibold text-[#5C6370]">
-                      Legacy file name (optional)
-                    </label>
-                    <input
-                      type="text"
-                      value={draft.fileName}
-                      onChange={(event) =>
-                        updateDraft(draft.clientKey, {
-                          fileName: event.target.value,
-                        })
-                      }
-                      className={fieldClass}
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1.5 block text-xs font-semibold text-[#5C6370]">
-                      Download name
-                    </label>
-                    <input
-                      type="text"
-                      value={draft.downloadName}
-                      onChange={(event) =>
-                        updateDraft(draft.clientKey, {
-                          downloadName: event.target.value,
-                        })
-                      }
-                      className={fieldClass}
-                    />
-                  </div>
-                </div>
 
                 <label className="inline-flex items-center gap-2 text-sm text-[#374151]">
                   <input
@@ -1558,7 +1607,7 @@ function toTeamDraft(item?: VarsoviaRecord, index = 0): TeamDraft {
   };
 }
 
-function TeamInlineEditor() {
+function TeamInlineEditor({ embedded = false }: { embedded?: boolean }) {
   const [drafts, setDrafts] = useState<TeamDraft[]>([]);
   const [pageTitle, setPageTitle] = useState("Our Team");
   const [subtitle, setSubtitle] = useState(
@@ -1645,10 +1694,10 @@ function TeamInlineEditor() {
     );
   };
 
-  const saveAll = async () => {
-    if (!pageTitle.trim()) {
+  const saveAll = async (opts?: { quiet?: boolean }) => {
+    if (!embedded && !pageTitle.trim()) {
       toast.error("Page title is required");
-      return;
+      throw new Error("validation failed");
     }
     const invalid = drafts.some(
       (draft) => !localizedValue(draft.name, "en").trim()
@@ -1656,32 +1705,43 @@ function TeamInlineEditor() {
     if (invalid) {
       toast.error("Each section needs an English name");
       setLocale("en");
-      return;
+      throw new Error("validation failed");
     }
 
     try {
       setSaving(true);
-      const existingTeamPage =
-        siteSnapshot.teamPage && typeof siteSnapshot.teamPage === "object"
-          ? (siteSnapshot.teamPage as Record<string, unknown>)
-          : {};
+      if (!embedded) {
+        const existingTeamPage =
+          siteSnapshot.teamPage && typeof siteSnapshot.teamPage === "object"
+            ? (siteSnapshot.teamPage as Record<string, unknown>)
+            : {};
 
-      await updateVarsoviaSite({
-        ...siteSnapshot,
-        teamPage: {
-          ...existingTeamPage,
-          heroTitle: writeLocalizedField(
-            existingTeamPage.heroTitle,
-            locale,
-            pageTitle.trim()
-          ),
-          heroSubtitle: writeLocalizedField(
-            existingTeamPage.heroSubtitle,
-            locale,
-            subtitle.trim()
-          ),
-        },
-      });
+        await updateVarsoviaSite({
+          ...siteSnapshot,
+          teamUpdatedLabel: updatedLabel,
+          teamPage: {
+            ...existingTeamPage,
+            heroTitle: writeLocalizedField(
+              existingTeamPage.heroTitle,
+              locale,
+              pageTitle.trim()
+            ),
+            heroSubtitle: writeLocalizedField(
+              existingTeamPage.heroSubtitle,
+              locale,
+              subtitle.trim()
+            ),
+          },
+        });
+      } else if (updatedLabel.trim()) {
+        const latest = mergeVarsoviaSiteDefaults(
+          normalizeRecord((await getVarsoviaSite()) as VarsoviaRecord)
+        );
+        await updateVarsoviaSite({
+          ...latest,
+          teamUpdatedLabel: updatedLabel,
+        });
+      }
 
       for (let index = 0; index < drafts.length; index += 1) {
         const draft = drafts[index];
@@ -1699,20 +1759,24 @@ function TeamInlineEditor() {
           await createVarsoviaRecord("team-members", payload);
         }
       }
-      toast.success("Team saved");
+      if (!opts?.quiet) toast.success("Team saved");
       await load();
     } catch (error) {
       toast.error(errorMessage(error));
+      throw error;
     } finally {
       setSaving(false);
     }
   };
 
+  useRegisterSectionSave("team-members", saveAll, embedded);
+
   const fieldClass =
     "mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal";
 
   return (
-    <section className="max-w-5xl space-y-5">
+    <section className={embedded ? "space-y-4" : "max-w-5xl space-y-5"}>
+      {!embedded ? (
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-[#E8EAED] bg-white px-5 py-4">
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#1A2332] text-white">
@@ -1737,8 +1801,13 @@ function TeamInlineEditor() {
           {saving ? "Saving…" : "Save Team"}
         </button>
       </div>
+      ) : (
+        <p className="text-sm font-semibold text-[#1A2332]">
+          Team members — same photos as live /team
+        </p>
+      )}
 
-      <div className="space-y-4 rounded-xl border border-[#E8EAED] bg-white p-5">
+      <div className={embedded ? "space-y-4" : "space-y-4 rounded-xl border border-[#E8EAED] bg-white p-5"}>
         <div className="mb-1 flex flex-wrap gap-2">
           {(["en", "th", "pl"] as LocaleCode[]).map((code) => (
             <button
@@ -1756,6 +1825,7 @@ function TeamInlineEditor() {
           ))}
         </div>
 
+        {!embedded ? (
         <div className="grid gap-4 md:grid-cols-2">
           <label className="block text-xs font-semibold text-[#5C6370]">
             Page Title
@@ -1775,21 +1845,13 @@ function TeamInlineEditor() {
             />
           </label>
         </div>
-        <label className="block text-xs font-semibold text-[#5C6370]">
-          Last Updated Date
-          <input
-            value={updatedLabel}
-            onChange={(event) => setUpdatedLabel(event.target.value)}
-            placeholder="July 2026"
-            className={fieldClass}
-          />
-        </label>
+        ) : null}
 
         <div className="pt-2">
           <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
             <div>
               <h3 className="text-sm font-bold text-[#1A2332]">
-                Team Content Sections
+                Team members
               </h3>
               <p className="mt-1 text-xs text-[#6B7280]">
                 Add headings and details for each team member.
@@ -1829,7 +1891,7 @@ function TeamInlineEditor() {
                   </div>
 
                   <label className="block text-xs font-semibold text-[#5C6370]">
-                    Section Heading
+                    Name
                     <input
                       value={localizedValue(draft.name, locale)}
                       onChange={(event) =>
@@ -1846,9 +1908,8 @@ function TeamInlineEditor() {
                   </label>
 
                   <label className="block text-xs font-semibold text-[#5C6370]">
-                    Section Content
-                    <textarea
-                      rows={4}
+                    Role
+                    <input
                       value={localizedValue(draft.role, locale)}
                       onChange={(event) =>
                         updateDraft(draft.clientKey, {
@@ -1859,7 +1920,7 @@ function TeamInlineEditor() {
                           ),
                         })
                       }
-                      className={`${fieldClass} resize-y`}
+                      className={fieldClass}
                     />
                   </label>
 
@@ -2180,15 +2241,6 @@ function PartnersInlineEditor({ embedded = false }: { embedded?: boolean }) {
             />
           </label>
         </div>
-        <label className="block text-xs font-semibold text-[#5C6370]">
-          Last Updated Date
-          <input
-            value={updatedLabel}
-            onChange={(event) => setUpdatedLabel(event.target.value)}
-            placeholder="July 2026"
-            className={fieldClass}
-          />
-        </label>
         </>
         ) : null}
 
@@ -2196,10 +2248,10 @@ function PartnersInlineEditor({ embedded = false }: { embedded?: boolean }) {
           <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
             <div>
               <h3 className="text-sm font-bold text-[#1A2332]">
-                Partners Content Sections
+                Partner logos
               </h3>
               <p className="mt-1 text-xs text-[#6B7280]">
-                Add headings and logos for each partner brand.
+                Name and logo for each brand in the homepage strip.
               </p>
             </div>
             <button
@@ -2236,7 +2288,7 @@ function PartnersInlineEditor({ embedded = false }: { embedded?: boolean }) {
                   </div>
 
                   <label className="block text-xs font-semibold text-[#5C6370]">
-                    Section Heading
+                    Name
                     <input
                       value={localizedValue(draft.name, locale)}
                       onChange={(event) =>
@@ -2249,21 +2301,6 @@ function PartnersInlineEditor({ embedded = false }: { embedded?: boolean }) {
                         })
                       }
                       className={fieldClass}
-                    />
-                  </label>
-
-                  <label className="block text-xs font-semibold text-[#5C6370]">
-                    Section Content
-                    <textarea
-                      rows={3}
-                      value={draft.website}
-                      onChange={(event) =>
-                        updateDraft(draft.clientKey, {
-                          website: event.target.value,
-                        })
-                      }
-                      placeholder="Website URL or partner notes"
-                      className={`${fieldClass} resize-y`}
                     />
                   </label>
 
@@ -2342,7 +2379,7 @@ function toShowcaseDraft(item?: VarsoviaRecord, index = 0): ShowcaseDraft {
   };
 }
 
-function ShowcasesInlineEditor() {
+function ShowcasesInlineEditor({ embedded = false }: { embedded?: boolean }) {
   const SHOWCASE_META_TABS = [
     "All",
     "Home case",
@@ -2456,10 +2493,10 @@ function ShowcasesInlineEditor() {
     );
   };
 
-  const saveAll = async () => {
+  const saveAll = async (opts?: { quiet?: boolean }) => {
     if (!pageTitle.trim()) {
       toast.error("Page title is required");
-      return;
+      throw new Error("validation failed");
     }
     const invalid = drafts.some(
       (draft) => !localizedValue(draft.title, "en").trim()
@@ -2467,7 +2504,7 @@ function ShowcasesInlineEditor() {
     if (invalid) {
       toast.error("Each section needs an English heading");
       setLocale("en");
-      return;
+      throw new Error("validation failed");
     }
 
     try {
@@ -2495,9 +2532,15 @@ function ShowcasesInlineEditor() {
         });
       }
 
+      const latest = embedded
+        ? mergeVarsoviaSiteDefaults(
+            normalizeRecord((await getVarsoviaSite()) as VarsoviaRecord)
+          )
+        : siteSnapshot;
       await updateVarsoviaSite({
-        ...siteSnapshot,
+        ...latest,
         showcaseMeta: nextMeta,
+        showcaseUpdatedLabel: updatedLabel,
       });
 
       for (let index = 0; index < drafts.length; index += 1) {
@@ -2520,20 +2563,24 @@ function ShowcasesInlineEditor() {
           await createVarsoviaRecord("showcases", payload);
         }
       }
-      toast.success("Showcases saved");
+      if (!opts?.quiet) toast.success("Showcases saved");
       await load();
     } catch (error) {
       toast.error(errorMessage(error));
+      throw error;
     } finally {
       setSaving(false);
     }
   };
 
+  useRegisterSectionSave("showcases", saveAll, embedded);
+
   const fieldClass =
     "mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal";
 
   return (
-    <section className="space-y-5 max-w-5xl">
+    <section className={embedded ? "space-y-4" : "space-y-5 max-w-5xl"}>
+      {!embedded ? (
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-[#E8EAED] bg-white px-5 py-4">
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#1A2332] text-white">
@@ -2558,8 +2605,13 @@ function ShowcasesInlineEditor() {
           {saving ? "Saving…" : "Save Showcases"}
         </button>
       </div>
+      ) : (
+        <p className="text-sm font-semibold text-[#1A2332]">
+          Showcase projects — same cards as live /projects
+        </p>
+      )}
 
-      <div className="space-y-4 rounded-xl border border-[#E8EAED] bg-white p-5">
+      <div className={embedded ? "space-y-4" : "space-y-4 rounded-xl border border-[#E8EAED] bg-white p-5"}>
         <div className="mb-1 flex flex-wrap gap-2">
           {(["en", "th", "pl"] as LocaleCode[]).map((code) => (
             <button
@@ -2615,15 +2667,6 @@ function ShowcasesInlineEditor() {
             />
           </label>
         </div>
-        <label className="block text-xs font-semibold text-[#5C6370]">
-          Last Updated Date
-          <input
-            value={updatedLabel}
-            onChange={(event) => setUpdatedLabel(event.target.value)}
-            placeholder="July 2026"
-            className={fieldClass}
-          />
-        </label>
 
         <div className="pt-2">
           <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
@@ -2940,7 +2983,7 @@ function toFaqDraft(
   };
 }
 
-function FaqsInlineEditor() {
+function FaqsInlineEditor({ embedded = false }: { embedded?: boolean }) {
   const [drafts, setDrafts] = useState<FaqDraft[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -3060,7 +3103,7 @@ function FaqsInlineEditor() {
     setDrafts((prev) => prev.filter((item) => item.clientKey !== draft.clientKey));
   };
 
-  const saveAll = async () => {
+  const saveAll = async (opts?: { quiet?: boolean }) => {
     // Save only the active topic — same pattern as other CMS sections
     const currentDrafts = drafts.filter(
       (draft) => resolveFaqTopic(draft.category) === activeTopic
@@ -3082,11 +3125,11 @@ function FaqsInlineEditor() {
         `Fill in question and answer for ${activeTopic} (English required — use the EN tab)`
       );
       setLocale("en");
-      return;
+      throw new Error("validation failed");
     }
 
     if (toSave.length === 0 && currentDrafts.length === 0) {
-      toast.message(`No FAQs to save for ${activeTopic}`);
+      if (!opts?.quiet) toast.message(`No FAQs to save for ${activeTopic}`);
       return;
     }
 
@@ -3123,21 +3166,25 @@ function FaqsInlineEditor() {
         )
       );
 
-      toast.success(`${activeTopic} FAQs saved`);
+      if (!opts?.quiet) toast.success(`${activeTopic} FAQs saved`);
       await load();
     } catch (error) {
       toast.error(errorMessage(error));
+      throw error;
     } finally {
       setSaving(false);
     }
   };
 
+  useRegisterSectionSave("faqs", saveAll, embedded);
+
   const fieldClass =
     "w-full rounded-lg border border-[#E2E5EA] bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A2332]/15 focus:border-[#1A2332]";
 
   return (
-    <section className="space-y-5">
-      <div className="rounded-xl border border-[#E8EAED] bg-white p-5 lg:p-6">
+    <section className={embedded ? "space-y-4" : "space-y-5"}>
+      <div className={embedded ? "" : "rounded-xl border border-[#E8EAED] bg-white p-5 lg:p-6"}>
+        {!embedded ? (
         <div className="mb-6 flex items-start justify-between gap-3">
           <div>
             <h2 className="text-lg font-bold text-[#1A2332]">FAQ Section</h2>
@@ -3152,6 +3199,11 @@ function FaqsInlineEditor() {
             </span>
           ) : null}
         </div>
+        ) : (
+          <p className="mb-4 text-sm font-semibold text-[#1A2332]">
+            Topics and questions — same as live /faq
+          </p>
+        )}
 
         <div className="mb-4 flex flex-wrap gap-2">
           {(["en", "th", "pl"] as LocaleCode[]).map((code) => (
@@ -3331,6 +3383,7 @@ function FaqsInlineEditor() {
           </div>
         )}
 
+        {!embedded ? (
         <div className="mt-8 flex items-center gap-2 border-t border-[#E8EAED] pt-5">
           <button
             type="button"
@@ -3351,6 +3404,11 @@ function FaqsInlineEditor() {
             Reload
           </button>
         </div>
+        ) : (
+          <p className="mt-3 text-[11px] text-[#9CA3AF]">
+            Use the top Save button to save questions with this page.
+          </p>
+        )}
       </div>
     </section>
   );
@@ -3599,26 +3657,6 @@ function TestimonialsInlineEditor({ embedded = false }: { embedded?: boolean }) 
 
                 <div>
                   <label className="mb-1.5 block text-xs font-semibold text-[#5C6370]">
-                    Role
-                  </label>
-                  <input
-                    type="text"
-                    value={localizedValue(draft.role, locale)}
-                    onChange={(event) =>
-                      updateDraft(draft.clientKey, {
-                        role: writeLocalizedField(
-                          draft.role,
-                          locale,
-                          event.target.value
-                        ),
-                      })
-                    }
-                    className={fieldClass}
-                  />
-                </div>
-
-                <div>
-                  <label className="mb-1.5 block text-xs font-semibold text-[#5C6370]">
                     Quote
                   </label>
                   <textarea
@@ -3742,11 +3780,14 @@ function TestimonialsInlineEditor({ embedded = false }: { embedded?: boolean }) 
 export function ResourceManager({
   resource,
   embedded = false,
+  fields: fieldsOverride,
 }: {
   resource: VarsoviaResource;
   embedded?: boolean;
+  fields?: Field[];
 }) {
   const config = CONFIGS[resource];
+  const fields = fieldsOverride ?? config.fields;
   const [items, setItems] = useState<VarsoviaRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<VarsoviaRecord | null | undefined>();
@@ -3823,7 +3864,10 @@ export function ResourceManager({
   const open = (item?: VarsoviaRecord) => {
     setEditing(item || null);
     if (!item) {
-      setForm({ visible: true });
+      setForm({
+        visible: true,
+        ...(fieldsOverride ? { featured: true } : {}),
+      });
     } else {
       const next = normalizeRecord(item);
       // Existing docs may omit `visible` (treated as public). Keep checkbox truthful.
@@ -3849,7 +3893,7 @@ export function ResourceManager({
   };
 
   const save = async () => {
-    const requiredMissing = config.fields.some(
+    const requiredMissing = fields.some(
       (field) =>
         field.required &&
         !localizedValue(getAtPath(form, field.key), "en").trim()
@@ -4262,7 +4306,7 @@ export function ResourceManager({
               </div>
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {config.fields.map((field) => {
+                {fields.map((field) => {
                   if (field.type === "section-divider") {
                     return (
                       <FieldControl
@@ -4499,6 +4543,10 @@ function FieldControl({
     );
   }
 
+  if (field.type === "embedded-resource") {
+    return null;
+  }
+
   if (field.type === "ia-children-list") {
     return (
       <IaChildrenListEditor
@@ -4553,55 +4601,97 @@ function FieldControl({
         <div className="space-y-2">
           {strings.map((item, index) => (
             <div key={index} className="space-y-1">
-              <span className="block text-[11px] font-semibold uppercase tracking-wide text-[#6B7280]">
-                {labels[index] || `Image ${index + 1}`}
-              </span>
-              <div className="flex gap-2">
-                <input
-                  value={item}
-                  onChange={(event) =>
-                    onChange(
-                      strings.map((current, itemIndex) =>
-                        itemIndex === index ? event.target.value : current
-                      )
-                    )
-                  }
-                  placeholder={
-                    field.media === "pdf"
-                      ? "PDF URL or upload…"
-                      : "Image URL or upload…"
-                  }
-                  className="min-w-0 flex-1 rounded-lg border border-[#DDE1E7] px-3.5 py-2.5 text-sm outline-none focus:border-[#1A2332]"
-                />
-                {field.media ? (
-                  <InlineUploadButton
-                    kind={field.media}
-                    onUploaded={(url) =>
-                      onChange(
-                        strings.map((current, itemIndex) =>
-                          itemIndex === index ? url : current
+              {field.media === "image" || field.media === "icon" ? (
+                <div className="flex items-start gap-2">
+                  <div className="min-w-0 flex-1">
+                    <MediaUpload
+                      label={labels[index] || `Image ${index + 1}`}
+                      kind={field.media}
+                      value={item}
+                      onChange={(url) =>
+                        onChange(
+                          strings.map((current, itemIndex) =>
+                            itemIndex === index ? url : current
+                          )
                         )
-                      )
-                    }
-                  />
-                ) : null}
-                <ListButtons
-                  index={index}
-                  length={strings.length}
-                  onMove={moveString}
-                  onRemove={() => {
-                    if (!canRemove(index)) {
-                      onChange(
-                        strings.map((current, itemIndex) =>
-                          itemIndex === index ? "" : current
+                      }
+                      uploadFile={uploadVarsoviaMedia}
+                      previewSize="md"
+                      clearable
+                    />
+                  </div>
+                  <div className="pt-7">
+                    <ListButtons
+                      index={index}
+                      length={strings.length}
+                      onMove={moveString}
+                      onRemove={() => {
+                        if (!canRemove(index)) {
+                          onChange(
+                            strings.map((current, itemIndex) =>
+                              itemIndex === index ? "" : current
+                            )
+                          );
+                          return;
+                        }
+                        onChange(strings.filter((_, i) => i !== index));
+                      }}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <span className="block text-[11px] font-semibold uppercase tracking-wide text-[#6B7280]">
+                    {labels[index] || `Image ${index + 1}`}
+                  </span>
+                  <div className="flex gap-2">
+                    <input
+                      value={item}
+                      onChange={(event) =>
+                        onChange(
+                          strings.map((current, itemIndex) =>
+                            itemIndex === index ? event.target.value : current
+                          )
                         )
-                      );
-                      return;
-                    }
-                    onChange(strings.filter((_, i) => i !== index));
-                  }}
-                />
-              </div>
+                      }
+                      placeholder={
+                        field.media === "pdf"
+                          ? "PDF URL or upload…"
+                          : "Image URL or upload…"
+                      }
+                      className="min-w-0 flex-1 rounded-lg border border-[#DDE1E7] px-3.5 py-2.5 text-sm outline-none focus:border-[#1A2332]"
+                    />
+                    {field.media ? (
+                      <InlineUploadButton
+                        kind={field.media}
+                        onUploaded={(url) =>
+                          onChange(
+                            strings.map((current, itemIndex) =>
+                              itemIndex === index ? url : current
+                            )
+                          )
+                        }
+                      />
+                    ) : null}
+                    <ListButtons
+                      index={index}
+                      length={strings.length}
+                      onMove={moveString}
+                      onRemove={() => {
+                        if (!canRemove(index)) {
+                          onChange(
+                            strings.map((current, itemIndex) =>
+                              itemIndex === index ? "" : current
+                            )
+                          );
+                          return;
+                        }
+                        onChange(strings.filter((_, i) => i !== index));
+                      }}
+                    />
+                  </div>
+                </>
+              )}
             </div>
           ))}
           <button
@@ -5031,17 +5121,33 @@ function FieldControl({
                   onRemove={() => onChange(stats.filter((_, i) => i !== index))}
                 />
               </div>
-              <div className="grid gap-3 md:grid-cols-2">
+              <div className="grid gap-3 md:grid-cols-3">
                 <SmallInput
                   label="Value"
-                  value={localizedValue(entry.value, locale)}
+                  numeric
+                  hint="Numbers only (e.g. 12). Put + in Suffix."
+                  value={localizedValue(entry.value, locale).replace(/[^\d]/g, "")}
                   onChange={(next) =>
                     onChange(
-                      stats.map((current, i) =>
-                        i === index
-                          ? setEntryLocalized(current, "value", next)
-                          : current
-                      )
+                      stats.map((current, i) => {
+                        if (i !== index) return current;
+                        const suffix = localizedValue(current.value, locale).replace(/\d/g, "");
+                        return setEntryLocalized(current, "value", `${suffix}${next}`);
+                      })
+                    )
+                  }
+                />
+                <SmallInput
+                  label="Suffix"
+                  hint="Optional. e.g. +"
+                  value={localizedValue(entry.value, locale).replace(/\d/g, "")}
+                  onChange={(next) =>
+                    onChange(
+                      stats.map((current, i) => {
+                        if (i !== index) return current;
+                        const digits = localizedValue(current.value, locale).replace(/[^\d]/g, "");
+                        return setEntryLocalized(current, "value", `${next}${digits}`);
+                      })
                     )
                   }
                 />
@@ -6535,12 +6641,18 @@ function SmallInput({
   value,
   onChange,
   media,
+  numeric,
+  hint,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
   media?: MediaKind;
+  numeric?: boolean;
+  hint?: string;
 }) {
+  const [numericError, setNumericError] = useState("");
+
   if (media === "image" || media === "icon") {
     return (
       <MediaUpload
@@ -6554,6 +6666,8 @@ function SmallInput({
     );
   }
 
+  const display = numeric ? String(value || "").replace(/[^\d]/g, "") : value;
+
   return (
     <label>
       <span className="mb-1 block text-[11px] font-semibold uppercase text-[#6B7280]">
@@ -6561,15 +6675,39 @@ function SmallInput({
       </span>
       <div className="flex gap-2">
         <input
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
+          value={display}
+          inputMode={numeric ? "numeric" : undefined}
+          pattern={numeric ? "[0-9]*" : undefined}
+          autoComplete={numeric ? "off" : undefined}
+          onChange={(event) => {
+            const raw = event.target.value;
+            if (numeric) {
+              if (/[^\d]/.test(raw)) {
+                setNumericError("Numbers only — use Suffix for + or other text.");
+              } else {
+                setNumericError("");
+              }
+              onChange(raw.replace(/[^\d]/g, ""));
+              return;
+            }
+            onChange(raw);
+          }}
           placeholder={media === "pdf" ? "PDF URL or upload…" : undefined}
-          className="min-w-0 flex-1 rounded-lg border border-[#DDE1E7] px-3 py-2 text-sm outline-none focus:border-[#1A2332]"
+          className={`min-w-0 flex-1 rounded-lg border px-3 py-2 text-sm outline-none focus:border-[#1A2332] ${
+            numericError ? "border-red-400" : "border-[#DDE1E7]"
+          }`}
         />
         {media ? (
           <InlineUploadButton kind={media} onUploaded={onChange} />
         ) : null}
       </div>
+      {numericError ? (
+        <p className="mt-1 text-[11px] font-medium leading-4 text-red-600">
+          {numericError}
+        </p>
+      ) : hint ? (
+        <p className="mt-1 text-[11px] leading-4 text-[#9CA3AF]">{hint}</p>
+      ) : null}
       {media === "pdf" && value.trim() ? (
         <p className="mt-2 truncate text-xs text-[#64748B]">{value}</p>
       ) : null}

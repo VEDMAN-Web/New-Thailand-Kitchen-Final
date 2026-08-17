@@ -2,6 +2,12 @@
  * Resolve CMS media paths for admin previews.
  */
 
+import {
+  aliasVarsoviaMediaPath,
+  isVarsoviaPublicAssetPath,
+  VARSOVIA_STATIC_PREFIX,
+} from "./varsoviaMediaAliases";
+
 const PUBLIC_ASSET_PREFIXES = [
   "/products/",
   "/product/",
@@ -204,8 +210,20 @@ export function encodeMediaPath(path: string): string {
     .join("/");
 }
 
+function varsoviaFrontendOrigin(): string {
+  return (
+    process.env.NEXT_PUBLIC_VARSOVIA_FRONTEND_URL?.trim() ||
+    "http://localhost:3000"
+  ).replace(/\/+$/, "");
+}
+
+function withVarsoviaStatic(path: string): string {
+  const encoded = encodeMediaPath(path.startsWith("/") ? path : `/${path}`);
+  return `${VARSOVIA_STATIC_PREFIX}${encoded}`;
+}
+
 export function resolveAdminMediaPreviewUrl(url: string): string {
-  const trimmed = aliasLegacyMediaPath(normalizeMediaPath(url));
+  const trimmed = aliasVarsoviaMediaPath(aliasLegacyMediaPath(normalizeMediaPath(url)));
   if (!trimmed) return "";
 
   if (/^(data:|blob:)/i.test(trimmed)) {
@@ -220,6 +238,9 @@ export function resolveAdminMediaPreviewUrl(url: string): string {
       if (localHost && pathname.startsWith("/uploads/")) {
         return `${pathname}${parsed.search}`;
       }
+      if (localHost && isVarsoviaPublicAssetPath(pathname)) {
+        return `${withVarsoviaStatic(pathname)}${parsed.search}`;
+      }
       if (localHost && isPublicSiteAssetPath(pathname)) {
         return `${publicFrontendOrigin()}${pathname}${parsed.search}`;
       }
@@ -231,6 +252,9 @@ export function resolveAdminMediaPreviewUrl(url: string): string {
   }
 
   const path = encodeMediaPath(trimmed.startsWith("/") ? trimmed : `/${trimmed}`);
+  if (isVarsoviaPublicAssetPath(path)) {
+    return withVarsoviaStatic(path);
+  }
   // Prefer same-origin first: admin public/ + Next rewrites to frontend/API.
   // MediaUpload then falls back to the live frontend origin if needed.
   return path;
@@ -238,8 +262,9 @@ export function resolveAdminMediaPreviewUrl(url: string): string {
 
 /** Same-origin rewrite fallback if the frontend origin is unreachable. */
 export function resolveAdminMediaPreviewFallbacks(url: string): string[] {
+  const aliased = aliasVarsoviaMediaPath(aliasLegacyMediaPath(normalizeMediaPath(url)));
   const primary = resolveAdminMediaPreviewUrl(url);
-  const trimmed = aliasLegacyMediaPath(normalizeMediaPath(url));
+  const trimmed = aliased;
   if (!trimmed) return [];
   if (/^(data:|blob:)/i.test(trimmed)) return [trimmed];
 
@@ -251,11 +276,17 @@ export function resolveAdminMediaPreviewFallbacks(url: string): string[] {
       const absolute = trimmed;
       const seenAbs = new Set<string>();
       const outAbs: string[] = [];
+      const encodedPath = encodeMediaPath(path.startsWith("/") ? path : `/${path}`);
       for (const candidate of [
         primary,
         absolute,
-        encodeMediaPath(path.startsWith("/") ? path : `/${path}`),
-        `${publicFrontendOrigin()}${encodeMediaPath(path.startsWith("/") ? path : `/${path}`)}`,
+        encodedPath,
+        isVarsoviaPublicAssetPath(encodedPath)
+          ? withVarsoviaStatic(encodedPath)
+          : "",
+        isVarsoviaPublicAssetPath(encodedPath)
+          ? `${varsoviaFrontendOrigin()}${encodedPath}`
+          : `${publicFrontendOrigin()}${encodedPath}`,
       ]) {
         if (candidate && !seenAbs.has(candidate)) {
           seenAbs.add(candidate);
@@ -271,7 +302,14 @@ export function resolveAdminMediaPreviewFallbacks(url: string): string[] {
 
   const seen = new Set<string>();
   const out: string[] = [];
-  for (const candidate of [primary, path, `${publicFrontendOrigin()}${path}`]) {
+  for (const candidate of [
+    primary,
+    path,
+    isVarsoviaPublicAssetPath(path) ? withVarsoviaStatic(path) : "",
+    isVarsoviaPublicAssetPath(path)
+      ? `${varsoviaFrontendOrigin()}${path}`
+      : `${publicFrontendOrigin()}${path}`,
+  ]) {
     if (candidate && !seen.has(candidate)) {
       seen.add(candidate);
       out.push(candidate);

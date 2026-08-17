@@ -242,21 +242,7 @@ const VARSOVIA_NAV: {
     group: "chrome",
   },
 
-  // Content libraries (not duplicated from Home rail sections)
-  { href: "/varsovia?resource=blogs", resource: "blogs", label: "All articles", icon: FileText, group: "content" },
-  { href: "/varsovia?resource=showcases", resource: "showcases", label: "Showcase items", icon: Images, group: "content" },
-  { href: "/varsovia?resource=faqs", resource: "faqs", label: "FAQs", icon: MessageCircleQuestion, group: "content" },
-  { href: "/varsovia?resource=team-members", resource: "team-members", label: "Team members", icon: Users, group: "content" },
-
   // Site chrome
-  {
-    href: "/varsovia?resource=site&section=brand",
-    resource: "site",
-    section: "brand",
-    label: "Brand & Flags",
-    icon: Settings,
-    group: "admin",
-  },
   {
     href: "/varsovia?resource=site&section=navigation",
     resource: "site",
@@ -271,14 +257,6 @@ const VARSOVIA_NAV: {
     section: "footer",
     label: "Footer",
     icon: Settings,
-    group: "admin",
-  },
-  {
-    href: "/varsovia?resource=site&section=interior",
-    resource: "site",
-    section: "interior",
-    label: "Interior Mode",
-    icon: FolderKanban,
     group: "admin",
   },
 ];
@@ -782,28 +760,32 @@ function AdminShellContent({
                   </Link>
                 );
               })}
-              <p className="px-3 pb-1 pt-4 text-[10px] font-bold tracking-[0.14em] uppercase text-[#9CA3AF]">
-                Content
-              </p>
-              {VARSOVIA_NAV.filter((i) => i.group === "content").map((item) => {
-                const { href, label, icon: Icon } = item;
-                return (
-                  <Link
-                    key={`${href}-${label}`}
-                    href={href}
-                    onClick={(e) => openNavItem(e, item)}
-                    className={clsx(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-                      isActive(item)
-                        ? "bg-[#EEF0F3] text-[#1A2332]"
-                        : "text-[#5C6370] hover:bg-[#F5F6F8] hover:text-[#1A2332]"
-                    )}
-                  >
-                    <Icon className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />
-                    {label}
-                  </Link>
-                );
-              })}
+              {VARSOVIA_NAV.some((i) => i.group === "content") ? (
+                <>
+                  <p className="px-3 pb-1 pt-4 text-[10px] font-bold tracking-[0.14em] uppercase text-[#9CA3AF]">
+                    Content
+                  </p>
+                  {VARSOVIA_NAV.filter((i) => i.group === "content").map((item) => {
+                    const { href, label, icon: Icon } = item;
+                    return (
+                      <Link
+                        key={`${href}-${label}`}
+                        href={href}
+                        onClick={(e) => openNavItem(e, item)}
+                        className={clsx(
+                          "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                          isActive(item)
+                            ? "bg-[#EEF0F3] text-[#1A2332]"
+                            : "text-[#5C6370] hover:bg-[#F5F6F8] hover:text-[#1A2332]"
+                        )}
+                      >
+                        <Icon className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />
+                        {label}
+                      </Link>
+                    );
+                  })}
+                </>
+              ) : null}
               <p className="px-3 pb-1 pt-4 text-[10px] font-bold tracking-[0.14em] uppercase text-[#9CA3AF]">
                 Site chrome
               </p>

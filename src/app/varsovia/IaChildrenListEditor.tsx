@@ -1,6 +1,7 @@
 "use client";
 
 import MediaUpload from "@/components/MediaUpload";
+import { uploadVarsoviaMedia } from "@/services/varsoviaAPI";
 import {
   asLocalizedForm,
   emptyLocalized,
@@ -250,6 +251,7 @@ export default function IaChildrenListEditor({
                     kind="image"
                     value={String(item.hero?.image || "")}
                     onChange={(url) => updateHero(index, { image: url })}
+                    uploadFile={uploadVarsoviaMedia}
                   />
                 </div>
                 <label className="block text-xs font-semibold text-[#5C6370]">
@@ -386,6 +388,7 @@ export default function IaChildrenListEditor({
                         );
                         update(index, { sections: next });
                       }}
+                      uploadFile={uploadVarsoviaMedia}
                     />
                     <div className="grid gap-3 md:grid-cols-2">
                       <label className="block text-xs font-semibold text-[#5C6370]">
