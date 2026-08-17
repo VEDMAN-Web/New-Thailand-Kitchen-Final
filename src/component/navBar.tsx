@@ -710,6 +710,7 @@ const Navbar = () => {
       <ConsultationEnquiryModal
         open={enquiryOpen}
         onClose={() => setEnquiryOpen(false)}
+        leadSource="navbar_enquiry"
       />
     </>
   );

@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { BlogPost, getRelatedPosts } from "./blogData";
 import BlogCard from "./BlogCard";
+import BlogConsultationCta from "./BlogConsultationCta";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import {
   blogCategoryLabel,
@@ -323,6 +324,8 @@ export default function BlogDetailView({ post: rawPost }: Props) {
               </div>
             </div>
           </div>
+
+          <BlogConsultationCta />
 
           <div className="mt-20 lg:mt-28 max-w-4xl mx-auto">
             <p className="text-[#E0905A] text-xs tracking-[0.22em] uppercase font-semibold mb-3">

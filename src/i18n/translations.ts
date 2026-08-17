@@ -207,6 +207,14 @@ export const translations = {
     "blog.detail.related": "Related Journal Entries",
     "blog.detail.viewAll": "View all Journal",
 
+    "blog.cta.title": "Request Your Free Kitchen Consultation",
+    "blog.cta.description":
+      "No commitment. No hidden fees. Just expert advice and a clear starting point for your project.",
+    "blog.cta.point1": "A design consultant reviews your space and goals",
+    "blog.cta.point2": "Honest guidance on materials, layout, and budget",
+    "blog.cta.point3": "Free consultation — no obligation to proceed",
+    "blog.cta.button": "Get my free consultation",
+
     "contact.hero.title": "Connect",
     "contact.hero.titleAccent": "With Us",
     "contact.hero.description":
@@ -484,6 +492,14 @@ export const translations = {
     "blog.detail.continue": "อ่านต่อ",
     "blog.detail.related": "บทความที่เกี่ยวข้อง",
     "blog.detail.viewAll": "ดูวารสารทั้งหมด",
+
+    "blog.cta.title": "รับคำปรึกษาครัวฟรี",
+    "blog.cta.description":
+      "ไม่มีข้อผูกมัด ไม่มีค่าใช้จ่ายแอบแฝง เพียงคำแนะนำจากผู้เชี่ยวชาญและจุดเริ่มต้นที่ชัดเจนสำหรับโปรเจกต์ของคุณ",
+    "blog.cta.point1": "ที่ปรึกษาด้านการออกแบบตรวจสอบพื้นที่และเป้าหมายของคุณ",
+    "blog.cta.point2": "คำแนะนำที่ตรงไปตรงมาเกี่ยวกับวัสดุ ผังครัว และงบประมาณ",
+    "blog.cta.point3": "ปรึกษาฟรี — ไม่มีข้อผูกมัดใด ๆ",
+    "blog.cta.button": "รับคำปรึกษาฟรีของฉัน",
 
     "contact.hero.title": "เชื่อมต่อ",
     "contact.hero.titleAccent": "กับเรา",
@@ -764,6 +780,14 @@ export const translations = {
     "blog.detail.continue": "Czytaj dalej",
     "blog.detail.related": "Powiązane wpisy",
     "blog.detail.viewAll": "Zobacz cały dziennik",
+
+    "blog.cta.title": "Umów bezpłatną konsultację kuchenną",
+    "blog.cta.description":
+      "Bez zobowiązań. Bez ukrytych opłat. Tylko fachowa porada i jasny punkt wyjścia dla Twojego projektu.",
+    "blog.cta.point1": "Konsultant ds. projektowania oceni Twoją przestrzeń i cele",
+    "blog.cta.point2": "Szczera porada dotycząca materiałów, układu i budżetu",
+    "blog.cta.point3": "Bezpłatna konsultacja — bez żadnych zobowiązań",
+    "blog.cta.button": "Umów bezpłatną konsultację",
 
     "contact.hero.title": "Połącz się",
     "contact.hero.titleAccent": "z nami",

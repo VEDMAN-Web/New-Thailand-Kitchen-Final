@@ -74,6 +74,8 @@ function MethodIcons({
 type Props = {
   open: boolean;
   onClose: () => void;
+  /** Identifies where this enquiry was opened from, for GA4 + the lead note. */
+  leadSource?: string;
 };
 
 const initialForm = {
@@ -84,7 +86,11 @@ const initialForm = {
   message: "",
 };
 
-export default function ConsultationEnquiryModal({ open, onClose }: Props) {
+export default function ConsultationEnquiryModal({
+  open,
+  onClose,
+  leadSource = "navbar_enquiry",
+}: Props) {
   const { t } = useTranslation();
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState<Partial<Record<keyof typeof initialForm, string>>>({});
@@ -141,7 +147,7 @@ export default function ConsultationEnquiryModal({ open, onClose }: Props) {
     const digits = form.phone.replace(/\D/g, "");
     const phoneNumber = `${form.countryCode}${digits}`;
     const methodLabel = methodLabels[form.method];
-    const note = `Free consultation enquiry via navbar. Preferred contact: ${methodLabel}.`;
+    const note = `Free consultation enquiry via ${leadSource}. Preferred contact: ${methodLabel}.`;
     const userMessage = form.message.trim();
     const message = userMessage ? `${userMessage}\n\n${note}` : note;
 
@@ -158,9 +164,9 @@ export default function ConsultationEnquiryModal({ open, onClose }: Props) {
         message,
       });
 
-      // GA4: navbar free-consultation lead submission conversion
+      // GA4: free-consultation lead submission conversion
       trackGa4Event("lead_submit", {
-        lead_source: "navbar_enquiry",
+        lead_source: leadSource,
         preferred_contact: form.method,
       });
 
@@ -171,7 +177,7 @@ export default function ConsultationEnquiryModal({ open, onClose }: Props) {
       }
 
       trackGa4Event("catalog_unlock", {
-        lead_source: "navbar_enquiry",
+        lead_source: leadSource,
       });
 
       toast.success(t("form.successTitle"), {
