@@ -172,6 +172,74 @@ export default function AdminGalleryPage() {
     );
   }, [items, listFilter]);
 
+  const persistGalleryPage = async (
+    nextFilters: { id: string; label: LocalizedText }[],
+    extra?: Partial<HeroForm>
+  ) => {
+    const h = extra ? { ...hero, ...extra } : hero;
+    const collage = [h.collage1, h.collage2, h.collage3, h.collage4]
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const next = {
+      ...sections,
+      galleryPage: {
+        eyebrow: asLocalizedForm(h.eyebrow),
+        title: asLocalizedForm(h.title),
+        description: asLocalizedForm(h.description),
+        collage,
+        filters: nextFilters
+          .map((f) => ({
+            id: f.id.trim(),
+            label: asLocalizedForm(f.label, f.id.trim()),
+          }))
+          .filter((f) => f.id),
+      },
+    };
+    await updateHome(siteId, next);
+    setSections(next);
+    setFilters(nextFilters);
+  };
+
+  const addFilter = async () => {
+    const used = new Set(filters.map((f) => f.id.trim().toLowerCase()));
+    let n = 1;
+    let id = "New filter";
+    while (used.has(id.toLowerCase())) {
+      n += 1;
+      id = `New filter ${n}`;
+    }
+    const next = [...filters, { id, label: asLocalizedForm(id) }];
+    try {
+      await persistGalleryPage(next);
+      toast.success("Filter added — it now appears on /gallery");
+    } catch {
+      toast.error("Could not add filter");
+    }
+  };
+
+  const removeFilter = async (index: number) => {
+    const row = filters[index];
+    if (!row || row.id === "All") return;
+    const count = filterCounts[row.id] ?? 0;
+    if (
+      !confirm(
+        count
+          ? `Remove “${localizedValue(row.label, "en") || row.id}”? ${count} photo(s) stay in All until you recategorize them.`
+          : `Remove “${localizedValue(row.label, "en") || row.id}”?`
+      )
+    ) {
+      return;
+    }
+    const next = filters.filter((_, i) => i !== index);
+    if (listFilter === row.id) setListFilter("All");
+    try {
+      await persistGalleryPage(next);
+      toast.success("Filter removed from admin and /gallery");
+    } catch {
+      toast.error("Could not remove filter");
+    }
+  };
+
   const saveHero = async () => {
     if (!localizedValue(hero.title, "en").trim()) {
       toast.error("English gallery heading is required");
@@ -179,32 +247,7 @@ export default function AdminGalleryPage() {
     }
     setSavingHero(true);
     try {
-      const collage = [
-        hero.collage1,
-        hero.collage2,
-        hero.collage3,
-        hero.collage4,
-      ]
-        .map((s) => s.trim())
-        .filter(Boolean);
-
-      const next = {
-        ...sections,
-        galleryPage: {
-          eyebrow: asLocalizedForm(hero.eyebrow),
-          title: asLocalizedForm(hero.title),
-          description: asLocalizedForm(hero.description),
-          collage,
-          filters: filters
-            .map((f) => ({
-              id: f.id.trim(),
-              label: asLocalizedForm(f.label, f.id.trim()),
-            }))
-            .filter((f) => f.id),
-        },
-      };
-      await updateHome(siteId, next);
-      setSections(next);
+      await persistGalleryPage(filters);
       toast.success("Gallery page content saved");
     } catch {
       toast.error("Failed to save gallery content");
@@ -390,13 +433,26 @@ export default function AdminGalleryPage() {
           </div>
 
           <div className="border-t border-[#E8EAED] pt-4 space-y-3">
-            <p className="text-xs font-semibold text-[#5C6370]">
-              Filter tab labels ({locale.toUpperCase()})
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs font-semibold text-[#5C6370]">
+                Filter tab labels ({locale.toUpperCase()})
+              </p>
+              <button
+                type="button"
+                onClick={() => void addFilter()}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-[#E2E5EA] bg-white px-3 py-1.5 text-xs font-semibold text-[#1A2332] hover:bg-[#F8FAFC]"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Add filter
+              </button>
+            </div>
+            <p className="text-[11px] text-[#9CA3AF]">
+              Tabs on /gallery. Add a filter, rename the label, then assign photos to it.
             </p>
             {filters.map((f, i) => (
               <div
                 key={f.id + i}
-                className="grid sm:grid-cols-[140px_1fr_auto] gap-3 items-end"
+                className="grid sm:grid-cols-[140px_1fr_auto_auto] gap-3 items-end"
               >
                 <label className="block text-xs font-semibold text-[#5C6370]">
                   Id
@@ -429,6 +485,18 @@ export default function AdminGalleryPage() {
                 <p className="text-xs text-[#6B7280] pb-2.5 whitespace-nowrap">
                   {filterCounts[f.id] ?? 0} photos
                 </p>
+                {f.id === "All" ? (
+                  <span className="pb-2.5 text-[11px] text-[#9CA3AF]">Locked</span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => void removeFilter(i)}
+                    className="mb-1 inline-flex items-center justify-center rounded-lg p-2 text-red-600 hover:bg-red-50"
+                    aria-label={`Remove ${f.id}`}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             ))}
           </div>

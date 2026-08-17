@@ -795,6 +795,7 @@ export default function AdminBlogsPage() {
 
           <HeroVideoUpload
             value={hero.videoUrl}
+            fallbackUrl="/product/productVideo.mp4"
             onChange={(v) => setHero({ ...hero, videoUrl: v })}
           />
 

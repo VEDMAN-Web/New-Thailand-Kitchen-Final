@@ -187,6 +187,8 @@ function Field({
   multiline,
   locale,
   shared,
+  hint,
+  numeric,
 }: {
   label: string;
   value: string | LocalizedText;
@@ -194,14 +196,28 @@ function Field({
   multiline?: boolean;
   locale?: LocaleCode;
   shared?: boolean;
+  hint?: string;
+  numeric?: boolean;
 }) {
+  const [numericError, setNumericError] = useState("");
   const useLocale = Boolean(locale) && !shared;
-  const display = useLocale
+  const displayRaw = useLocale
     ? localizedValue(value, locale!)
     : typeof value === "string"
       ? value
       : localizedValue(value, "en");
+  const display = numeric
+    ? String(displayRaw || "").replace(/[^\d]/g, "")
+    : displayRaw;
   const handle = (raw: string) => {
+    if (numeric) {
+      if (/[^\d]/.test(raw)) {
+        setNumericError("Numbers only — use Suffix for + or other text.");
+      } else {
+        setNumericError("");
+      }
+      raw = raw.replace(/[^\d]/g, "");
+    }
     if (useLocale) onChange(writeLocalized(value, locale!, raw));
     else onChange(raw);
   };
@@ -221,12 +237,27 @@ function Field({
         />
       ) : (
         <input
-          type="text"
+          type={numeric ? "text" : "text"}
+          inputMode={numeric ? "numeric" : undefined}
+          pattern={numeric ? "[0-9]*" : undefined}
+          autoComplete={numeric ? "off" : undefined}
           value={display}
           onChange={(e) => handle(e.target.value)}
-          className={cls}
+          className={
+            numericError
+              ? cls.replace("border-[#E2E5EA]", "border-red-400") +
+                " focus:ring-red-200 focus:border-red-500"
+              : cls
+          }
         />
       )}
+      {numericError ? (
+        <p className="mt-1 text-[11px] font-medium leading-4 text-red-600">
+          {numericError}
+        </p>
+      ) : hint ? (
+        <p className="mt-1 text-[11px] leading-4 text-[#9CA3AF]">{hint}</p>
+      ) : null}
     </div>
   );
 }
@@ -357,7 +388,30 @@ export default function AdminHomePage() {
   const saveAll = async () => {
     setSaving(true);
     try {
-      await updateHome(siteId, sections);
+      const payload = { ...sections };
+      if (Array.isArray(payload.statistics?.items)) {
+        const invalid = payload.statistics.items.some(
+          (item: { value?: string }) =>
+            String(item?.value || "").trim() !== "" &&
+            /[^\d]/.test(String(item.value))
+        );
+        if (invalid) {
+          toast.error("Statistics values must be numbers only.");
+          setSaving(false);
+          return;
+        }
+        payload.statistics = {
+          ...payload.statistics,
+          items: payload.statistics.items.map(
+            (item: { label?: unknown; value?: string; suffix?: string }) => ({
+              ...item,
+              value: String(item?.value || "").replace(/[^\d]/g, ""),
+            })
+          ),
+        };
+      }
+      await updateHome(siteId, payload);
+      setSections(payload);
       toast.success("Home page updated");
     } catch {
       toast.error("Update failed");
@@ -615,6 +669,7 @@ function SectionEditor({
         />
         <HeroVideoUpload
           value={data.videoUrl || ""}
+          fallbackUrl="/video/2.mp4"
           onChange={(v) => onChange({ ...data, videoUrl: v })}
         />
       </div>
@@ -776,11 +831,13 @@ function SectionEditor({
             <Field
               locale={locale}
               shared
+              numeric
               label="Value"
+              hint="Numbers only (e.g. 15). Put + in Suffix."
               value={item.value || ""}
               onChange={(v) => {
                 const next = [...items];
-                next[i] = { ...item, value: v };
+                next[i] = { ...item, value: String(v || "").replace(/[^\d]/g, "") };
                 onChange({ ...data, items: next });
               }}
             />
@@ -1483,6 +1540,7 @@ function SectionEditor({
         />
         <HeroVideoUpload
           value={data.videoUrl || ""}
+          fallbackUrl="/product/productVideo.mp4"
           onChange={(v) => onChange({ ...data, videoUrl: v })}
         />
       </div>
@@ -1507,6 +1565,7 @@ function SectionEditor({
         />
         <HeroVideoUpload
           value={data.videoUrl || ""}
+          fallbackUrl="/product/productVideo.mp4"
           onChange={(v) => onChange({ ...data, videoUrl: v })}
         />
         <Field
@@ -1591,6 +1650,7 @@ function SectionEditor({
         />
         <HeroVideoUpload
           value={data.videoUrl || ""}
+          fallbackUrl="/video/faq-autoplay.mp4"
           onChange={(v) => onChange({ ...data, videoUrl: v })}
         />
       </div>
@@ -1838,6 +1898,7 @@ function SectionEditor({
         />
         <HeroVideoUpload
           value={data.videoUrl || ""}
+          fallbackUrl="/video/contact.mp4?v=2"
           onChange={(v) => onChange({ ...data, videoUrl: v })}
         />
         <MediaUpload
@@ -1961,6 +2022,7 @@ function SectionEditor({
             locale={locale}
             shared
             label="Facebook"
+            hint="Full profile URL, e.g. https://www.facebook.com/…"
             value={data.facebook || ""}
             onChange={(v) => onChange({ ...data, facebook: v })}
           />
@@ -1968,12 +2030,15 @@ function SectionEditor({
             locale={locale}
             shared
             label="Instagram"
+            hint="Full profile URL, e.g. https://www.instagram.com/…"
             value={data.instagram || ""}
             onChange={(v) => onChange({ ...data, instagram: v })}
           />
           <Field
             locale={locale}
+            shared
             label="LINE"
+            hint="LINE, WhatsApp, or any https:// link"
             value={data.line || ""}
             onChange={(v) => onChange({ ...data, line: v })}
           />
@@ -2004,6 +2069,7 @@ function SectionEditor({
                 locale={locale}
                 shared
                 label="Href"
+                hint="Use a site path (/contact), in-page hash (/#brands), or full URL (https://…)."
                 value={link.href || ""}
                 onChange={(v) => {
                   const next = [...homeLinks];
@@ -2063,6 +2129,7 @@ function SectionEditor({
                 locale={locale}
                 shared
                 label="Href"
+                hint="Use a site path (/products), in-page hash (/#section), or full URL (https://…)."
                 value={link.href || ""}
                 onChange={(v) => {
                   const next = [...productLinks];

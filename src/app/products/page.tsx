@@ -34,6 +34,12 @@ import {
   type LocalizedText,
 } from "@/lib/localized";
 import { CMS_SYNCED_EVENT } from "@/lib/adminSectionNav";
+import {
+  canonicalCategoryLabel,
+  categoryTitleEn,
+  collectProductCategoryLabels,
+  normalizeCategoryKey,
+} from "@/lib/productCategories";
 
 type FeatureHighlight = { title: LocalizedText; description: LocalizedText };
 
@@ -397,30 +403,53 @@ export default function AdminProductsPage() {
     }
   };
 
-  const categories = useMemo(() => {
-    const set = new Set<string>();
-    for (const item of items) {
-      const cat = localizedValue(item.category, "en").trim();
-      if (cat) set.add(cat);
+  const productCategoryLabels = useMemo(() => {
+    const extras: string[] = [];
+    for (const cat of categoryList) {
+      if (String(cat.categoryType || "") !== "layout") continue;
+      const title = categoryTitleEn(cat);
+      if (title) extras.push(title);
     }
-    return ["All categories", ...Array.from(set)];
-  }, [items]);
+    for (const item of items) {
+      const category = localizedValue(item.category, "en").trim();
+      const productType = localizedValue(item.productType, "en").trim();
+      if (category) extras.push(category);
+      if (productType) extras.push(productType);
+    }
+    return collectProductCategoryLabels(extras);
+  }, [categoryList, items]);
+
+  const categories = useMemo(
+    () => ["All categories", ...productCategoryLabels, "Best Seller"],
+    [productCategoryLabels]
+  );
 
   const filteredItems = useMemo(() => {
     const q = query.trim().toLowerCase();
     return items.filter((item) => {
       const title = localizedValue(item.title, "en").toLowerCase();
       const subtitle = localizedValue(item.subtitle, "en").toLowerCase();
-      const productType = localizedValue(item.productType, "en").toLowerCase();
       const category = localizedValue(item.category, "en");
+      const productType = localizedValue(item.productType, "en");
       const matchesQuery =
         !q ||
         title.includes(q) ||
         item.slug.toLowerCase().includes(q) ||
         subtitle.includes(q) ||
-        productType.includes(q);
-      const matchesCategory =
-        categoryFilter === "All categories" || category === categoryFilter;
+        productType.toLowerCase().includes(q);
+      const matchesCategory = (() => {
+        if (categoryFilter === "All categories") return true;
+        if (normalizeCategoryKey(categoryFilter) === "best-seller") {
+          return Boolean(item.featured);
+        }
+        const want = normalizeCategoryKey(categoryFilter);
+        return (
+          normalizeCategoryKey(category) === want ||
+          normalizeCategoryKey(productType) === want ||
+          normalizeCategoryKey(canonicalCategoryLabel(category)) === want ||
+          normalizeCategoryKey(canonicalCategoryLabel(productType)) === want
+        );
+      })();
       return matchesQuery && matchesCategory;
     });
   }, [items, query, categoryFilter]);
@@ -649,25 +678,32 @@ export default function AdminProductsPage() {
                       Category *
                       <select
                         required
-                        value={localizedValue(form.category, locale)}
-                        onChange={(e) => setForm({ ...form, category: writeLocalized(form.category, locale, e.target.value) })}
+                        value={
+                          canonicalCategoryLabel(
+                            localizedValue(form.category, "en")
+                          ) || localizedValue(form.category, "en")
+                        }
+                        onChange={(e) =>
+                          setForm({
+                            ...form,
+                            category: writeLocalized(
+                              form.category,
+                              "en",
+                              e.target.value
+                            ),
+                          })
+                        }
                         className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal bg-white"
                       >
                         <option value="">Select a category...</option>
-                        {categoryList.map((cat) => {
-                          const title =
-                            localizedValue(cat.title, locale) ||
-                            localizedValue(cat.title, "en");
-                          return (
-                            <option key={cat._id} value={title}>
-                              {title}{" "}
-                              {cat.categoryType ? `(${cat.categoryType})` : ""}
-                            </option>
-                          );
-                        })}
+                        {productCategoryLabels.map((title) => (
+                          <option key={title} value={title}>
+                            {title}
+                          </option>
+                        ))}
                       </select>
                       <p className="text-[10px] text-gray-500 mt-1">
-                        Create categories in the Categories page first
+                        Same list as the live /products chips. New layout categories appear automatically.
                       </p>
                     </label>
                   </div>

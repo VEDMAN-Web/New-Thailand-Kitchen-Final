@@ -82,7 +82,10 @@ async function proxyMediaToThailand(request: NextRequest) {
   const body = await request.arrayBuffer();
 
   try {
-    const upstream = await fetch(`${thailandBase()}/upload`, {
+    const kind = encodeURIComponent(
+      request.nextUrl.searchParams.get("kind") || "image"
+    );
+    const upstream = await fetch(`${thailandBase()}/upload?kind=${kind}`, {
       method: "POST",
       headers: {
         Authorization: authorization,

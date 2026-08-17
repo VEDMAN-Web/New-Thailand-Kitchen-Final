@@ -516,6 +516,7 @@ export async function uploadVarsoviaMedia(
   form.append("kind", kind);
   form.append("file", file);
   const { data } = await varsoviaApi.post("/media", form, {
+    params: { kind },
     timeout: 120000,
     transformRequest: [
       (body, headers) => {

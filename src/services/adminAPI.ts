@@ -461,6 +461,7 @@ export async function uploadMedia(
   form.append("file", file);
   try {
     const { data } = await adminApi.post("/upload", form, {
+      params: { kind },
       // Let the browser set multipart boundary — never force Content-Type
       headers: { "Content-Type": undefined as unknown as string },
       timeout: 180000,
@@ -508,6 +509,7 @@ export type ResolvedMediaUrl = {
   kind: string;
   hint?: string;
   previewUrl?: string;
+  resolvedUrl?: string;
   playable?: boolean;
   provider?: string;
 };

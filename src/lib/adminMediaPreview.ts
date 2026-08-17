@@ -36,6 +36,7 @@ export type MediaUrlKind =
   | "pexels-video-page"
   | "pexels-photo-page"
   | "unsplash-photo-page"
+  | "dropbox-link"
   | "page-link"
   | "unknown";
 
@@ -47,10 +48,11 @@ export function normalizeMediaPath(url: string): string {
   return value;
 }
 
-/** Extract numeric id from pexels.com/video/...-123/ or photo pages. */
+/** Extract numeric id from Pexels video/photo/download URLs. */
 export function extractPexelsId(url: string): string | null {
   const value = normalizeMediaPath(url);
-  const match = value.match(/pexels\.com\/(?:video|photo)\/[^/]*?(\d{5,})\/?/i);
+  if (!/pexels\.com/i.test(value)) return null;
+  const match = value.match(/(?:\/|-)(\d{5,})(?:\/|$|\?|#)/);
   return match?.[1] || null;
 }
 
@@ -67,18 +69,22 @@ export function classifyMediaUrl(url: string): MediaUrlKind {
 
   if (/youtube\.com|youtu\.be|vimeo\.com/i.test(value)) return "embed-video";
 
-  // www.pexels.com / v.pexels.com video pages (not CDN file hosts)
-  if (
-    /(?:^|\/\/)(?:www\.|v\.)?pexels\.com\/video\//i.test(value) &&
-    !/videos\.pexels\.com|images\.pexels\.com/i.test(value)
-  ) {
+  if (/dropbox\.com/i.test(value) && !/[?&]raw=1|[?&]dl=1/i.test(value)) {
+    return "dropbox-link";
+  }
+
+  const pexelsPage =
+    /(?:^|\/\/)(?:www\.|v\.)?pexels\.com\//i.test(value) &&
+    !/videos\.pexels\.com|images\.pexels\.com/i.test(value);
+
+  if (pexelsPage && /\/(?:download\/)?video(?:\/|$)/i.test(value)) {
     return "pexels-video-page";
   }
-  if (
-    /(?:^|\/\/)(?:www\.)?pexels\.com\/photo\//i.test(value) &&
-    !/images\.pexels\.com/i.test(value)
-  ) {
+  if (pexelsPage && /\/(?:download\/)?photos?(?:\/|$)|\/photo\//i.test(value)) {
     return "pexels-photo-page";
+  }
+  if (pexelsPage && extractPexelsId(value)) {
+    return "pexels-video-page";
   }
   if (
     /unsplash\.com\/photos\//i.test(value) &&
@@ -118,10 +124,11 @@ export function mediaUrlHint(kind: MediaUrlKind, forVideoField = false): string 
   if (!forVideoField) {
     switch (kind) {
       case "pexels-video-page":
-        return "This is an image field. You pasted a Pexels video page link. Upload an image, or paste a direct image URL (e.g. .jpg / .png), or use /products/…";
+        return "This is an image field. A still from that Pexels video will be shown. Upload an image if you need a photo instead.";
       case "pexels-photo-page":
       case "unsplash-photo-page":
-        return "Gallery page link — use Upload or a direct image URL (.jpg / .png) for a reliable image.";
+      case "dropbox-link":
+        return "";
       case "direct-video":
       case "embed-video":
         return "This is an image field — video links are not supported here. Upload an image or paste an image URL.";
@@ -132,7 +139,8 @@ export function mediaUrlHint(kind: MediaUrlKind, forVideoField = false): string 
 
   switch (kind) {
     case "pexels-video-page":
-      return "Pexels page link — thumbnail only. For the live hero, Upload a video file or paste a direct .mp4 URL.";
+    case "dropbox-link":
+      return "";
     case "pexels-photo-page":
     case "unsplash-photo-page":
       return "This looks like a photo page, not a video. Use Upload or a direct .mp4 / YouTube / Vimeo link.";
@@ -276,6 +284,18 @@ export function needsRemoteResolve(kind: MediaUrlKind): boolean {
   return (
     kind === "pexels-video-page" ||
     kind === "pexels-photo-page" ||
-    kind === "unsplash-photo-page"
+    kind === "unsplash-photo-page" ||
+    kind === "dropbox-link"
+  );
+}
+
+export function isPlayableVideoSrc(url: string): boolean {
+  const value = normalizeMediaPath(url);
+  if (!value) return false;
+  if (/youtube\.com|youtu\.be|vimeo\.com/i.test(value)) return true;
+  return (
+    /\.(mp4|webm|ogg|ogv|mov)(\?|#|$)/i.test(value) ||
+    /videos\.pexels\.com/i.test(value) ||
+    value.includes("/uploads/")
   );
 }

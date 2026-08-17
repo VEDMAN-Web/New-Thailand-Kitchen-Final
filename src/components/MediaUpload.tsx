@@ -102,9 +102,12 @@ export default function MediaUpload({
     void resolveMediaUrl(trimmed, "image")
       .then((res) => {
         if (cancelled) return;
-        if (res.previewUrl && /\.(jpe?g|png|gif|webp|avif)(\?|#|$)/i.test(res.previewUrl)) {
-          setRemotePreviewUrl(res.previewUrl);
-        }
+        const next = String(res.resolvedUrl || res.previewUrl || "").trim();
+        const usable =
+          Boolean(next) &&
+          (/\.(jpe?g|png|gif|webp|avif)(\?|#|$)/i.test(next) ||
+            /images\.pexels\.com|images\.unsplash\.com/i.test(next));
+        if (usable) setRemotePreviewUrl(next);
       })
       .catch(() => {})
       .finally(() => {
@@ -120,7 +123,14 @@ export default function MediaUpload({
 
   const onFile = async (file?: File | null) => {
     if (!file || uploadingRef.current) return;
-    if (file.type.startsWith("video/")) {
+    if (kind === "pdf") {
+      const name = String(file.name || "").toLowerCase();
+      const mime = String(file.type || "").toLowerCase();
+      if (mime && mime !== "application/pdf" && !name.endsWith(".pdf")) {
+        toast.error("This field only accepts a PDF file.");
+        return;
+      }
+    } else if (file.type.startsWith("video/")) {
       toast.error("This is an image field — upload a JPG, PNG, or WebP image.");
       return;
     }
@@ -133,7 +143,7 @@ export default function MediaUpload({
     try {
       const res = uploadFile
         ? await uploadFile(file, kind)
-        : await uploadMedia(file, kind === "icon" ? "icon" : "image");
+        : await uploadMedia(file, kind);
       if (!res?.file?.url) throw new Error("No URL returned");
       onChange(res.file.url);
       toast.success("Uploaded");

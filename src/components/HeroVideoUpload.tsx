@@ -16,8 +16,10 @@ import { resolveMediaUrl, uploadMedia } from "@/services/adminAPI";
 import {
   classifyMediaUrl,
   isEmbedVideoUrl,
+  isPlayableVideoSrc,
   mediaUrlHint,
   needsRemoteResolve,
+  resolveAdminMediaPreviewFallbacks,
   toEmbedVideoSrc,
 } from "@/lib/adminMediaPreview";
 import { clsx } from "clsx";
@@ -27,37 +29,63 @@ type Mode = "upload" | "url";
 export default function HeroVideoUpload({
   value,
   onChange,
+  fallbackUrl = "",
 }: {
   value: string;
   onChange: (url: string) => void;
+  /** Live-site video shown (with URL) when CMS field is empty. */
+  fallbackUrl?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const stored = String(value || "").trim();
+  const fallback = String(fallbackUrl || "").trim();
+  const effective = stored || fallback;
+  const showingSiteFallback = !stored && Boolean(fallback);
+
   const [mode, setMode] = useState<Mode>(() =>
-    value && !value.includes("/uploads/") ? "url" : "upload"
+    effective && !effective.includes("/uploads/") ? "url" : "upload"
   );
   const [uploading, setUploading] = useState(false);
-  const [urlDraft, setUrlDraft] = useState(value || "");
+  const [urlDraft, setUrlDraft] = useState(effective);
   const [dragOver, setDragOver] = useState(false);
   const [remotePreviewUrl, setRemotePreviewUrl] = useState("");
+  const [remotePlayableUrl, setRemotePlayableUrl] = useState("");
   const [remoteHint, setRemoteHint] = useState("");
   const [resolving, setResolving] = useState(false);
+  const [srcIndex, setSrcIndex] = useState(0);
 
   useEffect(() => {
-    setUrlDraft(value || "");
-  }, [value]);
+    setUrlDraft(stored || fallback);
+    if (effective && !effective.includes("/uploads/")) setMode("url");
+  }, [stored, fallback, effective]);
 
-  const urlKind = classifyMediaUrl(value);
-  const guidance = remoteHint || mediaUrlHint(urlKind, true);
-  const embed = value.trim() && isEmbedVideoUrl(value);
-  const directVideo =
-    urlKind === "direct-video" ||
-    (value.includes("/uploads/") && !embed);
+  const urlKind = classifyMediaUrl(effective);
+  const guidance =
+    remoteHint ||
+    (showingSiteFallback
+      ? "Empty CMS field — previewing the current live-site video. Sync from DB or Apply to save this URL."
+      : mediaUrlHint(urlKind, true));
+  const embed = Boolean(effective) && isEmbedVideoUrl(effective);
+  const playableSrc =
+    remotePlayableUrl || (isPlayableVideoSrc(effective) ? effective : "");
+  const directVideo = Boolean(playableSrc) && !embed;
+  const previewCandidates = playableSrc
+    ? resolveAdminMediaPreviewFallbacks(playableSrc)
+    : [];
+  const videoElSrc =
+    previewCandidates[Math.min(srcIndex, Math.max(previewCandidates.length - 1, 0))] ||
+    playableSrc;
+
+  useEffect(() => {
+    setSrcIndex(0);
+  }, [playableSrc]);
 
   useEffect(() => {
     setRemotePreviewUrl("");
+    setRemotePlayableUrl("");
     setRemoteHint("");
 
-    const trimmed = value.trim();
+    const trimmed = effective;
     if (!trimmed || !needsRemoteResolve(classifyMediaUrl(trimmed))) return;
 
     let cancelled = false;
@@ -65,13 +93,23 @@ export default function HeroVideoUpload({
     void resolveMediaUrl(trimmed, "video")
       .then((res) => {
         if (cancelled) return;
+        const next =
+          (res.playable && (res.resolvedUrl || res.previewUrl)) ||
+          (res.resolvedUrl && isPlayableVideoSrc(res.resolvedUrl)
+            ? res.resolvedUrl
+            : "");
+        if (next) {
+          setRemotePlayableUrl(next);
+          setRemoteHint("");
+          return;
+        }
         if (res.previewUrl) setRemotePreviewUrl(res.previewUrl);
         if (res.hint) setRemoteHint(res.hint);
       })
       .catch(() => {
         if (!cancelled) {
           setRemoteHint(
-            "Could not resolve this gallery link. Upload the video file or paste a direct .mp4 URL."
+            "Could not resolve this link. Upload the video file or paste a direct .mp4 / YouTube / Vimeo URL."
           );
         }
       })
@@ -82,7 +120,7 @@ export default function HeroVideoUpload({
     return () => {
       cancelled = true;
     };
-  }, [value]);
+  }, [effective]);
 
   const onFile = async (file?: File | null) => {
     if (!file) return;
@@ -106,24 +144,17 @@ export default function HeroVideoUpload({
   };
 
   const applyUrl = () => {
-    const next = urlDraft.trim();
-    const kind = classifyMediaUrl(next);
-    if (kind === "pexels-video-page") {
-      toast.message("Pexels page link saved", {
-        description:
-          "Thumbnail preview only — the live site needs Upload or a direct .mp4 URL.",
-      });
-    }
+    const next = urlDraft.trim() || fallback;
     onChange(next);
     if (next) toast.success("Video URL saved");
   };
 
   const clear = () => {
     onChange("");
-    setUrlDraft("");
+    setUrlDraft(fallback);
   };
 
-  const preview = value.trim();
+  const preview = effective;
 
   return (
     <div className="space-y-3">
@@ -221,7 +252,7 @@ export default function HeroVideoUpload({
                   applyUrl();
                 }
               }}
-              placeholder="Direct .mp4 URL, YouTube, Vimeo, or upload instead"
+              placeholder="Direct .mp4, YouTube, Vimeo, or Pexels video URL"
               className="flex-1 rounded-lg border border-[#E2E5EA] bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A2332]/15 focus:border-[#1A2332]"
             />
             <button
@@ -234,8 +265,8 @@ export default function HeroVideoUpload({
           </div>
           <p className="flex items-start gap-1.5 text-[11px] text-[#9CA3AF]">
             <Lightbulb className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-            Use Upload, a direct .mp4 URL, or YouTube/Vimeo. Pexels page links
-            show thumbnail only — they will not autoplay on the live site.
+            Use Upload, a direct .mp4 URL, YouTube/Vimeo, or a Pexels video /
+            download link — those play in preview and on the live site.
           </p>
         </div>
       )}
@@ -270,6 +301,18 @@ export default function HeroVideoUpload({
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />
+          ) : directVideo ? (
+            <video
+              key={videoElSrc}
+              src={videoElSrc}
+              controls
+              className="aspect-video w-full bg-black"
+              onError={() => {
+                if (srcIndex + 1 < previewCandidates.length) {
+                  setSrcIndex((i) => i + 1);
+                }
+              }}
+            />
           ) : urlKind === "pexels-video-page" && remotePreviewUrl ? (
             <div className="relative aspect-video w-full">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -281,17 +324,10 @@ export default function HeroVideoUpload({
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/45 px-4 text-center text-white">
                 <ExternalLink className="h-6 w-6" />
                 <p className="text-xs font-semibold">
-                  Pexels page link — upload or use direct .mp4 for live hero
+                  Could not load this Pexels video yet. Try Apply again or upload a file.
                 </p>
               </div>
             </div>
-          ) : directVideo ? (
-            <video
-              key={preview}
-              src={preview}
-              controls
-              className="aspect-video w-full bg-black"
-            />
           ) : (
             <div className="flex aspect-video flex-col items-center justify-center gap-2 bg-[#111] px-4 text-center text-white/80">
               <ExternalLink className="h-6 w-6" />
@@ -304,9 +340,18 @@ export default function HeroVideoUpload({
 
           <span className="absolute bottom-2 left-2 inline-flex items-center gap-1.5 rounded-md bg-black/75 px-2 py-1 text-[11px] font-semibold text-white">
             <Video className="h-3.5 w-3.5 text-emerald-400" />
-            {mode === "url" || embed ? "Video URL Link" : "Uploaded File"}
+            {showingSiteFallback
+              ? "Live site video"
+              : mode === "url" || embed
+                ? "Video URL Link"
+                : "Uploaded File"}
           </span>
         </div>
+      ) : null}
+      {preview ? (
+        <p className="truncate text-[11px] text-[#64748B]" title={effective}>
+          URL: {effective}
+        </p>
       ) : null}
     </div>
   );

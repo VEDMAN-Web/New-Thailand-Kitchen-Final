@@ -247,6 +247,7 @@ export default function AdminFaqsPage() {
           </div>
           <HeroVideoUpload
             value={hero.videoUrl}
+            fallbackUrl="/video/faq-autoplay.mp4"
             onChange={(v) => setHero((h) => ({ ...h, videoUrl: v }))}
           />
         </div>

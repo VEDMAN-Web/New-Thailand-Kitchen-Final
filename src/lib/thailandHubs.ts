@@ -56,10 +56,10 @@ export const ADMIN_HUBS: AdminHubMeta[] = [
     hubParam: "locations",
     label: "Locations",
     sitePath: "/locations",
-    categoryTypes: ["location", "service"],
+    categoryTypes: ["location"],
     defaultCategoryType: "location",
     description:
-      "Same cities as the Locations mega-menu. Use “City services” for /locations/{city}/{service} pages.",
+      "Same cities as the Locations mega-menu on the site (/locations).",
   },
   {
     key: "builtInFurniture",

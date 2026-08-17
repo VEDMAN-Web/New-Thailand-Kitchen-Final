@@ -210,22 +210,8 @@ export default function AdminCategoriesPage() {
         } else if (hub.key === "materials") {
           if (type !== "material" || !isTopLevelCategory(i)) return false;
         } else if (hub.key === "locations") {
-          // Default / All = same as site Locations mega-menu (cities only).
-          // Filter "service" = city×service pages (/locations/bangkok/kitchen-design).
           const isLocation = type === "location" && isTopLevelCategory(i);
-          const isLocationService =
-            type === "service" &&
-            !isTopLevelCategory(i) &&
-            String((i as any).parentId?.categoryType || "") === "location";
-
-          if (typeFilter === "service") {
-            if (!isLocationService) return false;
-          } else if (typeFilter === "location") {
-            if (!isLocation) return false;
-          } else {
-            // "all" mirrors the public mega-menu
-            if (!isLocation) return false;
-          }
+          if (!isLocation) return false;
         } else if (!hub.categoryTypes.includes(type)) {
           return false;
         }
@@ -462,7 +448,7 @@ export default function AdminCategoriesPage() {
                   : "bg-white text-[#5C6370] border-[#E2E5EA]"
               }`}
             >
-              {hub.key === "locations" ? "Menu cities" : "All"}
+              {hub.key === "locations" ? "Cities" : "All"}
             </button>
             {hub.categoryTypes.map((t) => (
               <button
@@ -475,9 +461,7 @@ export default function AdminCategoriesPage() {
                     : "bg-white text-[#5C6370] border-[#E2E5EA]"
                 }`}
               >
-                {hub.key === "locations" && t === "service"
-                  ? "City services"
-                  : categoryTypeLabel(t)}
+                {categoryTypeLabel(t)}
               </button>
             ))}
           </div>
