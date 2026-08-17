@@ -10,6 +10,7 @@ import { useTranslation } from "../../i18n/LanguageProvider";
 import type { TranslationKey } from "../../i18n/translations";
 import { useCmsSection } from "../../lib/CmsHomeContext";
 import { pickCmsAsset, pickCmsText } from "../../lib/cmsText";
+import { useResolvedMediaUrl } from "../../lib/useResolvedMediaUrl";
 
 const contactLabelKeys: Record<string, TranslationKey> = {
   "Email Us": "contact.emailUs",
@@ -104,7 +105,8 @@ export default function ContactInfoPanel() {
   const cms = useCmsSection<ContactPageCms>("contactPage");
 
   const craftImage =
-    pickCmsAsset(cms?.craftImage, "") || contactCraftImage;
+    useResolvedMediaUrl(pickCmsAsset(cms?.craftImage, ""), "image") ||
+    contactCraftImage;
   const remoteCraft =
     craftImage.startsWith("http") || craftImage.startsWith("/uploads");
 

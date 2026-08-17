@@ -15,6 +15,7 @@ import HomeFaqSection from "./faq/HomeFaqSection";
 import { useTranslation } from "../i18n/LanguageProvider";
 import { useCms, useCmsSection } from "../lib/CmsHomeContext";
 import { pickCmsText } from "../lib/cmsText";
+import { useResolvedMediaUrl } from "../lib/useResolvedMediaUrl";
 
 const STATIC_FALLBACK_VIDEO = "/video/2.mp4";
 
@@ -106,7 +107,7 @@ function HomePage() {
   // confirmed there is no uploaded video. While loading (or when a CMS video
   // exists), never let the static fallback override the CMS url — that is what
   // caused the old-then-new double-play on every refresh.
-  const cmsVideoUrl = (hero?.videoUrl || "").trim();
+  const cmsVideoUrl = useResolvedMediaUrl(hero?.videoUrl || "", "video").trim();
   const heroVideo = cmsVideoUrl
     ? cmsVideoUrl
     : cmsLoading

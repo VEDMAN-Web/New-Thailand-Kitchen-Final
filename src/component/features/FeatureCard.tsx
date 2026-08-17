@@ -1,4 +1,6 @@
-import Image from "next/image";
+"use client";
+
+import CmsResolvedImage from "../CmsResolvedImage";
 
 interface Props {
   item: {
@@ -10,9 +12,6 @@ interface Props {
 
 export default function FeatureCard({ item }: Props) {
   const icon = item.icon?.trim();
-  const remoteIcon =
-    Boolean(icon) &&
-    (icon!.startsWith("http") || icon!.startsWith("/uploads"));
 
   return (
     <div className="group relative overflow-hidden bg-white rounded-2xl border border-black/5 p-7 sm:p-8 shadow-[0_6px_24px_rgba(0,0,0,0.04)] h-full">
@@ -24,13 +23,12 @@ export default function FeatureCard({ item }: Props) {
       <div className="relative z-10">
         {icon ? (
           <div className="relative mb-4 h-10 w-10">
-            <Image
+            <CmsResolvedImage
               src={icon}
               alt=""
               fill
               className="object-contain"
               sizes="40px"
-              unoptimized={remoteIcon}
             />
           </div>
         ) : null}
@@ -38,7 +36,7 @@ export default function FeatureCard({ item }: Props) {
           {item.title}
         </h3>
 
-        <p className="mt-3 text-[#6B6B6B] text-sm leading-7 group-hover:text-white/90 transition-colors duration-500">
+        <p className="mt-3 text-sm leading-6 text-[#6B6B6B] group-hover:text-white/90 transition-colors duration-500">
           {item.description}
         </p>
       </div>

@@ -6,7 +6,7 @@ import Breadcrumbs from "../../../components/seo/Breadcrumbs";
 import JsonLd from "../../../components/seo/JsonLd";
 import {
   productItems,
-  productFilterTabs,
+  collectProductFilterTabs,
   tabFromSlugValue,
   type ProductItem,
 } from "../../../component/products/productData";
@@ -33,36 +33,25 @@ export const revalidate = 0;
  * ProductsListSection.tsx so both stay in sync.
  */
 async function buildKnownCategoryTabs(items: ProductItem[]): Promise<string[]> {
-  const base = [...productFilterTabs] as string[];
-  const known = new Set(base.map((t) => t.toLowerCase()));
+  const extras: string[] = [];
 
   try {
     const cats = await fetchMergedCategories();
     for (const cat of cats) {
+      if (String(cat.categoryType || "") !== "layout") continue;
       const id = pickCmsText(cat.title, "", "EN");
-      if (id && !known.has(id.toLowerCase())) {
-        base.splice(base.length - 1, 0, id);
-        known.add(id.toLowerCase());
-      }
+      if (id) extras.push(id);
     }
   } catch {
-    // ignore — fall back to static tabs + product-derived tags below
+    /* fall through — canonical layouts + product tags still apply */
   }
 
   for (const p of items) {
-    const cat = (p.layout || p.layoutType || "").trim();
-    if (
-      cat &&
-      !known.has(cat.toLowerCase()) &&
-      cat.toLowerCase() !== "modern" &&
-      cat.toLowerCase() !== "all"
-    ) {
-      base.splice(base.length - 1, 0, cat);
-      known.add(cat.toLowerCase());
-    }
+    if (p.layout) extras.push(String(p.layout).trim());
+    if (p.layoutType) extras.push(String(p.layoutType).trim());
   }
 
-  return base;
+  return collectProductFilterTabs(extras);
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

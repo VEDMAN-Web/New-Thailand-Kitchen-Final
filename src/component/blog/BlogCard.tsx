@@ -1,11 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { BlogPost } from "./blogData";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import { blogCategoryLabel, localizePost } from "./blogI18n";
-import { cmsImageNeedsUnoptimized, resolveCmsMediaUrl } from "../../lib/cmsMedia";
+import { resolveCmsMediaUrl } from "../../lib/cmsMedia";
+import CmsResolvedImage from "../CmsResolvedImage";
 
 interface Props {
   post: BlogPost;
@@ -31,13 +31,12 @@ export default function BlogCard({ post: rawPost }: Props) {
         href={href}
         className="relative block w-full aspect-[16/11] rounded-[1.5rem] overflow-hidden"
       >
-        <Image
+        <CmsResolvedImage
           src={imageSrc}
           alt={post.title}
           fill
           className="object-cover transition-transform duration-500 group-hover:scale-105"
           sizes="(max-width: 768px) 100vw, 33vw"
-          unoptimized={cmsImageNeedsUnoptimized(imageSrc)}
         />
       </Link>
 

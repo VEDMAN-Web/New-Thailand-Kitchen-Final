@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import { useCmsSection } from "../../lib/CmsHomeContext";
 import { pickCmsAsset, pickCmsText } from "../../lib/cmsText";
+import { useResolvedMediaUrl } from "../../lib/useResolvedMediaUrl";
 import { productHero } from "./productData";
 
 type ProductsPageCms = {
@@ -19,7 +20,9 @@ export default function ProductsHero() {
 
   const label = pickCmsText(cms?.label, t("products.hero.label"), locale);
   const title = pickCmsText(cms?.title, t("products.hero.title"), locale);
-  const videoSrc = pickCmsAsset(cms?.videoUrl, "") || productHero.video;
+  const videoSrc =
+    useResolvedMediaUrl(pickCmsAsset(cms?.videoUrl, ""), "video") ||
+    productHero.video;
 
   useEffect(() => {
     const video = videoRef.current;

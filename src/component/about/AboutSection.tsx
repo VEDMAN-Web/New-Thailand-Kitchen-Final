@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import { useCmsSection } from "../../lib/CmsHomeContext";
 import { pickCmsAsset, pickCmsText } from "../../lib/cmsText";
+import { useResolvedMediaUrl } from "../../lib/useResolvedMediaUrl";
 
 export default function AboutSection() {
   const { t, locale } = useTranslation();
@@ -27,7 +28,8 @@ export default function AboutSection() {
     locale
   );
   const storyImage =
-    pickCmsAsset(story?.image, "") || "/slider/crafted-with-passion.png";
+    useResolvedMediaUrl(pickCmsAsset(story?.image, ""), "image") ||
+    "/slider/crafted-with-passion.png";
   const remoteImage = true; // always unoptimized for CMS images
 
   useEffect(() => {

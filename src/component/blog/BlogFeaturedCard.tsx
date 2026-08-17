@@ -1,11 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { BlogPost } from "./blogData";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import { blogCategoryLabel, formatBlogDate, formatReadTime, localizePost } from "./blogI18n";
-import { cmsImageNeedsUnoptimized, resolveCmsMediaUrl } from "../../lib/cmsMedia";
+import { resolveCmsMediaUrl } from "../../lib/cmsMedia";
+import CmsResolvedImage from "../CmsResolvedImage";
 
 interface Props {
   post: BlogPost;
@@ -34,13 +34,12 @@ export default function BlogFeaturedCard({ post: rawPost }: Props) {
           imageLeft ? "" : "lg:order-2"
         }`}
       >
-        <Image
+        <CmsResolvedImage
           src={imageSrc}
           alt={post.title}
           fill
           className="object-cover transition-transform duration-500 hover:scale-105"
           sizes="(max-width: 1024px) 100vw, 576px"
-          unoptimized={cmsImageNeedsUnoptimized(imageSrc)}
         />
       </Link>
 

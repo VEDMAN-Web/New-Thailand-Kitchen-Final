@@ -14,6 +14,7 @@ import {
   resolveCmsMediaUrl,
   toEmbedVideoSrc,
 } from "../../lib/cmsMedia";
+import { useResolvedMediaUrl } from "../../lib/useResolvedMediaUrl";
 
 type BlogPageCms = {
   eyebrow?: string;
@@ -29,9 +30,11 @@ export default function BlogHero() {
 
   const eyebrow = pickCmsText(cms?.eyebrow, t("blog.hero.eyebrow"), locale);
   const title = pickCmsText(cms?.title, t("blog.hero.title"), locale);
-  const mediaSrc =
+  const mediaSrc = useResolvedMediaUrl(
     resolveCmsMediaUrl(cms?.videoUrl) ||
-    resolveCmsMediaUrl(DEFAULT_BLOG_HERO_VIDEO);
+      resolveCmsMediaUrl(DEFAULT_BLOG_HERO_VIDEO),
+    "video"
+  );
 
   const showEmbed = Boolean(mediaSrc && isEmbedVideoUrl(mediaSrc));
   const showImage =
@@ -103,13 +106,15 @@ export default function BlogHero() {
 
         <div className="absolute inset-0 bg-black/45" />
 
-        <div className="absolute inset-0 flex flex-col items-start justify-center text-left px-6 sm:px-10 lg:px-14">
-          <p className="text-[#E0905A] text-xs tracking-[0.3em] uppercase font-semibold mb-4">
-            {eyebrow}
-          </p>
-          <h1 className="text-white text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight">
-            {title}
-          </h1>
+        <div className="absolute inset-0 flex items-center">
+          <div className="relative z-10 w-screen max-w-7xl left-1/2 -translate-x-1/2 px-5 sm:px-6">
+            <p className="text-[#D4B896] text-xs tracking-[0.22em] uppercase font-semibold mb-3">
+              {eyebrow}
+            </p>
+            <h1 className="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl text-white leading-tight max-w-3xl">
+              {title}
+            </h1>
+          </div>
         </div>
       </div>
     </section>

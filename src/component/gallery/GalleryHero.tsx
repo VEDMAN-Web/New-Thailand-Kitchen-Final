@@ -6,9 +6,25 @@ import { galleryHero } from "./galleryData";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import { useCmsSection } from "../../lib/CmsHomeContext";
 import { pickCmsText } from "../../lib/cmsText";
+import { useResolvedMediaUrl } from "../../lib/useResolvedMediaUrl";
 
 const FRAME =
   "relative w-full h-[180px] sm:h-[200px] lg:h-[220px] shrink-0 rounded-[1.5rem] sm:rounded-[1.75rem] overflow-hidden";
+
+function GalleryFrameImage({ src, priority }: { src: string; priority?: boolean }) {
+  const resolved = useResolvedMediaUrl(src, "image");
+  return (
+    <Image
+      src={resolved}
+      alt="Gallery inspiration"
+      fill
+      className="object-cover pointer-events-none select-none"
+      sizes="(max-width: 1024px) 45vw, 22vw"
+      priority={priority}
+      unoptimized={resolved.startsWith("/uploads") || resolved.startsWith("http")}
+    />
+  );
+}
 
 const DEFAULT_LEFT = [
   galleryHero.collage[0],
@@ -75,15 +91,7 @@ function ScrollColumn({
       >
         {loop.map((src, i) => (
           <div key={`${src}-${i}`} className={FRAME}>
-            <Image
-              src={src}
-              alt="Gallery inspiration"
-              fill
-              className="object-cover pointer-events-none select-none"
-              sizes="(max-width: 1024px) 45vw, 22vw"
-              priority={i < 2}
-              unoptimized={src.startsWith("/uploads") || src.startsWith("http")}
-            />
+            <GalleryFrameImage src={src} priority={i < 2} />
           </div>
         ))}
       </div>

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import ProductCard from "./ProductCard";
 import {
-  productFilterTabs,
+  collectProductFilterTabs,
   PRODUCTS_PER_PAGE,    
   tabToSlug,
   type ProductFilterTab,
@@ -14,6 +14,8 @@ import { useTranslation } from "../../i18n/LanguageProvider";
 import type { TranslationKey } from "../../i18n/translations";
 import { smoothScrollToId } from "../../lib/smoothScroll";
 import { fetchMergedProducts } from "../../services/cmsPublic";
+import { useCms } from "../../lib/CmsHomeContext";
+import { pickCmsText } from "../../lib/cmsText";
 
 // Only re-fetch in background if data is older than 30 seconds
 const STALE_AFTER_MS = 30_000;
@@ -115,8 +117,9 @@ export default function ProductsListSection({
   /** Category tab pre-selected via a /products/<category> URL (Smart merged route). */
   initialCategory?: string;
 }) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const router = useRouter();
+  const { categories } = useCms();
   const searchParams = useSearchParams();
   const [layout, setLayout] = useState<string>(initialCategory || "All");
   const [page, setPage] = useState(1);
@@ -147,10 +150,19 @@ export default function ProductsListSection({
       .catch(() => {});
   }, []);
 
-  const filterTabs = useMemo(
-    () => [...productFilterTabs] as string[],
-    []
-  );
+  const filterTabs = useMemo(() => {
+    const extras: string[] = [];
+    for (const cat of categories || []) {
+      if (String(cat.categoryType || "") !== "layout") continue;
+      const title = pickCmsText(cat.title, "", locale);
+      if (title) extras.push(title);
+    }
+    for (const item of items) {
+      if (item.layout) extras.push(String(item.layout));
+      if (item.layoutType) extras.push(String(item.layoutType));
+    }
+    return collectProductFilterTabs(extras);
+  }, [categories, items, locale]);
 
   // Skip legacy ?tab=/?filter= query-string handling when this view was
   // already given an initialCategory via a /products/<category> URL — the

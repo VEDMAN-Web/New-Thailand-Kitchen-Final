@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import { useCmsSection } from "../../lib/CmsHomeContext";
 import { pickCmsAsset, pickCmsText } from "../../lib/cmsText";
+import { useResolvedMediaUrl } from "../../lib/useResolvedMediaUrl";
 
 type FaqPageCms = {
   eyebrow?: string;
@@ -19,7 +20,8 @@ export default function FaqHero() {
   const eyebrow = pickCmsText(cms?.eyebrow, t("faq.hero.eyebrow"), locale);
   const title = pickCmsText(cms?.title, t("faq.hero.title"), locale);
   const videoSrc =
-    pickCmsAsset(cms?.videoUrl, "") || "/video/faq-autoplay.mp4";
+    useResolvedMediaUrl(pickCmsAsset(cms?.videoUrl, ""), "video") ||
+    "/video/faq-autoplay.mp4";
 
   useEffect(() => {
     const video = videoRef.current;

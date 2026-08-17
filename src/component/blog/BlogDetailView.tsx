@@ -17,6 +17,7 @@ import {
   fetchMergedBlogs,
 } from "../../services/cmsPublic";
 import { pickCmsText } from "../../lib/cmsText";
+import CmsResolvedImage from "../CmsResolvedImage";
 
 interface Props {
   post: BlogPost;
@@ -161,17 +162,13 @@ export default function BlogDetailView({ post: rawPost }: Props) {
             </div>
 
             <div className="relative mt-10 lg:mt-12 w-full h-[240px] sm:h-[340px] md:h-[420px] rounded-[1.75rem] overflow-hidden">
-              <Image
+              <CmsResolvedImage
                 src={post.image}
                 alt={post.title}
                 fill
                 priority
                 className="object-cover object-center"
                 sizes="(max-width: 896px) 100vw, 896px"
-                unoptimized={
-                  post.image.startsWith("http") ||
-                  post.image.startsWith("/uploads")
-                }
               />
             </div>
 
@@ -229,16 +226,12 @@ export default function BlogDetailView({ post: rawPost }: Props) {
                         ) : null}
                         {section.image ? (
                           <div className="relative mt-6 aspect-[16/10] w-full overflow-hidden rounded-[1.5rem]">
-                            <Image
+                            <CmsResolvedImage
                               src={section.image}
                               alt={section.title || post.title}
                               fill
                               className="object-cover"
                               sizes="(max-width: 896px) 100vw, 720px"
-                              unoptimized={
-                                section.image.startsWith("http") ||
-                                section.image.startsWith("/uploads")
-                              }
                             />
                           </div>
                         ) : null}

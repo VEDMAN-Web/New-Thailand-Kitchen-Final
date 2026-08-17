@@ -19,10 +19,17 @@ export default async function GalleryPage() {
     .map((f) => ({ id: String(f.id || "").trim(), label: f.label ?? f.id }))
     .filter((f) => f.id);
 
+  const hasAll = cmsFilters.some((f) => f.id === "All");
+  const initialFilters = cmsFilters.length
+    ? hasAll
+      ? cmsFilters
+      : [{ id: "All", label: "All" }, ...cmsFilters]
+    : [];
+
   return (
     <main className="w-full">
       <Suspense fallback={<div className="min-h-[40vh] bg-[#F5F3EF]" />}>
-        <GalleryPageView initialItems={items} initialFilters={cmsFilters} />
+        <GalleryPageView initialItems={items} initialFilters={initialFilters} />
       </Suspense>
     </main>
   );

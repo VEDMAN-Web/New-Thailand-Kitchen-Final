@@ -1,6 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { cmsImageNeedsUnoptimized, resolveCmsMediaUrl } from "../../lib/cmsMedia";
+import { useResolvedMediaUrl } from "../../lib/useResolvedMediaUrl";
 
 type Props = {
   eyebrow: string;
@@ -20,7 +23,7 @@ export default function OverlayHeroBanner({
   ctaLabel,
   ctaHref,
 }: Props) {
-  const src = resolveCmsMediaUrl(image);
+  const src = useResolvedMediaUrl(resolveCmsMediaUrl(image), "image");
   const remote = cmsImageNeedsUnoptimized(src);
 
   return (

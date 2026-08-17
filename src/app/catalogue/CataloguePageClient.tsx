@@ -1,11 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import { Download } from "lucide-react";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import type { CmsCatalogue } from "../../services/cmsPublic";
 import { pickCmsText } from "../../lib/cmsText";
 import { useCmsSection } from "../../lib/CmsHomeContext";
+import CmsResolvedImage from "../../component/CmsResolvedImage";
 
 type CatalogueCms = {
   pageEyebrow?: unknown;
@@ -59,8 +59,6 @@ export default function CataloguePageClient({
             <div className="mt-10 mx-auto grid max-w-3xl gap-8 sm:grid-cols-2">
               {initialCatalogues.map((entry, index) => {
                 const coverImg = entry.image || "/catlog/catlog.png";
-                const remote =
-                  coverImg.startsWith("http") || coverImg.startsWith("/uploads");
                 const cardTitle = pickCmsText(
                   entry.title,
                   t("catalogue.fileTitle"),
@@ -82,13 +80,12 @@ export default function CataloguePageClient({
                     className="rounded-[1.75rem] overflow-hidden bg-white shadow-[0_12px_40px_rgba(0,0,0,0.06)] text-left"
                   >
                     <div className="relative w-full aspect-[4/5]">
-                      <Image
+                      <CmsResolvedImage
                         src={coverImg}
                         alt=""
                         fill
                         className="object-cover"
                         sizes="(max-width: 768px) 100vw, 320px"
-                        unoptimized={remote}
                       />
                     </div>
                     <div className="p-6">

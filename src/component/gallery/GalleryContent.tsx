@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import {
   galleryItems,
@@ -12,6 +11,7 @@ import { useTranslation } from "../../i18n/LanguageProvider";
 import type { TranslationKey } from "../../i18n/translations";
 import type { CmsGallery } from "../../services/cmsPublic";
 import { pickCmsText } from "../../lib/cmsText";
+import CmsResolvedImage from "../CmsResolvedImage";
 
 const categoryKeyMap: Record<GalleryCategory, TranslationKey> = {
   All: "gallery.filter.all",
@@ -193,16 +193,12 @@ export default function GalleryContent({ initialItems, initialFilters }: Props) 
                     }`}
                   >
                     {imageSrc ? (
-                      <Image
+                      <CmsResolvedImage
                         src={imageSrc}
                         alt={title}
                         fill
                         className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
                         sizes="(max-width: 1024px) 50vw, 33vw"
-                        unoptimized={
-                          imageSrc.startsWith("/uploads") ||
-                          imageSrc.startsWith("http")
-                        }
                       />
                     ) : null}
                   </div>

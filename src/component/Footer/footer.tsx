@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   footerLinks,
   contactInfo,
@@ -13,6 +12,7 @@ import { useTranslation } from "../../i18n/LanguageProvider";
 import { useCmsSection } from "../../lib/CmsHomeContext";
 import { pickCmsText } from "../../lib/cmsText";
 import { smoothScrollAfterNav } from "../../lib/smoothScroll";
+import { isExternalHref, normalizeFooterHref } from "../../lib/footerHref";
 import { trackGa4Event } from "../../lib/ga4";
 
 function SocialIcon({ name }: { name: SocialIconName }) {
@@ -72,7 +72,6 @@ function scrollToFooterTarget(href: string) {
 
 export default function Footer() {
   const { t, locale } = useTranslation();
-  const router = useRouter();
   const footerCms = useCmsSection<{
     address?: unknown;
     email?: string;
@@ -112,13 +111,13 @@ export default function Footer() {
 
   const cmsSocials = socialLinks.map((s) => {
     if (s.name === "facebook" && footerCms?.facebook) {
-      return { ...s, link: footerCms.facebook };
+      return { ...s, link: normalizeFooterHref(footerCms.facebook) || s.link };
     }
     if (s.name === "instagram" && footerCms?.instagram) {
-      return { ...s, link: footerCms.instagram };
+      return { ...s, link: normalizeFooterHref(footerCms.instagram) || s.link };
     }
     if (s.name === "whatsapp" && footerCms?.line) {
-      return { ...s, link: footerCms.line };
+      return { ...s, link: normalizeFooterHref(footerCms.line) || s.link };
     }
     return s;
   });
@@ -147,36 +146,36 @@ export default function Footer() {
     locale
   );
 
-  const homeLinksCms = (footerCms?.homeLinks || []).filter(
-    (l) => pickCmsText(l?.label, "", "EN") && l?.href
-  );
-  const productLinksCms = (footerCms?.productLinks || []).filter(
-    (l) => pickCmsText(l?.label, "", "EN") && l?.href
-  );
+  const homeLinksCms = (footerCms?.homeLinks || [])
+    .map((l) => ({
+      label: pickCmsText(
+        l.label,
+        "",
+        locale
+      ),
+      href: normalizeFooterHref(l.href),
+    }))
+    .filter((l) => l.label && l.href);
+  const productLinksCms = (footerCms?.productLinks || [])
+    .map((l) => ({
+      label: pickCmsText(
+        l.label,
+        "",
+        locale
+      ),
+      href: normalizeFooterHref(l.href),
+    }))
+    .filter((l) => l.label && l.href);
   const homeLinks =
     homeLinksCms.length > 0
-      ? homeLinksCms.map((l, i) => ({
-          label: pickCmsText(
-            l.label,
-            footerLinks.home[i] ? t(footerLinks.home[i].key) : "",
-            locale
-          ),
-          href: l.href || "/",
-        }))
+      ? homeLinksCms
       : footerLinks.home.map((item) => ({
           label: t(item.key),
           href: item.href,
         }));
   const productLinks =
     productLinksCms.length > 0
-      ? productLinksCms.map((l, i) => ({
-          label: pickCmsText(
-            l.label,
-            footerLinks.product[i] ? t(footerLinks.product[i].key) : "",
-            locale
-          ),
-          href: l.href || "/",
-        }))
+      ? productLinksCms
       : footerLinks.product.map((item) => ({
           label: t(item.key),
           href: item.href,
@@ -186,20 +185,52 @@ export default function Footer() {
     e: React.MouseEvent<HTMLAnchorElement>,
     href: string
   ) => {
-    e.preventDefault();
+    if (isExternalHref(href)) return;
 
     const url = new URL(href, window.location.origin);
+    if (url.origin !== window.location.origin) return;
+
     const nextPath = `${url.pathname}${url.search}`;
     const currentPath = `${window.location.pathname}${window.location.search}`;
-    const samePage = nextPath === currentPath;
-
-    if (samePage) {
+    if (url.hash && nextPath === currentPath) {
+      e.preventDefault();
       scrollToFooterTarget(href);
-      return;
     }
+  };
 
-    router.push(`${url.pathname}${url.search}${url.hash}`);
-    scrollToFooterTarget(href);
+  const renderFooterLink = (item: { href: string; label: string }) => {
+    const className = "text-white/70 text-sm hover:text-white transition";
+    if (isExternalHref(item.href)) {
+      const newTab = /^(https?:\/\/)/i.test(item.href) || item.href.startsWith("//");
+      return (
+        <a
+          href={item.href}
+          className={className}
+          {...(newTab ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+        >
+          {item.label}
+        </a>
+      );
+    }
+    return (
+      <Link
+        href={item.href}
+        onClick={(e) => handleFooterNav(e, item.href)}
+        className={className}
+      >
+        {item.label}
+      </Link>
+    );
+  };
+
+  const contactHref = (text: string, index: number) => {
+    const value = text.trim();
+    if (index === 1 && value.includes("@")) return `mailto:${value}`;
+    if (index === 2) {
+      const digits = value.replace(/[^\d+]/g, "");
+      if (digits.length >= 6) return `tel:${digits}`;
+    }
+    return "";
   };
 
   return (
@@ -268,13 +299,7 @@ export default function Footer() {
             <ul className="space-y-4">
               {homeLinks.map((item) => (
                 <li key={`${item.href}-${item.label}`}>
-                  <Link
-                    href={item.href}
-                    onClick={(e) => handleFooterNav(e, item.href)}
-                    className="text-white/70 text-sm hover:text-white transition"
-                  >
-                    {item.label}
-                  </Link>
+                  {renderFooterLink(item)}
                 </li>
               ))}
             </ul>
@@ -287,13 +312,7 @@ export default function Footer() {
             <ul className="space-y-4">
               {productLinks.map((item) => (
                 <li key={`${item.href}-${item.label}`}>
-                  <Link
-                    href={item.href}
-                    onClick={(e) => handleFooterNav(e, item.href)}
-                    className="text-white/70 text-sm hover:text-white transition"
-                  >
-                    {item.label}
-                  </Link>
+                  {renderFooterLink(item)}
                 </li>
               ))}
             </ul>
@@ -304,16 +323,28 @@ export default function Footer() {
               {t("footer.section.getInTouch")}
             </h3>
             <div className="space-y-5">
-              {contactItems.map((item, index) => (
+              {contactItems.map((item, index) => {
+                const href = contactHref(item.text, index);
+                return (
                 <div key={index} className="flex gap-3 items-center">
                   <div className="w-9 h-9 rounded-full border border-[#B38B6D]/50 flex items-center justify-center shrink-0">
                     <Image src={item.icon} alt="" width={16} height={16} />
                   </div>
-                  <p className="text-white/70 text-sm whitespace-pre-line leading-6">
-                    {item.text}
-                  </p>
+                  {href ? (
+                    <a
+                      href={href}
+                      className="text-white/70 text-sm whitespace-pre-line leading-6 hover:text-white transition"
+                    >
+                      {item.text}
+                    </a>
+                  ) : (
+                    <p className="text-white/70 text-sm whitespace-pre-line leading-6">
+                      {item.text}
+                    </p>
+                  )}
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>

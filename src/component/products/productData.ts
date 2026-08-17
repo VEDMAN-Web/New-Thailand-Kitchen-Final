@@ -59,6 +59,52 @@ export const productLayouts: ProductLayout[] = [
 export const productFilterTabs = ["All", ...productLayouts, "Best Seller"] as const;
 export type ProductFilterTab = (typeof productFilterTabs)[number];
 
+export function normalizeCategoryKey(value: string) {
+  return String(value || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[\s_-]+/g, "-");
+}
+
+const CANONICAL_LABEL_BY_KEY: Record<string, string> = {
+  modern: "Modern",
+  islands: "Islands",
+  "u-shape": "U Shape",
+  "l-shape": "L Shape",
+  straight: "Straight",
+  "t-shape": "T Shape",
+  "best-seller": "Best Seller",
+  bestseller: "Best Seller",
+};
+
+/** Collapse "L shape" / "l-shape" / "L Shape" to one site label. */
+export function canonicalCategoryLabel(raw: string): string {
+  const trimmed = String(raw || "").trim().replace(/\s+/g, " ");
+  if (!trimmed) return "";
+  return CANONICAL_LABEL_BY_KEY[normalizeCategoryKey(trimmed)] || trimmed;
+}
+
+/**
+ * Same category chips on /products and in admin: canonical layouts first,
+ * then extra CMS/product labels, then Best Seller. Case-insensitive unique.
+ */
+export function collectProductFilterTabs(extraLabels: Iterable<string> = []): string[] {
+  const ordered: string[] = [];
+  const seen = new Set<string>();
+  const push = (raw: string) => {
+    const label = canonicalCategoryLabel(raw);
+    if (!label) return;
+    const key = normalizeCategoryKey(label);
+    if (!key || key === "all" || key === "best-seller" || key === "bestseller") return;
+    if (seen.has(key)) return;
+    seen.add(key);
+    ordered.push(label);
+  };
+  for (const label of productLayouts) push(label);
+  for (const label of extraLabels) push(label);
+  return ["All", ...ordered, "Best Seller"];
+}
+
 /**
  * Convert a category/tab label into a URL-safe slug, e.g. "U Shape" -> "u-shape".
  * Shared between the products listing tabs and the /products/[slug] route so

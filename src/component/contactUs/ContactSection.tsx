@@ -5,6 +5,7 @@ import ContactForm from "./ContactForm";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import { useCmsSection } from "../../lib/CmsHomeContext";
 import { pickCmsAsset, pickCmsText } from "../../lib/cmsText";
+import { useResolvedMediaUrl } from "../../lib/useResolvedMediaUrl";
 
 type HomeContactCms = {
   eyebrow?: unknown;
@@ -25,7 +26,8 @@ export default function ContactSection() {
     locale
   );
   const image =
-    pickCmsAsset(cms?.image, "") || "/contactUs/contact.png";
+    useResolvedMediaUrl(pickCmsAsset(cms?.image, ""), "image") ||
+    "/contactUs/contact.png";
   const remoteImage =
     image.startsWith("http") || image.startsWith("/uploads");
 

@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import { Download, X } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "../../i18n/LanguageProvider";
@@ -14,6 +13,7 @@ import {
 import type { ContactData } from "../../types/contactUs";
 import { pickCmsText } from "../../lib/cmsText";
 import { trackGa4Event } from "../../lib/ga4";
+import CmsResolvedImage from "../CmsResolvedImage";
 
 type PendingDownload = {
   id: number;
@@ -326,7 +326,7 @@ export default function CatlogSection() {
                 >
                   <div className="relative w-full h-[320px] sm:h-full overflow-hidden rounded-2xl">
                     {imageSrc ? (
-                      <Image
+                      <CmsResolvedImage
                         src={imageSrc}
                         alt={title}
                         fill
@@ -335,11 +335,7 @@ export default function CatlogSection() {
                             ? "scale-100 group-hover:scale-105"
                             : "scale-100"
                         }`}
-                        sizes="(max-width: 640px) 100vw, 50vw"
-                        unoptimized={
-                          imageSrc.startsWith("/uploads") ||
-                          imageSrc.startsWith("http")
-                        }
+                        sizes="(max-width: 640px) 50vw, 50vw"
                       />
                     ) : null}
 

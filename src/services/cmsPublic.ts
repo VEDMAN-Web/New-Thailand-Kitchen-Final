@@ -9,6 +9,7 @@ import {
   type BlogCategory,
 } from "../component/blog/blogData";
 import {
+  hydrateCmsMediaTree,
   pickBlogCoverImage,
   resolveCmsMediaUrl,
 } from "../lib/cmsMedia";
@@ -61,7 +62,8 @@ async function cmsFetch(path: string) {
         : { cache: "no-store" }
     );
     if (!res.ok) return null;
-    return res.json();
+    const json = await res.json();
+    return hydrateCmsMediaTree(json);
   } catch {
     return null;
   }
