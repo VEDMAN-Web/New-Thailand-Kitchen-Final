@@ -136,7 +136,7 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
   {
     id: "hero",
     title: "1. Hero",
-    description: "Home · top banner",
+    description: "Home · top banner (matches live `/`)",
     group: "home",
     icon: ImageIcon,
     fields: [
@@ -176,13 +176,13 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
   },
   {
     id: "about",
-    title: "2. About",
-    description: "Home · about strip",
+    title: "2. About Varsovia",
+    description: "Home · About Varsovia",
     group: "home",
     icon: BookOpen,
     fields: [
-      { key: "aboutTitle", label: "About Title", localized: true },
-      { key: "aboutText", label: "About Text", localized: true, type: "textarea" },
+      { key: "aboutTitle", label: "About Varsovia Title", localized: true },
+      { key: "aboutText", label: "About Varsovia Text", localized: true, type: "textarea" },
       {
         key: "aboutImages",
         label: "About Images — home collage (3 slots)",
@@ -200,7 +200,7 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
   {
     id: "stats",
     title: "3. Statistics",
-    description: "Home · counters",
+    description: "Home · Years / Projects / Cities counters",
     group: "home",
     icon: BarChart3,
     fields: [
@@ -211,7 +211,7 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
   {
     id: "featured",
     title: "4. Featured Projects",
-    description: "Home · featured carousel",
+    description: "Home · Featured Projects",
     group: "home",
     icon: FolderKanban,
     fields: [
@@ -237,7 +237,7 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
   {
     id: "catalogue",
     title: "5. Free Catalogue",
-    description: "Home · catalogue section",
+    description: "Home · Free Catalogue",
     group: "home",
     icon: FileDown,
     fields: [
@@ -247,8 +247,8 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
         type: "section-divider",
         helpText: "Title and subtitle above the downloadable catalogue carousel.",
       },
-      { key: "sectionCopy.catalogue.title", label: "Catalogue Section Title", localized: true },
-      { key: "sectionCopy.catalogue.subtitle", label: "Catalogue Section Subtitle", localized: true },
+      { key: "sectionCopy.catalogue.title", label: "Free Catalogue Title", localized: true },
+      { key: "sectionCopy.catalogue.subtitle", label: "Free Catalogue Subtitle", localized: true },
       {
         key: "catalogue.__div_items",
         label: "Catalogue PDFs",
@@ -259,8 +259,8 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
   },
   {
     id: "products",
-    title: "6. Products",
-    description: "Home · products grid headings",
+    title: "6. Our Products",
+    description: "Home · Our Products",
     group: "home",
     icon: Package,
     fields: [
@@ -270,8 +270,8 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
         type: "section-divider",
         helpText: "Title and subtitle above the home products grid.",
       },
-      { key: "sectionCopy.products.title", label: "Products Section Title", localized: true },
-      { key: "sectionCopy.products.subtitle", label: "Products Section Subtitle", localized: true },
+      { key: "sectionCopy.products.title", label: "Our Products Title", localized: true },
+      { key: "sectionCopy.products.subtitle", label: "Our Products Subtitle", localized: true },
       { key: "sectionCopy.products.ctaLabel", label: "Button label", localized: true },
       { key: "sectionCopy.products.ctaHref", label: "Button link", helpText: "e.g. /interior-design" },
       {
@@ -284,8 +284,8 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
   },
   {
     id: "testimonials",
-    title: "7. Testimonials",
-    description: "Home · testimonials headings",
+    title: "7. Real Stories. Real Spaces.",
+    description: "Home · Real Stories. Real Spaces.",
     group: "home",
     icon: MessageSquareQuote,
     fields: [
@@ -295,8 +295,8 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
         type: "section-divider",
         helpText: "Title and subtitle above the testimonials slider.",
       },
-      { key: "sectionCopy.testimonials.title", label: "Testimonials Section Title", localized: true },
-      { key: "sectionCopy.testimonials.subtitle", label: "Testimonials Section Subtitle", localized: true },
+      { key: "sectionCopy.testimonials.title", label: "Real Stories Title", localized: true },
+      { key: "sectionCopy.testimonials.subtitle", label: "Real Stories Subtitle", localized: true },
       {
         key: "testimonials.__div_items",
         label: "Customer reviews",
@@ -308,7 +308,7 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
   {
     id: "coreStrengths",
     title: "8. Core Strengths",
-    description: "Home · strengths headings",
+    description: "Home · Core Strengths",
     group: "home",
     icon: Sparkles,
     fields: [
@@ -330,8 +330,8 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
   },
   {
     id: "partners",
-    title: "9. Partners",
-    description: "Home · partners headings",
+    title: "9. Our Global Partners",
+    description: "Home · Our Global Partners",
     group: "home",
     icon: Globe2,
     fields: [
@@ -341,8 +341,8 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
         type: "section-divider",
         helpText: "Title and subtitle above the partner logo strip.",
       },
-      { key: "sectionCopy.partners.title", label: "Partners Section Title", localized: true },
-      { key: "sectionCopy.partners.subtitle", label: "Partners Section Subtitle", localized: true },
+      { key: "sectionCopy.partners.title", label: "Our Global Partners Title", localized: true },
+      { key: "sectionCopy.partners.subtitle", label: "Our Global Partners Subtitle", localized: true },
       {
         key: "partners.__div_items",
         label: "Partner logos",
@@ -353,8 +353,8 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
   },
   {
     id: "contact",
-    title: "10. Contact",
-    description: "Home contact strip + /contact page · form, headings & details",
+    title: "10. Get In touch",
+    description: "Home · Get In touch",
     group: "home",
     icon: Contact,
     fields: [
@@ -363,8 +363,8 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
         label: "Contact Form Fields (labels, placeholders, options, required)",
         type: "inquiry-form",
       },
-      { key: "sectionCopy.contact.title", label: "Contact Section Title", localized: true },
-      { key: "sectionCopy.contact.subtitle", label: "Contact Section Subtitle", localized: true },
+      { key: "sectionCopy.contact.title", label: "Get In touch Title", localized: true },
+      { key: "sectionCopy.contact.subtitle", label: "Get In touch Subtitle", localized: true },
       {
         key: "contactImages",
         label: "Contact Images — collage (7 slots)",
@@ -390,8 +390,8 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
   },
   {
     id: "aboutPage",
-    title: "About Page",
-    description: "/about · hero → values → story → process (matches live page top to bottom)",
+    title: "About Us",
+    description: "/about · About Us",
     group: "pages",
     icon: BookOpen,
     fields: [
@@ -399,7 +399,7 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
         key: "aboutPage.__div_hero",
         label: "1 · Hero",
         type: "section-divider",
-        helpText: "Page title + subtitle + intro. Banner images use Home → 2. About images.",
+        helpText: "Page title + subtitle + intro. Banner images use Home → 2. About Varsovia images.",
       },
       { key: "aboutHeroTitle", label: "Hero title (H1)", localized: true },
       { key: "aboutHeroSubtitle", label: "Hero subtitle", localized: true },
@@ -457,8 +457,8 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
   },
   {
     id: "teamPage",
-    title: "Team Page",
-    description: "/team · hero → intro → stats → teams → tools (matches live page)",
+    title: "Our Team",
+    description: "/team · Our Team",
     group: "pages",
     icon: BriefcaseBusiness,
     fields: [
@@ -600,8 +600,8 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
   },
   {
     id: "projectsPage",
-    title: "Projects listing",
-    description: "/projects · page hero + Google listing · cards under Project showcases",
+    title: "Showcase",
+    description: "/projects · Showcase",
     group: "pages",
     icon: FolderKanban,
     fields: [
@@ -655,8 +655,8 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
   },
   {
     id: "faqPage",
-    title: "FAQ Page",
-    description: "/faq · hero + SEO · Q&A items in FAQs resource",
+    title: "FAQ",
+    description: "/faq · FAQ",
     group: "pages",
     icon: MessageSquareQuote,
     fields: [
@@ -678,8 +678,8 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
   },
   {
     id: "cataloguePage",
-    title: "Catalogue Page",
-    description: "/catalogue · standalone listing hero + SEO · PDFs in Free Catalogue resource",
+    title: "Free Catalogue",
+    description: "/catalogue · Free Catalogue",
     group: "pages",
     icon: FileDown,
     fields: [
@@ -687,7 +687,7 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
         key: "cataloguePage.__div_hero",
         label: "1 · Hero",
         type: "section-divider",
-        helpText: "Headline on /catalogue. Brochure files are under Free Catalogue in the sidebar.",
+        helpText: "Headline on /catalogue. Brochure files are edited under Home → 5. Free Catalogue.",
       },
       { key: "cataloguePage.heroTitle", label: "Hero title", localized: true },
       { key: "cataloguePage.heroSubtitle", label: "Hero subtitle", localized: true },
@@ -701,8 +701,8 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
   },
   {
     id: "contactPage",
-    title: "Contact Page",
-    description: "/contact · hero → form (Home Contact images) → map → showrooms → SEO",
+    title: "Contact",
+    description: "/contact · Contact / Get in Touch",
     group: "pages",
     icon: MapPin,
     fields: [
@@ -711,7 +711,7 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
         label: "1 · Hero",
         type: "section-divider",
         helpText:
-          "Overrides Home → Contact title/subtitle on /contact when set. Form images still come from Home → 10. Contact.",
+          "Overrides Home → Get In touch title/subtitle on /contact when set. Form images still come from Home → 10. Get In touch.",
       },
       { key: "contactPage.heroTitle", label: "Hero title", localized: true },
       {
@@ -768,7 +768,7 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
 const SITE_SECTIONS_CHROME: SiteSection[] = [
   {
     id: "brand",
-    title: "Brand & Locale Flags",
+    title: "Brand & Flags",
     description: "Logos and navbar language flags",
     group: "chrome",
     icon: ImageIcon,
@@ -786,7 +786,7 @@ const SITE_SECTIONS_CHROME: SiteSection[] = [
   },
   {
     id: "navigation",
-    title: "Navigation & Search",
+    title: "Navigation",
     description: "Header menu & search pages",
     group: "chrome",
     icon: Navigation,
@@ -797,7 +797,7 @@ const SITE_SECTIONS_CHROME: SiteSection[] = [
   },
   {
     id: "footer",
-    title: "Footer & Social",
+    title: "Footer",
     description: "Footer bio, offices & social links",
     group: "chrome",
     icon: Share2,
@@ -813,7 +813,7 @@ const SITE_SECTIONS_CHROME: SiteSection[] = [
   },
   {
     id: "interior",
-    title: "Interior Catalogue Mode",
+    title: "Interior Mode",
     description: "/interior-design · CMS vs hybrid source",
     group: "chrome",
     icon: LayoutGrid,
@@ -1019,8 +1019,8 @@ const SITE_SECTIONS_IA: SiteSection[] = [
   ),
   iaHubSection(
     "iaInteriorDesign",
-    "Interior Design",
-    "/interior-design catalog · hub hero drives All-tab headline + SEO; cards in Interior catalogue",
+    "Interior",
+    "/interior-design · Interior",
     "interiorDesign",
     LayoutGrid,
     false,
@@ -1057,14 +1057,7 @@ const SITE_SECTIONS_IA: SiteSection[] = [
     HardHat,
     false,
   ),
-  iaHubSection(
-    "iaJournal",
-    "Journal",
-    "/journal · hub + topics + article grid · posts in Journal articles",
-    "journal",
-    Newspaper,
-    true,
-  ),
+  journalSiteSection(),
   iaHubSection(
     "iaAboutBrand",
     "About brands",
@@ -1074,6 +1067,93 @@ const SITE_SECTIONS_IA: SiteSection[] = [
     true,
   ),
 ];
+
+/** Journal /journal — same top-to-bottom order as the live page. */
+function journalSiteSection(): SiteSection {
+  const section = iaHubSection(
+    "iaJournal",
+    "Journal",
+    "/journal · Hero → Intro → Stories → Explore topics → All articles",
+    "journal",
+    Newspaper,
+    true,
+  );
+
+  const relabel: Record<string, { label: string; helpText: string }> = {
+    "pages.journal.__div_hero": {
+      label: "1 · Hero",
+      helpText:
+        "Live /journal top banner: background photo, JOURNAL headline, subtitle, consultation button.",
+    },
+    "pages.journal.__div_intro": {
+      label: "2 · Intro paragraph",
+      helpText:
+        "Centered intro under breadcrumbs — e.g. “Our journal collects practical design notes…”",
+    },
+    "pages.journal.__div_sections": {
+      label: "3 · Stories (content blocks)",
+      helpText:
+        "Story blocks on /journal (e.g. “Stories from real projects”). Heading + text + optional image.",
+    },
+    "pages.journal.__div_explore": {
+      label: "4 · Explore topics",
+      helpText:
+        "EXPLORE strip + topic cards (Kitchens, Furniture, Materials…). Each card is a /journal/topic/… page.",
+    },
+    "pages.journal.__div_seo": {
+      label: "6 · Google / SEO",
+      helpText: "Search listing for /journal. Keep Indexable OFF until copy is final.",
+    },
+  };
+
+  const fields = section.fields.map((field) => {
+    const meta = relabel[field.key];
+    if (!meta) return field;
+    return { ...field, label: meta.label, helpText: meta.helpText };
+  });
+
+  const seoIdx = fields.findIndex((f) => f.key === "pages.journal.__div_seo");
+  const articlesDivider: Field = {
+    key: "pages.journal.__div_articles",
+    label: "5 · All articles",
+    type: "section-divider",
+    helpText:
+      "Article cards on /journal (“All articles”). Cover, date, read time, title — manage the list below. Sync from DB mirrors the live article set.",
+  };
+
+  if (seoIdx >= 0) {
+    fields.splice(seoIdx, 0, articlesDivider);
+  } else {
+    fields.push(articlesDivider);
+  }
+
+  // Hero field labels match live banner
+  for (const field of fields) {
+    if (field.key === "pages.journal.hero.title") {
+      field.label = "Headline (H1) — e.g. JOURNAL";
+      field.helpText = "Large title on the banner (live default: Journal).";
+    }
+    if (field.key === "pages.journal.hero.subtitle") {
+      field.label = "Subtitle under headline";
+      field.helpText =
+        "e.g. Ideas on kitchens, materials, villas, and living in Thailand.";
+    }
+    if (field.key === "pages.journal.hero.ctaLabel") {
+      field.label = "Button text";
+      field.helpText = 'Live default: "Get a consultation".';
+    }
+    if (field.key === "pages.journal.exploreTitle") {
+      field.label = "Explore title";
+      field.helpText = 'Live default: "Explore".';
+    }
+    if (field.key === "pages.journal.exploreSubtitle") {
+      field.label = "Explore subtitle";
+      field.helpText = 'Live default: "Choose a focus area to continue."';
+    }
+  }
+
+  return { ...section, fields };
+}
 
 /** Home → standalone pages → IA hubs → site chrome — matches live site structure. */
 export const SITE_SECTIONS: SiteSection[] = [
@@ -1088,4 +1168,77 @@ export const HOME_SECTION_IDS = new Set(
 
 export function isSiteSectionId(id: string | null | undefined): boolean {
   return Boolean(id && SITE_SECTIONS.some((section) => section.id === id));
+}
+
+export type SiteSectionTab = {
+  id: string;
+  tag: string;
+  label: string;
+  hint: string;
+  fields: Field[];
+};
+
+/** Parse "1 · Top banner (Hero)" → tag + clean label for Thailand-style tab cards. */
+function parseDividerTabMeta(label: string): { tag: string; label: string } {
+  const raw = String(label || "").trim();
+  const numbered = raw.match(/^(\d+)\s*[·.\-–—:]\s*(.+)$/);
+  if (numbered) {
+    return { tag: numbered[1], label: numbered[2].trim() };
+  }
+  const words = raw.split(/\s+/).filter(Boolean);
+  const tag = (words[0] || "Section").replace(/[^A-Za-z0-9]/g, "").slice(0, 10);
+  return { tag: tag.toUpperCase() || "TAB", label: raw || "Section" };
+}
+
+/**
+ * Split a site section's fields into tabs using `section-divider` markers.
+ * Returns [] when there are fewer than 2 dividers (caller keeps flat layout).
+ */
+export function splitFieldsIntoTabs(fields: Field[]): SiteSectionTab[] {
+  const list = Array.isArray(fields) ? fields : [];
+  const dividerCount = list.filter((f) => f.type === "section-divider").length;
+  if (dividerCount < 2) return [];
+
+  const tabs: SiteSectionTab[] = [];
+  let pendingBefore: Field[] = [];
+
+  for (const field of list) {
+    if (field.type === "section-divider") {
+      const meta = parseDividerTabMeta(field.label);
+      tabs.push({
+        id: field.key,
+        tag: meta.tag,
+        label: meta.label,
+        hint: String(field.helpText || "").trim(),
+        fields: [],
+      });
+      if (pendingBefore.length && tabs.length === 1) {
+        tabs[0].fields.push(...pendingBefore);
+        pendingBefore = [];
+      }
+      continue;
+    }
+    if (tabs.length === 0) {
+      pendingBefore.push(field);
+    } else {
+      tabs[tabs.length - 1].fields.push(field);
+    }
+  }
+
+  if (pendingBefore.length && tabs.length === 0) {
+    return [];
+  }
+  if (pendingBefore.length) {
+    const meta = parseDividerTabMeta("Overview");
+    tabs.unshift({
+      id: "__overview",
+      tag: meta.tag,
+      label: meta.label,
+      hint: "",
+      fields: pendingBefore,
+    });
+  }
+
+  const usable = tabs.filter((tab) => tab.fields.length > 0);
+  return usable.length >= 2 ? usable : [];
 }

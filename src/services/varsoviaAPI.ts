@@ -212,11 +212,141 @@ export type VarsoviaSyncReport = {
   preserved: boolean;
   resources: Record<string, number>;
   filledSiteKeys: number;
+  journalSync?: {
+    upserted: number;
+    deleted: number;
+    total: number;
+  };
 };
+
+function loc(en: string) {
+  return { en, th: en, pl: en };
+}
+
+function blogTitleEn(item: VarsoviaRecord): string {
+  const title = item.title;
+  if (typeof title === "string") return title.trim();
+  if (title && typeof title === "object") {
+    const map = title as Record<string, unknown>;
+    return String(map.en || map.th || map.pl || "").trim();
+  }
+  return "";
+}
+
+/**
+ * Mirror live /journal articles into Mongo: upsert canonical set, delete extras.
+ */
+async function syncJournalArticlesMirror(): Promise<{
+  upserted: number;
+  deleted: number;
+  total: number;
+}> {
+  const { JOURNAL_ARTICLE_SEEDS } = await import(
+    "@/app/varsovia/journalArticlesSeed"
+  );
+
+  const existing = await listVarsoviaRecords("blogs");
+  const byTitle = new Map<string, VarsoviaRecord>();
+  for (const row of existing) {
+    const key = blogTitleEn(row).toLowerCase();
+    if (key) byTitle.set(key, row);
+  }
+
+  const keepTitles = new Set<string>();
+  let upserted = 0;
+
+  for (const seed of JOURNAL_ARTICLE_SEEDS) {
+    const titleKey = seed.title.trim().toLowerCase();
+    keepTitles.add(titleKey);
+    const payload = {
+      title: loc(seed.title),
+      excerpt: loc(seed.excerpt),
+      content: loc(seed.excerpt),
+      category: seed.category,
+      date: seed.date,
+      readTime: loc(seed.readTime),
+      image: seed.image,
+      author: { name: loc(seed.author), avatar: "" },
+      sections: [
+        {
+          heading: loc(seed.title),
+          text: loc(seed.excerpt),
+          image: seed.image,
+        },
+      ],
+      views: 0,
+      order: seed.order,
+      visible: true,
+    };
+
+    const match = byTitle.get(titleKey);
+    if (match?._id) {
+      await updateVarsoviaRecord("blogs", match._id, payload);
+    } else {
+      await createVarsoviaRecord("blogs", payload);
+    }
+    upserted += 1;
+  }
+
+  let deleted = 0;
+  for (const row of existing) {
+    const key = blogTitleEn(row).toLowerCase();
+    if (!key || keepTitles.has(key)) continue;
+    await deleteVarsoviaRecord("blogs", row._id);
+    deleted += 1;
+  }
+
+  return {
+    upserted,
+    deleted,
+    total: JOURNAL_ARTICLE_SEEDS.length,
+  };
+}
+
+function isBlankValue(value: unknown): boolean {
+  if (value === undefined || value === null) return true;
+  if (typeof value === "string") return value.trim() === "";
+  if (Array.isArray(value)) return value.length === 0;
+  if (typeof value === "object") {
+    const values = Object.values(value as Record<string, unknown>);
+    return values.length === 0 || values.every(isBlankValue);
+  }
+  return false;
+}
+
+/** Fill blank Journal hub fields from live-page defaults (does not wipe edited copy). */
+function mergeJournalHub(
+  current: Record<string, unknown> | undefined,
+  defaults: Record<string, unknown>
+): Record<string, unknown> {
+  const out = structuredClone(current && typeof current === "object" ? current : {});
+  for (const [key, defaultValue] of Object.entries(defaults)) {
+    const cur = out[key];
+    if (isBlankValue(cur)) {
+      out[key] = structuredClone(defaultValue);
+      continue;
+    }
+    if (
+      cur &&
+      defaultValue &&
+      typeof cur === "object" &&
+      typeof defaultValue === "object" &&
+      !Array.isArray(cur) &&
+      !Array.isArray(defaultValue)
+    ) {
+      out[key] = mergeJournalHub(
+        cur as Record<string, unknown>,
+        defaultValue as Record<string, unknown>
+      );
+    }
+  }
+  return out;
+}
 
 /**
  * Safe Varsovia sync against the API currently configured (VARSOVIA_API_URL).
- * Fills blank site fields from defaults only — never wipes existing content.
+ * Fills blank site fields from defaults; Journal articles are mirrored to the
+ * live /journal set (upsert + delete extras).
  */
 export async function syncVarsoviaFromDb(): Promise<{
   success: boolean;
@@ -226,16 +356,27 @@ export async function syncVarsoviaFromDb(): Promise<{
   const { mergeVarsoviaSiteDefaults } = await import(
     "@/app/varsovia/siteDefaults"
   );
+  const { DEFAULT_IA_PAGES } = await import("@/app/varsovia/iaPagesDefaults");
 
   const loaded = await getVarsoviaSite();
   const beforePayload = JSON.stringify(pickVarsoviaSiteUpdate(loaded));
-  const merged = mergeVarsoviaSiteDefaults({ ...loaded });
+  let merged = mergeVarsoviaSiteDefaults({ ...loaded });
+
+  // Deep-fill Journal hub so admin matches live /journal sections
+  const pages = {
+    ...((merged.pages as Record<string, unknown>) || {}),
+  };
+  pages.journal = mergeJournalHub(
+    pages.journal as Record<string, unknown> | undefined,
+    DEFAULT_IA_PAGES.journal as unknown as Record<string, unknown>
+  );
+  merged = { ...merged, pages };
+
   const afterPayload = JSON.stringify(pickVarsoviaSiteUpdate(merged));
 
   let siteUpdated = false;
   let filledSiteKeys = 0;
   if (beforePayload !== afterPayload) {
-    // Count keys that were blank before and filled after
     const before = pickVarsoviaSiteUpdate(loaded);
     const after = pickVarsoviaSiteUpdate(merged);
     for (const key of Object.keys(after)) {
@@ -252,6 +393,17 @@ export async function syncVarsoviaFromDb(): Promise<{
     }
     await updateVarsoviaSite(merged);
     siteUpdated = true;
+  }
+
+  let journalSync: VarsoviaSyncReport["journalSync"];
+  try {
+    journalSync = await syncJournalArticlesMirror();
+  } catch (error) {
+    throw new Error(
+      error instanceof Error
+        ? `Journal articles sync failed: ${error.message}`
+        : "Journal articles sync failed"
+    );
   }
 
   const resourceList: VarsoviaResource[] = [
@@ -280,7 +432,6 @@ export async function syncVarsoviaFromDb(): Promise<{
     })
   );
 
-  // Resolve configured host for the report (browser only sees proxy)
   let host = "varsovia-api";
   let database = "varsovia";
   try {
@@ -298,8 +449,7 @@ export async function syncVarsoviaFromDb(): Promise<{
 
   return {
     success: true,
-    message:
-      "Synced from connected Varsovia database. Existing content was preserved.",
+    message: `Synced from Varsovia DB. Journal articles: ${journalSync?.total ?? 0} live (${journalSync?.deleted ?? 0} extras removed).`,
     report: {
       database,
       host,
@@ -308,6 +458,7 @@ export async function syncVarsoviaFromDb(): Promise<{
       preserved: true,
       resources,
       filledSiteKeys,
+      journalSync,
     },
   };
 }

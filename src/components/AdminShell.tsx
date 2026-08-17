@@ -15,17 +15,14 @@ import {
   Images,
   FolderKanban,
   MessageCircleQuestion,
-  Star,
   BookOpen,
   BriefcaseBusiness,
-  Handshake,
   MapPin,
   Settings,
   Inbox,
   Wrench,
   Sparkles,
   LayoutGrid,
-  MessageSquareQuote,
   RefreshCw,
   X,
   Database,
@@ -118,12 +115,10 @@ const VARSOVIA_NAV: {
   icon: typeof Home;
   resource?: string;
   section?: string;
-  group: "pages" | "admin";
+  group: "pages" | "chrome" | "content" | "admin";
 }[] = [
-  // ── Home (sections 1–10 in site settings rail) ──
-  { href: "/varsovia?resource=site", resource: "site", label: "Home Page", icon: Home, group: "pages" },
-
-  // ── Hub pages (main site sections) ──
+  // Website pages — live site order & names (match navbar / page H1s)
+  { href: "/varsovia?resource=site", resource: "site", label: "Home", icon: Home, group: "pages" },
   {
     href: "/varsovia/furniture",
     label: "Furniture",
@@ -132,7 +127,7 @@ const VARSOVIA_NAV: {
   },
   {
     href: "/varsovia/interior-design",
-    label: "Interior Design",
+    label: "Interior",
     icon: LayoutGrid,
     group: "pages",
   },
@@ -172,13 +167,11 @@ const VARSOVIA_NAV: {
     icon: BookOpen,
     group: "pages",
   },
-
-  // ── Standalone pages (site settings copy) ──
   {
     href: "/varsovia?resource=site&section=aboutPage",
     resource: "site",
     section: "aboutPage",
-    label: "About Page",
+    label: "About Us",
     icon: BookOpen,
     group: "pages",
   },
@@ -186,11 +179,10 @@ const VARSOVIA_NAV: {
     href: "/varsovia?resource=site&section=teamPage",
     resource: "site",
     section: "teamPage",
-    label: "Team Page",
+    label: "Our Team",
     icon: BriefcaseBusiness,
     group: "pages",
   },
-  { href: "/varsovia?resource=team-members", resource: "team-members", label: "Team members", icon: Users, group: "pages" },
   {
     href: "/varsovia?resource=site&section=qualitySale",
     resource: "site",
@@ -200,35 +192,18 @@ const VARSOVIA_NAV: {
     group: "pages",
   },
   {
-    href: "/varsovia?resource=site&section=contact",
-    resource: "site",
-    section: "contact",
-    label: "Contact",
-    icon: MapPin,
-    group: "pages",
-  },
-  {
     href: "/varsovia?resource=site&section=projectsPage",
     resource: "site",
     section: "projectsPage",
-    label: "Projects listing",
+    label: "Showcase",
     icon: Images,
-    group: "pages",
-  },
-
-  {
-    href: "/varsovia?resource=site&section=faqPage",
-    resource: "site",
-    section: "faqPage",
-    label: "FAQ Page",
-    icon: MessageSquareQuote,
     group: "pages",
   },
   {
     href: "/varsovia?resource=site&section=cataloguePage",
     resource: "site",
     section: "cataloguePage",
-    label: "Catalogue Page",
+    label: "Free Catalogue",
     icon: BookOpen,
     group: "pages",
   },
@@ -236,17 +211,27 @@ const VARSOVIA_NAV: {
     href: "/varsovia?resource=site&section=contactPage",
     resource: "site",
     section: "contactPage",
-    label: "Contact Page",
+    label: "Contact",
     icon: MapPin,
     group: "pages",
   },
+  {
+    href: "/varsovia?resource=site&section=faqPage",
+    resource: "site",
+    section: "faqPage",
+    label: "FAQ",
+    icon: MessageCircleQuestion,
+    group: "pages",
+  },
+
+  // Legal (same group as Thailand)
   {
     href: "/varsovia?resource=site&section=privacyPage",
     resource: "site",
     section: "privacyPage",
     label: "Privacy Policy",
     icon: Shield,
-    group: "pages",
+    group: "chrome",
   },
   {
     href: "/varsovia?resource=site&section=termsPage",
@@ -254,30 +239,16 @@ const VARSOVIA_NAV: {
     section: "termsPage",
     label: "Terms of Use",
     icon: ScrollText,
-    group: "pages",
+    group: "chrome",
   },
 
-  // ── Content libraries (cards / posts on those pages) ──
-  { href: "/varsovia?resource=blogs", resource: "blogs", label: "Journal articles", icon: FileText, group: "pages" },
-  { href: "/varsovia?resource=showcases", resource: "showcases", label: "Project showcases", icon: Images, group: "pages" },
-  { href: "/varsovia?resource=projects", resource: "projects", label: "Interior catalogue", icon: FolderKanban, group: "pages" },
-  { href: "/varsovia?resource=catalogues", resource: "catalogues", label: "Free Catalogue", icon: BookOpen, group: "pages" },
-  { href: "/varsovia?resource=faqs", resource: "faqs", label: "FAQs", icon: MessageCircleQuestion, group: "pages" },
+  // Content libraries (not duplicated from Home rail sections)
+  { href: "/varsovia?resource=blogs", resource: "blogs", label: "All articles", icon: FileText, group: "content" },
+  { href: "/varsovia?resource=showcases", resource: "showcases", label: "Showcase items", icon: Images, group: "content" },
+  { href: "/varsovia?resource=faqs", resource: "faqs", label: "FAQs", icon: MessageCircleQuestion, group: "content" },
+  { href: "/varsovia?resource=team-members", resource: "team-members", label: "Team members", icon: Users, group: "content" },
 
-  // ── Home section data sources ──
-  { href: "/varsovia?resource=products", resource: "products", label: "Products", icon: Package, group: "pages" },
-  { href: "/varsovia?resource=testimonials", resource: "testimonials", label: "Testimonials", icon: Star, group: "pages" },
-  {
-    href: "/varsovia?resource=core-strengths",
-    resource: "core-strengths",
-    label: "Core Strengths",
-    icon: Sparkles,
-    group: "pages",
-  },
-  { href: "/varsovia?resource=partners", resource: "partners", label: "Partners", icon: Handshake, group: "pages" },
-  { href: "/varsovia?resource=showrooms", resource: "showrooms", label: "Showrooms", icon: MapPin, group: "pages" },
-
-  // ── Site chrome ──
+  // Site chrome
   {
     href: "/varsovia?resource=site&section=brand",
     resource: "site",
@@ -312,6 +283,7 @@ const VARSOVIA_NAV: {
   },
 ];
 
+
 const THAILAND_HOME_SECTIONS = new Set([
   "siteChrome",
   "hero",
@@ -327,7 +299,7 @@ const THAILAND_HOME_SECTIONS = new Set([
   "footer",
 ]);
 
-/** Home Site Settings sections — used so "Home Page" stays active while editing home blocks */
+/** Home Site Settings sections — used so "Home" stays active while editing home blocks */
 const VARSOVIA_HOME_SECTIONS = new Set([
   "hero",
   "about",
@@ -496,7 +468,7 @@ function AdminShellContent({
       if (item.section) {
         return currentSection === item.section;
       }
-      // Home Page: resource=site with no section, or a home section
+      // Home: resource=site with no section, or a home section
       if (item.resource === "site") {
         return !currentSection || VARSOVIA_HOME_SECTIONS.has(currentSection);
       }
@@ -594,14 +566,17 @@ function AdminShellContent({
           id: toastId,
           description: [
             report.database,
+            report.journalSync
+              ? `Journal articles:${report.journalSync.total} (removed ${report.journalSync.deleted})`
+              : null,
             report.siteUpdated
               ? `Site fields filled: ${report.filledSiteKeys}`
-              : "Site unchanged",
+              : "Site fields unchanged",
             resourceBits.length ? resourceBits.join(" · ") : null,
           ]
             .filter(Boolean)
             .join(" · "),
-          duration: 6000,
+          duration: 7000,
         });
         emitCmsSynced({ site: "varsovia-kitchen", report });
       } else {
@@ -778,6 +753,50 @@ function AdminShellContent({
                 );
               })}
               <p className="px-3 pb-1 pt-4 text-[10px] font-bold tracking-[0.14em] uppercase text-[#9CA3AF]">
+                Legal
+              </p>
+              {VARSOVIA_NAV.filter((i) => i.group === "chrome").map((item) => {
+                const { href, label, icon: Icon } = item;
+                return (
+                  <Link
+                    key={`${href}-${label}`}
+                    href={href}
+                    onClick={(e) => openNavItem(e, item)}
+                    className={clsx(
+                      "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                      isActive(item)
+                        ? "bg-[#EEF0F3] text-[#1A2332]"
+                        : "text-[#5C6370] hover:bg-[#F5F6F8] hover:text-[#1A2332]"
+                    )}
+                  >
+                    <Icon className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />
+                    {label}
+                  </Link>
+                );
+              })}
+              <p className="px-3 pb-1 pt-4 text-[10px] font-bold tracking-[0.14em] uppercase text-[#9CA3AF]">
+                Content
+              </p>
+              {VARSOVIA_NAV.filter((i) => i.group === "content").map((item) => {
+                const { href, label, icon: Icon } = item;
+                return (
+                  <Link
+                    key={`${href}-${label}`}
+                    href={href}
+                    onClick={(e) => openNavItem(e, item)}
+                    className={clsx(
+                      "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                      isActive(item)
+                        ? "bg-[#EEF0F3] text-[#1A2332]"
+                        : "text-[#5C6370] hover:bg-[#F5F6F8] hover:text-[#1A2332]"
+                    )}
+                  >
+                    <Icon className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />
+                    {label}
+                  </Link>
+                );
+              })}
+              <p className="px-3 pb-1 pt-4 text-[10px] font-bold tracking-[0.14em] uppercase text-[#9CA3AF]">
                 Site chrome
               </p>
               {VARSOVIA_NAV.filter((i) => i.group === "admin").map((item) => {
@@ -843,7 +862,7 @@ function AdminShellContent({
               type="button"
               onClick={openSyncConfirm}
               disabled={syncing}
-              title="Sync from connected database (safe — never deletes content)"
+              title="Sync from connected database (Journal articles mirrored to live set)"
               className={clsx(
                 "inline-flex items-center gap-2 rounded-xl border border-[#E2E5EA] bg-white px-3 py-2 text-xs font-semibold text-[#1A2332] transition-colors",
                 syncing
@@ -949,9 +968,10 @@ function AdminShellContent({
               <ul className="space-y-2 rounded-xl border border-[#E8EDF2] bg-[#F8FAFC] px-4 py-3.5">
                 {(isVarsovia
                   ? [
-                      "Reloads Varsovia CMS data into admin",
-                      "Fills only blank site fields from defaults",
-                      "Never deletes or overwrites your existing content",
+                      "Reloads Varsovia CMS into admin (same database as the live site)",
+                      "Journal page: mirrors live /journal article set (upsert + delete extras)",
+                      "Fills blank site fields from defaults (Journal hero, intro, explore…)",
+                      "Other resources: counts reload from DB — no wipe of edited products/projects",
                     ]
                   : [
                       "Same MongoDB the public site uses — admin list reloads to match",

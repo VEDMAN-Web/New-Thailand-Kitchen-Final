@@ -1,6 +1,15 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Suspense,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useSearchParams } from "next/navigation";
 import {
   BarChart3,
@@ -43,7 +52,7 @@ import {
   generateBlogWithAI,
 } from "@/services/adminAPI";
 import { toPublicMediaUrl } from "@/lib/publicMediaUrl";
-import { resolveAdminMediaPreviewUrl } from "@/lib/adminMediaPreview";
+import { resolveAdminMediaPreviewUrl, resolveAdminMediaPreviewFallbacks } from "@/lib/adminMediaPreview";
 import {
   ADMIN_SECTION_EVENT,
   CMS_SYNCED_EVENT,
@@ -71,6 +80,7 @@ import {
 import {
   SITE_SECTIONS,
   isSiteSectionId,
+  splitFieldsIntoTabs,
   type SiteSection,
 } from "./siteSections";
 
@@ -147,6 +157,29 @@ const LOCALES: { id: LocaleCode; label: string }[] = [
   { id: "pl", label: "Polish" },
 ];
 
+type SectionSaveHandler = (opts?: { quiet?: boolean }) => Promise<void>;
+
+const VarsoviaSectionSaveContext = createContext<{
+  register: (id: string, handler: SectionSaveHandler | null) => void;
+} | null>(null);
+
+function useRegisterSectionSave(
+  id: string,
+  handler: SectionSaveHandler,
+  enabled: boolean
+) {
+  const ctx = useContext(VarsoviaSectionSaveContext);
+  const handlerRef = useRef(handler);
+  handlerRef.current = handler;
+
+  useEffect(() => {
+    if (!ctx || !enabled) return;
+    const wrapped: SectionSaveHandler = (opts) => handlerRef.current(opts);
+    ctx.register(id, wrapped);
+    return () => ctx.register(id, null);
+  }, [ctx, id, enabled]);
+}
+
 const VISIBLE_FIELD: Field = {
   key: "visible",
   label: "Visible on website",
@@ -155,7 +188,7 @@ const VISIBLE_FIELD: Field = {
 
 const CONFIGS: Record<VarsoviaResource, ResourceConfig> = {
   products: {
-    label: "Products",
+    label: "Our Products",
     singular: "Product",
     titleKey: "title",
     card: {
@@ -195,8 +228,8 @@ const CONFIGS: Record<VarsoviaResource, ResourceConfig> = {
     ],
   },
   projects: {
-    label: "Interior catalogue projects",
-    singular: "Interior project",
+    label: "Featured Projects",
+    singular: "Featured project",
     titleKey: "title",
     card: {
       imageKey: "coverImage",
@@ -254,12 +287,12 @@ const CONFIGS: Record<VarsoviaResource, ResourceConfig> = {
     ],
   },
   blogs: {
-    label: "Journal articles",
+    label: "All articles",
     singular: "Journal article",
     titleKey: "title",
     card: {
       imageKey: "image",
-      subtitleKey: "author.name",
+      subtitleKey: "date",
       descriptionKey: "excerpt",
       searchPlaceholder: "Search journal articles...",
       createLabel: "Create article",
@@ -267,23 +300,32 @@ const CONFIGS: Record<VarsoviaResource, ResourceConfig> = {
       fallbackBadge: "Journal",
     },
     fields: [
+      { key: "image", label: "Cover Image — card + detail hero", media: "image" },
+      { key: "date", label: "Date (card overlay)" },
+      { key: "readTime", label: "Read time (card overlay)", localized: true },
       { key: "title", label: "Title", localized: true, required: true },
       { key: "excerpt", label: "Excerpt", localized: true, type: "textarea" },
+      {
+        key: "category",
+        label: "Journal topic",
+        type: "select",
+        options: [
+          { value: "kitchens", label: "Kitchens" },
+          { value: "furniture", label: "Furniture" },
+          { value: "materials", label: "Materials" },
+          { value: "interior-design", label: "Interior Design" },
+          { value: "villa-guides", label: "Villa Guides" },
+          { value: "thailand-living", label: "Thailand Living" },
+        ],
+      },
       { key: "content", label: "Content", localized: true, type: "textarea" },
-      { key: "category", label: "Journal topic", type: "select", options: [
-        { value: "kitchens", label: "Kitchens" },
-        { value: "furniture", label: "Furniture" },
-        { value: "materials", label: "Materials" },
-        { value: "interior-design", label: "Interior Design" },
-        { value: "villa-guides", label: "Villa Guides" },
-        { value: "thailand-living", label: "Thailand Living" },
-      ] },
-      { key: "sections", label: "Content Sections (detail body + section images)", type: "content-sections" },
-      { key: "readTime", label: "Read Time", localized: true },
+      {
+        key: "sections",
+        label: "Content Sections (detail body + section images)",
+        type: "content-sections",
+      },
       { key: "author.name", label: "Author Name", localized: true },
-      { key: "date", label: "Date" },
       { key: "author.avatar", label: "Author Avatar (1)", media: "image" },
-      { key: "image", label: "Cover Image (1) — detail hero", media: "image" },
       { key: "views", label: "Views", type: "number" },
       VISIBLE_FIELD,
       { key: "order", label: "Order", type: "number" },
@@ -302,7 +344,7 @@ const CONFIGS: Record<VarsoviaResource, ResourceConfig> = {
     ],
   },
   testimonials: {
-    label: "Testimonials",
+    label: "Real Stories. Real Spaces.",
     singular: "Testimonial",
     titleKey: "name",
     fields: [
@@ -316,7 +358,7 @@ const CONFIGS: Record<VarsoviaResource, ResourceConfig> = {
     ],
   },
   catalogues: {
-    label: "Catalogues",
+    label: "Free Catalogue",
     singular: "Catalogue",
     titleKey: "title",
     fields: [
@@ -331,8 +373,8 @@ const CONFIGS: Record<VarsoviaResource, ResourceConfig> = {
     ],
   },
   showcases: {
-    label: "Project showcases",
-    singular: "Project showcase",
+    label: "Showcase items",
+    singular: "Showcase item",
     titleKey: "title",
     fields: [
       { key: "title", label: "Title", localized: true, required: true },
@@ -395,7 +437,7 @@ const CONFIGS: Record<VarsoviaResource, ResourceConfig> = {
     ],
   },
   partners: {
-    label: "Partners",
+    label: "Our Global Partners",
     singular: "Partner",
     titleKey: "name",
     fields: [
@@ -518,6 +560,19 @@ function sanitizeRecordMediaUrls(form: Record<string, unknown>) {
       return row;
     });
   }
+  // Always persist an explicit boolean so uncheck → visible:false reaches Mongo.
+  next.visible = next.visible !== false;
+  if (typeof next.order === "string") {
+    const parsed = Number.parseInt(next.order, 10);
+    next.order = Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+  } else if (next.order === "" || next.order == null) {
+    next.order = 0;
+  }
+  if (typeof next.featured !== "undefined") next.featured = next.featured === true;
+  if (typeof next.interiorCatalog !== "undefined") {
+    next.interiorCatalog = next.interiorCatalog === true;
+  }
+  if (typeof next.isNew !== "undefined") next.isNew = next.isNew === true;
   return next;
 }
 
@@ -584,7 +639,7 @@ function VarsoviaManagerContent() {
   );
 }
 
-/** Home Site Settings: inline editors for section item data (projects, catalogues, etc.). */
+/** Home / page Site Settings: inline editors for section item data. */
 function HomeSectionItemsPanel({ sectionId }: { sectionId: string }) {
   switch (sectionId) {
     case "featured":
@@ -629,6 +684,15 @@ function HomeSectionItemsPanel({ sectionId }: { sectionId: string }) {
           <ResourceManager resource="showrooms" embedded />
         </div>
       );
+    case "iaJournal":
+      return (
+        <div className="mt-8 border-t border-[#E8EAED] pt-8">
+          <p className="mb-4 text-sm font-semibold text-[#1A2332]">
+            All articles — same cards as live /journal
+          </p>
+          <ResourceManager resource="blogs" embedded />
+        </div>
+      );
     default:
       return null;
   }
@@ -661,7 +725,22 @@ function SiteSettings() {
   );
   const [loadingContent, setLoadingContent] = useState(false);
   const [savingContent, setSavingContent] = useState(false);
+  const [pageTab, setPageTab] = useState(0);
   const savedPayloadRef = useRef("");
+  const sectionSavesRef = useRef(new Map<string, SectionSaveHandler>());
+
+  const registerSectionSave = useCallback(
+    (id: string, handler: SectionSaveHandler | null) => {
+      if (handler) sectionSavesRef.current.set(id, handler);
+      else sectionSavesRef.current.delete(id);
+    },
+    []
+  );
+
+  const sectionSaveApi = useMemo(
+    () => ({ register: registerSectionSave }),
+    [registerSectionSave]
+  );
 
   // Deep-link once + sidebar/rail picks via soft nav (no Next router flicker).
   useEffect(() => {
@@ -671,8 +750,13 @@ function SiteSettings() {
 
     const onSection = (event: Event) => {
       const key = (event as CustomEvent<string>).detail;
-      if (isSiteSectionId(key)) setActive(String(key));
-      else if (!key || key === "hero") setActive("hero");
+      if (isSiteSectionId(key)) {
+        setActive(String(key));
+        setPageTab(0);
+      } else if (!key || key === "hero") {
+        setActive("hero");
+        setPageTab(0);
+      }
     };
     window.addEventListener(ADMIN_SECTION_EVENT, onSection);
     return () => window.removeEventListener(ADMIN_SECTION_EVENT, onSection);
@@ -681,6 +765,7 @@ function SiteSettings() {
   const selectSection = (id: string) => {
     if (id === active) return;
     setActive(id);
+    setPageTab(0);
     writeVarsoviaNav("site", id === "hero" ? null : id);
   };
 
@@ -726,44 +811,65 @@ function SiteSettings() {
     setContent(setAtPath(content, field.key, value));
   };
 
-  const saveContent = async () => {
+  const saveContent = async (opts?: { quiet?: boolean }) => {
     const nextPayload = pickVarsoviaSiteUpdate(content);
     const nextSerialized = JSON.stringify(nextPayload);
-    if (nextSerialized === savedPayloadRef.current) {
+    const siteDirty = nextSerialized !== savedPayloadRef.current;
+    const embeddedHandlers = [...sectionSavesRef.current.values()];
+
+    if (!siteDirty && embeddedHandlers.length === 0) {
       toast.message("No changes to save");
       return;
     }
 
     setSavingContent(true);
     try {
-      const updated = await updateVarsoviaSite(content);
-      const merged = mergeVarsoviaSiteDefaults(
-        normalizeRecord(updated as VarsoviaRecord)
-      );
-      setContent(merged);
-      savedPayloadRef.current = JSON.stringify(pickVarsoviaSiteUpdate(merged));
-      toast.success("Varsovia website content updated");
+      if (siteDirty) {
+        const updated = await updateVarsoviaSite(content);
+        const merged = mergeVarsoviaSiteDefaults(
+          normalizeRecord(updated as VarsoviaRecord)
+        );
+        setContent(merged);
+        savedPayloadRef.current = JSON.stringify(pickVarsoviaSiteUpdate(merged));
+      }
+      for (const handler of embeddedHandlers) {
+        await handler({ quiet: true });
+      }
+      if (!opts?.quiet) toast.success("Saved");
     } catch (error) {
-      toast.error(errorMessage(error));
+      const msg = error instanceof Error ? error.message : "";
+      if (!/validation failed/i.test(msg)) {
+        toast.error(errorMessage(error));
+      }
     } finally {
       setSavingContent(false);
     }
   };
 
   const onResetPage = async () => {
-    if (!confirm("Reload site settings from the server and discard unsaved changes?")) {
+    if (
+      !confirm(
+        "Reload from the server and discard unsaved changes on this page?"
+      )
+    ) {
       return;
     }
     await loadContent();
     toast.message("Reloaded from server");
   };
 
-  const doneCount = useMemo(
+  const homeSections = useMemo(
+    () => SITE_SECTIONS.filter((section) => section.group === "home"),
+    []
+  );
+  const showHomeRail = homeSections.some((section) => section.id === active);
+
+  const homeDoneCount = useMemo(
     () =>
-      SITE_SECTIONS.filter((section) =>
+      homeSections.filter((section) =>
         isVarsoviaSectionComplete(section, content, locale)
       ).length,
-    [content, locale]
+    [content, homeSections, locale]
   );
 
   const activeSection =
@@ -772,19 +878,47 @@ function SiteSettings() {
     ? isVarsoviaSectionComplete(activeSection, content, locale)
     : false;
 
+  const sectionTabs = useMemo(
+    () => splitFieldsIntoTabs(activeSection?.fields || []),
+    [activeSection]
+  );
+  const useSectionTabs = sectionTabs.length >= 2;
+  const activeTabFields = useSectionTabs
+    ? sectionTabs[Math.min(pageTab, sectionTabs.length - 1)]?.fields || []
+    : activeSection.fields;
+
+  useEffect(() => {
+    setPageTab(0);
+  }, [active]);
+
+  useEffect(() => {
+    if (pageTab >= sectionTabs.length && sectionTabs.length > 0) {
+      setPageTab(0);
+    }
+  }, [pageTab, sectionTabs.length]);
+
   return (
+    <VarsoviaSectionSaveContext.Provider value={sectionSaveApi}>
     <section className="flex h-full min-h-0 flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <span className="text-xs font-bold uppercase tracking-[0.1em] text-[#5C6370]">
-            Site Settings
-          </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#DCFCE7] px-2.5 py-1 text-xs font-semibold text-[#166534]">
-            <Check className="h-3.5 w-3.5" />
-            {doneCount} of {SITE_SECTIONS.length} Sections Ready
-          </span>
+          {showHomeRail ? (
+            <>
+              <span className="text-xs font-bold uppercase tracking-[0.1em] text-[#5C6370]">
+                Home Management
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#DCFCE7] px-2.5 py-1 text-xs font-semibold text-[#166534]">
+                <Check className="h-3.5 w-3.5" />
+                {homeDoneCount} of {homeSections.length} Sections Ready
+              </span>
+            </>
+          ) : (
+            <span className="text-xs font-bold uppercase tracking-[0.1em] text-[#5C6370]">
+              {activeSection.title}
+            </span>
+          )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => void saveContent()}
@@ -792,17 +926,18 @@ function SiteSettings() {
             className="inline-flex items-center gap-2 rounded-lg bg-[#1A2332] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#243044] disabled:opacity-60"
           >
             <CloudUpload className="h-4 w-4" />
-            Update Site Page
+            Save
           </button>
-          <button
-            type="button"
-            onClick={() => void onResetPage()}
-            disabled={savingContent || loadingContent}
-            className="inline-flex items-center gap-2 rounded-lg border border-[#FECACA] bg-white px-4 py-2.5 text-sm font-semibold text-[#DC2626] hover:bg-red-50 disabled:opacity-60"
-          >
-            <Trash2 className="h-4 w-4" />
-            Reset Page
-          </button>
+          {showHomeRail ? (
+            <button
+              type="button"
+              onClick={() => void onResetPage()}
+              disabled={savingContent || loadingContent}
+              className="text-sm font-medium text-[#6B7280] underline-offset-2 hover:text-[#DC2626] hover:underline disabled:opacity-60"
+            >
+              Reset to defaults
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -812,44 +947,33 @@ function SiteSettings() {
         <div
           className={clsx(
             "grid min-h-0 flex-1 items-stretch gap-5",
-            activeSection?.group === "chrome"
-              ? "grid-cols-1"
-              : "grid-cols-1 xl:grid-cols-[340px_1fr]"
+            showHomeRail
+              ? "grid-cols-1 xl:grid-cols-[340px_1fr]"
+              : "grid-cols-1"
           )}
         >
-          {activeSection?.group === "chrome" ? null : (
+          {showHomeRail ? (
           <div className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-[#E8EAED] bg-white">
             <div className="flex items-center justify-between border-b border-[#E8EAED] px-4 py-3">
               <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#5C6370]">
-                Website Sections
+                Same order as website
               </span>
               <span className="text-xs font-semibold text-[#16A34A]">
-                {doneCount}/{SITE_SECTIONS.length} Done
+                {homeDoneCount}/{homeSections.length} Done
               </span>
             </div>
             <ul className="min-h-0 flex-1 divide-y divide-[#F0F1F3] overflow-y-auto">
-              {SITE_SECTIONS.map((section) => {
+              <li className="list-none">
+                <p className="bg-[#F8F9FB] px-4 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-[#9CA3AF]">
+                  Home page (site order)
+                </p>
+              </li>
+              {homeSections.map((section) => {
                 const selected = active === section.id;
                 const ok = isVarsoviaSectionComplete(section, content, locale);
                 const Icon = section.icon;
-                const prev = SITE_SECTIONS[SITE_SECTIONS.indexOf(section) - 1];
-                const showGroup =
-                  !prev || prev.group !== section.group;
-                const groupLabel =
-                  section.group === "home"
-                    ? "Home page (site order)"
-                    : section.group === "chrome"
-                      ? "Site chrome"
-                      : section.id.startsWith("ia")
-                        ? "Hub pages (site order)"
-                        : "Standalone pages";
                 return (
                   <li key={section.id}>
-                    {showGroup ? (
-                      <p className="bg-[#F8F9FB] px-4 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-[#9CA3AF]">
-                        {groupLabel}
-                      </p>
-                    ) : null}
                     <button
                       type="button"
                       onClick={() => selectSection(section.id)}
@@ -882,7 +1006,7 @@ function SiteSettings() {
               })}
             </ul>
           </div>
-          )}
+          ) : null}
 
           <div
             className={clsx(
@@ -897,7 +1021,9 @@ function SiteSettings() {
                     {activeSection.title}
                   </h2>
                   <p className="mt-0.5 text-sm text-[#6B7280]">
-                    {activeSection.description}
+                    {useSectionTabs
+                      ? "Edit one section at a time — same pattern as Thailand Kitchen hubs."
+                      : activeSection.description}
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -925,9 +1051,64 @@ function SiteSettings() {
                 </div>
               </div>
 
+              {useSectionTabs ? (
+                <div
+                  className={clsx(
+                    "mb-6 grid gap-2",
+                    sectionTabs.length <= 2
+                      ? "grid-cols-1 sm:grid-cols-2"
+                      : sectionTabs.length === 3
+                        ? "grid-cols-1 sm:grid-cols-3"
+                        : sectionTabs.length === 4
+                          ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
+                          : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
+                  )}
+                >
+                  {sectionTabs.map((tab, index) => {
+                    const selected = pageTab === index;
+                    return (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => setPageTab(index)}
+                        className={clsx(
+                          "rounded-xl border px-3 py-3 text-left transition",
+                          selected
+                            ? "border-[#1A2332] bg-[#1A2332] text-white"
+                            : "border-[#E8EDF2] bg-[#F8FAFC] text-[#1A2332] hover:border-[#D8D2C8]"
+                        )}
+                      >
+                        <p
+                          className={clsx(
+                            "text-[10px] font-semibold uppercase tracking-[0.16em]",
+                            selected ? "text-white/70" : "text-[#6B7280]"
+                          )}
+                        >
+                          {tab.tag}
+                        </p>
+                        <p className="mt-1 text-sm font-bold leading-snug">
+                          {tab.label}
+                        </p>
+                        {tab.hint ? (
+                          <p
+                            className={clsx(
+                              "mt-0.5 line-clamp-2 text-[10px] leading-snug",
+                              selected ? "text-white/55" : "text-[#9CA3AF]"
+                            )}
+                          >
+                            {tab.hint}
+                          </p>
+                        ) : null}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : null}
+
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {activeSection.fields.map((field) => {
+                {activeTabFields.map((field) => {
                   if (field.type === "section-divider") {
+                    if (useSectionTabs) return null;
                     return (
                       <FieldControl
                         key={field.key}
@@ -995,41 +1176,11 @@ function SiteSettings() {
 
               <HomeSectionItemsPanel sectionId={active} />
             </div>
-
-            <div className="flex items-center gap-2 border-t border-[#E8EAED] px-5 py-4">
-              <button
-                type="button"
-                onClick={() => void saveContent()}
-                disabled={savingContent}
-                className="inline-flex items-center gap-2 rounded-lg bg-[#1A2332] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#243044] disabled:opacity-60"
-              >
-                <Save className="h-4 w-4" />
-                {savingContent ? "Saving…" : "Save headings"}
-              </button>
-              <button
-                type="button"
-                onClick={async () => {
-                  if (
-                    !confirm(
-                      "Reload this page from server (discard unsaved)?"
-                    )
-                  ) {
-                    return;
-                  }
-                  await loadContent();
-                  toast.message("Reloaded from server");
-                }}
-                disabled={savingContent || loadingContent}
-                className="inline-flex items-center gap-2 rounded-lg bg-[#DC2626] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#B91C1C] disabled:opacity-60"
-              >
-                <Trash2 className="h-4 w-4" />
-                Reset Section
-              </button>
-            </div>
           </div>
         </div>
       )}
     </section>
+    </VarsoviaSectionSaveContext.Provider>
   );
 }
 
@@ -1125,14 +1276,14 @@ function CataloguesInlineEditor({ embedded = false }: { embedded?: boolean }) {
     setDrafts((prev) => prev.filter((item) => item.clientKey !== draft.clientKey));
   };
 
-  const saveAll = async () => {
+  const saveAll = async (opts?: { quiet?: boolean }) => {
     const invalid = drafts.some(
       (draft) => !localizedValue(draft.title, "en").trim()
     );
     if (invalid) {
       toast.error("Each catalogue needs an English title");
       setLocale("en");
-      return;
+      throw new Error("Catalogue validation failed");
     }
 
     try {
@@ -1146,7 +1297,7 @@ function CataloguesInlineEditor({ embedded = false }: { embedded?: boolean }) {
           downloadUrl: draft.downloadUrl,
           fileName: draft.fileName,
           downloadName: draft.downloadName,
-          visible: draft.visible,
+          visible: draft.visible !== false,
           order: index,
         };
         if (draft._id) {
@@ -1155,14 +1306,17 @@ function CataloguesInlineEditor({ embedded = false }: { embedded?: boolean }) {
           await createVarsoviaRecord("catalogues", payload);
         }
       }
-      toast.success("Catalogues saved");
+      if (!opts?.quiet) toast.success("Catalogues saved");
       await load();
     } catch (error) {
       toast.error(errorMessage(error));
+      throw error;
     } finally {
       setSaving(false);
     }
   };
+
+  useRegisterSectionSave("catalogues", saveAll, embedded);
 
   const fieldClass =
     "w-full rounded-lg border border-[#E2E5EA] bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A2332]/15 focus:border-[#1A2332]";
@@ -1348,7 +1502,8 @@ function CataloguesInlineEditor({ embedded = false }: { embedded?: boolean }) {
           </div>
         )}
 
-        <div className={embedded ? "mt-4 flex items-center gap-2 border-t border-[#E8EAED] pt-4" : "mt-8 flex items-center gap-2 border-t border-[#E8EAED] pt-5"}>
+        {!embedded ? (
+        <div className="mt-8 flex items-center gap-2 border-t border-[#E8EAED] pt-5">
           <button
             type="button"
             onClick={() => void saveAll()}
@@ -1362,12 +1517,16 @@ function CataloguesInlineEditor({ embedded = false }: { embedded?: boolean }) {
             type="button"
             onClick={() => void load()}
             disabled={saving || loading}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#DC2626] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#B91C1C] disabled:opacity-60"
+            className="text-sm font-medium text-[#6B7280] underline-offset-2 hover:text-[#DC2626] hover:underline disabled:opacity-60"
           >
-            <Trash2 className="h-4 w-4" />
             Reload
           </button>
         </div>
+        ) : (
+          <p className="mt-3 text-[11px] text-[#9CA3AF]">
+            Use the top Save button to save catalogue brochures with this section.
+          </p>
+        )}
       </div>
     </section>
   );
@@ -1531,7 +1690,7 @@ function TeamInlineEditor() {
           role: draft.role,
           image: draft.image,
           teamType: draft.teamType,
-          visible: draft.visible,
+          visible: draft.visible !== false,
           order: index,
         };
         if (draft._id) {
@@ -1873,10 +2032,10 @@ function PartnersInlineEditor({ embedded = false }: { embedded?: boolean }) {
     );
   };
 
-  const saveAll = async () => {
+  const saveAll = async (opts?: { quiet?: boolean }) => {
     if (!embedded && !pageTitle.trim()) {
       toast.error("Page title is required");
-      return;
+      throw new Error("Partners validation failed");
     }
     const invalid = drafts.some(
       (draft) => !localizedValue(draft.name, "en").trim()
@@ -1884,7 +2043,7 @@ function PartnersInlineEditor({ embedded = false }: { embedded?: boolean }) {
     if (invalid) {
       toast.error("Each section needs an English name");
       setLocale("en");
-      return;
+      throw new Error("Partners validation failed");
     }
 
     try {
@@ -1927,7 +2086,7 @@ function PartnersInlineEditor({ embedded = false }: { embedded?: boolean }) {
           name: draft.name,
           logo: draft.logo,
           website: draft.website,
-          visible: draft.visible,
+          visible: draft.visible !== false,
           order: index,
         };
         if (draft._id) {
@@ -1936,14 +2095,17 @@ function PartnersInlineEditor({ embedded = false }: { embedded?: boolean }) {
           await createVarsoviaRecord("partners", payload);
         }
       }
-      toast.success("Partners saved");
+      if (!opts?.quiet) toast.success("Partners saved");
       await load();
     } catch (error) {
       toast.error(errorMessage(error));
+      throw error;
     } finally {
       setSaving(false);
     }
   };
+
+  useRegisterSectionSave("partners", saveAll, embedded);
 
   const fieldClass =
     "mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal";
@@ -1958,7 +2120,7 @@ function PartnersInlineEditor({ embedded = false }: { embedded?: boolean }) {
           </div>
           <div className="min-w-0">
             <h2 className="text-base font-bold text-[#1A2332]">
-              Partners Management
+              Our Global Partners
             </h2>
             <p className="mt-0.5 text-xs text-[#6B7280]">
               Manage partners section and brand logos
@@ -2134,17 +2296,9 @@ function PartnersInlineEditor({ embedded = false }: { embedded?: boolean }) {
         </div>
 
         {embedded ? (
-          <div className="mt-4 flex items-center gap-2 border-t border-[#E8EAED] pt-4">
-            <button
-              type="button"
-              disabled={saving || loading}
-              onClick={() => void saveAll()}
-              className="inline-flex items-center gap-2 rounded-lg bg-[#1A2332] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#243044] disabled:opacity-60"
-            >
-              <Save className="h-4 w-4" />
-              {saving ? "Saving…" : "Save partners"}
-            </button>
-          </div>
+          <p className="mt-3 text-[11px] text-[#9CA3AF]">
+            Use the top Save button to save partner logos with this section.
+          </p>
         ) : null}
       </div>
     </section>
@@ -2357,7 +2511,7 @@ function ShowcasesInlineEditor() {
           supplyArea: draft.supplyArea,
           image: draft.image,
           gallery: draft.gallery,
-          visible: draft.visible,
+          visible: draft.visible !== false,
           order: index,
         };
         if (draft._id) {
@@ -2946,7 +3100,7 @@ function FaqsInlineEditor() {
           question: ensureEnglishCopy(draft.question),
           answer: ensureEnglishCopy(draft.answer),
           category: activeTopic,
-          visible: draft.visible,
+          visible: draft.visible !== false,
           order,
         };
         order += 1;
@@ -3319,7 +3473,7 @@ function TestimonialsInlineEditor({ embedded = false }: { embedded?: boolean }) 
     setDrafts((prev) => prev.filter((item) => item.clientKey !== draft.clientKey));
   };
 
-  const saveAll = async () => {
+  const saveAll = async (opts?: { quiet?: boolean }) => {
     const invalid = drafts.some(
       (draft) =>
         !localizedValue(draft.name, "en").trim() ||
@@ -3328,7 +3482,7 @@ function TestimonialsInlineEditor({ embedded = false }: { embedded?: boolean }) 
     if (invalid) {
       toast.error("Each testimonial needs an English name and quote");
       setLocale("en");
-      return;
+      throw new Error("Testimonials validation failed");
     }
 
     try {
@@ -3341,7 +3495,7 @@ function TestimonialsInlineEditor({ embedded = false }: { embedded?: boolean }) 
           quote: draft.quote,
           image: draft.image,
           rating: clampTestimonialRating(draft.rating),
-          visible: draft.visible,
+          visible: draft.visible !== false,
           order: index,
         };
         if (draft._id) {
@@ -3350,14 +3504,17 @@ function TestimonialsInlineEditor({ embedded = false }: { embedded?: boolean }) 
           await createVarsoviaRecord("testimonials", payload);
         }
       }
-      toast.success("Testimonials saved");
+      if (!opts?.quiet) toast.success("Testimonials saved");
       await load();
     } catch (error) {
       toast.error(errorMessage(error));
+      throw error;
     } finally {
       setSaving(false);
     }
   };
+
+  useRegisterSectionSave("testimonials", saveAll, embedded);
 
   const fieldClass =
     "w-full rounded-lg border border-[#E2E5EA] bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A2332]/15 focus:border-[#1A2332]";
@@ -3368,7 +3525,7 @@ function TestimonialsInlineEditor({ embedded = false }: { embedded?: boolean }) 
         {!embedded ? (
         <div className="mb-6 flex items-start justify-between gap-3">
           <div>
-            <h2 className="text-lg font-bold text-[#1A2332]">Testimonials</h2>
+            <h2 className="text-lg font-bold text-[#1A2332]">Real Stories. Real Spaces.</h2>
             <p className="mt-0.5 text-sm text-[#6B7280]">
               Customer reviews & ratings
             </p>
@@ -3552,7 +3709,8 @@ function TestimonialsInlineEditor({ embedded = false }: { embedded?: boolean }) 
           </div>
         )}
 
-        <div className={embedded ? "mt-4 flex items-center gap-2 border-t border-[#E8EAED] pt-4" : "mt-8 flex items-center gap-2 border-t border-[#E8EAED] pt-5"}>
+        {!embedded ? (
+        <div className="mt-8 flex items-center gap-2 border-t border-[#E8EAED] pt-5">
           <button
             type="button"
             onClick={() => void saveAll()}
@@ -3566,12 +3724,16 @@ function TestimonialsInlineEditor({ embedded = false }: { embedded?: boolean }) 
             type="button"
             onClick={() => void load()}
             disabled={saving || loading}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#DC2626] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#B91C1C] disabled:opacity-60"
+            className="text-sm font-medium text-[#6B7280] underline-offset-2 hover:text-[#DC2626] hover:underline disabled:opacity-60"
           >
-            <Trash2 className="h-4 w-4" />
             Reload
           </button>
         </div>
+        ) : (
+          <p className="mt-3 text-[11px] text-[#9CA3AF]">
+            Use the top Save button to save testimonials with this section.
+          </p>
+        )}
       </div>
     </section>
   );
@@ -3906,9 +4068,20 @@ export function ResourceManager({
                         <img
                           src={resolveAdminMediaPreviewUrl(image || "/products/Kitchen1.png")}
                           alt={title}
+                          referrerPolicy="no-referrer"
                           className="h-full w-full object-cover"
                           onError={(event) => {
                             const el = event.currentTarget;
+                            const fallbacks = resolveAdminMediaPreviewFallbacks(
+                              image || "/products/Kitchen1.png"
+                            );
+                            const idx = Number(el.dataset.fb || "0");
+                            const next = fallbacks[idx + 1];
+                            if (next) {
+                              el.dataset.fb = String(idx + 1);
+                              el.src = next;
+                              return;
+                            }
                             if (el.dataset.fallback === "1") return;
                             el.dataset.fallback = "1";
                             el.src = "/products/Kitchen1.png";
@@ -3929,8 +4102,14 @@ export function ResourceManager({
                           <span className="rounded-full bg-[#EEF2F7] px-2 py-0.5 text-xs text-[#475569]">
                             {category || "—"}
                           </span>
-                          <span className="text-[11px] text-[#9CA3AF]">
-                            Updated recently
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                              item.visible === false
+                                ? "bg-gray-100 text-gray-600"
+                                : "bg-emerald-50 text-emerald-700"
+                            }`}
+                          >
+                            {item.visible === false ? "Hidden" : "Visible"}
                           </span>
                         </div>
                         <p className="line-clamp-2 text-xs text-[#475569]">
@@ -6257,50 +6436,17 @@ function FieldControl({
   const wide = field.type === "textarea" || field.type === "json";
 
   if (field.media && field.type !== "boolean" && field.type !== "number") {
-    const urlValue = String(value ?? "").trim();
-    const isPreviewable =
-      Boolean(urlValue) &&
-      field.media !== "pdf" &&
-      !/\.(pdf)$/i.test(urlValue);
-
     return (
       <div className={wide ? "md:col-span-2" : ""}>
-        <FieldLabel field={field} />
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={String(value ?? "")}
-            onChange={(event) => onChange(event.target.value)}
-            placeholder={
-              field.media === "pdf"
-                ? "PDF URL or upload…"
-                : "Image URL or upload…"
-            }
-            className="min-w-0 flex-1 rounded-lg border border-[#DDE1E7] px-3.5 py-2.5 text-sm outline-none focus:border-[#1A2332]"
-          />
-          <InlineUploadButton
-            kind={field.media}
-            onUploaded={(url) => onChange(url)}
-          />
-        </div>
-        {isPreviewable ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={resolveAdminMediaPreviewUrl(urlValue)}
-            alt=""
-            referrerPolicy="no-referrer"
-            className="mt-2 h-40 w-full max-w-md rounded-lg border border-[#E8EAED] object-contain bg-[#F8FAFC]"
-            onError={(e) => {
-              e.currentTarget.style.display = "none";
-            }}
-            onLoad={(e) => {
-              e.currentTarget.style.display = "";
-            }}
-          />
-        ) : null}
-        {urlValue && field.media === "pdf" ? (
-          <p className="mt-2 truncate text-xs text-[#64748B]">{urlValue}</p>
-        ) : null}
+        <MediaUpload
+          label={field.label}
+          kind={field.media === "pdf" ? "pdf" : field.media === "icon" ? "icon" : "image"}
+          value={String(value ?? "")}
+          onChange={(url) => onChange(url)}
+          hint={field.helpText}
+          uploadFile={uploadVarsoviaMedia}
+          previewSize="md"
+        />
       </div>
     );
   }
@@ -6395,11 +6541,18 @@ function SmallInput({
   onChange: (value: string) => void;
   media?: MediaKind;
 }) {
-  const trimmed = value.trim();
-  const isPreviewable =
-    Boolean(trimmed) &&
-    media === "image" &&
-    !/\.(pdf)$/i.test(trimmed);
+  if (media === "image" || media === "icon") {
+    return (
+      <MediaUpload
+        label={label}
+        kind={media}
+        value={value}
+        onChange={onChange}
+        uploadFile={uploadVarsoviaMedia}
+        previewSize="sm"
+      />
+    );
+  }
 
   return (
     <label>
@@ -6410,32 +6563,15 @@ function SmallInput({
         <input
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          placeholder={
-            media
-              ? media === "pdf"
-                ? "PDF URL or upload…"
-                : "Image URL or upload…"
-              : undefined
-          }
+          placeholder={media === "pdf" ? "PDF URL or upload…" : undefined}
           className="min-w-0 flex-1 rounded-lg border border-[#DDE1E7] px-3 py-2 text-sm outline-none focus:border-[#1A2332]"
         />
         {media ? (
           <InlineUploadButton kind={media} onUploaded={onChange} />
         ) : null}
       </div>
-      {isPreviewable ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={resolveAdminMediaPreviewUrl(trimmed)}
-          alt=""
-          className="mt-2 h-28 w-full rounded-lg border border-[#E8EAED] object-contain bg-[#F8FAFC]"
-          onError={(e) => {
-            e.currentTarget.style.display = "none";
-          }}
-          onLoad={(e) => {
-            e.currentTarget.style.display = "";
-          }}
-        />
+      {media === "pdf" && value.trim() ? (
+        <p className="mt-2 truncate text-xs text-[#64748B]">{value}</p>
       ) : null}
     </label>
   );

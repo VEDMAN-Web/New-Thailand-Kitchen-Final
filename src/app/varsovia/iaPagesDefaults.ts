@@ -85,14 +85,57 @@ export const DEFAULT_IA_PAGES = {
     child("chiang-mai", "Chiang Mai", 5),
   ]),
   forDevelopers: hub("for-developers", "For Developers", []),
-  journal: hub("journal", "Journal", [
-    child("kitchens", "Kitchens", 0),
-    child("furniture", "Furniture", 1),
-    child("materials", "Materials", 2),
-    child("interior-design", "Interior Design", 3),
-    child("villa-guides", "Villa Guides", 4),
-    child("thailand-living", "Thailand Living", 5),
-  ]),
+  journal: {
+    slug: "journal",
+    indexable: false,
+    metaTitle: L("Journal | Varsovia Design"),
+    metaDescription: L(
+      "Varsovia Journal — guides on kitchens, furniture, materials, interior design, villas, and Thailand living."
+    ),
+    hero: {
+      eyebrow: L(""),
+      title: L("Journal"),
+      subtitle: L(
+        "Ideas on kitchens, materials, villas, and living in Thailand."
+      ),
+      image: "/blog/blog1.jpg",
+      ctaLabel: L("Get a consultation"),
+      ctaHref: "/contact",
+    },
+    body: L(
+      "Our journal collects practical design notes and project stories — written to help homeowners and partners make clearer decisions."
+    ),
+    sections: [
+      {
+        heading: L("Practical design notes"),
+        text: L(
+          "Guides on kitchens, materials, and villas — written to help you make clearer decisions."
+        ),
+        image: "/blog/blog1.jpg",
+        imagePosition: "left",
+        layout: "editorial",
+      },
+      {
+        heading: L("Stories from real projects"),
+        text: L(
+          "Project notes and Thailand living ideas drawn from homes we design and install."
+        ),
+        image: "/home/stories/story-2.jpg",
+        imagePosition: "right",
+        layout: "editorial",
+      },
+    ],
+    exploreTitle: L("Explore"),
+    exploreSubtitle: L("Choose a focus area to continue."),
+    children: [
+      child("kitchens", "Kitchens", 0),
+      child("furniture", "Furniture", 1),
+      child("materials", "Materials", 2),
+      child("interior-design", "Interior Design", 3),
+      child("villa-guides", "Villa Guides", 4),
+      child("thailand-living", "Thailand Living", 5),
+    ],
+  },
   aboutBrand: hub("about", "About", [
     child("varsovia", "Varsovia", 0),
     child("livo", "Livo", 1),

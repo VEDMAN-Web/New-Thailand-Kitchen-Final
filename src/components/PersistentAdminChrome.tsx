@@ -18,7 +18,7 @@ const TITLE_BY_PATH: Record<string, string> = {
   "/users": "Users",
   "/varsovia": "Varsovia Kitchen CMS",
   "/varsovia/furniture": "Furniture",
-  "/varsovia/interior-design": "Interior Design",
+  "/varsovia/interior-design": "Interior",
   "/varsovia/complete-interiors": "Complete Interiors",
   "/varsovia/services": "Services",
   "/varsovia/locations": "Locations",

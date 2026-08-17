@@ -223,12 +223,8 @@ export function resolveAdminMediaPreviewUrl(url: string): string {
   }
 
   const path = encodeMediaPath(trimmed.startsWith("/") ? trimmed : `/${trimmed}`);
-  if (path.startsWith("/uploads/")) return path;
-  if (path.startsWith("/api/")) return path;
-  // Admin (3001) has no public/ images — load them from the live frontend origin.
-  if (isPublicSiteAssetPath(path) || path.startsWith("/")) {
-    return `${publicFrontendOrigin()}${path}`;
-  }
+  // Prefer same-origin first: admin public/ + Next rewrites to frontend/API.
+  // MediaUpload then falls back to the live frontend origin if needed.
   return path;
 }
 
@@ -242,7 +238,23 @@ export function resolveAdminMediaPreviewFallbacks(url: string): string[] {
   let path = trimmed;
   if (/^https?:\/\//i.test(trimmed)) {
     try {
-      path = new URL(trimmed).pathname;
+      const parsed = new URL(trimmed);
+      path = parsed.pathname;
+      const absolute = trimmed;
+      const seenAbs = new Set<string>();
+      const outAbs: string[] = [];
+      for (const candidate of [
+        primary,
+        absolute,
+        encodeMediaPath(path.startsWith("/") ? path : `/${path}`),
+        `${publicFrontendOrigin()}${encodeMediaPath(path.startsWith("/") ? path : `/${path}`)}`,
+      ]) {
+        if (candidate && !seenAbs.has(candidate)) {
+          seenAbs.add(candidate);
+          outAbs.push(candidate);
+        }
+      }
+      return outAbs;
     } catch {
       path = trimmed;
     }
