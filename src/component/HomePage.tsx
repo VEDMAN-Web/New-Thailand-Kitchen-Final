@@ -16,10 +16,15 @@ import { useTranslation } from "../i18n/LanguageProvider";
 import { useCms, useCmsSection } from "../lib/CmsHomeContext";
 import { pickCmsText } from "../lib/cmsText";
 import { useResolvedMediaUrl } from "../lib/useResolvedMediaUrl";
+import type { ProductItem } from "./products/productData";
 
 const STATIC_FALLBACK_VIDEO = "/video/2.mp4";
 
-function HomePage() {
+function HomePage({
+  initialProducts = [],
+}: {
+  initialProducts?: ProductItem[];
+}) {
   const { t, locale } = useTranslation();
   const { loading: cmsLoading } = useCms();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -234,7 +239,7 @@ function HomePage() {
             </Link>
           </div>
         </section>
-        <ProductSection />
+        <ProductSection initialProducts={initialProducts} />
 
         <section className="pt-10 lg:pt-12 pb-10 lg:pb-12">
           <div className="max-w-7xl mx-auto px-6">

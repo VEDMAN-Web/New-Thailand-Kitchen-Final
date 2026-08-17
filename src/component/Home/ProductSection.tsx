@@ -3,10 +3,11 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { products } from "./ProductData";
 import { useCms } from "../../lib/CmsHomeContext";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import { pickCmsText } from "../../lib/cmsText";
+import type { Locale } from "../../i18n/translations";
+import type { ProductItem } from "../products/productData";
 
 function toProductHref(slug: string) {
   const clean = String(slug || "")
@@ -16,29 +17,31 @@ function toProductHref(slug: string) {
   return clean ? `/products/${encodeURIComponent(clean)}` : "/products";
 }
 
-const ProductSection = () => {
-  const { t, locale } = useTranslation();
-  const { products: cmsProducts } = useCms();
-  const items = useMemo(() => {
-    // Keep prior content visible while CMS loads — no blank / pulse flicker
-    if (cmsProducts.length > 0) {
-      return cmsProducts.slice(0, 3).map((p) => ({
-        id: p.id,
-        title: pickCmsText(p.name, "", locale),
-        image: p.image,
-        href: toProductHref(p.slug),
-      }));
-    }
+function toCards(list: ProductItem[], locale: Locale) {
+  return list.slice(0, 3).map((p) => ({
+    key: p.slug || String(p.id),
+    title: pickCmsText(p.name, "", locale),
+    image: p.image,
+    href: toProductHref(p.slug),
+  }));
+}
 
-    return products.slice(0, 3).map((p) => ({
-      id: p.id,
-      title: p.title,
-      image: p.image,
-      href: "/products",
-    }));
-  }, [cmsProducts, locale]);
+const ProductSection = ({
+  initialProducts = [],
+}: {
+  initialProducts?: ProductItem[];
+}) => {
+  const { t, locale } = useTranslation();
+  const { products: cmsProducts, loading } = useCms();
+  const items = useMemo(() => {
+    // CMS/DB only — never paint hardcoded ProductData (that caused the flicker).
+    if (cmsProducts.length > 0) return toCards(cmsProducts, locale);
+    if (initialProducts.length > 0) return toCards(initialProducts, locale);
+    return [];
+  }, [cmsProducts, initialProducts, locale]);
 
   const [active, setActive] = useState<number | null>(null);
+  const showSkeleton = items.length === 0 && loading;
 
   return (
     <section className="pb-6 lg:pb-8">
@@ -47,7 +50,17 @@ const ProductSection = () => {
           className="flex flex-col sm:flex-row gap-3 sm:gap-4 h-auto sm:h-[520px] lg:h-[600px]"
           onMouseLeave={() => setActive(null)}
         >
-          {items.map((product, index) => {
+          {showSkeleton
+            ? [0, 1, 2].map((index) => (
+                <div
+                  key={`skeleton-${index}`}
+                  className="sm:flex-1 min-w-0"
+                >
+                  <div className="relative w-full h-[320px] sm:h-full overflow-hidden rounded-2xl bg-[#E8E4DC]" />
+                  <div className="mt-4 h-4 w-2/3 rounded bg-[#E8E4DC]" />
+                </div>
+              ))
+            : items.map((product, index) => {
             const isActive = active === index;
             const isIdle = active === null;
             const isRemote =
@@ -56,7 +69,7 @@ const ProductSection = () => {
 
             return (
               <Link
-                key={product.id}
+                key={product.key}
                 href={product.href}
                 onMouseEnter={() => setActive(index)}
                 onFocus={() => setActive(index)}
@@ -96,7 +109,7 @@ const ProductSection = () => {
         <div className="hidden sm:flex justify-center gap-2 mt-6">
           {items.map((product, index) => (
             <button
-              key={product.id}
+              key={product.key}
               type="button"
               aria-label={`Show ${product.title}`}
               onClick={() => setActive(index)}

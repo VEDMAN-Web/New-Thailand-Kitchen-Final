@@ -1,13 +1,12 @@
 import HomePage from "../component/HomePage";
+import { fetchMergedProducts } from "../services/cmsPublic";
 
+export default async function Home() {
+  const initialProducts = await fetchMergedProducts().catch(() => []);
 
-export default function Home() {
   return (
-    <>
-     
-      <main className="w-full">
-        <HomePage/>
-      </main>
-    </>
+    <main className="w-full">
+      <HomePage initialProducts={initialProducts} />
+    </main>
   );
 }
