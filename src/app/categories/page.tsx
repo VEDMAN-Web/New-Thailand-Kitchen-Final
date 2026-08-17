@@ -164,7 +164,7 @@ export default function AdminCategoriesPage() {
     indexable: false,
     eyebrow: emptyLocalized(),
     ctaLabel: emptyLocalized(),
-    ctaHref: "/contact",
+    ctaHref: "",
     footerCtaHeading: emptyLocalized(),
     footerCtaBody: emptyLocalized(),
     sections: [],
@@ -263,19 +263,10 @@ export default function AdminCategoriesPage() {
 
   const openCreate = () => {
     const type = hub?.defaultCategoryType || "service";
-    const footer = defaultFooterCtaFields("kitchen");
-    const preloadSections = [
-      "layout",
-      "style",
-      "property-type",
-      "service",
-      "material",
-      "built-in-furniture",
-    ].includes(type);
     setForm({
       title: emptyLocalized(),
       description: emptyLocalized(),
-      image: "/products/Kitchen2.png",
+      image: "",
       icon: "",
       slug: "",
       categoryType: type,
@@ -284,20 +275,12 @@ export default function AdminCategoriesPage() {
       metaDescription: "",
       canonicalUrl: "",
       indexable: false,
-      eyebrow: defaultEyebrowForType(type),
-      ctaLabel: asLocalizedForm("Request a consultation"),
-      ctaHref: "/contact",
-      footerCtaHeading: footer.footerCtaHeading,
-      footerCtaBody: footer.footerCtaBody,
-      sections: preloadSections
-        ? buildDefaultCategorySections({
-            title: "New page",
-            description: "",
-            image: "/products/Kitchen2.png",
-            categoryType: type,
-            slug: "",
-          })
-        : [],
+      eyebrow: emptyLocalized(),
+      ctaLabel: emptyLocalized(),
+      ctaHref: "",
+      footerCtaHeading: emptyLocalized(),
+      footerCtaBody: emptyLocalized(),
+      sections: [],
     });
     setEditing(null);
     setLocale("en");
@@ -372,7 +355,7 @@ export default function AdminCategoriesPage() {
         indexable: form.indexable,
         eyebrow: asLocalizedForm(form.eyebrow),
         ctaLabel: asLocalizedForm(form.ctaLabel),
-        ctaHref: form.ctaHref || "/contact",
+        ctaHref: form.ctaHref.trim(),
         footerCtaHeading: asLocalizedForm(form.footerCtaHeading),
         footerCtaBody: asLocalizedForm(form.footerCtaBody),
         sections: sectionsToApiPayload(form.sections),

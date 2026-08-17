@@ -353,7 +353,7 @@ export default function AdminGalleryPage() {
               onClick={saveHero}
               className="rounded-lg bg-[#1A2332] text-white text-sm font-semibold px-4 py-2.5 disabled:opacity-60"
             >
-              {savingHero ? "Saving…" : "Save hero content"}
+              {savingHero ? "Saving…" : "Save"}
             </button>
           </div>
 

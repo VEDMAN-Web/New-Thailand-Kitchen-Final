@@ -741,6 +741,7 @@ export function mergeVarsoviaSiteDefaults(
     "showcaseMeta",
     "projectsPage",
     "aboutPageSettings",
+    "homeSeo",
     "faqPage",
     "cataloguePage",
     "contactPage",

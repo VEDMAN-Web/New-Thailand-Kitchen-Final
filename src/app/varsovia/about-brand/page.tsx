@@ -66,8 +66,8 @@ function emptyChild(order: number): IaChildRow {
       title: emptyLocalized(),
       subtitle: emptyLocalized(),
       image: "",
-      ctaLabel: asLocalizedForm("Get a consultation"),
-      ctaHref: "/contact",
+      ctaLabel: emptyLocalized(),
+      ctaHref: "",
     },
     body: emptyLocalized(),
     indexable: false,
@@ -230,6 +230,13 @@ export default function VarsoviaAboutBrandPage() {
         <VarsoviaHubLandingEditor
           hubKey={HUB_KEY}
           label="About brands"
+          showHero={false}
+          showBody={false}
+          showSections={false}
+          showExplore
+          showSeo={false}
+          pathLabel="/about/varsovia · /about/livo · /about/oppolia"
+          helpText="Brand partner pages on the live site. The /about landing (hero, story, process) is edited under About Us. Explore title/subtitle appear as the brand strip on /about."
           onSaved={() => void load()}
         />
 

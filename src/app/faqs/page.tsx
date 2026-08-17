@@ -209,7 +209,7 @@ export default function AdminFaqsPage() {
               disabled={savingHero}
               className="rounded-lg bg-[#1A2332] text-white px-3 py-2 text-xs font-semibold disabled:opacity-60"
             >
-              {savingHero ? "Saving…" : "Save hero"}
+              {savingHero ? "Saving…" : "Save"}
             </button>
           </div>
           <LocaleTabs locale={locale} onChange={setLocale} />

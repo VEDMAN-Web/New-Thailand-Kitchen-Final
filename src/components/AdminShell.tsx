@@ -132,9 +132,31 @@ const VARSOVIA_NAV: {
     group: "pages",
   },
   {
-    href: "/varsovia/complete-interiors",
-    label: "Complete Interiors",
-    icon: FolderKanban,
+    href: "/varsovia?resource=site&section=projectsPage",
+    resource: "site",
+    section: "projectsPage",
+    label: "Showcase",
+    icon: Images,
+    group: "pages",
+  },
+  {
+    href: "/varsovia/locations",
+    label: "Locations",
+    icon: MapPin,
+    group: "pages",
+  },
+  {
+    href: "/varsovia?resource=site&section=aboutPage",
+    resource: "site",
+    section: "aboutPage",
+    label: "About Us",
+    icon: BookOpen,
+    group: "pages",
+  },
+  {
+    href: "/varsovia/about-brand",
+    label: "About brands",
+    icon: BookOpen,
     group: "pages",
   },
   {
@@ -144,9 +166,9 @@ const VARSOVIA_NAV: {
     group: "pages",
   },
   {
-    href: "/varsovia/locations",
-    label: "Locations",
-    icon: MapPin,
+    href: "/varsovia/complete-interiors",
+    label: "Complete Interiors",
+    icon: FolderKanban,
     group: "pages",
   },
   {
@@ -162,16 +184,10 @@ const VARSOVIA_NAV: {
     group: "pages",
   },
   {
-    href: "/varsovia/about-brand",
-    label: "About brands",
-    icon: BookOpen,
-    group: "pages",
-  },
-  {
-    href: "/varsovia?resource=site&section=aboutPage",
+    href: "/varsovia?resource=site&section=cataloguePage",
     resource: "site",
-    section: "aboutPage",
-    label: "About Us",
+    section: "cataloguePage",
+    label: "Free Catalogue",
     icon: BookOpen,
     group: "pages",
   },
@@ -189,22 +205,6 @@ const VARSOVIA_NAV: {
     section: "qualitySale",
     label: "Quality After Sales",
     icon: Wrench,
-    group: "pages",
-  },
-  {
-    href: "/varsovia?resource=site&section=projectsPage",
-    resource: "site",
-    section: "projectsPage",
-    label: "Showcase",
-    icon: Images,
-    group: "pages",
-  },
-  {
-    href: "/varsovia?resource=site&section=cataloguePage",
-    resource: "site",
-    section: "cataloguePage",
-    label: "Free Catalogue",
-    icon: BookOpen,
     group: "pages",
   },
   {
@@ -458,8 +458,10 @@ function AdminShellContent({
     section?: string;
     hub?: string;
   }) => {
-    if (item.href === "/varsovia/furniture") {
-      return pathname === "/varsovia/furniture";
+    const pathOnly = item.href.split("?")[0];
+    // Dedicated hub routes must match the real pathname, not /varsovia query state
+    if (pathOnly.startsWith("/varsovia/")) {
+      return pathname === pathOnly;
     }
     if (item.resource) {
       if (pathname !== "/varsovia" || activeResource !== item.resource) {
@@ -491,7 +493,6 @@ function AdminShellContent({
         (nav) => nav.section === homeSection && nav.href !== "/"
       );
     }
-    const pathOnly = item.href.split("?")[0];
     if (pathOnly === "/categories") {
       return pathname === "/categories" && !searchParams.get("hub");
     }
@@ -502,9 +503,16 @@ function AdminShellContent({
     event: React.MouseEvent,
     item: { href: string; section?: string; resource?: string }
   ) => {
-    // Varsovia: stay on /varsovia and swap resource/section without Next navigation
+    // Varsovia: stay on /varsovia and swap resource/section without Next navigation.
+    // Dedicated hub pages (/varsovia/furniture, /about-brand, …) must actually
+    // route — replaceState alone leaves the old page mounted.
     if (isVarsovia && item.resource) {
-      if (pathname.startsWith("/varsovia")) {
+      const onDedicatedHub =
+        pathname.startsWith("/varsovia/") && pathname !== "/varsovia";
+      if (onDedicatedHub) {
+        return;
+      }
+      if (pathname === "/varsovia" || pathname.startsWith("/varsovia")) {
         event.preventDefault();
         writeVarsoviaNav(item.resource, item.section || null);
         return;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { CloudUpload } from "lucide-react";
 import { toast } from "sonner";
 import LocaleTabs from "@/components/LocaleTabs";
 import MediaUpload from "@/components/MediaUpload";
@@ -50,7 +51,7 @@ function emptyHub(): HubDraft {
     eyebrow: emptyLocalized(),
     heroImage: "",
     ctaLabel: emptyLocalized(),
-    ctaHref: "/contact",
+    ctaHref: "",
     sections: [],
     subsections: {},
   };
@@ -257,15 +258,25 @@ export default function HubLandingEditor({ hub }: { hub: AdminHubMeta }) {
   };
 
   return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <span className="min-w-0 truncate text-xs font-bold uppercase tracking-[0.1em] text-[#5C6370]">
+          {hub.label}
+        </span>
+        <button
+          type="button"
+          disabled={saving || loading}
+          onClick={() => void save()}
+          className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[#1A2332] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#243044] disabled:opacity-60"
+        >
+          <CloudUpload className="h-4 w-4" />
+          {saving ? "Saving…" : "Save"}
+        </button>
+      </div>
+
     <div className="rounded-xl border border-[#E8EDF2] bg-white p-5 space-y-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="text-base font-bold text-[#1A2332]">
-            {hub.label} page hero{" "}
-            <span className="font-mono text-xs font-normal text-[#6B7280]">
-              {hub.sitePath}
-            </span>
-          </h2>
+      <div>
+          <p className="font-mono text-xs text-[#6B7280]">{hub.sitePath}</p>
           <p className="text-xs text-[#6B7280] mt-1">
             Overlay hero on the live site: tag, heading, description, background
             image, and button. Clearing a section here removes it from the site.
@@ -273,15 +284,6 @@ export default function HubLandingEditor({ hub }: { hub: AdminHubMeta }) {
           <div className="mt-3">
             <LocaleTabs locale={locale} onChange={setLocale} />
           </div>
-        </div>
-        <button
-          type="button"
-          disabled={saving || loading}
-          onClick={() => void save()}
-          className="rounded-lg bg-[#1A2332] text-white text-sm font-semibold px-4 py-2.5 disabled:opacity-60"
-        >
-          {saving ? "Saving…" : `Save ${hub.label} page`}
-        </button>
       </div>
 
       {loading ? (
@@ -363,6 +365,7 @@ export default function HubLandingEditor({ hub }: { hub: AdminHubMeta }) {
       ) : (
         <HubFields draft={draft} locale={locale} onChange={setDraft} prefix="Hero" />
       )}
+    </div>
     </div>
   );
 }

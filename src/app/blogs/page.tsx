@@ -756,7 +756,7 @@ export default function AdminBlogsPage() {
               onClick={saveHero}
               className="rounded-lg bg-[#1A2332] text-white text-sm font-semibold px-4 py-2.5 disabled:opacity-60"
             >
-              {savingHero ? "Saving…" : "Save hero content"}
+              {savingHero ? "Saving…" : "Save"}
             </button>
           </div>
 
@@ -1660,7 +1660,7 @@ export default function AdminBlogsPage() {
                     }
                     className="rounded-lg bg-[#1A2332] text-white px-4 py-2 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {modal === "create" ? "Create Blog" : "Save Blog"}
+                    {modal === "create" ? "Create Blog" : "Save"}
                   </button>
                 )}
               </div>

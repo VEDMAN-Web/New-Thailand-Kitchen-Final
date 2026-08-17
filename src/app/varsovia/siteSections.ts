@@ -88,7 +88,7 @@ function pageSeoFields(prefix: string): Field[] {
       key: `${prefix}.indexable`,
       label: "Show in Google sitemap (Indexable)",
       type: "boolean",
-      helpText: "Leave OFF until final copy is approved.",
+      helpText: "OFF = this page is noindex and omitted from /sitemap.xml. ON = listed for Google.",
     },
     {
       key: `${prefix}.metaTitle`,
@@ -171,6 +171,8 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
         key: "homeSeo.indexable",
         label: "Show home in Google sitemap (Indexable)",
         type: "boolean",
+        helpText:
+          "OFF = home is noindex and omitted from /sitemap.xml. ON = /en /th /pl home URLs are listed for Google.",
       },
     ],
   },
@@ -503,7 +505,7 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
         type: "section-divider",
         helpText: "Browser tab title and Google listing for /team.",
       },
-      { key: "teamPage.indexable", label: "Show in Google sitemap (Indexable)", type: "boolean" },
+      { key: "teamPage.indexable", label: "Show in Google sitemap (Indexable)", type: "boolean", helpText: "OFF = /team is noindex and omitted from the sitemap. ON = listed for Google." },
       { key: "teamPage.metaTitle", label: "Google title (browser tab)", localized: true, maxLength: 60 },
       {
         key: "teamPage.metaDescription",
@@ -587,7 +589,7 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
         type: "section-divider",
         helpText: "Browser tab title and Google listing for /quality-sale.",
       },
-      { key: "qualitySale.indexable", label: "Show in Google sitemap (Indexable)", type: "boolean" },
+      { key: "qualitySale.indexable", label: "Show in Google sitemap (Indexable)", type: "boolean", helpText: "OFF = /quality-sale is noindex and omitted from the sitemap. ON = listed for Google." },
       { key: "qualitySale.metaTitle", label: "Google title (browser tab)", localized: true, maxLength: 60 },
       {
         key: "qualitySale.metaDescription",
@@ -634,7 +636,7 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
         key: "projectsPage.indexable",
         label: "Show in Google sitemap (Indexable)",
         type: "boolean",
-        helpText: "Leave OFF until real photos and final copy are approved. When ON, /projects can appear in the sitemap.",
+        helpText: "Leave OFF until real photos and final copy are approved. When ON, /projects and each project detail can appear in the sitemap.",
       },
       {
         key: "projectsPage.metaTitle",
@@ -979,7 +981,7 @@ function iaHubSection(
       key: `${prefix}.indexable`,
       label: "Show in Google sitemap (Indexable)",
       type: "boolean",
-      helpText: "OFF until final. ON = can appear in sitemap.",
+      helpText: "OFF until final. ON = this hub/page and its indexable children can appear in the sitemap.",
     },
     {
       key: `${prefix}.metaTitle`,

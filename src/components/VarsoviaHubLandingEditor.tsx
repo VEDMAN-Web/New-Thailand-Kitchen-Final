@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { CloudUpload } from "lucide-react";
 import { toast } from "sonner";
 import LocaleTabs from "@/components/LocaleTabs";
 import MediaUpload from "@/components/MediaUpload";
@@ -54,7 +55,7 @@ function emptyHubDraft(): HubDraft {
       subtitle: emptyLocalized(),
       image: "",
       ctaLabel: emptyLocalized(),
-      ctaHref: "/contact",
+      ctaHref: "",
     },
     body: emptyLocalized(),
     sections: [],
@@ -201,10 +202,12 @@ function ContentSectionsEditor({
   locale,
   sections,
   onChange,
+  label = "Hero content sections",
 }: {
   locale: LocaleCode;
   sections: ContentSection[];
   onChange: (next: ContentSection[]) => void;
+  label?: string;
 }) {
   const update = (index: number, patch: Partial<ContentSection>) => {
     onChange(sections.map((sec, i) => (i === index ? { ...sec, ...patch } : sec)));
@@ -213,9 +216,7 @@ function ContentSectionsEditor({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-xs font-semibold uppercase tracking-wide text-[#5C6370]">
-          Content blocks
-        </p>
+        <p className="text-xs font-semibold text-[#5C6370]">{label}</p>
         <button
           type="button"
           onClick={() =>
@@ -232,7 +233,7 @@ function ContentSectionsEditor({
           }
           className="rounded-lg border border-dashed border-[#B9C0CA] px-3 py-1.5 text-xs font-semibold text-[#5C6370]"
         >
-          + Add block
+          + Add section
         </button>
       </div>
       {sections.map((sec, index) => (
@@ -324,13 +325,28 @@ export default function VarsoviaHubLandingEditor({
   label,
   withExploreHeadings = true,
   onSaved,
+  showHero = true,
+  showBody = true,
+  showSections = true,
+  showExplore,
+  showSeo = true,
+  pathLabel,
+  helpText,
 }: {
   hubKey: string;
   label: string;
   withExploreHeadings?: boolean;
   onSaved?: () => void;
+  showHero?: boolean;
+  showBody?: boolean;
+  showSections?: boolean;
+  showExplore?: boolean;
+  showSeo?: boolean;
+  pathLabel?: string;
+  helpText?: string;
 }) {
-  const sitePath = IA_HUB_PATHS[hubKey] || `/${hubKey}`;
+  const sitePath = pathLabel || IA_HUB_PATHS[hubKey] || `/${hubKey}`;
+  const exploreVisible = showExplore ?? withExploreHeadings;
   const [locale, setLocale] = useState<LocaleCode>("en");
   const [pages, setPages] = useState<Record<string, unknown>>({});
   const [draft, setDraft] = useState<HubDraft>(emptyHubDraft());
@@ -383,62 +399,42 @@ export default function VarsoviaHubLandingEditor({
   };
 
   return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <span className="min-w-0 truncate text-xs font-bold uppercase tracking-[0.1em] text-[#5C6370]">
+          {label}
+        </span>
+        <button
+          type="button"
+          disabled={saving || loading}
+          onClick={() => void save()}
+          className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[#1A2332] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#243044] disabled:opacity-60"
+        >
+          <CloudUpload className="h-4 w-4" />
+          {saving ? "Saving…" : "Save"}
+        </button>
+      </div>
+
     <div className="rounded-xl border border-[#E8EDF2] bg-white p-5 space-y-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="text-base font-bold text-[#1A2332]">
-            {label} page hero{" "}
-            <span className="font-mono text-xs font-normal text-[#6B7280]">
-              {sitePath}
-            </span>
-          </h2>
+      <div>
+          <p className="font-mono text-xs text-[#6B7280]">{sitePath}</p>
           <p className="text-xs text-[#6B7280] mt-1">
-            Overlay hero on the live site: tag, heading, description, background
-            image, and button. Clearing a section here removes it from the site.
+            {helpText ||
+              "Overlay hero on the live site: tag, heading, description, background image, and button. Clearing a section here removes it from the site."}
           </p>
           <div className="mt-3">
             <LocaleTabs locale={locale} onChange={setLocale} />
           </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            disabled={loading || saving}
-            onClick={() => void load()}
-            className="rounded-lg border border-[#E2E5EA] text-sm font-semibold px-4 py-2.5 disabled:opacity-60"
-          >
-            Reset
-          </button>
-          <button
-            type="button"
-            disabled={saving || loading}
-            onClick={() => void save()}
-            className="rounded-lg bg-[#1A2332] text-white text-sm font-semibold px-4 py-2.5 disabled:opacity-60"
-          >
-            {saving ? "Saving…" : `Save ${label} page`}
-          </button>
-        </div>
       </div>
 
       {loading ? (
         <p className="text-sm text-[#6B7280]">Loading page fields…</p>
       ) : (
-        <div className="space-y-4">
-          <div className="rounded-lg border border-[#E8EDF2] bg-[#F8FAFC] px-4 py-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-[#5C6370]">
-              1 · Top banner (Hero)
-            </p>
-          </div>
+        <div className="space-y-3">
+          {showHero ? (
+            <>
           <TextField
-            label="Eyebrow (small line above headline)"
-            value={draft.hero.eyebrow}
-            locale={locale}
-            onChange={(eyebrow) =>
-              setDraft((d) => ({ ...d, hero: { ...d.hero, eyebrow } }))
-            }
-          />
-          <TextField
-            label="Headline (H1)"
+            label="Hero heading"
             value={draft.hero.title}
             locale={locale}
             onChange={(title) =>
@@ -446,7 +442,7 @@ export default function VarsoviaHubLandingEditor({
             }
           />
           <TextField
-            label="Intro line under headline"
+            label="Hero description"
             value={draft.hero.subtitle}
             locale={locale}
             multiline
@@ -454,8 +450,16 @@ export default function VarsoviaHubLandingEditor({
               setDraft((d) => ({ ...d, hero: { ...d.hero, subtitle } }))
             }
           />
+          <TextField
+            label="Hero tag (small uppercase)"
+            value={draft.hero.eyebrow}
+            locale={locale}
+            onChange={(eyebrow) =>
+              setDraft((d) => ({ ...d, hero: { ...d.hero, eyebrow } }))
+            }
+          />
           <MediaUpload
-            label="Banner photo"
+            label="Hero background image"
             kind="image"
             value={draft.hero.image}
             onChange={(image) =>
@@ -464,7 +468,7 @@ export default function VarsoviaHubLandingEditor({
           />
           <div className="grid sm:grid-cols-2 gap-3">
             <TextField
-              label="Button text"
+              label="Hero button label"
               value={draft.hero.ctaLabel}
               locale={locale}
               onChange={(ctaLabel) =>
@@ -472,7 +476,7 @@ export default function VarsoviaHubLandingEditor({
               }
             />
             <label className="block text-xs font-semibold text-[#5C6370]">
-              Button link
+              Hero button link
               <input
                 value={draft.hero.ctaHref}
                 onChange={(e) =>
@@ -486,12 +490,10 @@ export default function VarsoviaHubLandingEditor({
               />
             </label>
           </div>
+            </>
+          ) : null}
 
-          <div className="rounded-lg border border-[#E8EDF2] bg-[#F8FAFC] px-4 py-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-[#5C6370]">
-              2 · Intro paragraph
-            </p>
-          </div>
+          {showBody ? (
           <TextField
             label="Intro paragraph"
             value={draft.body}
@@ -499,28 +501,19 @@ export default function VarsoviaHubLandingEditor({
             multiline
             onChange={(body) => setDraft((d) => ({ ...d, body }))}
           />
+          ) : null}
 
-          <div className="rounded-lg border border-[#E8EDF2] bg-[#F8FAFC] px-4 py-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-[#5C6370]">
-              3 · Content blocks (image + text)
-            </p>
-          </div>
+          {showSections ? (
           <ContentSectionsEditor
             locale={locale}
+            label="Hero content sections"
             sections={draft.sections}
             onChange={(sections) => setDraft((d) => ({ ...d, sections }))}
           />
+          ) : null}
 
-          {withExploreHeadings ? (
+          {exploreVisible ? (
             <>
-              <div className="rounded-lg border border-[#E8EDF2] bg-[#F8FAFC] px-4 py-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#5C6370]">
-                  4 · Explore (sub-pages list)
-                </p>
-                <p className="mt-1 text-[11px] text-[#6B7280]">
-                  Heading above the sub-page cards. Edit cards in the grid below.
-                </p>
-              </div>
               <TextField
                 label="Explore section title"
                 value={draft.exploreTitle}
@@ -540,12 +533,9 @@ export default function VarsoviaHubLandingEditor({
             </>
           ) : null}
 
-          <div className="rounded-lg border border-[#E8EDF2] bg-[#F8FAFC] px-4 py-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-[#5C6370]">
-              {withExploreHeadings ? "5 · Google / SEO" : "4 · Google / SEO"}
-            </p>
-          </div>
-          <label className="flex items-start gap-3 text-sm text-[#1A2332]">
+          {showSeo ? (
+            <>
+          <label className="flex items-start gap-3 text-sm text-[#1A2332] pt-1">
             <input
               type="checkbox"
               checked={draft.indexable}
@@ -555,9 +545,12 @@ export default function VarsoviaHubLandingEditor({
               className="mt-0.5 w-4 h-4 rounded border-[#E2E5EA]"
             />
             <span>
-              <span className="font-medium">Indexable</span>
+              <span className="font-medium">
+                Show in Google sitemap (Indexable)
+              </span>
               <span className="block text-xs text-[#6B7280]">
-                OFF until final photo and copy are approved.
+                OFF = this page is noindex and omitted from the sitemap. ON =
+                listed for Google.
               </span>
             </span>
           </label>
@@ -578,8 +571,11 @@ export default function VarsoviaHubLandingEditor({
               setDraft((d) => ({ ...d, metaDescription }))
             }
           />
+            </>
+          ) : null}
         </div>
       )}
+    </div>
     </div>
   );
 }

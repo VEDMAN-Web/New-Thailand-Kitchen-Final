@@ -1,4 +1,17 @@
 {
+  "homeSeo": {
+    "indexable": false,
+    "metaTitle": {
+      "en": "",
+      "th": "",
+      "pl": ""
+    },
+    "metaDescription": {
+      "en": "",
+      "th": "",
+      "pl": ""
+    }
+  },
   "aboutPageSettings": {
     "indexable": false,
     "metaTitle": {
