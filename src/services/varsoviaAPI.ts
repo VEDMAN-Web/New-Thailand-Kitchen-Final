@@ -494,17 +494,23 @@ export async function syncVarsoviaFromDb(
       }
     : hydrated;
 
-  if (replaceShowcase) {
-    merged = replaceShowcaseFromLiveSeed(merged);
+  if (replaceHubKey || replaceShowcase) {
+    merged = replaceShowcase
+      ? replaceShowcaseFromLiveSeed(merged)
+      : merged;
     merged = hydrateCmsFromLiveLocales(merged, buildVarsoviaLiveOverlays(), {
       fillFromEnglish: true,
     }) as Record<string, unknown>;
   }
 
   let siteUpdated = false;
-  let filledSiteKeys = replaceShowcase
-    ? countFilledLocaleFields(pickVarsoviaSiteUpdate(loaded), pickVarsoviaSiteUpdate(merged))
-    : overlayFilled;
+  let filledSiteKeys = overlayFilled;
+  if (replaceHubKey || replaceShowcase) {
+    filledSiteKeys = countFilledLocaleFields(
+      pickVarsoviaSiteUpdate(loaded),
+      pickVarsoviaSiteUpdate(merged)
+    );
+  }
   await updateVarsoviaSite(merged);
   siteUpdated = true;
 

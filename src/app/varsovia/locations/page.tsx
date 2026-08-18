@@ -252,12 +252,12 @@ export default function VarsoviaLocationsPage() {
       );
     }
     if (!localizedValue(nextChild.metaDescription, "en").trim()) {
+      const tagline =
+        localizedValue(nextChild.hero?.subtitle, "en") ||
+        "local interiors and furniture.";
       nextChild.metaDescription = withFilledLocales(
         nextChild.metaDescription,
-        (
-          localizedValue(nextChild.hero?.subtitle, "en") ||
-          `${city} by Varsovia Design — local interiors and furniture.`
-        ).slice(0, 160)
+        `${city} by Varsovia Design — ${tagline}`.slice(0, 160)
       );
     }
     if (!String(nextChild.hero?.ctaHref || "").trim()) {

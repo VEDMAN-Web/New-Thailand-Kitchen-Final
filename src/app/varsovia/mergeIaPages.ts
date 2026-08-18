@@ -166,7 +166,13 @@ function mergeHub(saved: unknown, defaults: unknown): Dict {
   out.sections = mergeSections(s.sections, d.sections);
   out.indexable = s.indexable === true;
 
-  if (String(out.slug || "") === "locations") {
+  const slug = String(out.slug || "");
+  if (
+    slug === "locations" ||
+    slug === "about" ||
+    slug === "complete-interiors" ||
+    slug === "journal"
+  ) {
     if (!localeEn(out.exploreTitle) || localeEn(out.exploreTitle) === "Explore") {
       out.exploreTitle = clone(d.exploreTitle);
     }

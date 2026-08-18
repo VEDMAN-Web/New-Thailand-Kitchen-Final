@@ -1132,6 +1132,16 @@ function SiteSettings() {
                       ? "Edit one section at a time — same pattern as Thailand Kitchen hubs."
                       : activeSection.description}
                   </p>
+                  {activeSection.livePath ? (
+                    <div className="mt-2 rounded-lg border border-[#E2E5EA] bg-[#F8FAFC] px-3.5 py-2">
+                      <p className="text-[11px] font-semibold text-[#5C6370]">
+                        Live URL preview
+                      </p>
+                      <p className="mt-0.5 font-mono text-sm text-[#1A2332]">
+                        {activeSection.livePath}
+                      </p>
+                    </div>
+                  ) : null}
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   {LOCALES.map((item) => (
@@ -6504,6 +6514,19 @@ function FieldControl({
     <label className={wide ? "md:col-span-2" : ""}>
       <FieldLabel field={field} />
       {field.type === "boolean" ? (
+        /\.indexable$/.test(field.key) || field.key === "indexable" ? (
+          <button
+            type="button"
+            role="switch"
+            aria-checked={Boolean(value)}
+            onClick={() => onChange(!value)}
+            className={`mt-1 inline-flex h-8 min-w-[3.25rem] items-center justify-center rounded-full px-3 text-[11px] font-bold tracking-wide ${
+              value ? "bg-emerald-600 text-white" : "bg-[#E2E8F0] text-[#64748B]"
+            }`}
+          >
+            {value ? "ON" : "OFF"}
+          </button>
+        ) : (
         <input
           type="checkbox"
           checked={
@@ -6514,6 +6537,7 @@ function FieldControl({
           onChange={(event) => onChange(event.target.checked)}
           className="h-5 w-5 accent-[#1A2332]"
         />
+        )
       ) : field.type === "select" ? (
         <select
           value={

@@ -138,7 +138,7 @@ function hubToApi(draft: HubDraft): Record<string, unknown> {
       text: asLocalizedForm(sec.text),
       image: sec.image || "",
       imagePosition: sec.imagePosition === "right" ? "right" : "left",
-      layout: "band",
+      layout: sec.layout || "band",
     })),
     exploreTitle: asLocalizedForm(draft.exploreTitle),
     exploreSubtitle: asLocalizedForm(draft.exploreSubtitle),
@@ -309,21 +309,6 @@ function ContentSectionsEditor({
             multiline
             onChange={(text) => update(index, { text })}
           />
-          <label className="block text-xs font-semibold text-[#5C6370]">
-            Photo side
-            <select
-              className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] bg-white px-3.5 py-2.5 text-sm"
-              value={sec.imagePosition === "right" ? "right" : "left"}
-              onChange={(e) =>
-                update(index, {
-                  imagePosition: e.target.value === "right" ? "right" : "left",
-                })
-              }
-            >
-              <option value="left">Left (same as live band layout)</option>
-              <option value="right">Right</option>
-            </select>
-          </label>
         </div>
       ))}
     </div>
@@ -536,7 +521,13 @@ export default function VarsoviaHubLandingEditor({
                   ? "Heading above the project catalogue on /interior-design."
                   : hubKey === "locations"
                     ? "Heading above the city cards on /locations (photo + name + tagline)."
-                    : "Heading above the sub-page cards."
+                    : hubKey === "aboutBrand"
+                      ? "Heading above the brand cards on /about (photo + name + tagline)."
+                      : hubKey === "completeInteriors"
+                        ? "Heading above the programme cards on /complete-interiors (villas, condos, hotels, developers)."
+                        : hubKey === "journal"
+                          ? "Heading above the topic cards on /journal (kitchens, furniture, materials…)."
+                      : "Heading above the sub-page cards."
               }
             >
               <TextField
@@ -591,24 +582,29 @@ export default function VarsoviaHubLandingEditor({
               title={hubKey === "locations" ? "6 · Google" : "5 · Google"}
               hint="Not shown on the page body — browser tab, share preview (banner photo), and sitemap only."
             >
-          <label className="flex items-start gap-3 text-sm text-[#1A2332] pt-1">
-            <input
-              type="checkbox"
-              checked={draft.indexable}
-              onChange={(e) =>
-                setDraft((d) => ({ ...d, indexable: e.target.checked }))
-              }
-              className="mt-0.5 w-4 h-4 rounded border-[#E2E5EA]"
-            />
+          <label className="flex items-start justify-between gap-4 rounded-lg border border-[#E8EDF2] bg-[#F8FAFC] px-3 py-3 text-sm text-[#1A2332]">
             <span>
-              <span className="font-medium">
-                Show in Google sitemap (Indexable)
-              </span>
-              <span className="block text-xs text-[#6B7280]">
-                OFF = this page is noindex and omitted from the sitemap. ON =
-                listed for Google.
+              <span className="font-medium">Indexable</span>
+              <span className="mt-1 block text-xs text-[#6B7280]">
+                OFF = noindex, omitted from sitemap. ON = Google can list this
+                URL.
               </span>
             </span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={draft.indexable}
+              onClick={() =>
+                setDraft((d) => ({ ...d, indexable: !d.indexable }))
+              }
+              className={`inline-flex h-8 min-w-[3.25rem] shrink-0 items-center justify-center rounded-full px-3 text-[11px] font-bold tracking-wide ${
+                draft.indexable
+                  ? "bg-emerald-600 text-white"
+                  : "bg-[#E2E8F0] text-[#64748B]"
+              }`}
+            >
+              {draft.indexable ? "ON" : "OFF"}
+            </button>
           </label>
           <TextField
             label="Google title (browser tab)"

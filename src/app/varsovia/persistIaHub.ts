@@ -53,11 +53,31 @@ export async function persistIaHubPatch(
   const site = await getVarsoviaSite();
   const allPages = mergeIaPagesFromLiveSite(site.pages);
   const existing = (allPages[hubKey] || {}) as Record<string, unknown>;
-  const children = Array.isArray(patchHub.children)
+  let children = Array.isArray(patchHub.children)
     ? patchHub.children
     : Array.isArray(existing.children)
       ? existing.children
       : [];
+  if (hubKey === "aboutBrand") {
+    const hubHero =
+      patchHub.hero && typeof patchHub.hero === "object"
+        ? (patchHub.hero as Record<string, unknown>)
+        : existing.hero && typeof existing.hero === "object"
+          ? (existing.hero as Record<string, unknown>)
+          : {};
+    const hubImage = String(hubHero.image || "").trim();
+    if (hubImage) {
+      children = children.map((row) => {
+        const child = row && typeof row === "object" ? (row as Record<string, unknown>) : {};
+        if (String(child.slug || "").toLowerCase() !== "varsovia") return child;
+        const hero =
+          child.hero && typeof child.hero === "object"
+            ? { ...(child.hero as Record<string, unknown>) }
+            : {};
+        return { ...child, hero: { ...hero, image: hubImage } };
+      });
+    }
+  }
   await updateVarsoviaSite({
     pages: {
       [hubKey]: {

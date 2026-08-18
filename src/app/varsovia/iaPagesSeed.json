@@ -900,14 +900,14 @@
       }
     ],
     "exploreTitle": {
-      "en": "Explore",
-      "th": "Explore",
-      "pl": "Explore"
+      "en": "Project types",
+      "th": "Project types",
+      "pl": "Project types"
     },
     "exploreSubtitle": {
-      "en": "Choose a focus area to continue.",
-      "th": "Choose a focus area to continue.",
-      "pl": "Choose a focus area to continue."
+      "en": "Villas, condos, hospitality, and developments.",
+      "th": "Villas, condos, hospitality, and developments.",
+      "pl": "Villas, condos, hospitality, and developments."
     },
     "servicesTitle": {
       "en": "Services in this location",
@@ -933,9 +933,9 @@
           "pl": "Villas | Varsovia Design"
         },
         "metaDescription": {
-          "en": "Villas by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "th": "Villas by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "pl": "Villas by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+          "en": "Villas by Varsovia Design — Private villa interiors tuned to outdoor living and Thai light.",
+          "th": "Villas by Varsovia Design — Private villa interiors tuned to outdoor living and Thai light.",
+          "pl": "Villas by Varsovia Design — Private villa interiors tuned to outdoor living and Thai light."
         },
         "hero": {
           "title": {
@@ -1014,9 +1014,9 @@
           "pl": "Condos | Varsovia Design"
         },
         "metaDescription": {
-          "en": "Condos by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "th": "Condos by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "pl": "Condos by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+          "en": "Condos by Varsovia Design — Apartment interiors that maximise space without losing calm.",
+          "th": "Condos by Varsovia Design — Apartment interiors that maximise space without losing calm.",
+          "pl": "Condos by Varsovia Design — Apartment interiors that maximise space without losing calm."
         },
         "hero": {
           "title": {
@@ -1095,9 +1095,9 @@
           "pl": "Hotels & Resorts | Varsovia Design"
         },
         "metaDescription": {
-          "en": "Hotels & Resorts by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "th": "Hotels & Resorts by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "pl": "Hotels & Resorts by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+          "en": "Hotels & Resorts by Varsovia Design — Hospitality interiors that feel warm, brand-true, and maintainable.",
+          "th": "Hotels & Resorts by Varsovia Design — Hospitality interiors that feel warm, brand-true, and maintainable.",
+          "pl": "Hotels & Resorts by Varsovia Design — Hospitality interiors that feel warm, brand-true, and maintainable."
         },
         "hero": {
           "title": {
@@ -1176,9 +1176,9 @@
           "pl": "Developers | Varsovia Design"
         },
         "metaDescription": {
-          "en": "Developers by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "th": "Developers by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "pl": "Developers by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+          "en": "Developers by Varsovia Design — Scalable interior packages for residential and mixed-use projects.",
+          "th": "Developers by Varsovia Design — Scalable interior packages for residential and mixed-use projects.",
+          "pl": "Developers by Varsovia Design — Scalable interior packages for residential and mixed-use projects."
         },
         "hero": {
           "title": {
@@ -2578,14 +2578,14 @@
       }
     ],
     "exploreTitle": {
-      "en": "Explore",
-      "th": "Explore",
-      "pl": "Explore"
+      "en": "Explore topics",
+      "th": "Explore topics",
+      "pl": "Explore topics"
     },
     "exploreSubtitle": {
-      "en": "Choose a focus area to continue.",
-      "th": "Choose a focus area to continue.",
-      "pl": "Choose a focus area to continue."
+      "en": "Kitchens, furniture, materials, and living in Thailand.",
+      "th": "Kitchens, furniture, materials, and living in Thailand.",
+      "pl": "Kitchens, furniture, materials, and living in Thailand."
     },
     "servicesTitle": {
       "en": "Services in this location",
@@ -2611,9 +2611,9 @@
           "pl": "Kitchens | Varsovia Design"
         },
         "metaDescription": {
-          "en": "Kitchens by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "th": "Kitchens by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "pl": "Kitchens by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+          "en": "Kitchens by Varsovia Design — Planning notes and kitchen stories from Varsovia projects.",
+          "th": "Kitchens by Varsovia Design — Planning notes and kitchen stories from Varsovia projects.",
+          "pl": "Kitchens by Varsovia Design — Planning notes and kitchen stories from Varsovia projects."
         },
         "hero": {
           "title": {
@@ -2656,9 +2656,9 @@
           }
         ],
         "relatedTitle": {
-          "en": "",
-          "th": "",
-          "pl": ""
+          "en": "Articles in this topic",
+          "th": "Articles in this topic",
+          "pl": "Articles in this topic"
         },
         "indexable": false,
         "order": 0
@@ -2676,9 +2676,9 @@
           "pl": "Furniture | Varsovia Design"
         },
         "metaDescription": {
-          "en": "Furniture by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "th": "Furniture by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "pl": "Furniture by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+          "en": "Furniture by Varsovia Design — How we think about fitted furniture and freestanding pieces.",
+          "th": "Furniture by Varsovia Design — How we think about fitted furniture and freestanding pieces.",
+          "pl": "Furniture by Varsovia Design — How we think about fitted furniture and freestanding pieces."
         },
         "hero": {
           "title": {
@@ -2721,9 +2721,9 @@
           }
         ],
         "relatedTitle": {
-          "en": "",
-          "th": "",
-          "pl": ""
+          "en": "Articles in this topic",
+          "th": "Articles in this topic",
+          "pl": "Articles in this topic"
         },
         "indexable": false,
         "order": 1
@@ -2741,9 +2741,9 @@
           "pl": "Materials | Varsovia Design"
         },
         "metaDescription": {
-          "en": "Materials by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "th": "Materials by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "pl": "Materials by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+          "en": "Materials by Varsovia Design — Finishes and surfaces suited to Thai climate and daily use.",
+          "th": "Materials by Varsovia Design — Finishes and surfaces suited to Thai climate and daily use.",
+          "pl": "Materials by Varsovia Design — Finishes and surfaces suited to Thai climate and daily use."
         },
         "hero": {
           "title": {
@@ -2786,9 +2786,9 @@
           }
         ],
         "relatedTitle": {
-          "en": "",
-          "th": "",
-          "pl": ""
+          "en": "Articles in this topic",
+          "th": "Articles in this topic",
+          "pl": "Articles in this topic"
         },
         "indexable": false,
         "order": 2
@@ -2806,9 +2806,9 @@
           "pl": "Interior Design | Varsovia Design"
         },
         "metaDescription": {
-          "en": "Interior Design by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "th": "Interior Design by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "pl": "Interior Design by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+          "en": "Interior Design by Varsovia Design — Process and ideas behind Varsovia interiors.",
+          "th": "Interior Design by Varsovia Design — Process and ideas behind Varsovia interiors.",
+          "pl": "Interior Design by Varsovia Design — Process and ideas behind Varsovia interiors."
         },
         "hero": {
           "title": {
@@ -2851,9 +2851,9 @@
           }
         ],
         "relatedTitle": {
-          "en": "",
-          "th": "",
-          "pl": ""
+          "en": "Articles in this topic",
+          "th": "Articles in this topic",
+          "pl": "Articles in this topic"
         },
         "indexable": false,
         "order": 3
@@ -2871,9 +2871,9 @@
           "pl": "Villa Guides | Varsovia Design"
         },
         "metaDescription": {
-          "en": "Villa Guides by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "th": "Villa Guides by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "pl": "Villa Guides by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+          "en": "Villa Guides by Varsovia Design — Design advice for villas and outdoor-connected living.",
+          "th": "Villa Guides by Varsovia Design — Design advice for villas and outdoor-connected living.",
+          "pl": "Villa Guides by Varsovia Design — Design advice for villas and outdoor-connected living."
         },
         "hero": {
           "title": {
@@ -2916,9 +2916,9 @@
           }
         ],
         "relatedTitle": {
-          "en": "",
-          "th": "",
-          "pl": ""
+          "en": "Articles in this topic",
+          "th": "Articles in this topic",
+          "pl": "Articles in this topic"
         },
         "indexable": false,
         "order": 4
@@ -2936,9 +2936,9 @@
           "pl": "Thailand Living | Varsovia Design"
         },
         "metaDescription": {
-          "en": "Thailand Living by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "th": "Thailand Living by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "pl": "Thailand Living by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+          "en": "Thailand Living by Varsovia Design — Living well in Thailand — climate, ritual, and home.",
+          "th": "Thailand Living by Varsovia Design — Living well in Thailand — climate, ritual, and home.",
+          "pl": "Thailand Living by Varsovia Design — Living well in Thailand — climate, ritual, and home."
         },
         "hero": {
           "title": {
@@ -2981,9 +2981,9 @@
           }
         ],
         "relatedTitle": {
-          "en": "",
-          "th": "",
-          "pl": ""
+          "en": "Articles in this topic",
+          "th": "Articles in this topic",
+          "pl": "Articles in this topic"
         },
         "indexable": false,
         "order": 5
@@ -3060,14 +3060,14 @@
       }
     ],
     "exploreTitle": {
-      "en": "Explore",
-      "th": "Explore",
-      "pl": "Explore"
+      "en": "Our brands",
+      "th": "Our brands",
+      "pl": "Our brands"
     },
     "exploreSubtitle": {
-      "en": "Choose a focus area to continue.",
-      "th": "Choose a focus area to continue.",
-      "pl": "Choose a focus area to continue."
+      "en": "Choose a partner brand to continue.",
+      "th": "Choose a partner brand to continue.",
+      "pl": "Choose a partner brand to continue."
     },
     "servicesTitle": {
       "en": "Services in this location",
@@ -3093,9 +3093,9 @@
           "pl": "Varsovia | Varsovia Design"
         },
         "metaDescription": {
-          "en": "Varsovia by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "th": "Varsovia by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "pl": "Varsovia by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+          "en": "Varsovia by Varsovia Design — Design-led interiors and furniture, crafted for Thai living.",
+          "th": "Varsovia by Varsovia Design — Design-led interiors and furniture, crafted for Thai living.",
+          "pl": "Varsovia by Varsovia Design — Design-led interiors and furniture, crafted for Thai living."
         },
         "hero": {
           "title": {
@@ -3174,9 +3174,9 @@
           "pl": "Livo | Varsovia Design"
         },
         "metaDescription": {
-          "en": "Livo by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "th": "Livo by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "pl": "Livo by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+          "en": "Livo by Varsovia Design — A brand partner in the Varsovia design ecosystem.",
+          "th": "Livo by Varsovia Design — A brand partner in the Varsovia design ecosystem.",
+          "pl": "Livo by Varsovia Design — A brand partner in the Varsovia design ecosystem."
         },
         "hero": {
           "title": {
@@ -3255,9 +3255,9 @@
           "pl": "Oppolia | Varsovia Design"
         },
         "metaDescription": {
-          "en": "Oppolia by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "th": "Oppolia by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "pl": "Oppolia by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+          "en": "Oppolia by Varsovia Design — A brand partner supporting refined kitchen and cabinetry solutions.",
+          "th": "Oppolia by Varsovia Design — A brand partner supporting refined kitchen and cabinetry solutions.",
+          "pl": "Oppolia by Varsovia Design — A brand partner supporting refined kitchen and cabinetry solutions."
         },
         "hero": {
           "title": {

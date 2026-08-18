@@ -84,21 +84,26 @@ export type SiteSection = {
   group?: "home" | "pages" | "chrome";
   /** One scrolling form in live-page order (no tab cards). */
   stackFields?: boolean;
+  /** Public path shown as Live URL preview (e.g. /catalogue). */
+  livePath?: string;
 };
 
 function pageSeoFields(prefix: string): Field[] {
   return [
     {
       key: `${prefix}.indexable`,
-      label: "Show in Google sitemap (Indexable)",
+      label: "Indexable",
       type: "boolean",
-      helpText: "OFF = this page is noindex and omitted from /sitemap.xml. ON = listed for Google.",
+      helpText:
+        "OFF = noindex, omitted from sitemap. ON = Google can list this URL.",
     },
     {
       key: `${prefix}.metaTitle`,
       label: "Google title (browser tab)",
       localized: true,
       maxLength: 60,
+      helpText:
+        "Browser tab + Google headline. Keep under 60. Brand is not added twice if you already include “| Varsovia Design”.",
     },
     {
       key: `${prefix}.metaDescription`,
@@ -106,6 +111,8 @@ function pageSeoFields(prefix: string): Field[] {
       localized: true,
       type: "textarea",
       maxLength: 160,
+      helpText:
+        "Unique snippet for Google and share preview. Max 160. Open Graph image comes from the page banner/cover.",
     },
   ];
 }
@@ -397,19 +404,20 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
   {
     id: "teamPage",
     title: "Our Team",
-    description: "/team · Our Team",
+    description: "/team · banner → intro & stats → team grids → tools → Google",
     group: "pages",
     icon: BriefcaseBusiness,
     stackFields: true,
+    livePath: "/team",
     fields: [
       {
         key: "teamPage.__div_hero",
-        label: "1 · Hero",
+        label: "1 · Banner",
         type: "section-divider",
-        helpText: "Top banner on /team — same order as the live page.",
+        helpText: "Live /team top: heading and tagline.",
       },
-      { key: "teamPage.heroTitle", label: "Hero title", localized: true },
-      { key: "teamPage.heroSubtitle", label: "Hero subtitle", localized: true },
+      { key: "teamPage.heroTitle", label: "Heading", localized: true },
+      { key: "teamPage.heroSubtitle", label: "Description", localized: true },
       {
         key: "teamPage.__div_intro",
         label: "2 · Intro & stats",
@@ -450,7 +458,7 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
         type: "section-divider",
         helpText: "Browser tab title and Google listing for /team.",
       },
-      { key: "teamPage.indexable", label: "Show in Google sitemap (Indexable)", type: "boolean", helpText: "OFF = /team is noindex and omitted from the sitemap. ON = listed for Google." },
+      { key: "teamPage.indexable", label: "Indexable", type: "boolean", helpText: "OFF = noindex, omitted from sitemap. ON = Google can list this URL." },
       { key: "teamPage.metaTitle", label: "Google title (browser tab)", localized: true, maxLength: 60 },
       {
         key: "teamPage.metaDescription",
@@ -464,18 +472,21 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
   {
     id: "qualitySale",
     title: "Quality After Sales",
-    description: "/quality-sale · hero → features → support → FAQ (matches live page)",
+    description: "/quality-sale · banner → features → support → FAQ → Google",
     group: "pages",
     icon: Wrench,
+    stackFields: true,
+    livePath: "/quality-sale",
     fields: [
       {
         key: "qualitySale.__div_hero",
-        label: "1 · Hero",
+        label: "1 · Banner",
         type: "section-divider",
+        helpText: "Live /quality-sale top: heading, tagline, intro.",
       },
-      { key: "qualitySale.heroTitle", label: "Hero title", localized: true },
-      { key: "qualitySale.heroSubtitle", label: "Hero subtitle", localized: true },
-      { key: "qualitySale.heroBody", label: "Hero body", localized: true, type: "textarea" },
+      { key: "qualitySale.heroTitle", label: "Heading", localized: true },
+      { key: "qualitySale.heroSubtitle", label: "Description", localized: true },
+      { key: "qualitySale.heroBody", label: "Intro paragraph", localized: true, type: "textarea" },
       {
         key: "qualitySale.__div_features",
         label: "2 · Feature columns",
@@ -534,7 +545,7 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
         type: "section-divider",
         helpText: "Browser tab title and Google listing for /quality-sale.",
       },
-      { key: "qualitySale.indexable", label: "Show in Google sitemap (Indexable)", type: "boolean", helpText: "OFF = /quality-sale is noindex and omitted from the sitemap. ON = listed for Google." },
+      { key: "qualitySale.indexable", label: "Indexable", type: "boolean", helpText: "OFF = noindex, omitted from sitemap. ON = Google can list this URL." },
       { key: "qualitySale.metaTitle", label: "Google title (browser tab)", localized: true, maxLength: 60 },
       {
         key: "qualitySale.metaDescription",
@@ -616,19 +627,20 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
   {
     id: "faqPage",
     title: "FAQ",
-    description: "/faq · Hero → topics & Q&A",
+    description: "/faq · banner → topics & Q&A → Google",
     group: "pages",
     icon: MessageSquareQuote,
     stackFields: true,
+    livePath: "/faq",
     fields: [
       {
         key: "faqPage.__div_hero",
-        label: "1 · Hero",
+        label: "1 · Banner",
         type: "section-divider",
-        helpText: "Title and subtitle at the top of /faq — same as the live page.",
+        helpText: "Live /faq top: heading and tagline.",
       },
-      { key: "faqPage.heroTitle", label: "Hero title", localized: true },
-      { key: "faqPage.heroSubtitle", label: "Hero subtitle", localized: true, type: "textarea" },
+      { key: "faqPage.heroTitle", label: "Heading", localized: true },
+      { key: "faqPage.heroSubtitle", label: "Description", localized: true, type: "textarea" },
       {
         key: "faqPage.__div_qa",
         label: "2 · Topics & questions",
@@ -653,22 +665,38 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
   {
     id: "cataloguePage",
     title: "Free Catalogue",
-    description: "/catalogue · Free Catalogue",
+    description: "/catalogue · banner → brochure cards → Google",
     group: "pages",
     icon: FileDown,
+    stackFields: true,
+    livePath: "/catalogue",
     fields: [
       {
         key: "cataloguePage.__div_hero",
-        label: "1 · Hero",
+        label: "1 · Banner",
         type: "section-divider",
-        helpText: "Headline on /catalogue. Brochure files are edited under Home → 5. Free Catalogue.",
+        helpText: "Live /catalogue top: heading and tagline.",
       },
-      { key: "cataloguePage.heroTitle", label: "Hero title", localized: true },
-      { key: "cataloguePage.heroSubtitle", label: "Hero subtitle", localized: true },
+      { key: "cataloguePage.heroTitle", label: "Heading", localized: true },
+      { key: "cataloguePage.heroSubtitle", label: "Description", localized: true },
+      {
+        key: "cataloguePage.__div_items",
+        label: "2 · Brochures",
+        type: "section-divider",
+        helpText: "Same downloadable cards as live /catalogue.",
+      },
+      {
+        key: "cataloguePage.__embed_catalogues",
+        label: "Catalogue brochures",
+        type: "embedded-resource",
+        itemKey: "catalogue",
+        helpText: "Cover, title, and PDF for each brochure card.",
+      },
       {
         key: "cataloguePage.__div_seo",
-        label: "2 · Google / SEO",
+        label: "3 · Google / SEO",
         type: "section-divider",
+        helpText: "Browser tab, Google snippet, and share preview. First brochure cover is the Open Graph image.",
       },
       ...pageSeoFields("cataloguePage"),
     ],
@@ -676,27 +704,50 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
   {
     id: "contactPage",
     title: "Contact",
-    description: "/contact · Contact / Get in Touch",
+    description: "/contact · banner → form photos → map → showrooms → Google",
     group: "pages",
     icon: MapPin,
+    stackFields: true,
+    livePath: "/contact",
     fields: [
       {
         key: "contactPage.__div_hero",
-        label: "1 · Hero",
+        label: "1 · Banner",
         type: "section-divider",
-        helpText:
-          "Overrides Home → Get In touch title/subtitle on /contact when set. Form images still come from Home → 10. Get In touch.",
+        helpText: "Live /contact top: heading and tagline.",
       },
-      { key: "contactPage.heroTitle", label: "Hero title", localized: true },
+      { key: "contactPage.heroTitle", label: "Heading", localized: true },
       {
         key: "contactPage.heroSubtitle",
-        label: "Hero subtitle",
+        label: "Description",
         localized: true,
         type: "textarea",
       },
       {
+        key: "contactPage.__div_form",
+        label: "2 · Contact form photos",
+        type: "section-divider",
+        helpText: "Collage beside the form on /contact.",
+      },
+      {
+        key: "contactImages",
+        label: "Form collage photos",
+        type: "string-list",
+        media: "image",
+        minItems: 7,
+        listLabels: [
+          "Image 1 — Contact collage tile 1",
+          "Image 2 — Contact collage tile 2",
+          "Image 3 — Contact collage tile 3",
+          "Image 4 — Contact collage tile 4",
+          "Image 5 — Contact collage tile 5",
+          "Image 6 — Contact collage tile 6",
+          "Image 7 — Contact collage tile 7",
+        ],
+      },
+      {
         key: "contactPage.__div_location",
-        label: "2 · Map section",
+        label: "3 · Map section",
         type: "section-divider",
         helpText: "Our Location block with embedded map on /contact.",
       },
@@ -706,17 +757,24 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
       { key: "contactPage.mapAriaLabel", label: "Map iframe aria label", localized: true },
       {
         key: "contactPage.__div_showrooms",
-        label: "3 · Showrooms strip",
+        label: "4 · Showrooms strip",
         type: "section-divider",
-        helpText: "Headings above showroom cards. Manage cards below (also in sidebar → Showrooms).",
+        helpText: "Heading above showroom cards, then the cards themselves — same as live /contact.",
       },
       { key: "contactPage.showroomsTitle", label: "Showrooms section title", localized: true },
       { key: "contactPage.showroomsSubtitle", label: "Showrooms section subtitle", localized: true },
       {
+        key: "contactPage.__embed_showrooms",
+        label: "Showroom cards",
+        type: "embedded-resource",
+        itemKey: "contactPage",
+        helpText: "Same cards as the live showrooms strip.",
+      },
+      {
         key: "contactPage.__div_seo",
-        label: "4 · Google / SEO",
+        label: "5 · Google / SEO",
         type: "section-divider",
-        helpText: "Browser tab and Google listing for /contact.",
+        helpText: "Browser tab, Google snippet, and share preview. First form photo is the Open Graph image.",
       },
       ...pageSeoFields("contactPage"),
     ],
@@ -864,6 +922,12 @@ function iaHubSection(
         "div_explore",
           hubKey === "locations"
             ? "4 · Explore (city cards)"
+            : hubKey === "aboutBrand"
+              ? "4 · Explore (brand cards)"
+            : hubKey === "completeInteriors"
+              ? "4 · Explore (programme cards)"
+            : hubKey === "journal"
+              ? "4 · Explore (topic cards)"
             : hubKey === "interiorDesign"
           ? "4 · Explore (project catalogue)"
           : "4 · Explore (sub-pages list)",
@@ -871,6 +935,12 @@ function iaHubSection(
           ? "Heading above the project grid on /interior-design."
           : hubKey === "locations"
             ? "Heading above city cards on /locations."
+            : hubKey === "aboutBrand"
+              ? "Heading above brand cards on /about (Livo, Oppolia)."
+            : hubKey === "completeInteriors"
+              ? "Heading above programme cards on /complete-interiors."
+            : hubKey === "journal"
+              ? "Heading above topic cards on /journal. Each card is /journal/topic/[slug]."
           : "Heading + cards linking to each child URL under this hub.",
       ),
       {
@@ -882,6 +952,12 @@ function iaHubSection(
             ? 'Default "Explore". Shown above the project catalogue.'
             : hubKey === "locations"
               ? 'Shown above city cards. Default "Our locations".'
+              : hubKey === "aboutBrand"
+                ? 'Shown above brand cards. Default "Our brands".'
+            : hubKey === "completeInteriors"
+                ? 'Shown above programme cards. Default "Project types".'
+            : hubKey === "journal"
+                ? 'Shown above topic cards. Default "Explore topics".'
             : 'Default "Explore". Shown above the sub-page cards.',
       },
       {
@@ -893,6 +969,12 @@ function iaHubSection(
             ? "Short line under the Explore heading, above the project grid."
             : hubKey === "locations"
               ? 'Default "Choose a city to see services and local projects."'
+              : hubKey === "aboutBrand"
+                ? 'Default "Choose a partner brand to continue."'
+              : hubKey === "completeInteriors"
+                ? 'Default "Villas, condos, hospitality, and developments."'
+              : hubKey === "journal"
+                ? 'Default "Kitchens, furniture, materials, and living in Thailand."'
             : 'Default "Choose a focus area to continue."',
       },
     );
@@ -996,7 +1078,7 @@ const SITE_SECTIONS_IA: SiteSection[] = [
   iaHubSection(
     "iaCompleteInteriors",
     "Complete Interiors",
-    "/complete-interiors · villas / condos / hotels / developers",
+    "/complete-interiors · banner → intro → blocks → programme cards · each card is /complete-interiors/[slug]",
     "completeInteriors",
     Building2,
     true,
@@ -1020,7 +1102,7 @@ const SITE_SECTIONS_IA: SiteSection[] = [
   iaHubSection(
     "iaForDevelopers",
     "For Developers",
-    "/for-developers · standalone developer partner page",
+    "/for-developers · banner → intro → blocks → Google (no sub-pages)",
     "forDevelopers",
     HardHat,
     false,

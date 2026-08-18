@@ -32,6 +32,7 @@ type IaChildRow = {
   relatedTitle?: unknown;
   indexable?: boolean;
   order?: number;
+  locationSlugs?: string[];
   sections?: unknown[];
   hero?: {
     eyebrow?: unknown;
@@ -56,6 +57,43 @@ function liveChildPath(slug: string) {
   return `${base}/${slug}`;
 }
 
+function withFilledLocales(value: unknown, fallbackEn = "") {
+  const map = asLocalizedForm(value);
+  const en = map.en.trim() || fallbackEn;
+  return {
+    en,
+    th: map.th.trim() || en,
+    pl: map.pl.trim() || en,
+  };
+}
+
+function fillChildLocaleTabs(child: IaChildRow): IaChildRow {
+  const hero = child.hero || {};
+  return {
+    ...child,
+    title: withFilledLocales(child.title),
+    metaTitle: withFilledLocales(child.metaTitle),
+    metaDescription: withFilledLocales(child.metaDescription),
+    body: withFilledLocales(child.body),
+    relatedTitle: withFilledLocales(child.relatedTitle),
+    hero: {
+      ...hero,
+      eyebrow: withFilledLocales(hero.eyebrow),
+      title: withFilledLocales(hero.title),
+      subtitle: withFilledLocales(hero.subtitle),
+      ctaLabel: withFilledLocales(hero.ctaLabel, "Get a consultation"),
+    },
+    sections: (Array.isArray(child.sections) ? child.sections : []).map((sec) => {
+      const row = sec && typeof sec === "object" ? (sec as Record<string, unknown>) : {};
+      return {
+        ...row,
+        heading: withFilledLocales(row.heading),
+        text: withFilledLocales(row.text),
+      };
+    }),
+  };
+}
+
 function emptyChild(order: number): IaChildRow {
   return {
     slug: "",
@@ -67,10 +105,15 @@ function emptyChild(order: number): IaChildRow {
       title: emptyLocalized(),
       subtitle: emptyLocalized(),
       image: "",
-      ctaLabel: emptyLocalized(),
-      ctaHref: "",
+      ctaLabel: { en: "Get a consultation", th: "Get a consultation", pl: "Get a consultation" },
+      ctaHref: "/contact",
     },
     body: emptyLocalized(),
+    relatedTitle: {
+      en: "Related projects",
+      th: "Related projects",
+      pl: "Related projects",
+    },
     indexable: false,
     order,
     sections: [],
@@ -158,7 +201,7 @@ export default function VarsoviaServicesPage() {
   const openEdit = (index: number) => {
     const item = children[index];
     setDraftSlug(item.slug || "");
-    setDraftChild(JSON.parse(JSON.stringify(item)) as IaChildRow);
+    setDraftChild(fillChildLocaleTabs(JSON.parse(JSON.stringify(item)) as IaChildRow));
     setEditIndex(index);
     setLocale("en");
     setModal("edit");
@@ -178,7 +221,27 @@ export default function VarsoviaServicesPage() {
       return;
     }
 
-    const nextChild: IaChildRow = { ...draftChild, slug };
+    const nextChild: IaChildRow = fillChildLocaleTabs({ ...draftChild, slug });
+    const name =
+      localizedValue(nextChild.title, "en") || nextChild.slug || "Service";
+    if (!localizedValue(nextChild.metaTitle, "en").trim()) {
+      nextChild.metaTitle = withFilledLocales(
+        nextChild.metaTitle,
+        `${name} | Varsovia Design`.slice(0, 60)
+      );
+    }
+    if (!localizedValue(nextChild.metaDescription, "en").trim()) {
+      const tagline =
+        localizedValue(nextChild.hero?.subtitle, "en") ||
+        "design, make, and install.";
+      nextChild.metaDescription = withFilledLocales(
+        nextChild.metaDescription,
+        `${name} by Varsovia Design — ${tagline}`.slice(0, 160)
+      );
+    }
+    if (!String(nextChild.hero?.ctaHref || "").trim()) {
+      nextChild.hero = { ...(nextChild.hero || {}), ctaHref: "/contact" };
+    }
     const duplicate = children.some(
       (item, index) =>
         item.slug === slug && (modal === "create" || index !== editIndex)

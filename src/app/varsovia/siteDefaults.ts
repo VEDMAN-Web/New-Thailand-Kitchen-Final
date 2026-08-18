@@ -501,9 +501,9 @@ export const VARSOVIA_SITE_DEFAULTS: SiteRecord = {
 
   qualitySale: {
     indexable: false,
-    metaTitle: en("Quality & After-Sales | Varsovia Design"),
+    metaTitle: en("Quality After Sales | Varsovia Design"),
     metaDescription: en(
-      "Varsovia quality standards, support process, and after-sales care for kitchens and interiors."
+      "Warranty, maintenance, and after-sales care for Varsovia kitchens and interiors — from first contact to resolution."
     ),
     heroTitle: en("Quality After Sales"),
     heroSubtitle: en(

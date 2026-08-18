@@ -69,6 +69,36 @@ function Group({ title, hint, children }: { title: string; hint?: string; childr
   );
 }
 
+function IndexableControl({
+  checked,
+  onChange,
+  hint,
+}: {
+  checked: boolean;
+  onChange: (next: boolean) => void;
+  hint: string;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4 rounded-lg border border-[#E8EDF2] bg-white px-3 py-3">
+      <div className="min-w-0">
+        <p className="text-sm font-medium text-[#1A2332]">Indexable</p>
+        <FieldHint>{hint}</FieldHint>
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        onClick={() => onChange(!checked)}
+        className={`inline-flex h-8 min-w-[3.25rem] shrink-0 items-center justify-center rounded-full px-3 text-[11px] font-bold tracking-wide ${
+          checked ? "bg-emerald-600 text-white" : "bg-[#E2E8F0] text-[#64748B]"
+        }`}
+      >
+        {checked ? "ON" : "OFF"}
+      </button>
+    </div>
+  );
+}
+
 export default function IaChildrenListEditor({
   value,
   onChange,
@@ -117,6 +147,9 @@ export default function IaChildrenListEditor({
   }
 
   const isLocation = hubKey === "locations";
+  const isAbout = hubKey === "aboutBrand";
+  const isJournal = hubKey === "journal";
+  const isCompleteInteriors = hubKey === "completeInteriors";
 
   return (
     <div className="md:col-span-2 space-y-4">
@@ -127,7 +160,13 @@ export default function IaChildrenListEditor({
             <p className="mt-1 text-xs leading-relaxed">
               {isLocation
                 ? "Field order matches the live city page: banner → intro → content blocks → services list → related projects → SEO."
-                : "Field order matches the live page: banner → intro → content blocks → related heading → SEO."}{" "}
+                : isAbout
+                  ? "Field order matches the live brand page: banner → intro → content blocks → SEO."
+                  : isJournal
+                    ? "Field order matches the live topic page: banner → intro → content blocks → articles in this topic → SEO."
+                    : isCompleteInteriors
+                      ? "Field order matches the live programme page: banner → intro → content blocks → related heading → SEO."
+                  : "Field order matches the live page: banner → intro → content blocks → related heading → SEO."}{" "}
               Use ↑↓ to reorder Explore cards. Indexable OFF until photo + copy are final.
             </p>
           </div>
@@ -155,20 +194,31 @@ export default function IaChildrenListEditor({
         return (
           <div
             key={item.slug || index}
-            className="space-y-4 rounded-xl border border-[#E2E5EA] bg-[#F8FAFC] p-4"
+            className={
+              embedded
+                ? "space-y-4"
+                : "space-y-4 rounded-xl border border-[#E2E5EA] bg-[#F8FAFC] p-4"
+            }
           >
+            {embedded ? (
+              <IndexableControl
+                checked={item.indexable === true}
+                onChange={(indexable) => update(index, { indexable })}
+                hint={
+                  isLocation
+                    ? "OFF = noindex, omitted from sitemap. ON = Google can list this city URL."
+                    : isAbout
+                      ? "OFF = noindex, omitted from sitemap. ON = Google can list this brand URL."
+                      : "OFF until final photo + copy."
+                }
+              />
+            ) : (
             <div className="flex flex-wrap items-start justify-between gap-2">
-              {embedded ? (
-                <div />
-              ) : (
               <div>
                 <p className="text-sm font-semibold text-[#1A2332]">/{item.slug}</p>
                 <p className="text-xs font-mono text-[#6B7280]">Live URL: {liveUrl}</p>
               </div>
-              )}
               <div className="flex flex-wrap items-center gap-2">
-                {embedded ? null : (
-                  <>
                     <button
                       type="button"
                       disabled={index === 0}
@@ -185,8 +235,6 @@ export default function IaChildrenListEditor({
                     >
                       ↓
                     </button>
-                  </>
-                )}
                 <label className="inline-flex max-w-xs items-start gap-2 text-sm text-[#1A2332]">
                   <input
                     type="checkbox"
@@ -199,12 +247,15 @@ export default function IaChildrenListEditor({
                     <FieldHint>
                       {isLocation
                         ? "OFF = noindex, omitted from sitemap. ON = Google can list this city URL."
-                        : "OFF until final photo + copy."}
+                        : isAbout
+                          ? "OFF = noindex, omitted from sitemap. ON = Google can list this brand URL."
+                          : "OFF until final photo + copy."}
                     </FieldHint>
                   </span>
                 </label>
               </div>
             </div>
+            )}
 
             {hubKey === "services" ? (
               <label className="block text-xs font-semibold text-[#5C6370]">
@@ -233,7 +284,15 @@ export default function IaChildrenListEditor({
               hint={
                 isLocation
                   ? "Live /locations/[city] top: photo, heading, tagline, button. Card photo + name + tagline also appear on /locations."
-                  : "Same fields as the live page top: photo, heading, description, button."
+                  : isAbout
+                    ? "Live /about/[brand] top: photo, heading, tagline, button. Card photo + name + tagline also appear on /about."
+                    : hubKey === "services"
+                      ? "Live /services/[slug] top: photo, heading, tagline, button. Card photo + name also appear on /services."
+                      : isCompleteInteriors
+                        ? "Live /complete-interiors/[slug] top: photo, heading, tagline, button. Card photo + name also appear on /complete-interiors."
+                        : isJournal
+                          ? "Live /journal/topic/[slug] top: photo, heading, tagline, button. Card photo + name also appear on /journal."
+                          : "Same fields as the live page top: photo, heading, description, button."
               }
             >
               <div className="grid gap-3 md:grid-cols-2">
@@ -262,6 +321,22 @@ export default function IaChildrenListEditor({
                   {isLocation ? (
                     <FieldHint>
                       City name on /locations cards, mega-menu, and breadcrumbs.
+                    </FieldHint>
+                  ) : isAbout ? (
+                    <FieldHint>
+                      Brand name on /about cards, mega-menu, and breadcrumbs.
+                    </FieldHint>
+                  ) : hubKey === "services" ? (
+                    <FieldHint>
+                      Service name on /services cards and breadcrumbs.
+                    </FieldHint>
+                  ) : isCompleteInteriors ? (
+                    <FieldHint>
+                      Programme name on /complete-interiors cards and breadcrumbs.
+                    </FieldHint>
+                  ) : isJournal ? (
+                    <FieldHint>
+                      Topic name on /journal cards and breadcrumbs.
                     </FieldHint>
                   ) : null}
                 </label>
@@ -299,6 +374,13 @@ export default function IaChildrenListEditor({
                       })
                     }
                   />
+                  {isLocation ? (
+                    <FieldHint>H1 on the /locations/[city] banner.</FieldHint>
+                  ) : isAbout ? (
+                    <FieldHint>H1 on the /about/[brand] banner.</FieldHint>
+                  ) : hubKey === "services" ? (
+                    <FieldHint>H1 on the /services/[slug] banner.</FieldHint>
+                  ) : null}
                 </label>
                 <label className="md:col-span-2 block text-xs font-semibold text-[#5C6370]">
                   Description
@@ -316,6 +398,10 @@ export default function IaChildrenListEditor({
                   {isLocation ? (
                     <FieldHint>
                       Tagline under the city name on /locations cards and on the city banner.
+                    </FieldHint>
+                  ) : isAbout ? (
+                    <FieldHint>
+                      Tagline under the brand name on /about cards and on the brand banner.
                     </FieldHint>
                   ) : null}
                 </label>
@@ -506,9 +592,20 @@ export default function IaChildrenListEditor({
               </Group>
             ) : null}
 
+            {isAbout ? null : (
             <Group
-              title={isLocation ? "5 · Related projects heading" : "4 · Related projects heading"}
-              hint="Shown above related projects / articles on this page."
+              title={
+                isLocation
+                  ? "5 · Related projects heading"
+                  : isJournal
+                    ? "4 · Articles in this topic"
+                    : "4 · Related projects heading"
+              }
+              hint={
+                isJournal
+                  ? "Shown above matching journal articles on /journal/topic/[slug]."
+                  : "Shown above related projects / articles on this page."
+              }
             >
               <label className="block text-xs font-semibold text-[#5C6370]">
                 Related section title
@@ -520,17 +617,26 @@ export default function IaChildrenListEditor({
                       relatedTitle: writeLocalized(relatedTitle, locale, e.target.value),
                     })
                   }
-                  placeholder="Related projects"
+                  placeholder={isJournal ? "Articles in this topic" : "Related projects"}
                 />
               </label>
             </Group>
+            )}
 
             <Group
-              title={isLocation ? "6 · Google / SEO" : "5 · Google / SEO"}
+              title={
+                isLocation
+                  ? "6 · Google / SEO"
+                  : isAbout
+                    ? "4 · Google / SEO"
+                    : "5 · Google / SEO"
+              }
               hint={
                 isLocation
                   ? "Browser tab, Google snippet, and share preview. Banner photo is the Open Graph / Twitter image. City pages also emit LocalBusiness JSON-LD."
-                  : undefined
+                  : isAbout
+                    ? "Browser tab, Google snippet, and share preview. Banner photo is the Open Graph / Twitter image."
+                    : "Browser tab, Google snippet, and share preview. Banner photo is the Open Graph / Twitter image."
               }
             >
               <div className="grid gap-3 md:grid-cols-2">
@@ -550,11 +656,9 @@ export default function IaChildrenListEditor({
                       })
                     }
                   />
-                  {isLocation ? (
-                    <FieldHint>
-                      Browser tab + Google headline. Keep under 60. Brand is not added twice if you already include “| Varsovia Design”.
-                    </FieldHint>
-                  ) : null}
+                  <FieldHint>
+                    Browser tab + Google headline. Keep under 60. Brand is not added twice if you already include “| Varsovia Design”.
+                  </FieldHint>
                 </label>
                 <label className="md:col-span-2 block text-xs font-semibold text-[#5C6370]">
                   Google description ({tab(metaDescription).length}/160)
@@ -577,7 +681,15 @@ export default function IaChildrenListEditor({
                     <FieldHint>
                       Unique per city. Live default: “City by Varsovia Design — [banner tagline]”. Max 160.
                     </FieldHint>
-                  ) : null}
+                  ) : isAbout ? (
+                    <FieldHint>
+                      Unique per brand. Live default: “Brand by Varsovia Design — [banner tagline]”. Max 160.
+                    </FieldHint>
+                  ) : (
+                    <FieldHint>
+                      Unique per page. Live default: “Title by Varsovia Design — [banner tagline]”. Max 160.
+                    </FieldHint>
+                  )}
                 </label>
               </div>
             </Group>

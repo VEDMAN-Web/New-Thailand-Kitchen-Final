@@ -150,8 +150,8 @@ export const DEFAULT_IA_PAGES = {
         layout: "editorial",
       },
     ],
-    exploreTitle: L("Explore"),
-    exploreSubtitle: L("Choose a focus area to continue."),
+    exploreTitle: L("Explore topics"),
+    exploreSubtitle: L("Kitchens, furniture, materials, and living in Thailand."),
     children: [
       child("kitchens", "Kitchens", 0),
       child("furniture", "Furniture", 1),

@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FolderOpen, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import LocaleTabs from "@/components/LocaleTabs";
@@ -22,11 +22,7 @@ import { mergeIaPagesFromLiveSite } from "@/app/varsovia/mergeIaPages";
 import { persistIaHubChildren } from "@/app/varsovia/persistIaHub";
 import { resolveAdminMediaPreviewUrl } from "@/lib/adminMediaPreview";
 
-const HUB_KEY = "aboutBrand";
-/** Live /about/varsovia redirects to /about — keep in CMS, hide from brand cards. */
-const HIDDEN_BRAND_SLUG = "varsovia";
-
-type IaChildRow = {
+export type IaChildRow = {
   slug: string;
   title?: unknown;
   metaTitle?: unknown;
@@ -46,21 +42,36 @@ type IaChildRow = {
   };
 };
 
+export type VarsoviaIaChildrenHubConfig = {
+  hubKey: string;
+  label: string;
+  pathLabel: string;
+  helpText: string;
+  itemNoun: string;
+  addLabel: string;
+  searchPlaceholder: string;
+  emptyLabel: string;
+  slugPlaceholder: string;
+  cardFallbackImage: string;
+  savedToast: string;
+  loadError: string;
+  showExplore?: boolean;
+  showChildren?: boolean;
+  hideSlugs?: string[];
+  childPath?: (slug: string) => string;
+  extraAfterCards?: ReactNode;
+  defaultRelatedTitle?: string;
+  defaultCtaLabel?: string;
+  defaultCtaHref?: string;
+  blockedSlug?: { slug: string; message: string };
+};
+
 function slugifyPreview(value: string) {
   return String(value || "")
     .trim()
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
-}
-
-function liveChildPath(slug: string) {
-  const base = IA_HUB_PATHS[HUB_KEY] || "/about";
-  return `${base}/${slug}`;
-}
-
-function isHiddenBrand(slug: string) {
-  return String(slug || "").toLowerCase() === HIDDEN_BRAND_SLUG;
 }
 
 function withFilledLocales(value: unknown, fallbackEn = "") {
@@ -73,7 +84,10 @@ function withFilledLocales(value: unknown, fallbackEn = "") {
   };
 }
 
-function fillChildLocaleTabs(child: IaChildRow): IaChildRow {
+function fillChildLocaleTabs(
+  child: IaChildRow,
+  defaultCtaLabel: string,
+): IaChildRow {
   const hero = child.hero || {};
   return {
     ...child,
@@ -87,7 +101,7 @@ function fillChildLocaleTabs(child: IaChildRow): IaChildRow {
       eyebrow: withFilledLocales(hero.eyebrow),
       title: withFilledLocales(hero.title),
       subtitle: withFilledLocales(hero.subtitle),
-      ctaLabel: withFilledLocales(hero.ctaLabel, "Get a consultation"),
+      ctaLabel: withFilledLocales(hero.ctaLabel, defaultCtaLabel),
     },
     sections: (Array.isArray(child.sections) ? child.sections : []).map((sec) => {
       const row = sec && typeof sec === "object" ? (sec as Record<string, unknown>) : {};
@@ -100,7 +114,12 @@ function fillChildLocaleTabs(child: IaChildRow): IaChildRow {
   };
 }
 
-function emptyChild(order: number): IaChildRow {
+function emptyChild(
+  order: number,
+  defaultCtaLabel: string,
+  defaultCtaHref: string,
+  defaultRelatedTitle: string,
+): IaChildRow {
   return {
     slug: "",
     title: emptyLocalized(),
@@ -112,21 +131,49 @@ function emptyChild(order: number): IaChildRow {
       subtitle: emptyLocalized(),
       image: "",
       ctaLabel: {
-        en: "Get a consultation",
-        th: "Get a consultation",
-        pl: "Get a consultation",
+        en: defaultCtaLabel,
+        th: defaultCtaLabel,
+        pl: defaultCtaLabel,
       },
-      ctaHref: "/contact",
+      ctaHref: defaultCtaHref,
     },
     body: emptyLocalized(),
-    relatedTitle: emptyLocalized(),
+    relatedTitle: defaultRelatedTitle
+      ? {
+          en: defaultRelatedTitle,
+          th: defaultRelatedTitle,
+          pl: defaultRelatedTitle,
+        }
+      : emptyLocalized(),
     indexable: false,
     order,
     sections: [],
   };
 }
 
-export default function VarsoviaAboutBrandPage() {
+export default function VarsoviaIaChildrenHubPage({
+  hubKey,
+  label,
+  pathLabel,
+  helpText,
+  itemNoun,
+  addLabel,
+  searchPlaceholder,
+  emptyLabel,
+  slugPlaceholder,
+  cardFallbackImage,
+  savedToast,
+  loadError,
+  showExplore = true,
+  showChildren = true,
+  hideSlugs = [],
+  childPath,
+  extraAfterCards,
+  defaultRelatedTitle = "",
+  defaultCtaLabel = "Get a consultation",
+  defaultCtaHref = "/contact",
+  blockedSlug,
+}: VarsoviaIaChildrenHubConfig) {
   const [children, setChildren] = useState<IaChildRow[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
@@ -134,27 +181,47 @@ export default function VarsoviaAboutBrandPage() {
   const [modal, setModal] = useState<"create" | "edit" | null>(null);
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [draftSlug, setDraftSlug] = useState("");
-  const [draftChild, setDraftChild] = useState<IaChildRow>(emptyChild(0));
+  const [draftChild, setDraftChild] = useState<IaChildRow>(
+    emptyChild(0, defaultCtaLabel, defaultCtaHref, defaultRelatedTitle),
+  );
   const [locale, setLocale] = useState<LocaleCode>("en");
   const hasLoadedRef = useRef(false);
+  const hidden = useMemo(
+    () => new Set(hideSlugs.map((s) => s.toLowerCase())),
+    [hideSlugs],
+  );
+
+  const liveChildPath = useCallback(
+    (slug: string) => {
+      if (childPath) return childPath(slug);
+      const base = IA_HUB_PATHS[hubKey] || `/${hubKey}`;
+      return `${base}/${slug}`;
+    },
+    [childPath, hubKey],
+  );
+
+  const isHidden = useCallback(
+    (slug: string) => hidden.has(String(slug || "").toLowerCase()),
+    [hidden],
+  );
 
   const load = useCallback(async () => {
     if (!hasLoadedRef.current) setLoading(true);
     try {
       const site = await getVarsoviaSite();
       const allPages = mergeIaPagesFromLiveSite(site.pages);
-      const hub = (allPages[HUB_KEY] || {}) as Record<string, unknown>;
+      const hub = (allPages[hubKey] || {}) as Record<string, unknown>;
       const list = Array.isArray(hub.children) ? (hub.children as IaChildRow[]) : [];
       setChildren(
-        [...list].sort((a, b) => Number(a.order ?? 0) - Number(b.order ?? 0))
+        [...list].sort((a, b) => Number(a.order ?? 0) - Number(b.order ?? 0)),
       );
       hasLoadedRef.current = true;
     } catch (err) {
-      toast.error(varsoviaErrorMessage(err, "Failed to load About pages"));
+      toast.error(varsoviaErrorMessage(err, loadError));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [hubKey, loadError]);
 
   useEffect(() => {
     void load();
@@ -167,8 +234,8 @@ export default function VarsoviaAboutBrandPage() {
   }, [load]);
 
   const visibleChildren = useMemo(
-    () => children.filter((item) => !isHiddenBrand(item.slug || "")),
-    [children]
+    () => children.filter((item) => !isHidden(item.slug || "")),
+    [children, isHidden],
   );
 
   const filtered = useMemo(() => {
@@ -179,18 +246,18 @@ export default function VarsoviaAboutBrandPage() {
       const path = liveChildPath(item.slug || "").toLowerCase();
       return title.includes(q) || path.includes(q);
     });
-  }, [visibleChildren, query]);
+  }, [visibleChildren, query, liveChildPath]);
 
   const persistChildren = async (nextChildren: IaChildRow[]) => {
     setSaving(true);
     try {
-      const allPages = await persistIaHubChildren(HUB_KEY, nextChildren);
-      const hub = (allPages[HUB_KEY] || {}) as Record<string, unknown>;
+      const allPages = await persistIaHubChildren(hubKey, nextChildren);
+      const hub = (allPages[hubKey] || {}) as Record<string, unknown>;
       const list = Array.isArray(hub.children) ? (hub.children as IaChildRow[]) : [];
       setChildren(
-        [...list].sort((a, b) => Number(a.order ?? 0) - Number(b.order ?? 0))
+        [...list].sort((a, b) => Number(a.order ?? 0) - Number(b.order ?? 0)),
       );
-      toast.success("About brand page saved");
+      toast.success(savedToast);
     } catch (err) {
       toast.error(varsoviaErrorMessage(err, "Save failed"));
       throw err;
@@ -201,7 +268,9 @@ export default function VarsoviaAboutBrandPage() {
 
   const openCreate = () => {
     setDraftSlug("");
-    setDraftChild(emptyChild(children.length));
+    setDraftChild(
+      emptyChild(children.length, defaultCtaLabel, defaultCtaHref, defaultRelatedTitle),
+    );
     setEditIndex(null);
     setLocale("en");
     setModal("create");
@@ -209,9 +278,12 @@ export default function VarsoviaAboutBrandPage() {
 
   const openEdit = (index: number) => {
     const item = children[index];
-    const copy = fillChildLocaleTabs(JSON.parse(JSON.stringify(item)) as IaChildRow);
+    const copy = fillChildLocaleTabs(
+      JSON.parse(JSON.stringify(item)) as IaChildRow,
+      defaultCtaLabel,
+    );
     if (!String(copy.hero?.ctaHref || "").trim()) {
-      copy.hero = { ...(copy.hero || {}), ctaHref: "/contact" };
+      copy.hero = { ...(copy.hero || {}), ctaHref: defaultCtaHref };
     }
     setDraftSlug(item.slug || "");
     setDraftChild(copy);
@@ -229,8 +301,12 @@ export default function VarsoviaAboutBrandPage() {
       toast.error("Slug or English title is required");
       return;
     }
-    if (isHiddenBrand(slug)) {
-      toast.error("varsovia redirects to /about — edit the About hub above instead");
+    if (blockedSlug && slug === blockedSlug.slug) {
+      toast.error(blockedSlug.message);
+      return;
+    }
+    if (isHidden(slug)) {
+      toast.error(`“${slug}” is reserved — edit the hub above instead`);
       return;
     }
     if (!localizedValue(draftChild.title, "en").trim()) {
@@ -238,33 +314,46 @@ export default function VarsoviaAboutBrandPage() {
       return;
     }
 
-    const nextChild: IaChildRow = fillChildLocaleTabs({ ...draftChild, slug });
-    const brand =
-      localizedValue(nextChild.title, "en") || nextChild.slug || "Brand";
+    const nextChild: IaChildRow = fillChildLocaleTabs(
+      { ...draftChild, slug },
+      defaultCtaLabel,
+    );
+    const name =
+      localizedValue(nextChild.title, "en") || nextChild.slug || itemNoun;
     if (!localizedValue(nextChild.metaTitle, "en").trim()) {
       nextChild.metaTitle = withFilledLocales(
         nextChild.metaTitle,
-        `${brand} | Varsovia Design`.slice(0, 60)
+        `${name} | Varsovia Design`.slice(0, 60),
       );
     }
     if (!localizedValue(nextChild.metaDescription, "en").trim()) {
-      const tagline =
-        localizedValue(nextChild.hero?.subtitle, "en") ||
-        "partner brand.";
+      const subtitle = localizedValue(nextChild.hero?.subtitle, "en");
       nextChild.metaDescription = withFilledLocales(
         nextChild.metaDescription,
-        `${brand} by Varsovia Design — ${tagline}`.slice(0, 160)
+        (subtitle
+          ? `${name} by Varsovia Design — ${subtitle}`
+          : `${name} by Varsovia Design.`
+        ).slice(0, 160),
+      );
+    }
+    if (
+      defaultRelatedTitle &&
+      !localizedValue(nextChild.relatedTitle, "en").trim()
+    ) {
+      nextChild.relatedTitle = withFilledLocales(
+        nextChild.relatedTitle,
+        defaultRelatedTitle,
       );
     }
     if (!String(nextChild.hero?.ctaHref || "").trim()) {
-      nextChild.hero = { ...(nextChild.hero || {}), ctaHref: "/contact" };
+      nextChild.hero = { ...(nextChild.hero || {}), ctaHref: defaultCtaHref };
     }
     const duplicate = children.some(
       (item, index) =>
-        item.slug === slug && (modal === "create" || index !== editIndex)
+        item.slug === slug && (modal === "create" || index !== editIndex),
     );
     if (duplicate) {
-      toast.error("Another brand page already uses this slug");
+      toast.error(`Another ${itemNoun} already uses this slug`);
       return;
     }
 
@@ -274,7 +363,7 @@ export default function VarsoviaAboutBrandPage() {
         next = [...children, nextChild];
       } else if (editIndex !== null) {
         next = children.map((item, index) =>
-          index === editIndex ? nextChild : item
+          index === editIndex ? nextChild : item,
         );
       } else {
         return;
@@ -288,9 +377,9 @@ export default function VarsoviaAboutBrandPage() {
 
   const onDelete = async (index: number) => {
     const item = children[index];
-    if (isHiddenBrand(item.slug || "")) return;
-    const label = localizedValue(item.title, "en") || item.slug;
-    if (!confirm(`Delete brand page "${label}"?`)) return;
+    if (isHidden(item.slug || "")) return;
+    const itemLabel = localizedValue(item.title, "en") || item.slug;
+    if (!confirm(`Delete ${itemNoun} “${itemLabel}”?`)) return;
     try {
       await persistChildren(children.filter((_, i) => i !== index));
     } catch {
@@ -302,103 +391,110 @@ export default function VarsoviaAboutBrandPage() {
     <>
       <div className="space-y-6">
         <VarsoviaHubLandingEditor
-          hubKey={HUB_KEY}
-          label="About"
-          pathLabel="/about"
-          helpText="Matches live /about from top to bottom: banner, intro, story blocks, then brand cards (Livo, Oppolia). Each brand below is /about/[brand]. /about/varsovia redirects here."
+          hubKey={hubKey}
+          label={label}
+          pathLabel={pathLabel}
+          helpText={helpText}
+          showExplore={showExplore}
           onSaved={() => void load()}
         />
 
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9CA3AF]" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search brands… livo, oppolia…"
-              className="w-full rounded-xl border border-[#E2E5EA] bg-white pl-10 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A2332]/15"
-            />
-          </div>
-          <button
-            type="button"
-            onClick={openCreate}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#1A2332] text-white px-4 py-2.5 text-sm font-semibold"
-          >
-            <Plus className="w-4 h-4" />
-            Add brand page
-          </button>
-        </div>
+        {showChildren ? (
+          <>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9CA3AF]" />
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder={searchPlaceholder}
+                  className="w-full rounded-xl border border-[#E2E5EA] bg-white pl-10 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A2332]/15"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={openCreate}
+                className="inline-flex items-center gap-2 rounded-xl bg-[#1A2332] text-white px-4 py-2.5 text-sm font-semibold"
+              >
+                <Plus className="w-4 h-4" />
+                {addLabel}
+              </button>
+            </div>
 
-        {loading ? (
-          <p className="text-sm text-[#6B7280]">Loading…</p>
-        ) : filtered.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-[#E2E5EA] bg-white p-12 text-center">
-            <FolderOpen className="w-8 h-8 text-[#9CA3AF] mx-auto mb-3" />
-            <p className="text-sm text-[#6B7280]">No brand pages yet</p>
-          </div>
-        ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filtered.map((item) => {
-              const index = children.indexOf(item);
-              return (
-                <div
-                  key={item.slug || index}
-                  className="overflow-hidden rounded-2xl border border-[#E8EAED] bg-white"
-                >
-                  <div className="relative h-36 w-full bg-[#F3F4F6]">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={resolveAdminMediaPreviewUrl(
-                        String(item.hero?.image || "") || "/home/about-1.jpg"
-                      )}
-                      alt=""
-                      className="h-full w-full object-cover"
-                    />
-                    <span
-                      className={`absolute left-2 top-2 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                        item.indexable === true
-                          ? "bg-emerald-50 text-emerald-700"
-                          : "bg-white/90 text-[#64748B]"
-                      }`}
+            {loading ? (
+              <p className="text-sm text-[#6B7280]">Loading…</p>
+            ) : filtered.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-[#E2E5EA] bg-white p-12 text-center">
+                <FolderOpen className="w-8 h-8 text-[#9CA3AF] mx-auto mb-3" />
+                <p className="text-sm text-[#6B7280]">{emptyLabel}</p>
+              </div>
+            ) : (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filtered.map((item) => {
+                  const index = children.indexOf(item);
+                  return (
+                    <div
+                      key={item.slug || index}
+                      className="overflow-hidden rounded-2xl border border-[#E8EAED] bg-white"
                     >
-                      {item.indexable === true ? "In sitemap" : "Noindex"}
-                    </span>
-                  </div>
-                  <div className="flex gap-3 p-4">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-semibold text-[#1A2332]">
-                        {localizedValue(item.title, "en") || item.slug}
-                      </p>
-                      <p className="mt-1 text-[11px] font-mono text-[#9CA3AF]">
-                        {liveChildPath(item.slug || "slug")}
-                      </p>
-                      <p className="mt-1 text-sm text-[#6B7280] line-clamp-2">
-                        {localizedValue(item.hero?.subtitle, "en") ||
-                          localizedValue(item.body, "en")}
-                      </p>
+                      <div className="relative h-36 w-full bg-[#F3F4F6]">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={resolveAdminMediaPreviewUrl(
+                            String(item.hero?.image || "") || cardFallbackImage,
+                          )}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                        <span
+                          className={`absolute left-2 top-2 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                            item.indexable === true
+                              ? "bg-emerald-50 text-emerald-700"
+                              : "bg-white/90 text-[#64748B]"
+                          }`}
+                        >
+                          {item.indexable === true ? "In sitemap" : "Noindex"}
+                        </span>
+                      </div>
+                      <div className="flex gap-3 p-4">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-[#1A2332]">
+                            {localizedValue(item.title, "en") || item.slug}
+                          </p>
+                          <p className="mt-1 text-[11px] font-mono text-[#9CA3AF]">
+                            {liveChildPath(item.slug || "slug")}
+                          </p>
+                          <p className="mt-1 text-sm text-[#6B7280] line-clamp-2">
+                            {localizedValue(item.hero?.subtitle, "en") ||
+                              localizedValue(item.body, "en")}
+                          </p>
+                        </div>
+                        <div className="flex flex-col gap-1 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => openEdit(index)}
+                            className="p-2 rounded-lg hover:bg-[#F4F5F7]"
+                          >
+                            <Pencil className="w-4 h-4 text-[#5C6370]" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void onDelete(index)}
+                            className="p-2 rounded-lg hover:bg-red-50"
+                          >
+                            <Trash2 className="w-4 h-4 text-red-600" />
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex flex-col gap-1 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => openEdit(index)}
-                        className="p-2 rounded-lg hover:bg-[#F4F5F7]"
-                      >
-                        <Pencil className="w-4 h-4 text-[#5C6370]" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => void onDelete(index)}
-                        className="p-2 rounded-lg hover:bg-red-50"
-                      >
-                        <Trash2 className="w-4 h-4 text-red-600" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+                  );
+                })}
+              </div>
+            )}
+          </>
+        ) : null}
+
+        {extraAfterCards}
       </div>
 
       {modal ? (
@@ -409,7 +505,7 @@ export default function VarsoviaAboutBrandPage() {
           >
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-lg font-semibold text-[#1A2332]">
-                {modal === "create" ? "Add brand page" : "Edit brand page"}
+                {modal === "create" ? addLabel : `Edit ${itemNoun}`}
               </h2>
               <button type="button" onClick={() => setModal(null)}>
                 <X className="w-5 h-5 text-[#6B7280]" />
@@ -430,10 +526,10 @@ export default function VarsoviaAboutBrandPage() {
                       e.target.value
                         .toLowerCase()
                         .replace(/[^a-z0-9-]/g, "-")
-                        .replace(/-+/g, "-")
+                        .replace(/-+/g, "-"),
                     )
                   }
-                  placeholder="livo"
+                  placeholder={slugPlaceholder}
                   className="w-full rounded-lg border border-[#E2E5EA] px-3.5 py-2.5 text-sm font-mono"
                   required={modal === "create"}
                   readOnly={modal === "edit"}
@@ -449,7 +545,7 @@ export default function VarsoviaAboutBrandPage() {
                     {liveChildPath(
                       slugifyPreview(draftSlug) ||
                         slugifyPreview(localizedValue(draftChild.title, "en")) ||
-                        "your-slug"
+                        "your-slug",
                     )}
                   </p>
                 </div>
@@ -462,7 +558,7 @@ export default function VarsoviaAboutBrandPage() {
                 if (rows[0]) setDraftChild(rows[0]);
               }}
               locale={locale}
-              hubKey={HUB_KEY}
+              hubKey={hubKey}
               embedded
             />
 
