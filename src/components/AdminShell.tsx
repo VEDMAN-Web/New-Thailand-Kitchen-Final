@@ -146,16 +146,8 @@ const VARSOVIA_NAV: {
     group: "pages",
   },
   {
-    href: "/varsovia?resource=site&section=aboutPage",
-    resource: "site",
-    section: "aboutPage",
-    label: "About Us",
-    icon: BookOpen,
-    group: "pages",
-  },
-  {
     href: "/varsovia/about-brand",
-    label: "About brands",
+    label: "About",
     icon: BookOpen,
     group: "pages",
   },
@@ -292,7 +284,6 @@ const VARSOVIA_HOME_SECTIONS = new Set([
 ]);
 
 const VARSOVIA_PAGE_SECTIONS = new Set([
-  "aboutPage",
   "teamPage",
   "qualitySale",
   "projectsPage",

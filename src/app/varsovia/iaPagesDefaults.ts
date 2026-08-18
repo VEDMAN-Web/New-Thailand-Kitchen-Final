@@ -136,7 +136,7 @@ export const DEFAULT_IA_PAGES = {
       child("thailand-living", "Thailand Living", 5),
     ],
   },
-  aboutBrand: hub("about", "About", [
+  aboutBrand: hub("about", "Varsovia", [
     child("varsovia", "Varsovia", 0),
     child("livo", "Livo", 1),
     child("oppolia", "Oppolia", 2),

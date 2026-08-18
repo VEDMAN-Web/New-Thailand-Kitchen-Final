@@ -272,50 +272,6 @@ function ContentSectionsEditor({
             onChange={(image) => update(index, { image })}
             uploadFile={uploadVarsoviaMedia}
           />
-          <div className="grid sm:grid-cols-2 gap-3">
-            <label className="block text-xs font-semibold text-[#5C6370]">
-              Image side
-              <select
-                value={
-                  sec.imagePosition === "right" || sec.imagePosition === "left"
-                    ? sec.imagePosition
-                    : index % 2 === 0
-                      ? "left"
-                      : "right"
-                }
-                onChange={(e) => update(index, { imagePosition: e.target.value })}
-                className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3.5 py-2.5 text-sm"
-              >
-                <option value="left">Photo left</option>
-                <option value="right">Photo right</option>
-              </select>
-            </label>
-            <label className="block text-xs font-semibold text-[#5C6370]">
-              Layout
-              <select
-                value={
-                  ["band", "spotlight", "editorial", "overlay", "rail"].includes(
-                    String(sec.layout || "")
-                  )
-                    ? String(sec.layout)
-                    : "auto"
-                }
-                onChange={(e) =>
-                  update(index, {
-                    layout: e.target.value === "auto" ? "" : e.target.value,
-                  })
-                }
-                className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3.5 py-2.5 text-sm"
-              >
-                <option value="auto">Auto</option>
-                <option value="band">Band</option>
-                <option value="spotlight">Spotlight</option>
-                <option value="editorial">Editorial</option>
-                <option value="overlay">Overlay</option>
-                <option value="rail">Rail</option>
-              </select>
-            </label>
-          </div>
         </div>
       ))}
     </div>

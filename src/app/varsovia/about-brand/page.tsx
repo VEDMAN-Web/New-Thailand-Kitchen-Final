@@ -102,7 +102,7 @@ export default function VarsoviaAboutBrandPage() {
         )
       );
     } catch (err) {
-      toast.error(varsoviaErrorMessage(err, "Failed to load about brands pages"));
+      toast.error(varsoviaErrorMessage(err, "Failed to load About pages"));
     } finally {
       setLoading(false);
     }
@@ -145,7 +145,7 @@ export default function VarsoviaAboutBrandPage() {
       await updateVarsoviaSite({ pages: nextPages });
       setPages(nextPages);
       setChildren(nextChildren.map((item, index) => ({ ...item, order: index })));
-      toast.success("About brands sub-page saved");
+      toast.success("About page saved");
     } catch (err) {
       toast.error(varsoviaErrorMessage(err, "Save failed"));
       throw err;
@@ -229,14 +229,9 @@ export default function VarsoviaAboutBrandPage() {
       <div className="space-y-6">
         <VarsoviaHubLandingEditor
           hubKey={HUB_KEY}
-          label="About brands"
-          showHero={false}
-          showBody={false}
-          showSections={false}
-          showExplore
-          showSeo={false}
-          pathLabel="/about/varsovia · /about/livo · /about/oppolia"
-          helpText="Brand partner pages on the live site. The /about landing (hero, story, process) is edited under About Us. Explore title/subtitle appear as the brand strip on /about."
+          label="About"
+          pathLabel="/about"
+          helpText="Live /about page: hero, intro, story blocks, then Explore brands (Livo, Oppolia). Brand pages are /about/livo and /about/oppolia. /about/varsovia redirects here."
           onSaved={() => void load()}
         />
 
@@ -246,7 +241,7 @@ export default function VarsoviaAboutBrandPage() {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search about brands sub-pages…"
+              placeholder="Search About brand pages…"
               className="w-full rounded-xl border border-[#E2E5EA] bg-white pl-10 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A2332]/15"
             />
           </div>
@@ -256,7 +251,7 @@ export default function VarsoviaAboutBrandPage() {
             className="inline-flex items-center gap-2 rounded-xl bg-[#1A2332] text-white px-4 py-2.5 text-sm font-semibold"
           >
             <Plus className="w-4 h-4" />
-            Add About brands page
+            Add brand page
           </button>
         </div>
 
@@ -265,7 +260,7 @@ export default function VarsoviaAboutBrandPage() {
         ) : filtered.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-[#E2E5EA] bg-white p-12 text-center">
             <FolderOpen className="w-8 h-8 text-[#9CA3AF] mx-auto mb-3" />
-            <p className="text-sm text-[#6B7280]">No about brands sub-pages yet</p>
+            <p className="text-sm text-[#6B7280]">No brand pages yet</p>
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -318,7 +313,7 @@ export default function VarsoviaAboutBrandPage() {
           >
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-lg font-semibold text-[#1A2332]">
-                {modal === "create" ? "Add About brands sub-page" : "Edit About brands sub-page"}
+                {modal === "create" ? "Add brand page" : "Edit brand page"}
               </h2>
               <button type="button" onClick={() => setModal(null)}>
                 <X className="w-5 h-5 text-[#6B7280]" />

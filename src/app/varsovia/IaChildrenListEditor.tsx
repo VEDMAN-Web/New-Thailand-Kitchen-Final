@@ -297,7 +297,7 @@ export default function IaChildrenListEditor({
 
             <Group
               title="3 · Content blocks"
-              hint="Image + text blocks. Layout: Band / Spotlight / Editorial / Overlay / Rail."
+              hint="Image + text blocks. Heading, copy, and photo."
             >
               <div className="flex justify-end">
                 <button
@@ -390,64 +390,6 @@ export default function IaChildrenListEditor({
                       }}
                       uploadFile={uploadVarsoviaMedia}
                     />
-                    <div className="grid gap-3 md:grid-cols-2">
-                      <label className="block text-xs font-semibold text-[#5C6370]">
-                        Image side
-                        <select
-                          className="mt-1 w-full rounded-lg border border-[#DDE1E7] bg-white px-3 py-2 text-sm"
-                          value={
-                            sec.imagePosition === "right" || sec.imagePosition === "left"
-                              ? sec.imagePosition
-                              : sIdx % 2 === 0
-                                ? "left"
-                                : "right"
-                          }
-                          onChange={(e) => {
-                            const next = sections.map((current, i) =>
-                              i === sIdx
-                                ? { ...current, imagePosition: e.target.value }
-                                : current,
-                            );
-                            update(index, { sections: next });
-                          }}
-                        >
-                          <option value="left">Photo left</option>
-                          <option value="right">Photo right</option>
-                        </select>
-                      </label>
-                      <label className="block text-xs font-semibold text-[#5C6370]">
-                        Layout
-                        <select
-                          className="mt-1 w-full rounded-lg border border-[#DDE1E7] bg-white px-3 py-2 text-sm"
-                          value={
-                            ["band", "spotlight", "editorial", "overlay", "rail"].includes(
-                              String(sec.layout || ""),
-                            )
-                              ? String(sec.layout)
-                              : "auto"
-                          }
-                          onChange={(e) => {
-                            const next = sections.map((current, i) =>
-                              i === sIdx
-                                ? {
-                                    ...current,
-                                    layout:
-                                      e.target.value === "auto" ? undefined : e.target.value,
-                                  }
-                                : current,
-                            );
-                            update(index, { sections: next });
-                          }}
-                        >
-                          <option value="auto">Auto</option>
-                          <option value="band">Band</option>
-                          <option value="spotlight">Spotlight</option>
-                          <option value="editorial">Editorial</option>
-                          <option value="overlay">Overlay</option>
-                          <option value="rail">Rail</option>
-                        </select>
-                      </label>
-                    </div>
                   </div>
                 );
               })}

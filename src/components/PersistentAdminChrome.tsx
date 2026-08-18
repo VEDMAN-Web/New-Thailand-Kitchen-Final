@@ -24,7 +24,7 @@ const TITLE_BY_PATH: Record<string, string> = {
   "/varsovia/locations": "Locations",
   "/varsovia/for-developers": "For Developers",
   "/varsovia/journal": "Journal",
-  "/varsovia/about-brand": "About brands",
+  "/varsovia/about-brand": "About",
 };
 
 function ChromeInner({ children }: { children: React.ReactNode }) {
