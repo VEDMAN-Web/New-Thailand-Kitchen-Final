@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FolderOpen, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import LocaleTabs from "@/components/LocaleTabs";
@@ -15,11 +15,11 @@ import {
 } from "@/lib/localized";
 import {
   getVarsoviaSite,
-  updateVarsoviaSite,
   varsoviaErrorMessage,
 } from "@/services/varsoviaAPI";
 import { IA_HUB_PATHS } from "@/app/varsovia/iaPagesDefaults";
 import { mergeIaPagesFromLiveSite } from "@/app/varsovia/mergeIaPages";
+import { persistIaHubChildren } from "@/app/varsovia/persistIaHub";
 
 const HUB_KEY = "forDevelopers";
 
@@ -78,7 +78,6 @@ function emptyChild(order: number): IaChildRow {
 }
 
 export default function VarsoviaForDevelopersPage() {
-  const [pages, setPages] = useState<Record<string, unknown>>({});
   const [children, setChildren] = useState<IaChildRow[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
@@ -88,13 +87,13 @@ export default function VarsoviaForDevelopersPage() {
   const [draftSlug, setDraftSlug] = useState("");
   const [draftChild, setDraftChild] = useState<IaChildRow>(emptyChild(0));
   const [locale, setLocale] = useState<LocaleCode>("en");
+  const hasLoadedRef = useRef(false);
 
   const load = useCallback(async () => {
-    setLoading(true);
+    if (!hasLoadedRef.current) setLoading(true);
     try {
       const site = await getVarsoviaSite();
       const allPages = mergeIaPagesFromLiveSite(site.pages);
-      setPages(allPages);
       const hub = (allPages[HUB_KEY] || {}) as Record<string, unknown>;
       const list = Array.isArray(hub.children) ? (hub.children as IaChildRow[]) : [];
       setChildren(
@@ -102,6 +101,7 @@ export default function VarsoviaForDevelopersPage() {
           (a, b) => Number(a.order ?? 0) - Number(b.order ?? 0)
         )
       );
+      hasLoadedRef.current = true;
     } catch (err) {
       toast.error(varsoviaErrorMessage(err, "Failed to load for developers pages"));
     } finally {
@@ -132,20 +132,12 @@ export default function VarsoviaForDevelopersPage() {
   const persistChildren = async (nextChildren: IaChildRow[]) => {
     setSaving(true);
     try {
-      const existing = (pages[HUB_KEY] || {}) as Record<string, unknown>;
-      const nextPages = {
-        ...pages,
-        [HUB_KEY]: {
-          ...existing,
-          children: nextChildren.map((item, index) => ({
-            ...item,
-            order: index,
-          })),
-        },
-      };
-      await updateVarsoviaSite({ pages: nextPages });
-      setPages(nextPages);
-      setChildren(nextChildren.map((item, index) => ({ ...item, order: index })));
+      const allPages = await persistIaHubChildren(HUB_KEY, nextChildren);
+      const hub = (allPages[HUB_KEY] || {}) as Record<string, unknown>;
+      const list = Array.isArray(hub.children) ? (hub.children as IaChildRow[]) : [];
+      setChildren(
+        [...list].sort((a, b) => Number(a.order ?? 0) - Number(b.order ?? 0))
+      );
       toast.success("For Developers sub-page saved");
     } catch (err) {
       toast.error(varsoviaErrorMessage(err, "Save failed"));

@@ -562,7 +562,7 @@ export const VARSOVIA_SITE_DEFAULTS: SiteRecord = {
     {
       tabKey: "All",
       title: en("Our Showcase"),
-      subtitle: en("Every Space, Every Story"),
+      subtitle: en("Every space, every story"),
       order: 0,
     },
     {
@@ -623,12 +623,13 @@ export const VARSOVIA_SITE_DEFAULTS: SiteRecord = {
 
   projectsPage: {
     indexable: false,
-    metaTitle: en("Projects"),
+    metaTitle: en("Our Showcase | Varsovia Design"),
     metaDescription: en(
-      "Explore Varsovia Design projects across kitchens, bedrooms, and whole-home interiors."
+      "Varsovia Design showcase — homes and projects by region and type."
     ),
-    heroTitle: en("Our Projects"),
+    heroTitle: en("Our Showcase"),
     heroSubtitle: en("Every space, every story"),
+    navSectionLabel: en("By Region & Type"),
   },
 
   phone: "+66 64 683 9777",
@@ -788,4 +789,24 @@ export function mergeVarsoviaSiteDefaults(
   }
 
   return merged;
+}
+
+/**
+ * Overwrite Showcase listing + Google copy from the live seed.
+ * Keeps the editor’s indexable flag so Sync does not silently un-index /projects.
+ */
+export function replaceShowcaseFromLiveSeed(site: SiteRecord): SiteRecord {
+  const current =
+    site.projectsPage && typeof site.projectsPage === "object" && !Array.isArray(site.projectsPage)
+      ? (site.projectsPage as SiteRecord)
+      : {};
+  const defaults = VARSOVIA_SITE_DEFAULTS.projectsPage as SiteRecord;
+  return {
+    ...site,
+    showcaseMeta: structuredClone(VARSOVIA_SITE_DEFAULTS.showcaseMeta),
+    projectsPage: {
+      ...structuredClone(defaults),
+      indexable: current.indexable === true,
+    },
+  };
 }

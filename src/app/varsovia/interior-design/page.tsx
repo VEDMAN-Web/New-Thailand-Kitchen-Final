@@ -6,23 +6,26 @@ import { ResourceManager } from "@/app/varsovia/page";
 const HUB_KEY = "interiorDesign";
 
 /**
- * Interior Design hub. Unlike Furniture/Complete Interiors/etc, this hub's item
- * list is NOT `pages.interiorDesign.children[]` — it's backed by the separate
- * `projects` resource (see src/services/varsoviaAPI.ts), same data used by the
- * "Interior catalogue" library and the homepage "featured" section. So the hero
- * uses the same generic VarsoviaHubLandingEditor as every other hub, but the
- * item list below reuses the existing generic ResourceManager for "projects"
- * instead of the children-array editor the other hubs use.
+ * Interior Design hub — same CMS stack as Furniture (banner → intro → blocks →
+ * Explore). Explore cards are the `projects` catalogue, not IA children.
  */
 export default function VarsoviaInteriorDesignPage() {
   return (
     <div className="space-y-6">
-      <VarsoviaHubLandingEditor hubKey={HUB_KEY} label="Interior Design" />
+      <VarsoviaHubLandingEditor
+        hubKey={HUB_KEY}
+        label="Interior Design"
+        helpText="Matches live /interior-design from top to bottom: banner, intro, content blocks, then the project catalogue."
+      />
 
       <div>
-        <h2 className="text-sm font-semibold text-[#1A2332] mb-3">
-          Interior Design projects
+        <h2 className="text-sm font-semibold text-[#1A2332] mb-1">
+          Explore — interior projects
         </h2>
+        <p className="text-xs text-[#6B7280] mb-3">
+          Each card is a listing on /interior-design and a detail page at
+          /interior-design/[slug]. Field order matches the live pages.
+        </p>
         <ResourceManager resource="projects" embedded />
       </div>
     </div>

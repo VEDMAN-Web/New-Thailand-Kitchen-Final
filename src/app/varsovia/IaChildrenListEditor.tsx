@@ -86,7 +86,13 @@ export default function IaChildrenListEditor({
   const items: IaChildRow[] = Array.isArray(value) ? (value as IaChildRow[]) : [];
 
   const update = (index: number, patch: Partial<IaChildRow>) => {
-    onChange(items.map((item, i) => (i === index ? { ...item, ...patch } : item)));
+    onChange(
+      items.map((item, i) =>
+        i === index
+          ? { ...item, ...patch, slug: String(patch.slug ?? item.slug ?? "") }
+          : item
+      )
+    );
   };
 
   const updateHero = (index: number, patch: NonNullable<IaChildRow["hero"]>) => {
@@ -213,7 +219,7 @@ export default function IaChildrenListEditor({
               </label>
             ) : null}
 
-            <Group title="1 · Banner (Hero)" hint="Same fields as the live page top.">
+            <Group title="1 · Banner" hint="Same fields as the live page top: photo, heading, description, button.">
               <div className="grid gap-3 md:grid-cols-2">
                 <label className="block text-xs font-semibold text-[#5C6370]">
                   Card / nav title
@@ -221,15 +227,34 @@ export default function IaChildrenListEditor({
                     className="mt-1 w-full rounded-lg border border-[#DDE1E7] bg-white px-3 py-2 text-sm"
                     placeholder={localeFieldPlaceholder(locale)}
                     value={localizedValue(title, locale)}
-                    onChange={(e) =>
-                      update(index, {
-                        title: writeLocalized(title, locale, e.target.value),
-                      })
-                    }
+                    onChange={(e) => {
+                      const next = e.target.value;
+                      const prevCard = localizedValue(title, locale);
+                      const prevHero = localizedValue(heroTitle, locale);
+                      const patch: Partial<IaChildRow> = {
+                        title: writeLocalized(title, locale, next),
+                      };
+                      if (!prevHero || prevHero === prevCard) {
+                        patch.hero = {
+                          ...(item.hero || {}),
+                          title: writeLocalized(heroTitle, locale, next),
+                        };
+                      }
+                      update(index, patch);
+                    }}
                   />
                 </label>
+                <div className="md:col-span-2">
+                  <MediaUpload
+                    label="Banner photo"
+                    kind="image"
+                    value={String(item.hero?.image || "")}
+                    onChange={(url) => updateHero(index, { image: url })}
+                    uploadFile={uploadVarsoviaMedia}
+                  />
+                </div>
                 <label className="block text-xs font-semibold text-[#5C6370]">
-                  Eyebrow (optional)
+                  Tag (optional)
                   <input
                     className="mt-1 w-full rounded-lg border border-[#DDE1E7] bg-white px-3 py-2 text-sm"
                     placeholder={localeFieldPlaceholder(locale)}
@@ -242,7 +267,7 @@ export default function IaChildrenListEditor({
                   />
                 </label>
                 <label className="md:col-span-2 block text-xs font-semibold text-[#5C6370]">
-                  Headline (H1)
+                  Heading
                   <input
                     className="mt-1 w-full rounded-lg border border-[#DDE1E7] bg-white px-3 py-2 text-sm"
                     placeholder={localeFieldPlaceholder(locale)}
@@ -255,7 +280,7 @@ export default function IaChildrenListEditor({
                   />
                 </label>
                 <label className="md:col-span-2 block text-xs font-semibold text-[#5C6370]">
-                  Intro line under headline
+                  Description
                   <textarea
                     rows={2}
                     className="mt-1 w-full rounded-lg border border-[#DDE1E7] bg-white px-3 py-2 text-sm"
@@ -268,15 +293,6 @@ export default function IaChildrenListEditor({
                     }
                   />
                 </label>
-                <div className="md:col-span-2">
-                  <MediaUpload
-                    label="Banner photo"
-                    kind="image"
-                    value={String(item.hero?.image || "")}
-                    onChange={(url) => updateHero(index, { image: url })}
-                    uploadFile={uploadVarsoviaMedia}
-                  />
-                </div>
                 <label className="block text-xs font-semibold text-[#5C6370]">
                   Button text
                   <input
@@ -320,7 +336,7 @@ export default function IaChildrenListEditor({
 
             <Group
               title="3 · Content blocks"
-              hint="Same image + text blocks as the live page. Heading, copy, and photo."
+              hint="Same photo + heading + text cards as the live page."
             >
               <div className="flex justify-end">
                 <button
@@ -332,7 +348,7 @@ export default function IaChildrenListEditor({
                       text: emptyLocalized(),
                       image: "",
                       imagePosition: sections.length % 2 === 0 ? "left" : "right",
-                      layout: "auto",
+                      layout: "band",
                     });
                     update(index, { sections });
                   }}
@@ -364,6 +380,18 @@ export default function IaChildrenListEditor({
                         Remove
                       </button>
                     </div>
+                    <MediaUpload
+                      label={`Block ${sIdx + 1} photo`}
+                      kind="image"
+                      value={String(sec.image || "")}
+                      onChange={(url) => {
+                        const next = sections.map((current, i) =>
+                          i === sIdx ? { ...current, image: url } : current,
+                        );
+                        update(index, { sections: next });
+                      }}
+                      uploadFile={uploadVarsoviaMedia}
+                    />
                     <label className="block text-xs font-semibold text-[#5C6370]">
                       Heading
                       <input
@@ -401,18 +429,28 @@ export default function IaChildrenListEditor({
                         }}
                       />
                     </label>
-                    <MediaUpload
-                      label={`Block ${sIdx + 1} — Photo`}
-                      kind="image"
-                      value={String(sec.image || "")}
-                      onChange={(url) => {
-                        const next = sections.map((current, i) =>
-                          i === sIdx ? { ...current, image: url } : current,
-                        );
-                        update(index, { sections: next });
-                      }}
-                      uploadFile={uploadVarsoviaMedia}
-                    />
+                    <label className="block text-xs font-semibold text-[#5C6370]">
+                      Photo side
+                      <select
+                        className="mt-1 w-full rounded-lg border border-[#DDE1E7] bg-white px-3 py-2 text-sm"
+                        value={sec.imagePosition === "right" ? "right" : "left"}
+                        onChange={(e) => {
+                          const next = sections.map((current, i) =>
+                            i === sIdx
+                              ? {
+                                  ...current,
+                                  imagePosition:
+                                    e.target.value === "right" ? "right" : "left",
+                                }
+                              : current,
+                          );
+                          update(index, { sections: next });
+                        }}
+                      >
+                        <option value="left">Left</option>
+                        <option value="right">Right</option>
+                      </select>
+                    </label>
                   </div>
                 );
               })}

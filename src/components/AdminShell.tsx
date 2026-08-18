@@ -31,6 +31,12 @@ import { useAdminAuth } from "@/lib/AdminAuthContext";
 import type { SiteId } from "@/services/adminAPI";
 import { syncSiteFromDb } from "@/services/adminAPI";
 import { syncVarsoviaFromDb } from "@/services/varsoviaAPI";
+import {
+  varsoviaHubKeyFromPath,
+  IA_HUB_PATHS,
+  isShowcaseAdminPath,
+  SHOWCASE_LIVE_PATH,
+} from "@/app/varsovia/iaPagesDefaults";
 import { toast } from "sonner";
 import { clsx } from "clsx";
 import {
@@ -132,9 +138,7 @@ const VARSOVIA_NAV: {
     group: "pages",
   },
   {
-    href: "/varsovia?resource=site&section=projectsPage",
-    resource: "site",
-    section: "projectsPage",
+    href: "/varsovia/showcase",
     label: "Showcase",
     icon: Images,
     group: "pages",
@@ -335,6 +339,13 @@ function AdminShellContent({
   const searchParams = useSearchParams();
   const { user, logout, siteId, setSiteId } = useAdminAuth();
   const isVarsovia = siteId === "varsovia-kitchen";
+  const syncHubKey = isVarsovia ? varsoviaHubKeyFromPath(pathname) : undefined;
+  const syncShowcase = isVarsovia && isShowcaseAdminPath(pathname);
+  const syncPagePath = syncHubKey
+    ? IA_HUB_PATHS[syncHubKey]
+    : syncShowcase
+      ? SHOWCASE_LIVE_PATH
+      : "";
   const [profileOpen, setProfileOpen] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [syncConfirmOpen, setSyncConfirmOpen] = useState(false);
@@ -533,7 +544,10 @@ function AdminShellContent({
     const toastId = toast.loading(`Syncing ${brand} from connected database…`);
     try {
       if (isVarsovia) {
-        const res = await syncVarsoviaFromDb();
+        const replaceHubKey = syncHubKey;
+        const res = await syncVarsoviaFromDb(replaceHubKey, {
+          replaceShowcase: syncShowcase,
+        });
         const report = res.report;
         const resourceBits = Object.entries(report.resources || {})
           .filter(([, n]) => Number(n) >= 0)
@@ -843,7 +857,11 @@ function AdminShellContent({
               type="button"
               onClick={openSyncConfirm}
               disabled={syncing}
-              title="Reload Varsovia from the connected database and fill blank page fields from live site content"
+              title={
+                syncPagePath
+                  ? `Overwrite this page with live ${syncPagePath} copy`
+                  : "Reload Varsovia from the connected database and fill blank page fields from live site content"
+              }
               className={clsx(
                 "inline-flex items-center gap-2 rounded-xl border border-[#E2E5EA] bg-white px-3 py-2 text-xs font-semibold text-[#1A2332] transition-colors",
                 syncing
@@ -949,10 +967,16 @@ function AdminShellContent({
               <ul className="space-y-2 rounded-xl border border-[#E8EDF2] bg-[#F8FAFC] px-4 py-3.5">
                 {(isVarsovia
                   ? [
-                      "Reloads Varsovia CMS into admin (same database as the live site)",
-                      "Location / Furniture / Services / Journal pages: blank fields fill from live site copy — edited copy is kept",
+                      syncPagePath
+                        ? `Overwrites this page only (${syncPagePath}) with live site copy — panel and live match`
+                        : "Reloads Varsovia CMS into admin (same database as the live site)",
+                      syncPagePath
+                        ? "Other Varsovia pages are left as they are"
+                        : "Location / Furniture / Services / Journal pages: blank fields fill from live site copy — edited copy is kept",
                       "Journal articles: mirrors live /journal set (upsert + delete extras)",
-                      "Other resources: counts reload from DB — no wipe of edited products/projects",
+                      syncShowcase
+                        ? "Showcase cards: fill every listing + detail field (cover, title, category, location, type, supply area, gallery) in EN / TH / PL"
+                        : "Other resources: counts reload from DB — no wipe of edited products/projects",
                     ]
                   : [
                       "Same MongoDB the public site uses — admin list reloads to match",

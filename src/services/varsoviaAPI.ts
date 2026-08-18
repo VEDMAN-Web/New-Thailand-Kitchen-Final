@@ -1,4 +1,5 @@
 import axios from "axios";
+import { padShowcaseGallery } from "@/lib/showcaseGallery";
 
 export type LocaleCode = "en" | "th" | "pl";
 export type LocalizedText =
@@ -242,6 +243,7 @@ export type VarsoviaSyncReport = {
   preserved: boolean;
   resources: Record<string, number>;
   filledSiteKeys: number;
+  replacedHub?: string;
   journalSync?: {
     upserted: number;
     deleted: number;
@@ -431,21 +433,78 @@ export async function hydrateVarsoviaSiteDocument(
     ),
   };
 }
-export async function syncVarsoviaFromDb(): Promise<{
+function locText(value: unknown, fallback = ""): { en: string; th: string; pl: string } {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const map = value as Record<string, unknown>;
+    const en = String(map.en || "").trim() || fallback;
+    return {
+      en,
+      th: String(map.th || "").trim() || en,
+      pl: String(map.pl || "").trim() || en,
+    };
+  }
+  const en = (typeof value === "string" ? value.trim() : "") || fallback;
+  return { en, th: en, pl: en };
+}
+
+/** Fill every Showcase item field so admin tabs match the live /projects card + detail. */
+function completeShowcaseRecord(item: VarsoviaRecord): VarsoviaRecord {
+  const image = String(item.image || "").trim();
+  const typeLabel = locText(item.typeLabel, "Type");
+  return {
+    ...item,
+    title: locText(item.title),
+    category: locText(item.category).en || "Home case",
+    location: locText(item.location),
+    typeLabel,
+    typeValue: locText(item.typeValue),
+    supplyArea: locText(item.supplyArea),
+    image,
+    gallery: padShowcaseGallery(item.gallery, image),
+    visible: item.visible !== false,
+    order: typeof item.order === "number" && Number.isFinite(item.order) ? item.order : 0,
+  };
+}
+
+export async function syncVarsoviaFromDb(
+  replaceHubKey?: string,
+  opts?: { replaceShowcase?: boolean }
+): Promise<{
   success: boolean;
   message: string;
   report: VarsoviaSyncReport;
 }> {
-  const { faqTranslatedRow } = await import("@/app/varsovia/liveLocaleOverlay");
+  const { faqTranslatedRow, buildVarsoviaLiveOverlays } = await import(
+    "@/app/varsovia/liveLocaleOverlay"
+  );
   const { hydrateCmsFromLiveLocales, countFilledLocaleFields } = await import(
     "@/lib/hydrateLiveLocales"
   );
+  const { replaceIaHubFromLiveSeed } = await import("@/app/varsovia/mergeIaPages");
+  const { IA_HUB_PATHS, SHOWCASE_LIVE_PATH } = await import("@/app/varsovia/iaPagesDefaults");
+  const { replaceShowcaseFromLiveSeed } = await import("@/app/varsovia/siteDefaults");
 
+  const replaceShowcase = opts?.replaceShowcase === true;
   const loaded = await getVarsoviaSite();
-  const { site: merged, filled: overlayFilled } = await hydrateVarsoviaSiteDocument(loaded);
+  const { site: hydrated, filled: overlayFilled } = await hydrateVarsoviaSiteDocument(loaded);
+  let merged: Record<string, unknown> = replaceHubKey
+    ? {
+        ...hydrated,
+        pages: replaceIaHubFromLiveSeed(hydrated.pages, replaceHubKey),
+      }
+    : hydrated;
+
+  if (replaceShowcase) {
+    merged = replaceShowcaseFromLiveSeed(merged);
+    merged = hydrateCmsFromLiveLocales(merged, buildVarsoviaLiveOverlays(), {
+      fillFromEnglish: true,
+    }) as Record<string, unknown>;
+  }
 
   let siteUpdated = false;
-  let filledSiteKeys = overlayFilled;
+  let filledSiteKeys = replaceShowcase
+    ? countFilledLocaleFields(pickVarsoviaSiteUpdate(loaded), pickVarsoviaSiteUpdate(merged))
+    : overlayFilled;
   await updateVarsoviaSite(merged);
   siteUpdated = true;
 
@@ -484,6 +543,9 @@ export async function syncVarsoviaFromDb(): Promise<{
           items.map(async (item, itemIndex) => {
             if (!item?._id) return;
             let next = hydrateCmsFromLiveLocales(item, {}, { fillFromEnglish: true });
+            if (resource === "showcases") {
+              next = completeShowcaseRecord(next as VarsoviaRecord);
+            }
             if (resource === "faqs") {
               const category =
                 typeof item.category === "object" && item.category
@@ -516,7 +578,18 @@ export async function syncVarsoviaFromDb(): Promise<{
               );
             }
             const filled = countFilledLocaleFields(item, next);
-            if (!filled) return;
+            if (!filled && resource !== "showcases") return;
+            if (resource === "showcases") {
+              const title = (next as VarsoviaRecord).title as
+                | { en?: string }
+                | string
+                | undefined;
+              const titleEn =
+                typeof title === "string"
+                  ? title.trim()
+                  : String(title?.en || "").trim();
+              if (!titleEn) return;
+            }
             const { _id, __v, createdAt, updatedAt, ...body } = next as Record<
               string, unknown
             >;
@@ -545,17 +618,26 @@ export async function syncVarsoviaFromDb(): Promise<{
     /* ignore */
   }
 
+  const livePath = replaceHubKey
+    ? IA_HUB_PATHS[replaceHubKey] || `/${replaceHubKey}`
+    : replaceShowcase
+      ? SHOWCASE_LIVE_PATH
+      : "";
+
   return {
     success: true,
-    message: `Synced from Varsovia DB. Filled ${filledSiteKeys} language fields across EN / TH / PL. Journal articles: ${journalSync?.total ?? 0} (${journalSync?.deleted ?? 0} extras removed).`,
+    message: livePath
+      ? `Synced from Varsovia DB. This page now matches live ${livePath}. Filled ${filledSiteKeys} language fields across EN / TH / PL.`
+      : `Synced from Varsovia DB. Filled ${filledSiteKeys} language fields across EN / TH / PL. Journal articles: ${journalSync?.total ?? 0} (${journalSync?.deleted ?? 0} extras removed).`,
     report: {
       database,
       host,
       siteId: "varsovia-kitchen",
       siteUpdated,
-      preserved: true,
+      preserved: !replaceHubKey && !replaceShowcase,
       resources,
       filledSiteKeys,
+      replacedHub: replaceHubKey || (replaceShowcase ? "showcase" : undefined),
       journalSync,
     },
   };

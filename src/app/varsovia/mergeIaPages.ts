@@ -96,20 +96,22 @@ function mergeHub(saved: unknown, defaults: unknown): Dict {
 
   const savedChildren = Array.isArray(s.children) ? s.children : [];
   const defaultChildren = Array.isArray(defChildren) ? defChildren : [];
-  const bySlug = new Map(
-    savedChildren
-      .filter((c) => c && typeof c === "object" && typeof (c as Dict).slug === "string")
-      .map((c) => [String((c as Dict).slug), c])
-  );
+  const bySlug = new Map<string, Dict>();
+  for (const child of savedChildren) {
+    if (!child || typeof child !== "object") continue;
+    const slug = String((child as Dict).slug || "").trim();
+    if (!slug) continue;
+    bySlug.set(slug, { ...(child as Dict), slug });
+  }
   const children = defaultChildren.map((defChild) => {
     const def = defChild && typeof defChild === "object" ? (defChild as Dict) : {};
     return mergeChild(bySlug.get(String(def.slug || "")), def);
   });
   for (const extra of savedChildren) {
     const slug =
-      extra && typeof extra === "object" ? String((extra as Dict).slug || "") : "";
+      extra && typeof extra === "object" ? String((extra as Dict).slug || "").trim() : "";
     if (slug && !children.some((c) => c.slug === slug)) {
-      children.push(mergeChild(extra, { slug }));
+      children.push(mergeChild({ ...(extra as Dict), slug }, { slug }));
     }
   }
   out.children = children;
@@ -142,4 +144,18 @@ export function liveChildDefault(hubKey: string, slug: string): Dict | null {
 export function liveHubDefault(hubKey: string): Dict | null {
   const hub = LIVE_DEFAULTS[hubKey];
   return hub && typeof hub === "object" ? (hub as Dict) : null;
+}
+
+/** Replace one IA hub with the live-site seed (Sync from DB on that hub page). */
+export function replaceIaHubFromLiveSeed(
+  pages: unknown,
+  hubKey: string
+): Record<string, unknown> {
+  const current =
+    pages && typeof pages === "object" && !Array.isArray(pages)
+      ? { ...(pages as Record<string, unknown>) }
+      : {};
+  const def = liveHubDefault(hubKey);
+  if (def) current[hubKey] = clone(def);
+  return current;
 }

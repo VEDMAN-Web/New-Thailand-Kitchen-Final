@@ -51,6 +51,31 @@ export const IA_HUB_PATHS: Record<string, string> = {
   aboutBrand: "/about",
 };
 
+const ADMIN_PATH_TO_HUB: Record<string, string> = {
+  "/varsovia/furniture": "furniture",
+  "/varsovia/interior-design": "interiorDesign",
+  "/varsovia/complete-interiors": "completeInteriors",
+  "/varsovia/services": "services",
+  "/varsovia/locations": "locations",
+  "/varsovia/for-developers": "forDevelopers",
+  "/varsovia/journal": "journal",
+  "/varsovia/about-brand": "aboutBrand",
+};
+
+/** Hub key for the Varsovia admin page currently open, if any. */
+export function varsoviaHubKeyFromPath(pathname: string): string | undefined {
+  const path = String(pathname || "").replace(/\/+$/, "") || "/";
+  return ADMIN_PATH_TO_HUB[path];
+}
+
+export const SHOWCASE_LIVE_PATH = "/projects";
+
+/** Showcase is listing + mega-menu copy, not an IA hub. */
+export function isShowcaseAdminPath(pathname: string): boolean {
+  const path = String(pathname || "").replace(/\/+$/, "") || "/";
+  return path === "/varsovia/showcase";
+}
+
 export const DEFAULT_IA_PAGES = {
   furniture: hub("furniture", "Furniture", [
     child("kitchens", "Kitchens", 0),

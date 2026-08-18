@@ -17,12 +17,12 @@ import {
 } from "@/lib/localized";
 import {
   getVarsoviaSite,
-  updateVarsoviaSite,
   uploadVarsoviaMedia,
   varsoviaErrorMessage,
 } from "@/services/varsoviaAPI";
 import { IA_HUB_PATHS } from "@/app/varsovia/iaPagesDefaults";
 import { mergeIaPagesFromLiveSite } from "@/app/varsovia/mergeIaPages";
+import { persistIaHubPatch } from "@/app/varsovia/persistIaHub";
 
 type ContentSection = {
   heading?: LocalizedText;
@@ -137,8 +137,8 @@ function hubToApi(draft: HubDraft): Record<string, unknown> {
       heading: asLocalizedForm(sec.heading),
       text: asLocalizedForm(sec.text),
       image: sec.image || "",
-      imagePosition: sec.imagePosition || undefined,
-      layout: sec.layout && sec.layout !== "auto" ? sec.layout : undefined,
+      imagePosition: sec.imagePosition === "right" ? "right" : "left",
+      layout: "band",
     })),
     exploreTitle: asLocalizedForm(draft.exploreTitle),
     exploreSubtitle: asLocalizedForm(draft.exploreSubtitle),
@@ -214,11 +214,33 @@ function TextField({
   );
 }
 
+function FieldGroup({
+  title,
+  hint,
+  children,
+}: {
+  title: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-3 rounded-lg border border-[#E8EDF2] bg-[#F8FAFC] p-3">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-wide text-[#5C6370]">{title}</p>
+        {hint ? (
+          <p className="mt-1 text-[11px] font-normal text-[#6B7280] leading-snug">{hint}</p>
+        ) : null}
+      </div>
+      {children}
+    </div>
+  );
+}
+
 function ContentSectionsEditor({
   locale,
   sections,
   onChange,
-  label = "Hero content sections",
+  label = "Content blocks",
 }: {
   locale: LocaleCode;
   sections: ContentSection[];
@@ -243,19 +265,19 @@ function ContentSectionsEditor({
                 text: emptyLocalized(),
                 image: "",
                 imagePosition: sections.length % 2 === 0 ? "left" : "right",
-                layout: "auto",
+                layout: "band",
               },
             ])
           }
           className="rounded-lg border border-dashed border-[#B9C0CA] px-3 py-1.5 text-xs font-semibold text-[#5C6370]"
         >
-          + Add section
+          + Add block
         </button>
       </div>
       {sections.map((sec, index) => (
         <div
           key={index}
-          className="space-y-3 rounded-xl border border-[#E2E5EA] bg-[#FAFBFC] p-4"
+          className="space-y-3 rounded-xl border border-[#E2E5EA] bg-white p-4"
         >
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-bold text-[#5C6370]">Block {index + 1}</span>
@@ -267,6 +289,13 @@ function ContentSectionsEditor({
               Remove
             </button>
           </div>
+          <MediaUpload
+            label={`Block ${index + 1} photo`}
+            kind="image"
+            value={sec.image || ""}
+            onChange={(image) => update(index, { image })}
+            uploadFile={uploadVarsoviaMedia}
+          />
           <TextField
             label="Heading"
             value={sec.heading || emptyLocalized()}
@@ -280,13 +309,21 @@ function ContentSectionsEditor({
             multiline
             onChange={(text) => update(index, { text })}
           />
-          <MediaUpload
-            label={`Block ${index + 1} photo`}
-            kind="image"
-            value={sec.image || ""}
-            onChange={(image) => update(index, { image })}
-            uploadFile={uploadVarsoviaMedia}
-          />
+          <label className="block text-xs font-semibold text-[#5C6370]">
+            Photo side
+            <select
+              className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] bg-white px-3.5 py-2.5 text-sm"
+              value={sec.imagePosition === "right" ? "right" : "left"}
+              onChange={(e) =>
+                update(index, {
+                  imagePosition: e.target.value === "right" ? "right" : "left",
+                })
+              }
+            >
+              <option value="left">Left (same as live band layout)</option>
+              <option value="right">Right</option>
+            </select>
+          </label>
         </div>
       ))}
     </div>
@@ -321,7 +358,6 @@ export default function VarsoviaHubLandingEditor({
   const sitePath = pathLabel || IA_HUB_PATHS[hubKey] || `/${hubKey}`;
   const exploreVisible = showExplore ?? withExploreHeadings;
   const [locale, setLocale] = useState<LocaleCode>("en");
-  const [pages, setPages] = useState<Record<string, unknown>>({});
   const [draft, setDraft] = useState<HubDraft>(emptyHubDraft());
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -331,7 +367,6 @@ export default function VarsoviaHubLandingEditor({
     try {
       const site = await getVarsoviaSite();
       const allPages = mergeIaPagesFromLiveSite(site.pages);
-      setPages(allPages);
       setDraft(hubFromApi(allPages[hubKey]));
     } catch (err) {
       toast.error(varsoviaErrorMessage(err, "Failed to load hub page"));
@@ -353,15 +388,12 @@ export default function VarsoviaHubLandingEditor({
   const save = async () => {
     setSaving(true);
     try {
-      const existing = (pages[hubKey] || {}) as Record<string, unknown>;
       const nextHub = {
-        ...existing,
         ...hubToApi(draft),
-        slug: existing.slug || hubKey,
+        slug: (IA_HUB_PATHS[hubKey] || `/${hubKey}`).replace(/^\//, ""),
       };
-      const nextPages = { ...pages, [hubKey]: nextHub };
-      await updateVarsoviaSite({ pages: nextPages });
-      setPages(nextPages);
+      const merged = await persistIaHubPatch(hubKey, nextHub);
+      setDraft(hubFromApi(merged[hubKey]));
       toast.success(`${label} page saved`);
       onSaved?.();
     } catch (err) {
@@ -393,7 +425,7 @@ export default function VarsoviaHubLandingEditor({
           <p className="font-mono text-xs text-[#6B7280]">{sitePath}</p>
           <p className="text-xs text-[#6B7280] mt-1">
             {helpText ||
-              "Overlay hero on the live site: tag, heading, description, background image, and button. Clearing a section here removes it from the site."}
+              "Fields follow the live page from top to bottom. Save writes this page only."}
           </p>
           <div className="mt-3">
             <LocaleTabs locale={locale} onChange={setLocale} />
@@ -403,36 +435,14 @@ export default function VarsoviaHubLandingEditor({
       {loading ? (
         <p className="text-sm text-[#6B7280]">Loading page fields…</p>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {showHero ? (
-            <>
-          <TextField
-            label="Hero heading"
-            value={draft.hero.title}
-            locale={locale}
-            onChange={(title) =>
-              setDraft((d) => ({ ...d, hero: { ...d.hero, title } }))
-            }
-          />
-          <TextField
-            label="Hero description"
-            value={draft.hero.subtitle}
-            locale={locale}
-            multiline
-            onChange={(subtitle) =>
-              setDraft((d) => ({ ...d, hero: { ...d.hero, subtitle } }))
-            }
-          />
-          <TextField
-            label="Hero tag (small uppercase)"
-            value={draft.hero.eyebrow}
-            locale={locale}
-            onChange={(eyebrow) =>
-              setDraft((d) => ({ ...d, hero: { ...d.hero, eyebrow } }))
-            }
-          />
+            <FieldGroup
+              title="1 · Banner"
+              hint="Live page top: photo, optional tag, heading, description, button."
+            >
           <MediaUpload
-            label="Hero background image"
+            label="Banner photo"
             kind="image"
             value={draft.hero.image}
             onChange={(image) =>
@@ -440,9 +450,34 @@ export default function VarsoviaHubLandingEditor({
             }
             uploadFile={uploadVarsoviaMedia}
           />
+          <TextField
+            label="Tag (optional, small uppercase)"
+            value={draft.hero.eyebrow}
+            locale={locale}
+            onChange={(eyebrow) =>
+              setDraft((d) => ({ ...d, hero: { ...d.hero, eyebrow } }))
+            }
+          />
+          <TextField
+            label="Heading"
+            value={draft.hero.title}
+            locale={locale}
+            onChange={(title) =>
+              setDraft((d) => ({ ...d, hero: { ...d.hero, title } }))
+            }
+          />
+          <TextField
+            label="Description"
+            value={draft.hero.subtitle}
+            locale={locale}
+            multiline
+            onChange={(subtitle) =>
+              setDraft((d) => ({ ...d, hero: { ...d.hero, subtitle } }))
+            }
+          />
           <div className="grid sm:grid-cols-2 gap-3">
             <TextField
-              label="Hero button label"
+              label="Button label"
               value={draft.hero.ctaLabel}
               locale={locale}
               onChange={(ctaLabel) =>
@@ -450,7 +485,7 @@ export default function VarsoviaHubLandingEditor({
               }
             />
             <label className="block text-xs font-semibold text-[#5C6370]">
-              Hero button link
+              Button link
               <input
                 value={draft.hero.ctaHref}
                 onChange={(e) =>
@@ -464,10 +499,11 @@ export default function VarsoviaHubLandingEditor({
               />
             </label>
           </div>
-            </>
+            </FieldGroup>
           ) : null}
 
           {showBody ? (
+          <FieldGroup title="2 · Intro" hint="Centered paragraph under the banner.">
           <TextField
             label="Intro paragraph"
             value={draft.body}
@@ -475,21 +511,34 @@ export default function VarsoviaHubLandingEditor({
             multiline
             onChange={(body) => setDraft((d) => ({ ...d, body }))}
           />
+          </FieldGroup>
           ) : null}
 
           {showSections ? (
+          <FieldGroup
+            title="3 · Content blocks"
+            hint="Same photo + heading + text cards as the live page."
+          >
           <ContentSectionsEditor
             locale={locale}
-            label="Hero content sections"
+            label="Blocks"
             sections={draft.sections}
             onChange={(sections) => setDraft((d) => ({ ...d, sections }))}
           />
+          </FieldGroup>
           ) : null}
 
           {exploreVisible ? (
-            <>
+            <FieldGroup
+              title="4 · Explore"
+              hint={
+                hubKey === "interiorDesign"
+                  ? "Heading above the project catalogue on /interior-design."
+                  : "Heading above the sub-page cards."
+              }
+            >
               <TextField
-                label="Explore section title"
+                label="Explore title"
                 value={draft.exploreTitle}
                 locale={locale}
                 onChange={(exploreTitle) =>
@@ -497,20 +546,20 @@ export default function VarsoviaHubLandingEditor({
                 }
               />
               <TextField
-                label="Explore section subtitle"
+                label="Explore subtitle"
                 value={draft.exploreSubtitle}
                 locale={locale}
                 onChange={(exploreSubtitle) =>
                   setDraft((d) => ({ ...d, exploreSubtitle }))
                 }
               />
-            </>
+            </FieldGroup>
           ) : null}
 
           {hubKey === "locations" ? (
-            <>
+            <FieldGroup title="City pages — services list">
               <TextField
-                label="City pages — services heading (default)"
+                label="Services heading (default)"
                 value={draft.servicesTitle}
                 locale={locale}
                 onChange={(servicesTitle) =>
@@ -518,7 +567,7 @@ export default function VarsoviaHubLandingEditor({
                 }
               />
               <TextField
-                label="City pages — services subtitle (default)"
+                label="Services subtitle (default)"
                 value={draft.servicesSubtitle}
                 locale={locale}
                 onChange={(servicesSubtitle) =>
@@ -529,11 +578,11 @@ export default function VarsoviaHubLandingEditor({
                 Used on /locations/[city] when that city does not set its own
                 heading in the city edit modal.
               </p>
-            </>
+            </FieldGroup>
           ) : null}
 
           {showSeo ? (
-            <>
+            <FieldGroup title="5 · Google" hint="Not shown on the page body — browser tab and sitemap only.">
           <label className="flex items-start gap-3 text-sm text-[#1A2332] pt-1">
             <input
               type="checkbox"
@@ -570,7 +619,7 @@ export default function VarsoviaHubLandingEditor({
               setDraft((d) => ({ ...d, metaDescription }))
             }
           />
-            </>
+            </FieldGroup>
           ) : null}
         </div>
       )}

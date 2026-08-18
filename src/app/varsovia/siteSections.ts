@@ -548,7 +548,7 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
   {
     id: "projectsPage",
     title: "Showcase",
-    description: "/projects · Showcase",
+    description: "/projects · listing + mega-menu — edit on Showcase",
     group: "pages",
     icon: FolderKanban,
     stackFields: true,
@@ -558,7 +558,7 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
         label: "1 · Page hero",
         type: "section-divider",
         helpText:
-          "Default headline for the All / listing view. Per-tab titles are in Showcase projects below.",
+          "Listing headline, mega-menu copy, and sub-page taglines are on Admin → Showcase. Google fields below still apply to /projects.",
       },
       {
         key: "projectsPage.heroTitle",
@@ -858,25 +858,40 @@ function iaHubSection(
     },
   ];
 
-  if (withChildren) {
+  if (withChildren || hubKey === "interiorDesign") {
     fields.push(
       divider(
         "div_explore",
-        "4 · Explore (sub-pages list)",
-        "Heading + cards linking to each child URL under this hub.",
+        hubKey === "interiorDesign"
+          ? "4 · Explore (project catalogue)"
+          : "4 · Explore (sub-pages list)",
+        hubKey === "interiorDesign"
+          ? "Heading above the project grid on /interior-design."
+          : "Heading + cards linking to each child URL under this hub.",
       ),
       {
         key: `${prefix}.exploreTitle`,
         label: "Explore section title",
         localized: true,
-        helpText: 'Default "Explore". Shown above the sub-page cards.',
+        helpText:
+          hubKey === "interiorDesign"
+            ? 'Default "Explore". Shown above the project catalogue.'
+            : 'Default "Explore". Shown above the sub-page cards.',
       },
       {
         key: `${prefix}.exploreSubtitle`,
         label: "Explore section subtitle",
         localized: true,
-        helpText: 'Default "Choose a focus area to continue."',
+        helpText:
+          hubKey === "interiorDesign"
+            ? "Short line under the Explore heading, above the project grid."
+            : 'Default "Choose a focus area to continue."',
       },
+    );
+  }
+
+  if (withChildren) {
+    fields.push(
       {
         key: `${prefix}.children`,
         label: "Sub-pages (each card = one URL)",
@@ -913,7 +928,11 @@ function iaHubSection(
   fields.push(
     divider(
       "div_seo",
-      withChildren || hubKey === "locations" ? "6 · Google / SEO" : "4 · Google / SEO",
+      withChildren || hubKey === "locations"
+        ? "6 · Google / SEO"
+        : hubKey === "interiorDesign"
+          ? "5 · Google / SEO"
+          : "4 · Google / SEO",
       "Search listing only — keep Indexable OFF until photo + copy are final.",
     ),
     {
@@ -961,7 +980,7 @@ const SITE_SECTIONS_IA: SiteSection[] = [
   iaHubSection(
     "iaInteriorDesign",
     "Interior",
-    "/interior-design · Interior",
+    "/interior-design · banner → intro → blocks → project catalogue",
     "interiorDesign",
     LayoutGrid,
     false,

@@ -805,7 +805,7 @@
         },
         "image": "/Interior-kitchen/kitchen1.jpg",
         "imagePosition": "right",
-        "layout": "spotlight"
+        "layout": "band"
       }
     ],
     "exploreTitle": {

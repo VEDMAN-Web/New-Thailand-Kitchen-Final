@@ -250,7 +250,7 @@ function navOverlay(m: Msg, locale: "th" | "pl"): Dict {
           featuredSubtitle: showcase.navEverySpace || drop["/projects"] || "",
           sectionLabel: showcase.navByRegion || "",
           links: [
-            link("/projects", tabs.homeCase || "Home Case", showcase.categoryMeta?.homeCase?.subtitle),
+            link("/projects?tab=Home%20case", tabs.homeCase || "Home Case", showcase.categoryMeta?.homeCase?.subtitle),
             link("/projects?tab=North%20America", tabs.northAmerica, showcase.categoryMeta?.northAmerica?.subtitle),
             link("/projects?tab=South%20America", tabs.southAmerica, showcase.categoryMeta?.southAmerica?.subtitle),
             link("/projects?tab=Africa", tabs.africa, showcase.categoryMeta?.africa?.subtitle),
@@ -510,8 +510,9 @@ function siteOverlayFromMessages(m: Msg, locale: "th" | "pl"): Dict {
     projectsPage: {
       metaTitle: showcase.heroTitle || pageMeta.showcaseTitle,
       metaDescription: pageMeta.showcaseDescription,
-      heroTitle: showcase.heroTitle,
-      heroSubtitle: showcase.heroSubtitle,
+      heroTitle: showcase.categoryMeta?.all?.title || showcase.heroTitle,
+      heroSubtitle: showcase.categoryMeta?.all?.subtitle || showcase.heroSubtitle,
+      navSectionLabel: showcase.navByRegion,
     },
     aboutPageSettings: {
       metaTitle: pageMeta.aboutTitle,

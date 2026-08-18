@@ -122,9 +122,7 @@
   "sort": {
     "allOption": "ทั้งหมด",
     "newest": "ใหม่ไปเก่า",
-    "oldest": "เก่าไปใหม่",
-    "priceHigh": "ราคาสูงไปต่ำ",
-    "priceLow": "ราคาต่ำไปสูง"
+    "oldest": "เก่าไปใหม่"
   },
   "categories": {
     "all": "ทั้งหมด",

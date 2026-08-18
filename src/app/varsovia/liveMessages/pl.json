@@ -122,9 +122,7 @@
   "sort": {
     "allOption": "Wszystkie",
     "newest": "Od najnowszych",
-    "oldest": "Od najstarszych",
-    "priceHigh": "Cena: od wysokiej do niskiej",
-    "priceLow": "Cena: od niskiej do wysokiej"
+    "oldest": "Od najstarszych"
   },
   "categories": {
     "all": "Wszystkie",

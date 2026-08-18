@@ -52,6 +52,12 @@ import {
   generateBlogWithAI,
 } from "@/services/adminAPI";
 import { toPublicMediaUrl } from "@/lib/publicMediaUrl";
+import {
+  padShowcaseGallery,
+  SHOWCASE_CATEGORY_OPTIONS,
+  SHOWCASE_GALLERY_LABELS,
+  SHOWCASE_GALLERY_SLOTS,
+} from "@/lib/showcaseGallery";
 import { resolveAdminMediaPreviewUrl, resolveAdminMediaPreviewFallbacks } from "@/lib/adminMediaPreview";
 import {
   ADMIN_SECTION_EVENT,
@@ -132,6 +138,8 @@ type Field = {
   listLabels?: string[];
   /** Pad list to at least this many slots so every site image has an admin row. */
   minItems?: number;
+  /** Fixed live slots — no add / reorder (Showcase Kitchen+Bathroom gallery). */
+  fixedList?: boolean;
   iaHubKey?: string;
   /** Short help under the label for non-technical editors. */
   helpText?: string;
@@ -290,21 +298,22 @@ const CONFIGS: Record<VarsoviaResource, ResourceConfig> = {
       fallbackBadge: "Interior",
     },
     fields: [
-      { key: "title", label: "Title", localized: true, required: true },
-      { key: "description", label: "Listing Description", localized: true, type: "textarea" },
-      { key: "detailTitle", label: "Detail Page Title", localized: true },
-      { key: "detailDescription", label: "Detail Page Description", localized: true, type: "textarea" },
-      { key: "narrativeOne", label: "Detail Narrative 1", localized: true, type: "textarea" },
-      { key: "narrativeTwo", label: "Detail Narrative 2", localized: true, type: "textarea" },
-      { key: "location", label: "Location", localized: true },
-      { key: "slug", label: "Slug" },
-      { key: "coverImage", label: "Cover Image (1) — listing + detail hero", media: "image" },
+      { key: "coverImage", label: "Card / listing photo", media: "image", helpText: "Catalogue card on /interior-design and the detail-page banner." },
+      { key: "title", label: "Card title", localized: true, required: true, helpText: "Title on the catalogue card." },
+      { key: "description", label: "Card description", localized: true, type: "textarea", helpText: "Short text on the catalogue card." },
+      { key: "category", label: "Category", type: "select", options: PROJECT_CATEGORY_OPTIONS, helpText: "Filter tab on /interior-design (Kitchen, Bedroom, …)." },
+      { key: "isNew", label: "New badge on card", type: "boolean" },
+      { key: "interiorCatalog", label: "Show in Interior catalogue", type: "boolean" },
+      { key: "order", label: "Catalogue order", type: "number" },
+      VISIBLE_FIELD,
+      { key: "detailTitle", label: "Detail heading (H1)", localized: true, helpText: "Heading on /interior-design/[slug]. Blank uses the card title. Shown exactly as typed." },
+      { key: "detailDescription", label: "Detail intro", localized: true, type: "textarea", helpText: "Paragraph under the heading. Blank hides it — no placeholder copy is added." },
       {
         key: "gallery",
-        label: "Detail Gallery (slider images)",
+        label: "Detail gallery (slider)",
         type: "string-list",
         media: "image",
-        minItems: 5,
+        minItems: 0,
         listLabels: [
           "Gallery Image 1",
           "Gallery Image 2",
@@ -312,20 +321,19 @@ const CONFIGS: Record<VarsoviaResource, ResourceConfig> = {
           "Gallery Image 4",
           "Gallery Image 5",
         ],
+        helpText: "Slider under the intro. Cover photo is included automatically. Empty slots are skipped.",
       },
-      { key: "category", label: "Category", type: "select", options: PROJECT_CATEGORY_OPTIONS },
-      { key: "subcategory", label: "Subcategory" },
-      { key: "shape", label: "Shape" },
-      { key: "style", label: "Style" },
-      { key: "color", label: "Color" },
-      { key: "material", label: "Material" },
-      { key: "finish", label: "Finish" },
-      { key: "featured", label: "Featured", type: "boolean" },
-      { key: "interiorCatalog", label: "Show in Interior Catalogue", type: "boolean" },
-      { key: "isNew", label: "New", type: "boolean" },
-      { key: "price", label: "Price", type: "number" },
-      VISIBLE_FIELD,
-      { key: "order", label: "Order", type: "number" },
+      { key: "narrativeOne", label: "Detail body (first paragraph)", localized: true, type: "textarea", helpText: "First paragraph under the gallery. Blank hides it." },
+      { key: "narrativeTwo", label: "Detail body (second paragraph)", localized: true, type: "textarea", helpText: "Second paragraph under the gallery. Blank hides it." },
+      { key: "slug", label: "Slug (URL)", helpText: "Live path: /interior-design/your-slug" },
+      { key: "location", label: "Location", localized: true, helpText: "Shown under the detail heading, and on homepage Featured cards." },
+      { key: "subcategory", label: "Subcategory (filters)", helpText: "Filter chip on the catalogue (e.g. Island, Walk-in)." },
+      { key: "shape", label: "Shape (filters)" },
+      { key: "style", label: "Style (filters)" },
+      { key: "color", label: "Color (filters)" },
+      { key: "material", label: "Material (filters)" },
+      { key: "finish", label: "Finish (filters)" },
+      { key: "featured", label: "Show on homepage Featured", type: "boolean", helpText: "Also appears in Home → Featured Projects. Does not control the Interior catalogue." },
     ],
   },
   blogs: {
@@ -414,48 +422,39 @@ const CONFIGS: Record<VarsoviaResource, ResourceConfig> = {
     label: "Showcase items",
     singular: "Showcase item",
     titleKey: "title",
+    card: {
+      imageKey: "image",
+      subtitleKey: "location",
+      descriptionKey: "supplyArea",
+      searchPlaceholder: "Search showcase projects...",
+      createLabel: "Add Showcase item",
+      emptyLabel: "No showcase projects found.",
+      fallbackBadge: "Showcase",
+    },
     fields: [
-      { key: "title", label: "Title", localized: true, required: true },
-      { key: "category", label: "Region / tab category", localized: true },
+      { key: "image", label: "Cover photo", media: "image", helpText: "Listing card on /projects and the detail-page banner." },
+      { key: "title", label: "Title", localized: true, required: true, helpText: "Listing card and detail-page heading. Shown exactly as typed." },
       {
-        key: "furnitureSlug",
-        label: "Furniture category",
+        key: "category",
+        label: "Category (filter tab)",
         type: "select",
-        options: [
-          { value: "", label: "— None —" },
-          { value: "kitchens", label: "Kitchens" },
-          { value: "wardrobes", label: "Wardrobes" },
-          { value: "living-room", label: "Living Room" },
-          { value: "bedrooms", label: "Bedrooms" },
-          { value: "bathroom", label: "Bathroom" },
-          { value: "dining", label: "Dining" },
-          { value: "doors", label: "Doors" },
-          { value: "whole-house", label: "Whole House" },
-        ],
+        options: [...SHOWCASE_CATEGORY_OPTIONS],
+        helpText: "Which /projects tab this card appears under. Must be exactly one of the live tabs — All shows every tab.",
       },
-      { key: "location", label: "Location", localized: true },
-      { key: "typeLabel", label: "Type Label", localized: true },
-      { key: "typeValue", label: "Type Value", localized: true },
-      { key: "supplyArea", label: "Supply Area", localized: true },
-      { key: "image", label: "Cover Image (1) — detail hero", media: "image" },
+      { key: "location", label: "Location", localized: true, helpText: "Value under Location on the detail spec card." },
+      { key: "typeLabel", label: "Type column label", localized: true, helpText: "Middle spec-card heading. Live default is Type (or Quantity on some commercial projects)." },
+      { key: "typeValue", label: "Type column value", localized: true, helpText: "Value under that middle heading, e.g. Villa(1 Floor)." },
+      { key: "supplyArea", label: "Supply Area", localized: true, helpText: "Value under Supply Area on the detail spec card." },
       {
         key: "gallery",
-        label: "Detail Gallery — Kitchen (1–5) then Bathroom (6–10)",
+        label: "Detail gallery (Kitchen 5 + Bathroom 5)",
         type: "string-list",
         media: "image",
-        minItems: 10,
-        listLabels: [
-          "Kitchen Image 1 — hero",
-          "Kitchen Image 2 — bento",
-          "Kitchen Image 3 — bento",
-          "Kitchen Image 4 — bento",
-          "Kitchen Image 5 — bento",
-          "Bathroom Image 1 — hero",
-          "Bathroom Image 2 — bento",
-          "Bathroom Image 3 — bento",
-          "Bathroom Image 4 — bento",
-          "Bathroom Image 5 — bento",
-        ],
+        minItems: SHOWCASE_GALLERY_SLOTS,
+        fixedList: true,
+        listLabels: [...SHOWCASE_GALLERY_LABELS],
+        helpText:
+          "Same 10 photos as live /projects/[id]: Kitchen hero + 4 bento, then Bathroom hero + 4 bento. Change a slot here and that exact photo updates on the live page.",
       },
       VISIBLE_FIELD,
       { key: "order", label: "Order", type: "number" },
@@ -2399,11 +2398,7 @@ type ShowcaseDraft = {
 };
 
 function toShowcaseDraft(item?: VarsoviaRecord, index = 0): ShowcaseDraft {
-  const SHOWCASE_GALLERY_SLOTS = 10;
-  const gallery = Array.isArray(item?.gallery)
-    ? (item.gallery as unknown[]).map((url) => String(url ?? ""))
-    : [];
-  while (gallery.length < SHOWCASE_GALLERY_SLOTS) gallery.push("");
+  const image = String(item?.image ?? "");
   return {
     clientKey: item?._id || `showcase-new-${index}-${Date.now()}`,
     _id: item?._id,
@@ -2413,72 +2408,30 @@ function toShowcaseDraft(item?: VarsoviaRecord, index = 0): ShowcaseDraft {
     typeLabel: item?.typeLabel ?? emptyLocalized(),
     typeValue: item?.typeValue ?? emptyLocalized(),
     supplyArea: item?.supplyArea ?? emptyLocalized(),
-    image: String(item?.image ?? ""),
-    gallery: gallery.slice(0, Math.max(SHOWCASE_GALLERY_SLOTS, gallery.length)),
+    image,
+    gallery: padShowcaseGallery(item?.gallery, image),
     visible: item?.visible !== false,
     order: Number(item?.order ?? index) || index,
   };
 }
 
 function ShowcasesInlineEditor({ embedded = false }: { embedded?: boolean }) {
-  const SHOWCASE_META_TABS = [
-    "All",
-    "Home case",
-    "North America",
-    "South America",
-    "Africa",
-    "Commercial Project",
-    "Europe",
-    "Australia",
-    "Middle East",
-    "Asia",
-  ] as const;
-
   const [drafts, setDrafts] = useState<ShowcaseDraft[]>([]);
-  const [metaTab, setMetaTab] = useState<(typeof SHOWCASE_META_TABS)[number]>("All");
-  const [pageTitle, setPageTitle] = useState("Our Showcase");
-  const [subtitle, setSubtitle] = useState("Every Space, Every Story");
-  const [updatedLabel, setUpdatedLabel] = useState("");
-  const [siteSnapshot, setSiteSnapshot] = useState<Record<string, unknown>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [locale, setLocale] = useState<LocaleCode>("en");
 
-  const applyMetaFields = useCallback(
-    (snapshot: Record<string, unknown>, tab: string, loc: LocaleCode) => {
-      const meta = Array.isArray(snapshot.showcaseMeta)
-        ? (snapshot.showcaseMeta as Record<string, unknown>[])
-        : [];
-      const entry =
-        meta.find((row) => String(row.tabKey ?? "") === tab) ||
-        (tab === "All" ? meta[0] : undefined);
-      setPageTitle(localizedValue(entry?.title, loc) || (tab === "All" ? "Our Showcase" : tab));
-      setSubtitle(
-        localizedValue(entry?.subtitle, loc) ||
-          (tab === "All" ? "Every Space, Every Story" : "")
-      );
-    },
-    []
-  );
-
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [rows, site] = await Promise.all([
-        listVarsoviaRecords("showcases"),
-        getVarsoviaSite(),
-      ]);
-      const normalized = mergeVarsoviaSiteDefaults(normalizeRecord(site as VarsoviaRecord));
-      setSiteSnapshot(normalized);
-      applyMetaFields(normalized, metaTab, locale);
-      setUpdatedLabel(String(normalized.showcaseUpdatedLabel ?? ""));
+      const rows = await listVarsoviaRecords("showcases");
       setDrafts(rows.map((item, index) => toShowcaseDraft(item, index)));
     } catch (error) {
       toast.error(errorMessage(error));
     } finally {
       setLoading(false);
     }
-  }, [applyMetaFields, locale]); // tab switches use applyMetaFields; locale refresh reloads lists
+  }, []);
 
   useEffect(() => {
     void load();
@@ -2491,14 +2444,6 @@ function ShowcasesInlineEditor({ embedded = false }: { embedded?: boolean }) {
     window.addEventListener(CMS_SYNCED_EVENT, onSynced);
     return () => window.removeEventListener(CMS_SYNCED_EVENT, onSynced);
   }, [load]);
-
-  // When only the tab changes, refresh headings from the already-loaded snapshot
-  useEffect(() => {
-    if (!Object.keys(siteSnapshot).length) return;
-    applyMetaFields(siteSnapshot, metaTab, locale);
-    // intentionally omit locale/siteSnapshot — locale change reloads via `load`
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [metaTab]);
 
   const updateDraft = (clientKey: string, patch: Partial<ShowcaseDraft>) => {
     setDrafts((prev) =>
@@ -2535,54 +2480,17 @@ function ShowcasesInlineEditor({ embedded = false }: { embedded?: boolean }) {
   };
 
   const saveAll = async (opts?: { quiet?: boolean }) => {
-    if (!pageTitle.trim()) {
-      toast.error("Page title is required");
-      throw new Error("validation failed");
-    }
     const invalid = drafts.some(
       (draft) => !localizedValue(draft.title, "en").trim()
     );
     if (invalid) {
-      toast.error("Each section needs an English heading");
+      toast.error("Each project needs an English title");
       setLocale("en");
       throw new Error("validation failed");
     }
 
     try {
       setSaving(true);
-
-      const existingMeta = Array.isArray(siteSnapshot.showcaseMeta)
-        ? (siteSnapshot.showcaseMeta as Record<string, unknown>[])
-        : [];
-      let metaUpdated = false;
-      const nextMeta = existingMeta.map((entry) => {
-        if (String(entry.tabKey ?? "") !== metaTab) return entry;
-        metaUpdated = true;
-        return {
-          ...entry,
-          title: writeLocalizedField(entry.title, locale, pageTitle.trim()),
-          subtitle: writeLocalizedField(entry.subtitle, locale, subtitle.trim()),
-        };
-      });
-      if (!metaUpdated) {
-        nextMeta.push({
-          tabKey: metaTab,
-          title: writeLocalizedField(undefined, locale, pageTitle.trim()),
-          subtitle: writeLocalizedField(undefined, locale, subtitle.trim()),
-          order: nextMeta.length,
-        });
-      }
-
-      const latest = embedded
-        ? mergeVarsoviaSiteDefaults(
-            normalizeRecord((await getVarsoviaSite()) as VarsoviaRecord)
-          )
-        : siteSnapshot;
-      await updateVarsoviaSite({
-        ...latest,
-        showcaseMeta: nextMeta,
-        showcaseUpdatedLabel: updatedLabel,
-      });
 
       for (let index = 0; index < drafts.length; index += 1) {
         const draft = drafts[index];
@@ -2593,8 +2501,10 @@ function ShowcasesInlineEditor({ embedded = false }: { embedded?: boolean }) {
           typeLabel: draft.typeLabel,
           typeValue: draft.typeValue,
           supplyArea: draft.supplyArea,
-          image: draft.image,
-          gallery: draft.gallery,
+          image: toPublicMediaUrl(draft.image),
+          gallery: padShowcaseGallery(draft.gallery, draft.image).map((url) =>
+            toPublicMediaUrl(url)
+          ),
           visible: draft.visible !== false,
           order: index,
         };
@@ -2671,43 +2581,12 @@ function ShowcasesInlineEditor({ embedded = false }: { embedded?: boolean }) {
         </div>
 
         <label className="block text-xs font-semibold text-[#5C6370]">
-          Showcase tab headings
-          <select
-            value={metaTab}
-            onChange={(event) => {
-              const next = event.target.value as (typeof SHOWCASE_META_TABS)[number];
-              setMetaTab(next);
-              applyMetaFields(siteSnapshot, next, locale);
-            }}
-            className={fieldClass}
-          >
-            {SHOWCASE_META_TABS.map((tab) => (
-              <option key={tab} value={tab}>
-                {tab}
-              </option>
-            ))}
-          </select>
+          Showcase tab headings moved
         </label>
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <label className="block text-xs font-semibold text-[#5C6370]">
-            Page Title
-            <input
-              required
-              value={pageTitle}
-              onChange={(event) => setPageTitle(event.target.value)}
-              className={fieldClass}
-            />
-          </label>
-          <label className="block text-xs font-semibold text-[#5C6370]">
-            Subheading
-            <input
-              value={subtitle}
-              onChange={(event) => setSubtitle(event.target.value)}
-              className={fieldClass}
-            />
-          </label>
-        </div>
+        <p className="text-xs text-[#6B7280]">
+          Listing headline, mega-menu EXPLORE, and region/type taglines are on Admin →
+          Showcase (same fields as live /projects).
+        </p>
 
         <div className="pt-2">
           <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
@@ -2867,14 +2746,13 @@ function ShowcasesInlineEditor({ embedded = false }: { embedded?: boolean }) {
 
                   <div>
                     <p className="mb-1.5 text-xs font-semibold text-[#5C6370]">
-                      Detail Gallery — Kitchen Images 1–5, Bathroom Images 6–10
+                      Detail gallery — same 10 photos as live /projects/[id]
                     </p>
                     <div className="space-y-2">
                       {draft.gallery.map((url, galleryIndex) => {
                         const slotLabel =
-                          galleryIndex < 5
-                            ? `Kitchen Image ${galleryIndex + 1}${galleryIndex === 0 ? " — hero" : " — bento"}`
-                            : `Bathroom Image ${galleryIndex - 4}${galleryIndex === 5 ? " — hero" : " — bento"}`;
+                          SHOWCASE_GALLERY_LABELS[galleryIndex] ||
+                          `Gallery image ${galleryIndex + 1}`;
                         return (
                         <div key={`${draft.clientKey}-g-${galleryIndex}`} className="space-y-1">
                           <span className="block text-[11px] font-semibold uppercase tracking-wide text-[#6B7280]">
@@ -2914,18 +2792,6 @@ function ShowcasesInlineEditor({ embedded = false }: { embedded?: boolean }) {
                         </div>
                         );
                       })}
-                      <button
-                        type="button"
-                        onClick={() =>
-                          updateDraft(draft.clientKey, {
-                            gallery: [...draft.gallery, ""],
-                          })
-                        }
-                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1A2332]"
-                      >
-                        <Plus className="h-3.5 w-3.5" />
-                        Add gallery image
-                      </button>
                     </div>
                   </div>
 
@@ -3932,6 +3798,12 @@ export function ResourceManager({
               featured: homeCount < HOME_PRODUCT_LIMIT,
               order: Math.min(homeCount + 1, HOME_PRODUCT_LIMIT),
             }
+          : resource === "showcases"
+            ? {
+                category: "Home case",
+                typeLabel: { en: "Type", th: "", pl: "" },
+                gallery: Array.from({ length: SHOWCASE_GALLERY_SLOTS }, () => ""),
+              }
           : fieldsOverride
             ? { featured: true }
             : {}),
@@ -3941,6 +3813,18 @@ export function ResourceManager({
       // Existing docs may omit `visible` (treated as public). Keep checkbox truthful.
       if (next.visible === undefined) next.visible = true;
       if (resource === "core-strengths" && !next.iconKey) next.iconKey = "eye";
+      if (resource === "showcases") {
+        const image = String(next.image || "").trim();
+        if (!localizedValue(next.typeLabel)) {
+          next.typeLabel = { en: "Type", th: "", pl: "" };
+        }
+        const category = localizedValue(next.category).trim();
+        next.category =
+          SHOWCASE_CATEGORY_OPTIONS.some((option) => option.value === category)
+            ? category
+            : "Home case";
+        next.gallery = padShowcaseGallery(next.gallery, image);
+      }
       setForm(next);
     }
     setLocale("en");
@@ -3973,6 +3857,12 @@ export function ResourceManager({
     }
 
     const payload = sanitizeRecordMediaUrls(form);
+    if (resource === "showcases") {
+      payload.gallery = padShowcaseGallery(payload.gallery, payload.image).map((url) =>
+        toPublicMediaUrl(url)
+      );
+      payload.category = localizedValue(payload.category).trim() || "Home case";
+    }
 
     try {
       setSaving(true);
@@ -4346,7 +4236,9 @@ export function ResourceManager({
                           `Untitled ${config.singular}`}
                       </p>
                       <p className="mt-1 text-xs text-[#8A9099]">
-                        ID: {item._id}
+                        {localizedValue(getAtPath(item, "category")).trim() ||
+                          localizedValue(getAtPath(item, "location")).trim() ||
+                          config.singular}
                       </p>
                       <span
                         className={`mt-2 inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${
@@ -4695,9 +4587,11 @@ function FieldControl({
     const minItems = field.minItems ?? labels.length;
     const strings = items.map((item) => String(item ?? ""));
     while (strings.length < minItems) strings.push("");
+    const fixedList = field.fixedList === true;
     const canRemove = (index: number) =>
-      minItems > 0 ? strings.length > minItems : true;
+      !fixedList && (minItems > 0 ? strings.length > minItems : true);
     const moveString = (index: number, direction: -1 | 1) => {
+      if (fixedList) return;
       const target = index + direction;
       if (target < 0 || target >= strings.length) return;
       const next = [...strings];
@@ -4730,6 +4624,7 @@ function FieldControl({
                       clearable
                     />
                   </div>
+                  {fixedList ? null : (
                   <div className="pt-7">
                     <ListButtons
                       index={index}
@@ -4748,6 +4643,7 @@ function FieldControl({
                       }}
                     />
                   </div>
+                  )}
                 </div>
               ) : (
                 <>
@@ -4783,6 +4679,7 @@ function FieldControl({
                         }
                       />
                     ) : null}
+                    {fixedList ? null : (
                     <ListButtons
                       index={index}
                       length={strings.length}
@@ -4799,11 +4696,13 @@ function FieldControl({
                         onChange(strings.filter((_, i) => i !== index));
                       }}
                     />
+                    )}
                   </div>
                 </>
               )}
             </div>
           ))}
+          {fixedList ? null : (
           <button
             type="button"
             onClick={() => onChange([...strings, ""])}
@@ -4811,6 +4710,7 @@ function FieldControl({
           >
             <Plus size={14} /> Add item
           </button>
+          )}
         </div>
       </div>
     );
@@ -6616,7 +6516,11 @@ function FieldControl({
         />
       ) : field.type === "select" ? (
         <select
-          value={String(value ?? field.options?.[0]?.value ?? "")}
+          value={
+            value && typeof value === "object"
+              ? localizedValue(value)
+              : String(value ?? field.options?.[0]?.value ?? "")
+          }
           onChange={(event) => onChange(event.target.value)}
           className="w-full rounded-lg border border-[#DDE1E7] bg-white px-3.5 py-2.5 text-sm outline-none focus:border-[#1A2332]"
         >
