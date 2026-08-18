@@ -421,6 +421,11 @@ export default function AdminProductsPage() {
     [productCategoryLabels]
   );
 
+  const homeRanks = useMemo(() => {
+    const featured = items.filter((item) => item.featured);
+    return new Map(featured.slice(0, 3).map((item, index) => [item._id, index + 1]));
+  }, [items]);
+
   const filteredItems = useMemo(() => {
     const q = query.trim().toLowerCase();
     return items.filter((item) => {
@@ -453,6 +458,26 @@ export default function AdminProductsPage() {
 
   return (
     <>
+    <div className="rounded-xl border border-[#C9D9EE] bg-[#F3F7FC] px-4 py-4 mb-6 space-y-2">
+      <p className="text-sm font-semibold text-[#1A2332]">Where products show on the live site</p>
+      <ol className="list-decimal pl-4 space-y-1.5 text-[13px] leading-snug text-[#334155]">
+        <li>
+          <strong>Home → Our Products (Best Seller)</strong> — up to 3 cards. Tick “Best Seller —
+          show on homepage” below. Phone stacks them; tablet/desktop shows them side by side.
+        </li>
+        <li>
+          <strong>View Collection</strong> — opens <span className="font-mono">/products</span> with
+          every product you create here (filters, category tabs, Best Seller tab).
+        </li>
+        <li>
+          <strong>Product detail</strong> — each card also has its own page{" "}
+          <span className="font-mono">/products/[slug]</span> (gallery, features, contact form).
+        </li>
+      </ol>
+      <p className="text-[12px] text-[#5C6B7A]">
+        Adding more products fills the collection page. It does not add extra homepage cards.
+      </p>
+    </div>
     <div className="rounded-xl border border-[#E8EDF2] bg-white px-4 py-3 mb-6 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
       <div>
         <p className="text-sm font-semibold text-[#1A2332]">
@@ -462,7 +487,7 @@ export default function AdminProductsPage() {
           </span>
         </p>
         <p className="text-xs text-[#6B7280] mt-0.5">
-          Edit video banner, titles, and homepage “Our Products” band.
+          Edit the /products hero video. Homepage product images are chosen with Best Seller on each product card.
         </p>
       </div>
       <Link
@@ -548,11 +573,27 @@ export default function AdminProductsPage() {
                       localizedValue(item.productType, "en") ||
                       "—"}
                   </p>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="rounded-full bg-[#EEF2F7] px-2 py-0.5 text-xs text-[#475569]">
                       {localizedValue(item.productType, "en") || "—"}
                     </span>
-                    <span className="text-[11px] text-[#9CA3AF]">Updated recently</span>
+                    {item.featured ? (
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                          homeRanks.has(item._id)
+                            ? "bg-[#1A2332] text-white"
+                            : "bg-amber-50 text-amber-800"
+                        }`}
+                      >
+                        {homeRanks.has(item._id)
+                          ? `Homepage ${homeRanks.get(item._id)}`
+                          : "Best Seller — queued"}
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-[#F1F5F9] px-2 py-0.5 text-[11px] font-semibold text-[#64748B]">
+                        Collection only
+                      </span>
+                    )}
                   </div>
                   <p className="line-clamp-2 text-xs text-[#475569]">
                     {localizedValue(item.description, "en") || "—"}
@@ -855,13 +896,20 @@ export default function AdminProductsPage() {
                     className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
                   />
                 </label>
-                <label className="flex items-center gap-2 text-sm">
+                <label className="flex items-start gap-2 text-sm">
                   <input
                     type="checkbox"
                     checked={form.featured}
                     onChange={(e) => setForm({ ...form, featured: e.target.checked })}
+                    className="mt-0.5"
                   />
-                  Featured product
+                  <span>
+                    Best Seller — show on homepage
+                    <span className="block text-[11px] font-normal text-[#94A3B8]">
+                      Home “Our Products” shows up to 3 Best Sellers. Everything else still
+                      appears on /products.
+                    </span>
+                  </span>
                 </label>
               </div>
             ) : null}

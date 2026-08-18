@@ -91,7 +91,7 @@ const SECTION_META = [
   {
     key: "productsPage",
     title: "05 · Products Band",
-    desc: "Home “Our Products” heading + Products page hero",
+    desc: "Home “Our Products” heading — cards come from Admin → Products",
     icon: Package,
     group: "home" as SectionGroup,
   },
@@ -1506,6 +1506,11 @@ function SectionEditor({
         <div className="rounded-xl border border-[#E8EAED] bg-[#F8FAFC] p-4 space-y-3">
           <p className="text-xs font-bold uppercase tracking-wide text-[#334155]">
             Homepage “Our Products” band (scroll order 05)
+          </p>
+          <p className="text-xs leading-5 text-[#64748B]">
+            This block only edits the eyebrow, title, and “View Collection” button.
+            The 3 images come from <span className="font-semibold text-[#1A2332]">Admin → Products</span>{" "}
+            marked Best Seller. Extra products appear on <span className="font-mono">/products</span>, not on home.
           </p>
           <Field
             locale={locale}

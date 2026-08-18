@@ -217,7 +217,21 @@ const FEATURED_HOME_FIELDS: Field[] = [
   { key: "order", label: "Order", type: "number" },
 ];
 
-/** Home Our Products cards only show image + title + description + category. */
+/** Home Our Products: 3 teasers. Extra rows are a library for swapping onto those slots. */
+const HOME_PRODUCT_LIMIT = 3;
+const PRODUCT_FILTER_HOME = "Homepage (3 cards)";
+const PRODUCT_FILTER_LIBRARY = "Library (not on home)";
+
+function homepageProductRanks(items: VarsoviaRecord[]): Map<string, number> {
+  const visible = items.filter((item) => item.visible !== false);
+  const featured = visible.filter((item) => item.featured === true);
+  const source = featured.length > 0 ? featured : visible;
+  const ranked = [...source]
+    .sort((a, b) => Number(a.order ?? 0) - Number(b.order ?? 0))
+    .slice(0, HOME_PRODUCT_LIMIT);
+  return new Map(ranked.map((item, index) => [String(item._id), index + 1]));
+}
+
 const PRODUCTS_HOME_FIELDS: Field[] = [
   { key: "title", label: "Title", localized: true, required: true },
   { key: "description", label: "Description", localized: true, type: "textarea" },
@@ -226,10 +240,24 @@ const PRODUCTS_HOME_FIELDS: Field[] = [
     label: "Category",
     type: "select",
     options: PROJECT_CATEGORY_OPTIONS,
+    helpText:
+      "When a visitor clicks this home card, Interior Design opens filtered to this category.",
   },
   { key: "image", label: "Image", media: "image" },
+  {
+    key: "featured",
+    label: "Show on homepage",
+    type: "boolean",
+    helpText:
+      "Homepage shows only 3 cards. Turn this on and set Order 1, 2, or 3. Extra cards stay in this library until you swap them in.",
+  },
   VISIBLE_FIELD,
-  { key: "order", label: "Order", type: "number" },
+  {
+    key: "order",
+    label: "Homepage order",
+    type: "number",
+    helpText: "1 = left/first card, 2 = middle, 3 = right. Only the three lowest orders with Show on homepage appear.",
+  },
 ];
 
 const CONFIGS: Record<VarsoviaResource, ResourceConfig> = {
@@ -241,9 +269,9 @@ const CONFIGS: Record<VarsoviaResource, ResourceConfig> = {
       imageKey: "image",
       subtitleSuffix: "layout",
       descriptionKey: "description",
-      searchPlaceholder: "Search product inventory...",
-      createLabel: "Create Product",
-      emptyLabel: "No products found.",
+      searchPlaceholder: "Search homepage product cards...",
+      createLabel: "Add product card",
+      emptyLabel: "No product cards found.",
       fallbackBadge: "Kitchen",
     },
     fields: PRODUCTS_HOME_FIELDS,
@@ -3840,6 +3868,11 @@ export function ResourceManager({
     return () => window.removeEventListener(CMS_SYNCED_EVENT, onSynced);
   }, [load]);
 
+  const homeProductRanks = useMemo(
+    () => (resource === "products" ? homepageProductRanks(items) : new Map<string, number>()),
+    [items, resource]
+  );
+
   const cardCategories = useMemo(() => {
     if (!card) return ["All categories"];
     const set = new Set<string>();
@@ -3847,8 +3880,16 @@ export function ResourceManager({
       const category = localizedValue(getAtPath(item, "category")).trim();
       if (category) set.add(category);
     }
+    if (resource === "products") {
+      return [
+        "All categories",
+        PRODUCT_FILTER_HOME,
+        PRODUCT_FILTER_LIBRARY,
+        ...Array.from(set),
+      ];
+    }
     return ["All categories", ...Array.from(set)];
-  }, [card, items]);
+  }, [card, items, resource]);
 
   const cardItems = useMemo(() => {
     if (!card) return items;
@@ -3866,18 +3907,32 @@ export function ResourceManager({
         description.includes(q) ||
         slug.includes(q) ||
         category.toLowerCase().includes(q);
+      const onHome = homeProductRanks.has(String(item._id));
       const matchesCategory =
-        categoryFilter === "All categories" || category === categoryFilter;
+        categoryFilter === "All categories" ||
+        (categoryFilter === PRODUCT_FILTER_HOME && onHome) ||
+        (categoryFilter === PRODUCT_FILTER_LIBRARY && !onHome) ||
+        category === categoryFilter;
       return matchesQuery && matchesCategory;
     });
-  }, [card, config.titleKey, items, query, categoryFilter]);
+  }, [card, config.titleKey, items, query, categoryFilter, homeProductRanks]);
 
   const open = (item?: VarsoviaRecord) => {
     setEditing(item || null);
     if (!item) {
+      const homeCount = items.filter(
+        (row) => row.visible !== false && row.featured === true
+      ).length;
       setForm({
         visible: true,
-        ...(fieldsOverride ? { featured: true } : {}),
+        ...(resource === "products"
+          ? {
+              featured: homeCount < HOME_PRODUCT_LIMIT,
+              order: Math.min(homeCount + 1, HOME_PRODUCT_LIMIT),
+            }
+          : fieldsOverride
+            ? { featured: true }
+            : {}),
       });
     } else {
       const next = normalizeRecord(item);
@@ -4035,6 +4090,29 @@ export function ResourceManager({
     <section className={embedded ? "space-y-3" : "space-y-5"}>
       {card ? (
         <>
+          {resource === "products" ? (
+            <div className="rounded-xl border border-[#C9D9EE] bg-[#F3F7FC] p-4 text-[#1A2332]">
+              <p className="text-sm font-semibold">Where this shows on the live site</p>
+              <p className="mt-1 text-[12px] text-[#5C6B7A]">
+                {homeProductRanks.size} of {HOME_PRODUCT_LIMIT} homepage slots filled.
+              </p>
+              <ol className="mt-2 list-decimal space-y-1.5 pl-4 text-[13px] leading-snug text-[#334155]">
+                <li>
+                  <strong>Home → Our Products</strong> — exactly 3 cards (1 on phones, 2 on
+                  tablets, 3 on desktop). Turn on “Show on homepage” and set order 1–3.
+                </li>
+                <li>
+                  <strong>Card click</strong> — opens Interior Design filtered by that card’s
+                  category (Kitchen, Bedroom, …).
+                </li>
+                <li>
+                  <strong>Section button</strong> (Explore More) — opens the Interior Design
+                  catalogue. Extra cards here are a swap library only; there is no separate
+                  products listing page.
+                </li>
+              </ol>
+            </div>
+          ) : null}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-3">
               <div className="relative w-[270px]">
@@ -4113,6 +4191,7 @@ export function ResourceManager({
                   const image = String(
                     getAtPath(item, card.imageKey) ?? ""
                   ).trim();
+                  const homeRank = homeProductRanks.get(String(item._id));
                   return (
                     <article
                       key={item._id}
@@ -4153,7 +4232,7 @@ export function ResourceManager({
                         <p className="line-clamp-1 text-sm text-[#64748B]">
                           {subtitle || "—"}
                         </p>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <span className="rounded-full bg-[#EEF2F7] px-2 py-0.5 text-xs text-[#475569]">
                             {category || "—"}
                           </span>
@@ -4166,6 +4245,23 @@ export function ResourceManager({
                           >
                             {item.visible === false ? "Hidden" : "Visible"}
                           </span>
+                          {resource === "products" ? (
+                            <span
+                              className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                                homeRank
+                                  ? "bg-[#1A2332] text-white"
+                                  : item.featured === true
+                                    ? "bg-amber-50 text-amber-800"
+                                    : "bg-[#F1F5F9] text-[#64748B]"
+                              }`}
+                            >
+                              {homeRank
+                                ? `Homepage ${homeRank}`
+                                : item.featured === true
+                                  ? "Queued — not in top 3"
+                                  : "Library — not on home"}
+                            </span>
+                          ) : null}
                         </div>
                         <p className="line-clamp-2 text-xs text-[#475569]">
                           {description || "—"}
