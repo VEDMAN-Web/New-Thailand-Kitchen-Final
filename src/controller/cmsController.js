@@ -546,12 +546,11 @@ const {
   asLocalized: asLocalizedRaw,
   mergeLocalized,
   L,
-  fillEmptyLocalesFromEn,
 } = require("../utils/localized");
 
-/** Persist EN into empty TH/PL so language tabs never save as blank. */
+/** Persist locale maps without copying English into empty Thai/Polish. */
 function asLocalized(value, fallbackEn = "") {
-  return fillEmptyLocalesFromEn(asLocalizedRaw(value, fallbackEn));
+  return asLocalizedRaw(value, fallbackEn);
 }
 
 function asFeatureHighlights(value) {
@@ -581,7 +580,7 @@ function normalizeContentSections(sections) {
   if (!Array.isArray(sections)) return [];
   return sections.map((block) => ({
     heading: asLocalized(block?.heading),
-    body: asLocalized(block?.body),
+    body: asLocalized(block?.body ?? block?.text),
     image: sanitizeMediaUrl(block?.image),
     layout: String(block?.layout || "image-left").trim(),
   }));

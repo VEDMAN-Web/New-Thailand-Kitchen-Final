@@ -9,11 +9,10 @@ function asLocalized(value, fallbackEn = "") {
     const hasLocaleKey =
       "en" in value || "th" in value || "pl" in value;
     if (hasLocaleKey) {
-      return {
-        en: String(value.en ?? "").trim() || fb,
-        th: String(value.th ?? "").trim(),
-        pl: String(value.pl ?? "").trim(),
-      };
+      const en = String(value.en ?? "").trim() || fb;
+      const th = String(value.th ?? "").trim();
+      const pl = String(value.pl ?? "").trim();
+      return { en, th, pl };
     }
   }
   if (typeof value === "string" && value.trim()) {
@@ -49,10 +48,16 @@ function mergeLocalizedFillEmpty(current, fallback) {
   const fb = asLocalized(fallback);
   const cur = asLocalized(current);
   if (!cur.en && !cur.th && !cur.pl) return fb;
+  const take = (loc) => {
+    const saved = String(cur[loc] || "").trim();
+    const seed = String(fb[loc] || "").trim();
+    if (saved && saved !== cur.en) return saved;
+    return seed || saved;
+  };
   return {
     en: cur.en || fb.en,
-    th: cur.th || fb.th,
-    pl: cur.pl || fb.pl,
+    th: take("th"),
+    pl: take("pl"),
   };
 }
 
@@ -79,13 +84,9 @@ function localizedString(value, locale = "en") {
 }
 
 function fillEmptyLocalesFromEn(value) {
-  const cur = asLocalized(value);
-  if (!cur.en && !cur.th && !cur.pl) return cur;
-  return {
-    en: cur.en,
-    th: cur.th || cur.en,
-    pl: cur.pl || cur.en,
-  };
+  // Empty th/pl must stay empty so admin tabs and live /th /pl stay independent.
+  // Public reads fall back to English at render time when a locale is blank.
+  return asLocalized(value);
 }
 
 /** True if any locale has text (or legacy string). */

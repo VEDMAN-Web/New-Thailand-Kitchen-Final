@@ -28,6 +28,7 @@ const LANDING_CATEGORY_TYPES = [
   "service",
   "material",
   "built-in-furniture",
+  "location",
 ];
 
 async function seedEmptyCategoryLandingSections(siteId) {
