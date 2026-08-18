@@ -1,3 +1,4 @@
+import { isLocaleMap, mergeLocaleMapsFillLive } from "@/lib/localized";
 import { DEFAULT_IA_PAGES } from "./iaPagesDefaults";
 import pageCmsDefaults from "./pageCmsDefaults.json";
 
@@ -755,6 +756,15 @@ export function mergeVarsoviaSiteDefaults(
 
     if (isBlank(currentValue)) {
       merged[key] = structuredClone(defaultValue);
+      continue;
+    }
+
+    if (
+      typeof currentValue === "string" &&
+      currentValue.trim() &&
+      isLocaleMap(defaultValue)
+    ) {
+      merged[key] = mergeLocaleMapsFillLive(currentValue, defaultValue);
       continue;
     }
 

@@ -1,0 +1,145 @@
+/**
+ * Fill blank IA hub/child CMS fields from the live-site seed so the admin
+ * panel mirrors /furniture, /locations/[city], etc. after Sync from DB.
+ * Never overwrites copy that already exists in Mongo.
+ * Sync fills each language tab from the live seed (including copy that is
+ * still English on /th and /pl) so the panel matches the public site.
+ */
+import { isLocaleMap, mergeLocaleMapsFillLive } from "@/lib/localized";
+import LIVE_IA_PAGES from "./iaPagesSeed.json";
+
+type Dict = Record<string, unknown>;
+
+function isBlank(value: unknown): boolean {
+  if (value === undefined || value === null) return true;
+  if (typeof value === "string") return value.trim() === "";
+  if (Array.isArray(value)) return value.length === 0;
+  if (typeof value === "object") {
+    const values = Object.values(value as Dict);
+    return values.length === 0 || values.every(isBlank);
+  }
+  return false;
+}
+
+function clone<T>(value: T): T {
+  return structuredClone(value);
+}
+
+function sectionHasContent(section: unknown): boolean {
+  if (!section || typeof section !== "object") return false;
+  const row = section as Dict;
+  return !isBlank(row.heading) || !isBlank(row.text) || !isBlank(row.body) || !isBlank(row.image);
+}
+
+function mergeObject(current: unknown, defaults: unknown): unknown {
+  if (isLocaleMap(current) || isLocaleMap(defaults)) {
+    return mergeLocaleMapsFillLive(current, defaults);
+  }
+  if (isBlank(current)) return clone(defaults);
+  if (
+    current &&
+    defaults &&
+    typeof current === "object" &&
+    typeof defaults === "object" &&
+    !Array.isArray(current) &&
+    !Array.isArray(defaults)
+  ) {
+    const out: Dict = { ...(current as Dict) };
+    for (const [key, defaultValue] of Object.entries(defaults as Dict)) {
+      out[key] = mergeObject(out[key], defaultValue);
+    }
+    return out;
+  }
+  return current;
+}
+
+function mergeSections(saved: unknown, defaults: unknown): unknown[] {
+  const fallback = Array.isArray(defaults) ? clone(defaults) : [];
+  if (!Array.isArray(saved) || saved.length === 0) return fallback;
+  if (!saved.some(sectionHasContent)) return fallback;
+  return saved.map((block, index) => {
+    const def = Array.isArray(defaults) ? defaults[index] : undefined;
+    if (!sectionHasContent(block) && def) return clone(def);
+    const row = block && typeof block === "object" ? { ...(block as Dict) } : {};
+    if (isBlank(row.text) && !isBlank(row.body)) row.text = row.body;
+    return row;
+  });
+}
+
+function mergeChild(saved: unknown, defaults: unknown): Dict {
+  const s = saved && typeof saved === "object" ? (saved as Dict) : {};
+  const d = defaults && typeof defaults === "object" ? (defaults as Dict) : {};
+  const out = mergeObject(s, d) as Dict;
+  out.slug = String(s.slug || d.slug || "");
+  out.hero = mergeObject(s.hero, d.hero);
+  out.sections = mergeSections(s.sections, d.sections);
+  out.indexable = s.indexable === true;
+  out.order = s.order ?? d.order ?? 0;
+  if (Array.isArray(s.locationSlugs) && s.locationSlugs.length) {
+    out.locationSlugs = s.locationSlugs;
+  } else if (Array.isArray(d.locationSlugs)) {
+    out.locationSlugs = clone(d.locationSlugs);
+  }
+  return out;
+}
+
+function mergeHub(saved: unknown, defaults: unknown): Dict {
+  const s = saved && typeof saved === "object" ? (saved as Dict) : {};
+  const d = defaults && typeof defaults === "object" ? (defaults as Dict) : {};
+  const { children: _sc, ...savedRest } = s;
+  const { children: defChildren, ...defRest } = d;
+  const out = mergeObject(savedRest, defRest) as Dict;
+  out.slug = String(d.slug || s.slug || "");
+  out.hero = mergeObject(s.hero, d.hero);
+  out.sections = mergeSections(s.sections, d.sections);
+  out.indexable = s.indexable === true;
+
+  const savedChildren = Array.isArray(s.children) ? s.children : [];
+  const defaultChildren = Array.isArray(defChildren) ? defChildren : [];
+  const bySlug = new Map(
+    savedChildren
+      .filter((c) => c && typeof c === "object" && typeof (c as Dict).slug === "string")
+      .map((c) => [String((c as Dict).slug), c])
+  );
+  const children = defaultChildren.map((defChild) => {
+    const def = defChild && typeof defChild === "object" ? (defChild as Dict) : {};
+    return mergeChild(bySlug.get(String(def.slug || "")), def);
+  });
+  for (const extra of savedChildren) {
+    const slug =
+      extra && typeof extra === "object" ? String((extra as Dict).slug || "") : "";
+    if (slug && !children.some((c) => c.slug === slug)) {
+      children.push(mergeChild(extra, { slug }));
+    }
+  }
+  out.children = children;
+  return out;
+}
+
+const LIVE_DEFAULTS = LIVE_IA_PAGES as Record<string, unknown>;
+
+/** Deep-fill `site.pages` from live IA seed. Existing CMS copy wins. */
+export function mergeIaPagesFromLiveSite(pages: unknown): Record<string, unknown> {
+  const current = pages && typeof pages === "object" ? (pages as Record<string, unknown>) : {};
+  const out: Record<string, unknown> = { ...current };
+  for (const [hubKey, defHub] of Object.entries(LIVE_DEFAULTS)) {
+    out[hubKey] = mergeHub(current[hubKey], defHub);
+  }
+  return out;
+}
+
+export function liveChildDefault(hubKey: string, slug: string): Dict | null {
+  const hub = LIVE_DEFAULTS[hubKey];
+  if (!hub || typeof hub !== "object") return null;
+  const kids = (hub as Dict).children;
+  if (!Array.isArray(kids)) return null;
+  const found = kids.find(
+    (c) => c && typeof c === "object" && String((c as Dict).slug) === slug
+  );
+  return found && typeof found === "object" ? (found as Dict) : null;
+}
+
+export function liveHubDefault(hubKey: string): Dict | null {
+  const hub = LIVE_DEFAULTS[hubKey];
+  return hub && typeof hub === "object" ? (hub as Dict) : null;
+}

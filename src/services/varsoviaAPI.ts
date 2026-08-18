@@ -121,7 +121,10 @@ const SITE_UPDATE_KEYS = [
   "heroPrimaryCtaHref",
   "heroSecondaryCtaHref",
   "aboutTitle",
+  "aboutSubtitle",
   "aboutText",
+  "aboutCtaLabel",
+  "aboutCtaHref",
   "aboutIntro",
   "aboutStory",
   "aboutHeroTitle",
@@ -174,6 +177,23 @@ const SITE_UPDATE_KEYS = [
   "pages",
 ] as const;
 
+function unwrapToString(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const map = value as Record<string, unknown>;
+    const en = typeof map.en === "string" ? map.en.trim() : "";
+    const th = typeof map.th === "string" ? map.th.trim() : "";
+    const pl = typeof map.pl === "string" ? map.pl.trim() : "";
+    return en || th || pl;
+  }
+  return "";
+}
+
+function unwrapStringList(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  return value.map((item) => unwrapToString(item));
+}
+
 export function pickVarsoviaSiteUpdate(body: Record<string, unknown>) {
   const out: Record<string, unknown> = {};
   for (const key of SITE_UPDATE_KEYS) {
@@ -191,6 +211,16 @@ export function pickVarsoviaSiteUpdate(body: Record<string, unknown>) {
       const { image: _image, ...rest } = step;
       return { ...rest, icon };
     });
+  }
+  for (const key of ["aboutImages", "aboutStoryImages", "contactImages"] as const) {
+    const list = unwrapStringList(out[key]);
+    if (list) out[key] = list;
+  }
+  if (Array.isArray(out.footerOffices)) {
+    out.footerOffices = (out.footerOffices as Record<string, unknown>[]).map((office) => ({
+      ...office,
+      address: unwrapToString(office.address),
+    }));
   }
   // Empty email fails Zod .email() — omit blank
   if (typeof out.email === "string" && !out.email.trim()) {
@@ -219,8 +249,13 @@ export type VarsoviaSyncReport = {
   };
 };
 
-function loc(en: string) {
-  return { en, th: en, pl: en };
+function loc(en: string, th = "", pl = "") {
+  const english = String(en || "").trim();
+  return {
+    en: english,
+    th: String(th || "").trim() || english,
+    pl: String(pl || "").trim() || english,
+  };
 }
 
 function blogTitleEn(item: VarsoviaRecord): string {
@@ -252,25 +287,48 @@ async function syncJournalArticlesMirror(): Promise<{
     if (key) byTitle.set(key, row);
   }
 
+  const { journalLocalePack } = await import("@/app/varsovia/liveLocaleOverlay");
+
   const keepTitles = new Set<string>();
   let upserted = 0;
 
   for (const seed of JOURNAL_ARTICLE_SEEDS) {
     const titleKey = seed.title.trim().toLowerCase();
     keepTitles.add(titleKey);
+    const pack = journalLocalePack(seed.seedKey);
     const payload = {
-      title: loc(seed.title),
-      excerpt: loc(seed.excerpt),
-      content: loc(seed.excerpt),
-      category: seed.category,
+      title: loc(seed.title, String(pack.th?.title || ""), String(pack.pl?.title || "")),
+      excerpt: loc(
+        seed.excerpt,
+        String(pack.th?.excerpt || ""),
+        String(pack.pl?.excerpt || "")
+      ),
+      content: loc(
+        seed.excerpt,
+        String(pack.th?.excerpt || ""),
+        String(pack.pl?.excerpt || "")
+      ),
+      category: loc(
+        seed.category,
+        String(pack.th?.category || ""),
+        String(pack.pl?.category || "")
+      ),
       date: seed.date,
       readTime: loc(seed.readTime),
       image: seed.image,
       author: { name: loc(seed.author), avatar: "" },
       sections: [
         {
-          heading: loc(seed.title),
-          text: loc(seed.excerpt),
+          heading: loc(
+            seed.title,
+            String(pack.th?.title || ""),
+            String(pack.pl?.title || "")
+          ),
+          text: loc(
+            seed.excerpt,
+            String(pack.th?.excerpt || ""),
+            String(pack.pl?.excerpt || "")
+          ),
           image: seed.image,
         },
       ],
@@ -343,57 +401,53 @@ function mergeJournalHub(
   return out;
 }
 
-/**
- * Safe Varsovia sync against the API currently configured (VARSOVIA_API_URL).
- * Fills blank site fields from defaults; Journal articles are mirrored to the
- * live /journal set (upsert + delete extras).
- */
+export async function hydrateVarsoviaSiteDocument(
+  site: Record<string, unknown>
+): Promise<{
+  site: Record<string, unknown>;
+  filled: number;
+}> {
+  const { mergeVarsoviaSiteDefaults } = await import("@/app/varsovia/siteDefaults");
+  const { mergeIaPagesFromLiveSite } = await import("@/app/varsovia/mergeIaPages");
+  const { buildVarsoviaLiveOverlays } = await import("@/app/varsovia/liveLocaleOverlay");
+  const { hydrateCmsFromLiveLocales, countFilledLocaleFields } = await import(
+    "@/lib/hydrateLiveLocales"
+  );
+
+  let merged = mergeVarsoviaSiteDefaults({ ...site });
+  merged = {
+    ...merged,
+    pages: mergeIaPagesFromLiveSite(merged.pages),
+  };
+  const overlays = buildVarsoviaLiveOverlays();
+  const hydrated = hydrateCmsFromLiveLocales(merged, overlays, {
+    fillFromEnglish: true,
+  });
+  return {
+    site: hydrated,
+    filled: countFilledLocaleFields(
+      pickVarsoviaSiteUpdate(site),
+      pickVarsoviaSiteUpdate(hydrated)
+    ),
+  };
+}
 export async function syncVarsoviaFromDb(): Promise<{
   success: boolean;
   message: string;
   report: VarsoviaSyncReport;
 }> {
-  const { mergeVarsoviaSiteDefaults } = await import(
-    "@/app/varsovia/siteDefaults"
+  const { faqTranslatedRow } = await import("@/app/varsovia/liveLocaleOverlay");
+  const { hydrateCmsFromLiveLocales, countFilledLocaleFields } = await import(
+    "@/lib/hydrateLiveLocales"
   );
-  const { DEFAULT_IA_PAGES } = await import("@/app/varsovia/iaPagesDefaults");
 
   const loaded = await getVarsoviaSite();
-  const beforePayload = JSON.stringify(pickVarsoviaSiteUpdate(loaded));
-  let merged = mergeVarsoviaSiteDefaults({ ...loaded });
-
-  // Deep-fill Journal hub so admin matches live /journal sections
-  const pages = {
-    ...((merged.pages as Record<string, unknown>) || {}),
-  };
-  pages.journal = mergeJournalHub(
-    pages.journal as Record<string, unknown> | undefined,
-    DEFAULT_IA_PAGES.journal as unknown as Record<string, unknown>
-  );
-  merged = { ...merged, pages };
-
-  const afterPayload = JSON.stringify(pickVarsoviaSiteUpdate(merged));
+  const { site: merged, filled: overlayFilled } = await hydrateVarsoviaSiteDocument(loaded);
 
   let siteUpdated = false;
-  let filledSiteKeys = 0;
-  if (beforePayload !== afterPayload) {
-    const before = pickVarsoviaSiteUpdate(loaded);
-    const after = pickVarsoviaSiteUpdate(merged);
-    for (const key of Object.keys(after)) {
-      const b = before[key];
-      const a = after[key];
-      const blankBefore =
-        b === undefined ||
-        b === null ||
-        (typeof b === "string" && !b.trim()) ||
-        (Array.isArray(b) && b.length === 0);
-      if (blankBefore && JSON.stringify(b) !== JSON.stringify(a)) {
-        filledSiteKeys += 1;
-      }
-    }
-    await updateVarsoviaSite(merged);
-    siteUpdated = true;
-  }
+  let filledSiteKeys = overlayFilled;
+  await updateVarsoviaSite(merged);
+  siteUpdated = true;
 
   let journalSync: VarsoviaSyncReport["journalSync"];
   try {
@@ -426,8 +480,52 @@ export async function syncVarsoviaFromDb(): Promise<{
       try {
         const items = await listVarsoviaRecords(resource);
         resources[resource] = items.length;
+        await Promise.all(
+          items.map(async (item, itemIndex) => {
+            if (!item?._id) return;
+            let next = hydrateCmsFromLiveLocales(item, {}, { fillFromEnglish: true });
+            if (resource === "faqs") {
+              const category =
+                typeof item.category === "object" && item.category
+                  ? String((item.category as { en?: string }).en || "")
+                  : String(item.category || "");
+              const idx = items
+                .slice(0, itemIndex)
+                .filter((row) => {
+                  const other =
+                    typeof row.category === "object" && row.category
+                      ? String((row.category as { en?: string }).en || "")
+                      : String(row.category || "");
+                  return other === category;
+                }).length;
+              const thFaq = faqTranslatedRow(category, idx, "th");
+              const plFaq = faqTranslatedRow(category, idx, "pl");
+              next = hydrateCmsFromLiveLocales(
+                next,
+                {
+                  th: {
+                    question: thFaq?.question,
+                    answer: thFaq?.answer,
+                  },
+                  pl: {
+                    question: plFaq?.question,
+                    answer: plFaq?.answer,
+                  },
+                },
+                { fillFromEnglish: true }
+              );
+            }
+            const filled = countFilledLocaleFields(item, next);
+            if (!filled) return;
+            const { _id, __v, createdAt, updatedAt, ...body } = next as Record<
+              string, unknown
+            >;
+            await updateVarsoviaRecord(resource, String(item._id), body);
+            filledSiteKeys += filled;
+          })
+        );
       } catch {
-        resources[resource] = -1;
+        resources[resource] = resources[resource] ?? -1;
       }
     })
   );
@@ -449,7 +547,7 @@ export async function syncVarsoviaFromDb(): Promise<{
 
   return {
     success: true,
-    message: `Synced from Varsovia DB. Journal articles: ${journalSync?.total ?? 0} live (${journalSync?.deleted ?? 0} extras removed).`,
+    message: `Synced from Varsovia DB. Filled ${filledSiteKeys} language fields across EN / TH / PL. Journal articles: ${journalSync?.total ?? 0} (${journalSync?.deleted ?? 0} extras removed).`,
     report: {
       database,
       host,
@@ -545,18 +643,7 @@ export async function uploadVarsoviaMedia(
   };
 }
 
-export function localizedValue(
-  value: unknown,
-  locale: LocaleCode = "en"
-) {
-  if (typeof value === "string") return value;
-  if (value && typeof value === "object") {
-    const localized = value as Partial<Record<LocaleCode, unknown>>;
-    const resolved = localized[locale] ?? localized.en;
-    return typeof resolved === "string" ? resolved : "";
-  }
-  return "";
-}
+export { localizedValue } from "@/lib/localized";
 
 /** Prefer envelope `error.message`, then legacy shapes. */
 export function varsoviaErrorMessage(error: unknown, fallback = "Request failed") {

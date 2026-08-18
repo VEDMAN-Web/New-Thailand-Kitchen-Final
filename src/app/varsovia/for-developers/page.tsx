@@ -19,6 +19,7 @@ import {
   varsoviaErrorMessage,
 } from "@/services/varsoviaAPI";
 import { IA_HUB_PATHS } from "@/app/varsovia/iaPagesDefaults";
+import { mergeIaPagesFromLiveSite } from "@/app/varsovia/mergeIaPages";
 
 const HUB_KEY = "forDevelopers";
 
@@ -92,9 +93,9 @@ export default function VarsoviaForDevelopersPage() {
     setLoading(true);
     try {
       const site = await getVarsoviaSite();
-      const allPages = (site.pages || {}) as Record<string, Record<string, unknown>>;
+      const allPages = mergeIaPagesFromLiveSite(site.pages);
       setPages(allPages);
-      const hub = allPages[HUB_KEY] || {};
+      const hub = (allPages[HUB_KEY] || {}) as Record<string, unknown>;
       const list = Array.isArray(hub.children) ? (hub.children as IaChildRow[]) : [];
       setChildren(
         [...list].sort(
@@ -365,6 +366,7 @@ export default function VarsoviaForDevelopersPage() {
               }}
               locale={locale}
               hubKey={HUB_KEY}
+              embedded
             />
 
             <div className="flex justify-end gap-2 pt-2">

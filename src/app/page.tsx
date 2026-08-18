@@ -39,6 +39,7 @@ import {
 import { clsx } from "clsx";
 import LocaleTabs from "@/components/LocaleTabs";
 import {
+  localeFieldPlaceholder,
   localizedValue,
   writeLocalized,
   type LocaleCode,
@@ -232,6 +233,7 @@ function Field({
         <textarea
           rows={4}
           value={display}
+          placeholder={useLocale ? localeFieldPlaceholder(locale!) : undefined}
           onChange={(e) => handle(e.target.value)}
           className={cls + " resize-y"}
         />
@@ -242,6 +244,7 @@ function Field({
           pattern={numeric ? "[0-9]*" : undefined}
           autoComplete={numeric ? "off" : undefined}
           value={display}
+          placeholder={useLocale ? localeFieldPlaceholder(locale!) : undefined}
           onChange={(e) => handle(e.target.value)}
           className={
             numericError

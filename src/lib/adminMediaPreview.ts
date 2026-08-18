@@ -5,6 +5,8 @@
 import {
   aliasVarsoviaMediaPath,
   isVarsoviaPublicAssetPath,
+  varsoviaMediaPathCandidates,
+  varsoviaRemotePreviewUrl,
   VARSOVIA_STATIC_PREFIX,
 } from "./varsoviaMediaAliases";
 
@@ -302,19 +304,29 @@ export function resolveAdminMediaPreviewFallbacks(url: string): string[] {
 
   const seen = new Set<string>();
   const out: string[] = [];
-  for (const candidate of [
-    primary,
-    path,
-    isVarsoviaPublicAssetPath(path) ? withVarsoviaStatic(path) : "",
-    isVarsoviaPublicAssetPath(path)
-      ? `${varsoviaFrontendOrigin()}${path}`
-      : `${publicFrontendOrigin()}${path}`,
-  ]) {
+  const push = (candidate: string) => {
     if (candidate && !seen.has(candidate)) {
       seen.add(candidate);
       out.push(candidate);
     }
+  };
+
+  push(primary);
+  for (const candidate of varsoviaMediaPathCandidates(path)) {
+    const encoded = encodeMediaPath(candidate);
+    if (isVarsoviaPublicAssetPath(encoded)) {
+      push(withVarsoviaStatic(encoded));
+      push(`${varsoviaFrontendOrigin()}${encoded}`);
+    } else {
+      push(encoded);
+      push(`${publicFrontendOrigin()}${encoded}`);
+    }
   }
+  push(path);
+  if (path.startsWith("/uploads/")) {
+    push(`${publicFrontendOrigin()}${path}`);
+  }
+  push(varsoviaRemotePreviewUrl(path));
   return out;
 }
 

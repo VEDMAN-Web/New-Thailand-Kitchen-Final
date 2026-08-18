@@ -19,6 +19,7 @@ import {
   varsoviaErrorMessage,
 } from "@/services/varsoviaAPI";
 import { IA_HUB_PATHS } from "@/app/varsovia/iaPagesDefaults";
+import { mergeIaPagesFromLiveSite } from "@/app/varsovia/mergeIaPages";
 
 const HUB_KEY = "locations";
 
@@ -29,6 +30,8 @@ type IaChildRow = {
   metaDescription?: unknown;
   body?: unknown;
   relatedTitle?: unknown;
+  servicesTitle?: unknown;
+  servicesSubtitle?: unknown;
   indexable?: boolean;
   order?: number;
   sections?: unknown[];
@@ -66,10 +69,17 @@ function emptyChild(order: number): IaChildRow {
       title: emptyLocalized(),
       subtitle: emptyLocalized(),
       image: "",
-      ctaLabel: emptyLocalized(),
-      ctaHref: "",
+      ctaLabel: { en: "Get a consultation", th: "", pl: "" },
+      ctaHref: "/contact",
     },
     body: emptyLocalized(),
+    servicesTitle: { en: "Services in this location", th: "", pl: "" },
+    servicesSubtitle: {
+      en: "How we support homes and projects here.",
+      th: "",
+      pl: "",
+    },
+    relatedTitle: emptyLocalized(),
     indexable: false,
     order,
     sections: [],
@@ -92,9 +102,9 @@ export default function VarsoviaLocationsPage() {
     setLoading(true);
     try {
       const site = await getVarsoviaSite();
-      const allPages = (site.pages || {}) as Record<string, Record<string, unknown>>;
+      const allPages = mergeIaPagesFromLiveSite(site.pages);
       setPages(allPages);
-      const hub = allPages[HUB_KEY] || {};
+      const hub = (allPages[HUB_KEY] || {}) as Record<string, unknown>;
       const list = Array.isArray(hub.children) ? (hub.children as IaChildRow[]) : [];
       setChildren(
         [...list].sort(
@@ -164,8 +174,22 @@ export default function VarsoviaLocationsPage() {
 
   const openEdit = (index: number) => {
     const item = children[index];
+    const copy = JSON.parse(JSON.stringify(item)) as IaChildRow;
+    if (!localizedValue(copy.servicesTitle, "en").trim()) {
+      copy.servicesTitle = { en: "Services in this location", th: "", pl: "" };
+    }
+    if (!localizedValue(copy.servicesSubtitle, "en").trim()) {
+      copy.servicesSubtitle = {
+        en: "How we support homes and projects here.",
+        th: "",
+        pl: "",
+      };
+    }
+    if (!String(copy.hero?.ctaHref || "").trim()) {
+      copy.hero = { ...(copy.hero || {}), ctaHref: "/contact" };
+    }
     setDraftSlug(item.slug || "");
-    setDraftChild(JSON.parse(JSON.stringify(item)) as IaChildRow);
+    setDraftChild(copy);
     setEditIndex(index);
     setLocale("en");
     setModal("edit");
@@ -311,7 +335,7 @@ export default function VarsoviaLocationsPage() {
           >
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-lg font-semibold text-[#1A2332]">
-                {modal === "create" ? "Add Locations sub-page" : "Edit Locations sub-page"}
+                {modal === "create" ? "Add city page" : "Edit city page"}
               </h2>
               <button type="button" onClick={() => setModal(null)}>
                 <X className="w-5 h-5 text-[#6B7280]" />
@@ -365,6 +389,7 @@ export default function VarsoviaLocationsPage() {
               }}
               locale={locale}
               hubKey={HUB_KEY}
+              embedded
             />
 
             <div className="flex justify-end gap-2 pt-2">

@@ -5,6 +5,7 @@ import { uploadVarsoviaMedia } from "@/services/varsoviaAPI";
 import {
   asLocalizedForm,
   emptyLocalized,
+  localeFieldPlaceholder,
   localizedValue,
   writeLocalized,
   type LocaleCode,
@@ -19,6 +20,8 @@ type IaChildRow = {
   metaDescription?: unknown;
   body?: unknown;
   relatedTitle?: unknown;
+  servicesTitle?: unknown;
+  servicesSubtitle?: unknown;
   indexable?: boolean;
   order?: number;
   locationSlugs?: string[];
@@ -71,11 +74,14 @@ export default function IaChildrenListEditor({
   onChange,
   locale,
   hubKey,
+  embedded = false,
 }: {
   value: unknown;
   onChange: (next: IaChildRow[]) => void;
   locale: LocaleCode;
   hubKey: string;
+  /** Hide list chrome when this editor is used inside a single-page modal. */
+  embedded?: boolean;
 }) {
   const items: IaChildRow[] = Array.isArray(value) ? (value as IaChildRow[]) : [];
 
@@ -104,19 +110,26 @@ export default function IaChildrenListEditor({
     );
   }
 
+  const isLocation = hubKey === "locations";
+
   return (
     <div className="md:col-span-2 space-y-4">
-      <div className="rounded-lg border border-[#E8EDF2] bg-white px-4 py-3 text-sm text-[#4B5563]">
-        <p className="font-semibold text-[#1A2332]">Sub-pages = live URLs</p>
-        <p className="mt-1 text-xs leading-relaxed">
-          Field order matches the live page: banner → intro → content blocks → related heading → SEO.
-          Use ↑↓ to reorder Explore cards. Indexable OFF until photo + copy are final.
-        </p>
-      </div>
-
-      <p className="text-xs font-semibold uppercase tracking-wide text-[#5C6370]">
-        Sub-pages ({items.length})
-      </p>
+      {embedded ? null : (
+        <>
+          <div className="rounded-lg border border-[#E8EDF2] bg-white px-4 py-3 text-sm text-[#4B5563]">
+            <p className="font-semibold text-[#1A2332]">Sub-pages = live URLs</p>
+            <p className="mt-1 text-xs leading-relaxed">
+              {isLocation
+                ? "Field order matches the live city page: banner → intro → content blocks → services list → related projects → SEO."
+                : "Field order matches the live page: banner → intro → content blocks → related heading → SEO."}{" "}
+              Use ↑↓ to reorder Explore cards. Indexable OFF until photo + copy are final.
+            </p>
+          </div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-[#5C6370]">
+            Sub-pages ({items.length})
+          </p>
+        </>
+      )}
 
       {items.map((item, index) => {
         const title = asLoc(item.title);
@@ -124,6 +137,8 @@ export default function IaChildrenListEditor({
         const metaDescription = asLoc(item.metaDescription);
         const body = asLoc(item.body);
         const relatedTitle = asLoc(item.relatedTitle);
+        const servicesTitle = asLoc(item.servicesTitle);
+        const servicesSubtitle = asLoc(item.servicesSubtitle);
         const heroEyebrow = asLoc(item.hero?.eyebrow);
         const heroTitle = asLoc(item.hero?.title);
         const heroSubtitle = asLoc(item.hero?.subtitle);
@@ -141,22 +156,26 @@ export default function IaChildrenListEditor({
                 <p className="text-xs font-mono text-[#6B7280]">Live URL: {liveUrl}</p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  disabled={index === 0}
-                  onClick={() => move(index, -1)}
-                  className="rounded border border-[#DDE1E7] bg-white px-2 py-1 text-xs font-semibold text-[#5C6370] disabled:opacity-40"
-                >
-                  ↑
-                </button>
-                <button
-                  type="button"
-                  disabled={index === items.length - 1}
-                  onClick={() => move(index, 1)}
-                  className="rounded border border-[#DDE1E7] bg-white px-2 py-1 text-xs font-semibold text-[#5C6370] disabled:opacity-40"
-                >
-                  ↓
-                </button>
+                {embedded ? null : (
+                  <>
+                    <button
+                      type="button"
+                      disabled={index === 0}
+                      onClick={() => move(index, -1)}
+                      className="rounded border border-[#DDE1E7] bg-white px-2 py-1 text-xs font-semibold text-[#5C6370] disabled:opacity-40"
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type="button"
+                      disabled={index === items.length - 1}
+                      onClick={() => move(index, 1)}
+                      className="rounded border border-[#DDE1E7] bg-white px-2 py-1 text-xs font-semibold text-[#5C6370] disabled:opacity-40"
+                    >
+                      ↓
+                    </button>
+                  </>
+                )}
                 <label className="inline-flex max-w-xs items-start gap-2 text-sm text-[#1A2332]">
                   <input
                     type="checkbox"
@@ -200,6 +219,7 @@ export default function IaChildrenListEditor({
                   Card / nav title
                   <input
                     className="mt-1 w-full rounded-lg border border-[#DDE1E7] bg-white px-3 py-2 text-sm"
+                    placeholder={localeFieldPlaceholder(locale)}
                     value={localizedValue(title, locale)}
                     onChange={(e) =>
                       update(index, {
@@ -212,6 +232,7 @@ export default function IaChildrenListEditor({
                   Eyebrow (optional)
                   <input
                     className="mt-1 w-full rounded-lg border border-[#DDE1E7] bg-white px-3 py-2 text-sm"
+                    placeholder={localeFieldPlaceholder(locale)}
                     value={localizedValue(heroEyebrow, locale)}
                     onChange={(e) =>
                       updateHero(index, {
@@ -224,6 +245,7 @@ export default function IaChildrenListEditor({
                   Headline (H1)
                   <input
                     className="mt-1 w-full rounded-lg border border-[#DDE1E7] bg-white px-3 py-2 text-sm"
+                    placeholder={localeFieldPlaceholder(locale)}
                     value={localizedValue(heroTitle, locale)}
                     onChange={(e) =>
                       updateHero(index, {
@@ -237,6 +259,7 @@ export default function IaChildrenListEditor({
                   <textarea
                     rows={2}
                     className="mt-1 w-full rounded-lg border border-[#DDE1E7] bg-white px-3 py-2 text-sm"
+                    placeholder={localeFieldPlaceholder(locale)}
                     value={localizedValue(heroSubtitle, locale)}
                     onChange={(e) =>
                       updateHero(index, {
@@ -297,7 +320,7 @@ export default function IaChildrenListEditor({
 
             <Group
               title="3 · Content blocks"
-              hint="Image + text blocks. Heading, copy, and photo."
+              hint="Same image + text blocks as the live page. Heading, copy, and photo."
             >
               <div className="flex justify-end">
                 <button
@@ -395,8 +418,54 @@ export default function IaChildrenListEditor({
               })}
             </Group>
 
+            {isLocation ? (
+              <Group
+                title="4 · Services in this location"
+                hint="Heading on the live city page above the service cards."
+              >
+                <label className="block text-xs font-semibold text-[#5C6370]">
+                  Services heading
+                  <input
+                    className="mt-1 w-full rounded-lg border border-[#DDE1E7] bg-white px-3 py-2 text-sm"
+                    value={localizedValue(servicesTitle, locale)}
+                    onChange={(e) =>
+                      update(index, {
+                        servicesTitle: writeLocalized(
+                          servicesTitle,
+                          locale,
+                          e.target.value,
+                        ),
+                      })
+                    }
+                    placeholder="Services in this location"
+                  />
+                </label>
+                <label className="block text-xs font-semibold text-[#5C6370]">
+                  Services subtitle
+                  <input
+                    className="mt-1 w-full rounded-lg border border-[#DDE1E7] bg-white px-3 py-2 text-sm"
+                    value={localizedValue(servicesSubtitle, locale)}
+                    onChange={(e) =>
+                      update(index, {
+                        servicesSubtitle: writeLocalized(
+                          servicesSubtitle,
+                          locale,
+                          e.target.value,
+                        ),
+                      })
+                    }
+                    placeholder="How we support homes and projects here."
+                  />
+                </label>
+                <FieldHint>
+                  Cards (Custom Furniture, Interior Design, …) come from Services
+                  tagged with this city slug. Leave heading blank to use the default.
+                </FieldHint>
+              </Group>
+            ) : null}
+
             <Group
-              title="4 · Related projects heading"
+              title={isLocation ? "5 · Related projects heading" : "4 · Related projects heading"}
               hint="Shown above related projects / articles on this page."
             >
               <label className="block text-xs font-semibold text-[#5C6370]">
@@ -414,7 +483,7 @@ export default function IaChildrenListEditor({
               </label>
             </Group>
 
-            <Group title="5 · Google / SEO">
+            <Group title={isLocation ? "6 · Google / SEO" : "5 · Google / SEO"}>
               <div className="grid gap-3 md:grid-cols-2">
                 <label className="block text-xs font-semibold text-[#5C6370]">
                   Google title ({localizedValue(metaTitle, locale).length}/60)

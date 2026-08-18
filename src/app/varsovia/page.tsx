@@ -63,9 +63,13 @@ import {
   type VarsoviaNavDetail,
 } from "@/lib/adminSectionNav";
 import {
+  localeFieldPlaceholder,
+} from "@/lib/localized";
+import {
   createVarsoviaRecord,
   deleteVarsoviaRecord,
   getVarsoviaSite,
+  hydrateVarsoviaSiteDocument,
   listVarsoviaRecords,
   localizedValue,
   pickVarsoviaSiteUpdate,
@@ -762,7 +766,9 @@ function isVarsoviaSectionComplete(
     if (field.type === "embedded-resource") return false;
     const raw = getAtPath(content, field.key);
     if (field.type === "boolean") return typeof raw === "boolean";
-    if (field.localized) return Boolean(localizedValue(raw, locale).trim());
+    if (field.localized) {
+      return Boolean(localizedValue(raw, locale, { strict: true }).trim());
+    }
     if (Array.isArray(raw)) return raw.length > 0;
     if (raw && typeof raw === "object") return Object.keys(raw as object).length > 0;
     return Boolean(String(raw ?? "").trim());
@@ -781,6 +787,8 @@ function SiteSettings() {
   const [savingContent, setSavingContent] = useState(false);
   const [pageTab, setPageTab] = useState(0);
   const savedPayloadRef = useRef("");
+  const contentRef = useRef<Record<string, unknown>>({});
+  const loadSeqRef = useRef(0);
   const sectionSavesRef = useRef(new Map<string, SectionSaveHandler>());
 
   const registerSectionSave = useCallback(
@@ -824,18 +832,21 @@ function SiteSettings() {
   };
 
   const loadContent = useCallback(async () => {
+    const seq = ++loadSeqRef.current;
     setLoadingContent(true);
     try {
       const loaded = normalizeRecord(
         (await getVarsoviaSite()) as VarsoviaRecord
       );
-      const merged = mergeVarsoviaSiteDefaults(loaded);
-      setContent(merged);
-      savedPayloadRef.current = JSON.stringify(pickVarsoviaSiteUpdate(merged));
+      const { site: hydrated } = await hydrateVarsoviaSiteDocument(loaded);
+      if (seq !== loadSeqRef.current) return;
+      contentRef.current = hydrated;
+      setContent(hydrated);
+      savedPayloadRef.current = JSON.stringify(pickVarsoviaSiteUpdate(loaded));
     } catch (error) {
       toast.error(errorMessage(error));
     } finally {
-      setLoadingContent(false);
+      if (seq === loadSeqRef.current) setLoadingContent(false);
     }
   }, []);
 
@@ -852,33 +863,35 @@ function SiteSettings() {
   }, [loadContent]);
 
   const updateContentField = (field: Field, value: unknown) => {
-    if (field.localized) {
-      const existing = getAtPath(content, field.key);
-      const localized: Record<string, unknown> =
-        existing && typeof existing === "object" && !Array.isArray(existing)
-          ? { ...(existing as Record<string, unknown>) }
-          : { en: typeof existing === "string" ? existing : "" };
-      localized[locale] = value;
-      setContent(setAtPath(content, field.key, localized));
-      return;
-    }
-    setContent(setAtPath(content, field.key, value));
+    setContent((prev) => {
+      const base = Object.keys(prev).length ? prev : contentRef.current;
+      let next: Record<string, unknown>;
+      if (field.localized) {
+        const existing = getAtPath(base, field.key);
+        const localized: Record<string, unknown> =
+          existing && typeof existing === "object" && !Array.isArray(existing)
+            ? { ...(existing as Record<string, unknown>) }
+            : { en: typeof existing === "string" ? existing : "" };
+        localized[locale] = value;
+        next = setAtPath(base, field.key, localized);
+      } else {
+        next = setAtPath(base, field.key, value);
+      }
+      contentRef.current = next;
+      return next;
+    });
   };
 
   const saveContent = async (opts?: { quiet?: boolean }) => {
-    const nextPayload = pickVarsoviaSiteUpdate(content);
+    const current = contentRef.current;
+    const nextPayload = pickVarsoviaSiteUpdate(current);
     const nextSerialized = JSON.stringify(nextPayload);
     const siteDirty = nextSerialized !== savedPayloadRef.current;
     const embeddedHandlers = [...sectionSavesRef.current.values()];
 
-    if (!siteDirty && embeddedHandlers.length === 0) {
-      toast.message("No changes to save");
-      return;
-    }
-
     setSavingContent(true);
     try {
-      const statsInvalid = [content.stats, (content.teamPage as { stats?: unknown } | undefined)?.stats]
+      const statsInvalid = [current.stats, (current.teamPage as { stats?: unknown } | undefined)?.stats]
         .filter(Array.isArray)
         .some((list) =>
           (list as { value?: unknown }[]).some((row) => {
@@ -892,18 +905,16 @@ function SiteSettings() {
         return;
       }
 
-      if (siteDirty) {
-        const updated = await updateVarsoviaSite(content);
-        const merged = mergeVarsoviaSiteDefaults(
-          normalizeRecord(updated as VarsoviaRecord)
-        );
-        setContent(merged);
-        savedPayloadRef.current = JSON.stringify(pickVarsoviaSiteUpdate(merged));
-      }
+      await updateVarsoviaSite(current);
+      savedPayloadRef.current = nextSerialized;
+      contentRef.current = current;
+      setContent(current);
       for (const handler of embeddedHandlers) {
         await handler({ quiet: true });
       }
-      if (!opts?.quiet) toast.success("Saved");
+      if (!opts?.quiet) {
+        toast.success(siteDirty ? "Saved — live site updated" : "Saved");
+      }
     } catch (error) {
       const msg = error instanceof Error ? error.message : "";
       if (!/validation failed/i.test(msg)) {
@@ -1217,7 +1228,7 @@ function SiteSettings() {
                     field.type === "inquiry-form" ||
                     field.type === "ia-children-list";
                   const value = field.localized
-                    ? localizedValue(raw, locale)
+                    ? localizedValue(raw, locale, { strict: true })
                     : structured
                       ? raw
                       : field.type === "json"
@@ -4321,7 +4332,8 @@ export function ResourceManager({
                   if (field.localized === true) {
                     const value = localizedValue(
                       getAtPath(form, field.key),
-                      locale
+                      locale,
+                      { strict: true }
                     );
                     return (
                       <FieldControl
@@ -6520,6 +6532,9 @@ function FieldControl({
         <textarea
           value={String(value ?? "")}
           maxLength={field.maxLength}
+          placeholder={
+            field.localized ? localeFieldPlaceholder(locale) : undefined
+          }
           onChange={(event) => {
             const next = event.target.value;
             onChange(
@@ -6534,6 +6549,9 @@ function FieldControl({
           type={field.type === "number" ? "number" : "text"}
           maxLength={field.type === "number" ? undefined : field.maxLength}
           value={String(value ?? "")}
+          placeholder={
+            field.localized ? localeFieldPlaceholder(locale) : undefined
+          }
           onChange={(event) =>
             onChange(
               field.type === "number"

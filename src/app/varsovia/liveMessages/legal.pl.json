@@ -1,0 +1,88 @@
+{
+  "legal": {
+    "privacy": {
+      "title": "Polityka prywatności",
+      "subtitle": "Jak Varsovia Design zbiera, wykorzystuje i chroni Twoje dane",
+      "metaDescription": "Polityka prywatności Varsovia Design.",
+      "updated": "Ostatnia aktualizacja: 31 lipca 2026",
+      "blocks": [
+        {
+          "heading": "1. Administrator danych",
+          "text": "Varsovia Design („my”) świadczy usługi projektowania kuchni modułowych i wnętrz. Niniejsza polityka opisuje przetwarzanie danych osobowych podczas korzystania ze strony, wysyłania formularzy i pobierania katalogów.\n\nW sprawach ochrony danych skontaktuj się z nami przez stronę Kontakt lub e-mail w stopce."
+        },
+        {
+          "heading": "2. Jakie dane zbieramy",
+          "text": "Możemy zbierać: imię i nazwisko, e-mail, telefon, lokalizację projektu, treść wiadomości oraz dane techniczne (np. adres IP, typ przeglądarki)."
+        },
+        {
+          "heading": "3. Cele przetwarzania",
+          "text": "Dane wykorzystujemy do odpowiedzi na zapytania, realizacji usług projektowych, wysyłki materiałów i ulepszania strony. Nie sprzedajemy danych osobom trzecim."
+        },
+        {
+          "heading": "4. Podstawy prawne (EOG / UK)",
+          "text": "W zależności od przypadku: zgoda, wykonanie umowy lub działania przed umową, prawnie uzasadniony interes oraz obowiązek prawny."
+        },
+        {
+          "heading": "5. Przechowywanie i bezpieczeństwo",
+          "text": "Przechowujemy dane tylko tak długo, jak to konieczne, stosując odpowiednie środki bezpieczeństwa."
+        },
+        {
+          "heading": "6. Twoje prawa",
+          "text": "Przysługuje Ci m.in. prawo dostępu, sprostowania, usunięcia, ograniczenia, sprzeciwu i przenoszenia danych. Możesz złożyć skargę do organu nadzorczego."
+        },
+        {
+          "heading": "7. Transfery międzynarodowe",
+          "text": "Gdy dane są przetwarzane poza Twoim krajem, stosujemy wymagane zabezpieczenia (np. standardowe klauzule umowne)."
+        },
+        {
+          "heading": "8. Zmiany",
+          "text": "Polityka może być aktualizowana. Data na górze strony wskazuje ostatnią wersję."
+        }
+      ]
+    },
+    "terms": {
+      "title": "Regulamin",
+      "subtitle": "Warunki korzystania ze strony i usług Varsovia Design",
+      "metaDescription": "Regulamin strony Varsovia Design.",
+      "updated": "Ostatnia aktualizacja: 31 lipca 2026",
+      "blocks": [
+        {
+          "heading": "1. Akceptacja",
+          "text": "Korzystając ze strony, akceptujesz niniejszy regulamin. W przeciwnym razie prosimy o rezygnację z korzystania."
+        },
+        {
+          "heading": "2. Treści strony",
+          "text": "Materiały graficzne i tekstowe są własnością Varsovia Design lub używane na licencji. Zabronione jest kopiowanie i publikowanie bez zgody."
+        },
+        {
+          "heading": "3. Oferty i projekty",
+          "text": "Informacje na stronie mają charakter ogólny. Wiążące warunki wynikają z umowy lub pisemnej dokumentacji projektu."
+        },
+        {
+          "heading": "4. Pobieranie katalogów",
+          "text": "Podajesz prawdziwe dane kontaktowe; wykorzystujemy je do realizacji prośby i — zgodnie z prawem — ewentualnego kontaktu handlowego."
+        },
+        {
+          "heading": "5. Dozwolone korzystanie",
+          "text": "Zabronione jest nadużywanie strony, w tym próby nieuprawnionego dostępu lub wprowadzania złośliwego oprogramowania."
+        },
+        {
+          "heading": "6. Wyłączenie odpowiedzialności",
+          "text": "Strona jest udostępniana „tak jak jest”. W dopuszczalnym przez prawo zakresie wyłączamy odpowiedzialność za szkody pośrednie."
+        },
+        {
+          "heading": "7. Linki zewnętrzne",
+          "text": "Nie odpowiadamy za treści ani politykę prywatności stron trzecich."
+        },
+        {
+          "heading": "8. Prawo właściwe",
+          "text": "Regulamin podlega prawu właściwemu dla siedziby Varsovia Design, z poszanowaniem bezwzględnie obowiązujących praw konsumenta."
+        },
+        {
+          "heading": "9. Kontakt",
+          "text": "Pytania dotyczące regulaminu: strona Kontakt lub dane w stopce."
+        }
+      ]
+    }
+  }
+}

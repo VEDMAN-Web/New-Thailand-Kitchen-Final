@@ -1,0 +1,3268 @@
+{
+  "furniture": {
+    "slug": "furniture",
+    "indexable": false,
+    "metaTitle": {
+      "en": "Furniture | Varsovia Design",
+      "th": "Furniture | Varsovia Design",
+      "pl": "Furniture | Varsovia Design"
+    },
+    "metaDescription": {
+      "en": "Explore Varsovia furniture — kitchens, wardrobes, living, bedrooms, and whole-home packages crafted for Thailand homes.",
+      "th": "Explore Varsovia furniture — kitchens, wardrobes, living, bedrooms, and whole-home packages crafted for Thailand homes.",
+      "pl": "Explore Varsovia furniture — kitchens, wardrobes, living, bedrooms, and whole-home packages crafted for Thailand homes."
+    },
+    "hero": {
+      "title": {
+        "en": "Furniture",
+        "th": "Furniture",
+        "pl": "Furniture"
+      },
+      "subtitle": {
+        "en": "Kitchens, wardrobes, and fitted pieces designed for how you live.",
+        "th": "Kitchens, wardrobes, and fitted pieces designed for how you live.",
+        "pl": "Kitchens, wardrobes, and fitted pieces designed for how you live."
+      },
+      "image": "/home/product/product-1.jpg",
+      "ctaLabel": {
+        "en": "Get a consultation",
+        "th": "Get a consultation",
+        "pl": "Get a consultation"
+      },
+      "ctaHref": "/contact"
+    },
+    "body": {
+      "en": "Varsovia furniture is planned around light, storage, and daily ritual. From modular kitchens to whole-house packages, every piece is specified for tropical living and finished with the same care we bring to full interiors.",
+      "th": "Varsovia furniture is planned around light, storage, and daily ritual. From modular kitchens to whole-house packages, every piece is specified for tropical living and finished with the same care we bring to full interiors.",
+      "pl": "Varsovia furniture is planned around light, storage, and daily ritual. From modular kitchens to whole-house packages, every piece is specified for tropical living and finished with the same care we bring to full interiors."
+    },
+    "sections": [
+      {
+        "heading": {
+          "en": "Designed for tropical living",
+          "th": "Designed for tropical living",
+          "pl": "Designed for tropical living"
+        },
+        "text": {
+          "en": "Materials, hardware, and joinery are chosen for humidity, salt air, and bright light — so kitchens and fitted pieces stay calm and durable year after year.",
+          "th": "Materials, hardware, and joinery are chosen for humidity, salt air, and bright light — so kitchens and fitted pieces stay calm and durable year after year.",
+          "pl": "Materials, hardware, and joinery are chosen for humidity, salt air, and bright light — so kitchens and fitted pieces stay calm and durable year after year."
+        },
+        "image": "/Interior-kitchen/kitchen1.jpg",
+        "imagePosition": "left",
+        "layout": "band"
+      },
+      {
+        "heading": {
+          "en": "From single rooms to whole-home packages",
+          "th": "From single rooms to whole-home packages",
+          "pl": "From single rooms to whole-home packages"
+        },
+        "text": {
+          "en": "Start with one kitchen or wardrobe, or brief a complete furniture language across the home. We keep proportions, finishes, and handles consistent so every room feels connected.",
+          "th": "Start with one kitchen or wardrobe, or brief a complete furniture language across the home. We keep proportions, finishes, and handles consistent so every room feels connected.",
+          "pl": "Start with one kitchen or wardrobe, or brief a complete furniture language across the home. We keep proportions, finishes, and handles consistent so every room feels connected."
+        },
+        "image": "/home/featured/feature-8.jpg",
+        "imagePosition": "right",
+        "layout": "spotlight"
+      }
+    ],
+    "exploreTitle": {
+      "en": "Explore",
+      "th": "Explore",
+      "pl": "Explore"
+    },
+    "exploreSubtitle": {
+      "en": "Choose a focus area to continue.",
+      "th": "Choose a focus area to continue.",
+      "pl": "Choose a focus area to continue."
+    },
+    "servicesTitle": {
+      "en": "Services in this location",
+      "th": "Services in this location",
+      "pl": "Services in this location"
+    },
+    "servicesSubtitle": {
+      "en": "How we support homes and projects here.",
+      "th": "How we support homes and projects here.",
+      "pl": "How we support homes and projects here."
+    },
+    "children": [
+      {
+        "slug": "kitchens",
+        "title": {
+          "en": "Kitchens",
+          "th": "Kitchens",
+          "pl": "Kitchens"
+        },
+        "metaTitle": {
+          "en": "Kitchens | Varsovia Design",
+          "th": "Kitchens | Varsovia Design",
+          "pl": "Kitchens | Varsovia Design"
+        },
+        "metaDescription": {
+          "en": "Kitchens by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "th": "Kitchens by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "pl": "Kitchens by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+        },
+        "hero": {
+          "title": {
+            "en": "Kitchens",
+            "th": "Kitchens",
+            "pl": "Kitchens"
+          },
+          "subtitle": {
+            "en": "Modular and custom kitchens built for tropical light and real cooking.",
+            "th": "Modular and custom kitchens built for tropical light and real cooking.",
+            "pl": "Modular and custom kitchens built for tropical light and real cooking."
+          },
+          "image": "/Interior-kitchen/kitchen1.jpg",
+          "ctaLabel": {
+            "en": "Get a consultation",
+            "th": "Get a consultation",
+            "pl": "Get a consultation"
+          },
+          "ctaHref": "/contact"
+        },
+        "body": {
+          "en": "Our kitchens balance clean architecture with practical workflow — islands, integrated appliances, durable finishes, and storage that stays calm under daily use. Designed for villas and apartments across Thailand.",
+          "th": "Our kitchens balance clean architecture with practical workflow — islands, integrated appliances, durable finishes, and storage that stays calm under daily use. Designed for villas and apartments across Thailand.",
+          "pl": "Our kitchens balance clean architecture with practical workflow — islands, integrated appliances, durable finishes, and storage that stays calm under daily use. Designed for villas and apartments across Thailand."
+        },
+        "sections": [
+          {
+            "heading": {
+              "en": "Workflow that feels effortless",
+              "th": "Workflow that feels effortless",
+              "pl": "Workflow that feels effortless"
+            },
+            "text": {
+              "en": "Islands, prep zones, and appliance placement are planned around how you cook — not just how the kitchen looks in a photo.",
+              "th": "Islands, prep zones, and appliance placement are planned around how you cook — not just how the kitchen looks in a photo.",
+              "pl": "Islands, prep zones, and appliance placement are planned around how you cook — not just how the kitchen looks in a photo."
+            },
+            "image": "/Interior-kitchen/kitchen2.jpg",
+            "imagePosition": "left",
+            "layout": "band"
+          },
+          {
+            "heading": {
+              "en": "Finishes that hold up",
+              "th": "Finishes that hold up",
+              "pl": "Finishes that hold up"
+            },
+            "text": {
+              "en": "We specify surfaces and hardware for Thai climate: resilient tops, quiet fronts, and detailing that stays refined with daily use.",
+              "th": "We specify surfaces and hardware for Thai climate: resilient tops, quiet fronts, and detailing that stays refined with daily use.",
+              "pl": "We specify surfaces and hardware for Thai climate: resilient tops, quiet fronts, and detailing that stays refined with daily use."
+            },
+            "image": "/home/core/core-2.jpg",
+            "imagePosition": "right",
+            "layout": "spotlight"
+          }
+        ],
+        "relatedTitle": {
+          "en": "",
+          "th": "",
+          "pl": ""
+        },
+        "indexable": false,
+        "order": 0
+      },
+      {
+        "slug": "wardrobes",
+        "title": {
+          "en": "Wardrobes",
+          "th": "Wardrobes",
+          "pl": "Wardrobes"
+        },
+        "metaTitle": {
+          "en": "Wardrobes | Varsovia Design",
+          "th": "Wardrobes | Varsovia Design",
+          "pl": "Wardrobes | Varsovia Design"
+        },
+        "metaDescription": {
+          "en": "Wardrobes by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "th": "Wardrobes by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "pl": "Wardrobes by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+        },
+        "hero": {
+          "title": {
+            "en": "Wardrobes",
+            "th": "Wardrobes",
+            "pl": "Wardrobes"
+          },
+          "subtitle": {
+            "en": "Fitted storage systems tailored to your rooms and routines.",
+            "th": "Fitted storage systems tailored to your rooms and routines.",
+            "pl": "Fitted storage systems tailored to your rooms and routines."
+          },
+          "image": "/home/featured/feature-2.jpg",
+          "ctaLabel": {
+            "en": "Get a consultation",
+            "th": "Get a consultation",
+            "pl": "Get a consultation"
+          },
+          "ctaHref": "/contact"
+        },
+        "body": {
+          "en": "Walk-in and fitted wardrobes planned around hanging, drawers, and accessories — quiet fronts, considered interiors, and materials that hold up in humid climates.",
+          "th": "Walk-in and fitted wardrobes planned around hanging, drawers, and accessories — quiet fronts, considered interiors, and materials that hold up in humid climates.",
+          "pl": "Walk-in and fitted wardrobes planned around hanging, drawers, and accessories — quiet fronts, considered interiors, and materials that hold up in humid climates."
+        },
+        "sections": [
+          {
+            "heading": {
+              "en": "Storage planned around you",
+              "th": "Storage planned around you",
+              "pl": "Storage planned around you"
+            },
+            "text": {
+              "en": "Hanging depths, drawer counts, and accessories follow your wardrobe — so mornings stay simple and rooms stay uncluttered.",
+              "th": "Hanging depths, drawer counts, and accessories follow your wardrobe — so mornings stay simple and rooms stay uncluttered.",
+              "pl": "Hanging depths, drawer counts, and accessories follow your wardrobe — so mornings stay simple and rooms stay uncluttered."
+            },
+            "image": "/home/featured/feature-4.jpg",
+            "imagePosition": "left",
+            "layout": "band"
+          },
+          {
+            "heading": {
+              "en": "Quiet fronts, lasting interiors",
+              "th": "Quiet fronts, lasting interiors",
+              "pl": "Quiet fronts, lasting interiors"
+            },
+            "text": {
+              "en": "Clean elevations outside; organised, durable fittings inside — built for Thailand’s humidity and everyday use.",
+              "th": "Clean elevations outside; organised, durable fittings inside — built for Thailand’s humidity and everyday use.",
+              "pl": "Clean elevations outside; organised, durable fittings inside — built for Thailand’s humidity and everyday use."
+            },
+            "image": "/home/core/core-4.jpg",
+            "imagePosition": "right",
+            "layout": "spotlight"
+          }
+        ],
+        "relatedTitle": {
+          "en": "",
+          "th": "",
+          "pl": ""
+        },
+        "indexable": false,
+        "order": 1
+      },
+      {
+        "slug": "living-room",
+        "title": {
+          "en": "Living Room",
+          "th": "Living Room",
+          "pl": "Living Room"
+        },
+        "metaTitle": {
+          "en": "Living Room | Varsovia Design",
+          "th": "Living Room | Varsovia Design",
+          "pl": "Living Room | Varsovia Design"
+        },
+        "metaDescription": {
+          "en": "Living Room by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "th": "Living Room by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "pl": "Living Room by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+        },
+        "hero": {
+          "title": {
+            "en": "Living Room",
+            "th": "Living Room",
+            "pl": "Living Room"
+          },
+          "subtitle": {
+            "en": "Lounge furniture and media joinery that frames gathering space.",
+            "th": "Lounge furniture and media joinery that frames gathering space.",
+            "pl": "Lounge furniture and media joinery that frames gathering space."
+          },
+          "image": "/home/featured/feature-3.jpg",
+          "ctaLabel": {
+            "en": "Get a consultation",
+            "th": "Get a consultation",
+            "pl": "Get a consultation"
+          },
+          "ctaHref": "/contact"
+        },
+        "body": {
+          "en": "Sofas, media walls, shelving, and side pieces composed as one living landscape — soft, durable, and tuned to natural light.",
+          "th": "Sofas, media walls, shelving, and side pieces composed as one living landscape — soft, durable, and tuned to natural light.",
+          "pl": "Sofas, media walls, shelving, and side pieces composed as one living landscape — soft, durable, and tuned to natural light."
+        },
+        "sections": [
+          {
+            "heading": {
+              "en": "Gathering space, composed",
+              "th": "Gathering space, composed",
+              "pl": "Gathering space, composed"
+            },
+            "text": {
+              "en": "Seating, media, and shelving are designed as one composition so living rooms feel open, calm, and ready for everyday hosting.",
+              "th": "Seating, media, and shelving are designed as one composition so living rooms feel open, calm, and ready for everyday hosting.",
+              "pl": "Seating, media, and shelving are designed as one composition so living rooms feel open, calm, and ready for everyday hosting."
+            },
+            "image": "/home/stories/story-1.jpg",
+            "imagePosition": "left",
+            "layout": "band"
+          },
+          {
+            "heading": {
+              "en": "Tuned to natural light",
+              "th": "Tuned to natural light",
+              "pl": "Tuned to natural light"
+            },
+            "text": {
+              "en": "Soft materials and thoughtful proportions keep living areas comfortable in bright tropical interiors.",
+              "th": "Soft materials and thoughtful proportions keep living areas comfortable in bright tropical interiors.",
+              "pl": "Soft materials and thoughtful proportions keep living areas comfortable in bright tropical interiors."
+            },
+            "image": "/home/featured/feature-1.jpg",
+            "imagePosition": "right",
+            "layout": "spotlight"
+          }
+        ],
+        "relatedTitle": {
+          "en": "",
+          "th": "",
+          "pl": ""
+        },
+        "indexable": false,
+        "order": 2
+      },
+      {
+        "slug": "bedrooms",
+        "title": {
+          "en": "Bedrooms",
+          "th": "Bedrooms",
+          "pl": "Bedrooms"
+        },
+        "metaTitle": {
+          "en": "Bedrooms | Varsovia Design",
+          "th": "Bedrooms | Varsovia Design",
+          "pl": "Bedrooms | Varsovia Design"
+        },
+        "metaDescription": {
+          "en": "Bedrooms by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "th": "Bedrooms by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "pl": "Bedrooms by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+        },
+        "hero": {
+          "title": {
+            "en": "Bedrooms",
+            "th": "Bedrooms",
+            "pl": "Bedrooms"
+          },
+          "subtitle": {
+            "en": "Calm bedroom suites with storage and rest in balance.",
+            "th": "Calm bedroom suites with storage and rest in balance.",
+            "pl": "Calm bedroom suites with storage and rest in balance."
+          },
+          "image": "/home/featured/feature-4.jpg",
+          "ctaLabel": {
+            "en": "Get a consultation",
+            "th": "Get a consultation",
+            "pl": "Get a consultation"
+          },
+          "ctaHref": "/contact"
+        },
+        "body": {
+          "en": "Beds, bedside joinery, and wardrobe solutions that keep bedrooms uncluttered — soft tones, quiet detailing, and materials chosen for comfort.",
+          "th": "Beds, bedside joinery, and wardrobe solutions that keep bedrooms uncluttered — soft tones, quiet detailing, and materials chosen for comfort.",
+          "pl": "Beds, bedside joinery, and wardrobe solutions that keep bedrooms uncluttered — soft tones, quiet detailing, and materials chosen for comfort."
+        },
+        "sections": [
+          {
+            "heading": {
+              "en": "Rest without clutter",
+              "th": "Rest without clutter",
+              "pl": "Rest without clutter"
+            },
+            "text": {
+              "en": "Bedside storage, soft tones, and quiet detailing keep bedrooms serene — ready for rest after humid days.",
+              "th": "Bedside storage, soft tones, and quiet detailing keep bedrooms serene — ready for rest after humid days.",
+              "pl": "Bedside storage, soft tones, and quiet detailing keep bedrooms serene — ready for rest after humid days."
+            },
+            "image": "/home/featured/feature-4.jpg",
+            "imagePosition": "left",
+            "layout": "band"
+          },
+          {
+            "heading": {
+              "en": "Suite-level storage",
+              "th": "Suite-level storage",
+              "pl": "Suite-level storage"
+            },
+            "text": {
+              "en": "Wardrobes and bedroom furniture share the same language so suites feel complete, not pieced together.",
+              "th": "Wardrobes and bedroom furniture share the same language so suites feel complete, not pieced together.",
+              "pl": "Wardrobes and bedroom furniture share the same language so suites feel complete, not pieced together."
+            },
+            "image": "/home/featured/feature-2.jpg",
+            "imagePosition": "right",
+            "layout": "spotlight"
+          }
+        ],
+        "relatedTitle": {
+          "en": "",
+          "th": "",
+          "pl": ""
+        },
+        "indexable": false,
+        "order": 3
+      },
+      {
+        "slug": "bathroom",
+        "title": {
+          "en": "Bathroom",
+          "th": "Bathroom",
+          "pl": "Bathroom"
+        },
+        "metaTitle": {
+          "en": "Bathroom | Varsovia Design",
+          "th": "Bathroom | Varsovia Design",
+          "pl": "Bathroom | Varsovia Design"
+        },
+        "metaDescription": {
+          "en": "Bathroom by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "th": "Bathroom by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "pl": "Bathroom by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+        },
+        "hero": {
+          "title": {
+            "en": "Bathroom",
+            "th": "Bathroom",
+            "pl": "Bathroom"
+          },
+          "subtitle": {
+            "en": "Vanities and wet-room joinery with spa-level clarity.",
+            "th": "Vanities and wet-room joinery with spa-level clarity.",
+            "pl": "Vanities and wet-room joinery with spa-level clarity."
+          },
+          "image": "/home/featured/feature-5.jpg",
+          "ctaLabel": {
+            "en": "Get a consultation",
+            "th": "Get a consultation",
+            "pl": "Get a consultation"
+          },
+          "ctaHref": "/contact"
+        },
+        "body": {
+          "en": "Moisture-aware cabinetry, clean countertops, and storage that keeps bathrooms serene — designed to pair with your interior scheme.",
+          "th": "Moisture-aware cabinetry, clean countertops, and storage that keeps bathrooms serene — designed to pair with your interior scheme.",
+          "pl": "Moisture-aware cabinetry, clean countertops, and storage that keeps bathrooms serene — designed to pair with your interior scheme."
+        },
+        "sections": [
+          {
+            "heading": {
+              "en": "Moisture-aware joinery",
+              "th": "Moisture-aware joinery",
+              "pl": "Moisture-aware joinery"
+            },
+            "text": {
+              "en": "Vanities and wet-room storage specified for humidity — clean lines that stay calm beside stone and tile.",
+              "th": "Vanities and wet-room storage specified for humidity — clean lines that stay calm beside stone and tile.",
+              "pl": "Vanities and wet-room storage specified for humidity — clean lines that stay calm beside stone and tile."
+            },
+            "image": "/home/featured/feature-5.jpg",
+            "imagePosition": "left",
+            "layout": "band"
+          },
+          {
+            "heading": {
+              "en": "Spa-level clarity",
+              "th": "Spa-level clarity",
+              "pl": "Spa-level clarity"
+            },
+            "text": {
+              "en": "Countertops, lighting-ready elevations, and storage that keeps bathrooms uncluttered and refined.",
+              "th": "Countertops, lighting-ready elevations, and storage that keeps bathrooms uncluttered and refined.",
+              "pl": "Countertops, lighting-ready elevations, and storage that keeps bathrooms uncluttered and refined."
+            },
+            "image": "/home/core/core-5.jpg",
+            "imagePosition": "right",
+            "layout": "spotlight"
+          }
+        ],
+        "relatedTitle": {
+          "en": "",
+          "th": "",
+          "pl": ""
+        },
+        "indexable": false,
+        "order": 4
+      },
+      {
+        "slug": "dining",
+        "title": {
+          "en": "Dining",
+          "th": "Dining",
+          "pl": "Dining"
+        },
+        "metaTitle": {
+          "en": "Dining | Varsovia Design",
+          "th": "Dining | Varsovia Design",
+          "pl": "Dining | Varsovia Design"
+        },
+        "metaDescription": {
+          "en": "Dining by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "th": "Dining by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "pl": "Dining by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+        },
+        "hero": {
+          "title": {
+            "en": "Dining",
+            "th": "Dining",
+            "pl": "Dining"
+          },
+          "subtitle": {
+            "en": "Tables and dining storage for everyday meals and hosting.",
+            "th": "Tables and dining storage for everyday meals and hosting.",
+            "pl": "Tables and dining storage for everyday meals and hosting."
+          },
+          "image": "/home/featured/feature-6.jpg",
+          "ctaLabel": {
+            "en": "Get a consultation",
+            "th": "Get a consultation",
+            "pl": "Get a consultation"
+          },
+          "ctaHref": "/contact"
+        },
+        "body": {
+          "en": "Dining tables, sideboards, and seating specified as a set — proportioned for Thai homes and finished for lasting use.",
+          "th": "Dining tables, sideboards, and seating specified as a set — proportioned for Thai homes and finished for lasting use.",
+          "pl": "Dining tables, sideboards, and seating specified as a set — proportioned for Thai homes and finished for lasting use."
+        },
+        "sections": [
+          {
+            "heading": {
+              "en": "Everyday meals, easy hosting",
+              "th": "Everyday meals, easy hosting",
+              "pl": "Everyday meals, easy hosting"
+            },
+            "text": {
+              "en": "Tables and sideboards proportioned for Thai homes — generous enough for guests, calm enough for weeknights.",
+              "th": "Tables and sideboards proportioned for Thai homes — generous enough for guests, calm enough for weeknights.",
+              "pl": "Tables and sideboards proportioned for Thai homes — generous enough for guests, calm enough for weeknights."
+            },
+            "image": "/home/featured/feature-6.jpg",
+            "imagePosition": "left",
+            "layout": "band"
+          },
+          {
+            "heading": {
+              "en": "Finished as a set",
+              "th": "Finished as a set",
+              "pl": "Finished as a set"
+            },
+            "text": {
+              "en": "Seating, surfaces, and storage share materials and scale so dining areas feel intentional.",
+              "th": "Seating, surfaces, and storage share materials and scale so dining areas feel intentional.",
+              "pl": "Seating, surfaces, and storage share materials and scale so dining areas feel intentional."
+            },
+            "image": "/home/stories/story-2.jpg",
+            "imagePosition": "right",
+            "layout": "spotlight"
+          }
+        ],
+        "relatedTitle": {
+          "en": "",
+          "th": "",
+          "pl": ""
+        },
+        "indexable": false,
+        "order": 5
+      },
+      {
+        "slug": "doors",
+        "title": {
+          "en": "Doors",
+          "th": "Doors",
+          "pl": "Doors"
+        },
+        "metaTitle": {
+          "en": "Doors | Varsovia Design",
+          "th": "Doors | Varsovia Design",
+          "pl": "Doors | Varsovia Design"
+        },
+        "metaDescription": {
+          "en": "Doors by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "th": "Doors by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "pl": "Doors by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+        },
+        "hero": {
+          "title": {
+            "en": "Doors",
+            "th": "Doors",
+            "pl": "Doors"
+          },
+          "subtitle": {
+            "en": "Interior door systems that finish every room with intention.",
+            "th": "Interior door systems that finish every room with intention.",
+            "pl": "Interior door systems that finish every room with intention."
+          },
+          "image": "/home/core/core-3.jpg",
+          "ctaLabel": {
+            "en": "Get a consultation",
+            "th": "Get a consultation",
+            "pl": "Get a consultation"
+          },
+          "ctaHref": "/contact"
+        },
+        "body": {
+          "en": "Flush and panel doors, hardware, and detailing coordinated with your furniture and wall finishes for a cohesive home.",
+          "th": "Flush and panel doors, hardware, and detailing coordinated with your furniture and wall finishes for a cohesive home.",
+          "pl": "Flush and panel doors, hardware, and detailing coordinated with your furniture and wall finishes for a cohesive home."
+        },
+        "sections": [
+          {
+            "heading": {
+              "en": "Doors as architecture",
+              "th": "Doors as architecture",
+              "pl": "Doors as architecture"
+            },
+            "text": {
+              "en": "Flush and panel doors with hardware that matches your furniture language — so thresholds feel finished, not afterthoughts.",
+              "th": "Flush and panel doors with hardware that matches your furniture language — so thresholds feel finished, not afterthoughts.",
+              "pl": "Flush and panel doors with hardware that matches your furniture language — so thresholds feel finished, not afterthoughts."
+            },
+            "image": "/home/core/core-3.jpg",
+            "imagePosition": "left",
+            "layout": "band"
+          },
+          {
+            "heading": {
+              "en": "Coordinated detailing",
+              "th": "Coordinated detailing",
+              "pl": "Coordinated detailing"
+            },
+            "text": {
+              "en": "Handles, frames, and finishes align with wardrobes and cabinetry for a cohesive whole-home look.",
+              "th": "Handles, frames, and finishes align with wardrobes and cabinetry for a cohesive whole-home look.",
+              "pl": "Handles, frames, and finishes align with wardrobes and cabinetry for a cohesive whole-home look."
+            },
+            "image": "/home/core/core-6.jpg",
+            "imagePosition": "right",
+            "layout": "spotlight"
+          }
+        ],
+        "relatedTitle": {
+          "en": "",
+          "th": "",
+          "pl": ""
+        },
+        "indexable": false,
+        "order": 6
+      },
+      {
+        "slug": "whole-house",
+        "title": {
+          "en": "Whole House",
+          "th": "Whole House",
+          "pl": "Whole House"
+        },
+        "metaTitle": {
+          "en": "Whole House | Varsovia Design",
+          "th": "Whole House | Varsovia Design",
+          "pl": "Whole House | Varsovia Design"
+        },
+        "metaDescription": {
+          "en": "Whole House by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "th": "Whole House by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "pl": "Whole House by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+        },
+        "hero": {
+          "title": {
+            "en": "Whole House",
+            "th": "Whole House",
+            "pl": "Whole House"
+          },
+          "subtitle": {
+            "en": "One furniture language from entry to bedroom.",
+            "th": "One furniture language from entry to bedroom.",
+            "pl": "One furniture language from entry to bedroom."
+          },
+          "image": "/home/featured/feature-8.jpg",
+          "ctaLabel": {
+            "en": "Get a consultation",
+            "th": "Get a consultation",
+            "pl": "Get a consultation"
+          },
+          "ctaHref": "/contact"
+        },
+        "body": {
+          "en": "Whole-home furniture packages that keep materials, handles, and proportions consistent — ideal when you want a complete, coherent fit-out.",
+          "th": "Whole-home furniture packages that keep materials, handles, and proportions consistent — ideal when you want a complete, coherent fit-out.",
+          "pl": "Whole-home furniture packages that keep materials, handles, and proportions consistent — ideal when you want a complete, coherent fit-out."
+        },
+        "sections": [
+          {
+            "heading": {
+              "en": "One language throughout",
+              "th": "One language throughout",
+              "pl": "One language throughout"
+            },
+            "text": {
+              "en": "Materials, handles, and proportions stay consistent from entry to bedroom — so the home reads as one design, not a collection of rooms.",
+              "th": "Materials, handles, and proportions stay consistent from entry to bedroom — so the home reads as one design, not a collection of rooms.",
+              "pl": "Materials, handles, and proportions stay consistent from entry to bedroom — so the home reads as one design, not a collection of rooms."
+            },
+            "image": "/home/featured/feature-8.jpg",
+            "imagePosition": "left",
+            "layout": "band"
+          },
+          {
+            "heading": {
+              "en": "Packages that scale",
+              "th": "Packages that scale",
+              "pl": "Packages that scale"
+            },
+            "text": {
+              "en": "Ideal for villas and apartments that need a complete, coherent fit-out with clear scopes and timelines.",
+              "th": "Ideal for villas and apartments that need a complete, coherent fit-out with clear scopes and timelines.",
+              "pl": "Ideal for villas and apartments that need a complete, coherent fit-out with clear scopes and timelines."
+            },
+            "image": "/home/stories/story-3.jpg",
+            "imagePosition": "right",
+            "layout": "spotlight"
+          }
+        ],
+        "relatedTitle": {
+          "en": "",
+          "th": "",
+          "pl": ""
+        },
+        "indexable": false,
+        "order": 7
+      }
+    ]
+  },
+  "interiorDesign": {
+    "slug": "interior-design",
+    "indexable": false,
+    "metaTitle": {
+      "en": "Interior Design | Varsovia Design",
+      "th": "Interior Design | Varsovia Design",
+      "pl": "Interior Design | Varsovia Design"
+    },
+    "metaDescription": {
+      "en": "Varsovia interior design for kitchens, bedrooms, bathrooms, and whole-home schemes across Thailand.",
+      "th": "Varsovia interior design for kitchens, bedrooms, bathrooms, and whole-home schemes across Thailand.",
+      "pl": "Varsovia interior design for kitchens, bedrooms, bathrooms, and whole-home schemes across Thailand."
+    },
+    "hero": {
+      "title": {
+        "en": "Interior Design",
+        "th": "Interior Design",
+        "pl": "Interior Design"
+      },
+      "subtitle": {
+        "en": "Room-by-room interiors shaped for light, flow, and everyday living.",
+        "th": "Room-by-room interiors shaped for light, flow, and everyday living.",
+        "pl": "Room-by-room interiors shaped for light, flow, and everyday living."
+      },
+      "image": "/home/featured/feature-1.jpg",
+      "ctaLabel": {
+        "en": "Get a consultation",
+        "th": "Get a consultation",
+        "pl": "Get a consultation"
+      },
+      "ctaHref": "/contact"
+    },
+    "body": {
+      "en": "Our interior design practice starts with how you move through a home. We plan layouts, materials, and furniture together — so each room feels intentional, calm, and ready for tropical light.",
+      "th": "Our interior design practice starts with how you move through a home. We plan layouts, materials, and furniture together — so each room feels intentional, calm, and ready for tropical light.",
+      "pl": "Our interior design practice starts with how you move through a home. We plan layouts, materials, and furniture together — so each room feels intentional, calm, and ready for tropical light."
+    },
+    "sections": [
+      {
+        "heading": {
+          "en": "Layout, light, and living",
+          "th": "Layout, light, and living",
+          "pl": "Layout, light, and living"
+        },
+        "text": {
+          "en": "We begin with how you move through the home — then materials and furniture follow so every room feels intentional under tropical light.",
+          "th": "We begin with how you move through the home — then materials and furniture follow so every room feels intentional under tropical light.",
+          "pl": "We begin with how you move through the home — then materials and furniture follow so every room feels intentional under tropical light."
+        },
+        "image": "/home/featured/feature-1.jpg",
+        "imagePosition": "left",
+        "layout": "band"
+      },
+      {
+        "heading": {
+          "en": "Design that stays coherent",
+          "th": "Design that stays coherent",
+          "pl": "Design that stays coherent"
+        },
+        "text": {
+          "en": "Mood, finishes, and FF&E are coordinated as one scheme — so kitchens, bedrooms, and living areas share the same quiet quality.",
+          "th": "Mood, finishes, and FF&E are coordinated as one scheme — so kitchens, bedrooms, and living areas share the same quiet quality.",
+          "pl": "Mood, finishes, and FF&E are coordinated as one scheme — so kitchens, bedrooms, and living areas share the same quiet quality."
+        },
+        "image": "/Interior-kitchen/kitchen1.jpg",
+        "imagePosition": "right",
+        "layout": "spotlight"
+      }
+    ],
+    "exploreTitle": {
+      "en": "Explore",
+      "th": "Explore",
+      "pl": "Explore"
+    },
+    "exploreSubtitle": {
+      "en": "Choose a focus area to continue.",
+      "th": "Choose a focus area to continue.",
+      "pl": "Choose a focus area to continue."
+    },
+    "servicesTitle": {
+      "en": "Services in this location",
+      "th": "Services in this location",
+      "pl": "Services in this location"
+    },
+    "servicesSubtitle": {
+      "en": "How we support homes and projects here.",
+      "th": "How we support homes and projects here.",
+      "pl": "How we support homes and projects here."
+    },
+    "children": []
+  },
+  "completeInteriors": {
+    "slug": "complete-interiors",
+    "indexable": false,
+    "metaTitle": {
+      "en": "Complete Interiors | Varsovia Design",
+      "th": "Complete Interiors | Varsovia Design",
+      "pl": "Complete Interiors | Varsovia Design"
+    },
+    "metaDescription": {
+      "en": "Full interior programmes for villas, condos, hotels & resorts, and developer projects with Varsovia Design.",
+      "th": "Full interior programmes for villas, condos, hotels & resorts, and developer projects with Varsovia Design.",
+      "pl": "Full interior programmes for villas, condos, hotels & resorts, and developer projects with Varsovia Design."
+    },
+    "hero": {
+      "title": {
+        "en": "Complete Interiors",
+        "th": "Complete Interiors",
+        "pl": "Complete Interiors"
+      },
+      "subtitle": {
+        "en": "End-to-end interiors for villas, condos, hospitality, and developments.",
+        "th": "End-to-end interiors for villas, condos, hospitality, and developments.",
+        "pl": "End-to-end interiors for villas, condos, hospitality, and developments."
+      },
+      "image": "/home/core/core-1.jpg",
+      "ctaLabel": {
+        "en": "Get a consultation",
+        "th": "Get a consultation",
+        "pl": "Get a consultation"
+      },
+      "ctaHref": "/contact"
+    },
+    "body": {
+      "en": "Complete interiors means one accountable partner from concept through installation — design, furniture, and finish coordinated so projects stay coherent from the first drawing to handover.",
+      "th": "Complete interiors means one accountable partner from concept through installation — design, furniture, and finish coordinated so projects stay coherent from the first drawing to handover.",
+      "pl": "Complete interiors means one accountable partner from concept through installation — design, furniture, and finish coordinated so projects stay coherent from the first drawing to handover."
+    },
+    "sections": [
+      {
+        "heading": {
+          "en": "One partner, end to end",
+          "th": "One partner, end to end",
+          "pl": "One partner, end to end"
+        },
+        "text": {
+          "en": "Concept, furniture, and installation stay with the same team — so drawings, site, and handover speak the same language.",
+          "th": "Concept, furniture, and installation stay with the same team — so drawings, site, and handover speak the same language.",
+          "pl": "Concept, furniture, and installation stay with the same team — so drawings, site, and handover speak the same language."
+        },
+        "image": "/home/core/core-1.jpg",
+        "imagePosition": "left",
+        "layout": "overlay"
+      },
+      {
+        "heading": {
+          "en": "Built for real projects",
+          "th": "Built for real projects",
+          "pl": "Built for real projects"
+        },
+        "text": {
+          "en": "Villas, condos, hospitality, and developer packages with scopes and timelines that hold through installation.",
+          "th": "Villas, condos, hospitality, and developer packages with scopes and timelines that hold through installation.",
+          "pl": "Villas, condos, hospitality, and developer packages with scopes and timelines that hold through installation."
+        },
+        "image": "/home/stories/story-1.jpg",
+        "imagePosition": "right",
+        "layout": "editorial"
+      }
+    ],
+    "exploreTitle": {
+      "en": "Explore",
+      "th": "Explore",
+      "pl": "Explore"
+    },
+    "exploreSubtitle": {
+      "en": "Choose a focus area to continue.",
+      "th": "Choose a focus area to continue.",
+      "pl": "Choose a focus area to continue."
+    },
+    "servicesTitle": {
+      "en": "Services in this location",
+      "th": "Services in this location",
+      "pl": "Services in this location"
+    },
+    "servicesSubtitle": {
+      "en": "How we support homes and projects here.",
+      "th": "How we support homes and projects here.",
+      "pl": "How we support homes and projects here."
+    },
+    "children": [
+      {
+        "slug": "villas",
+        "title": {
+          "en": "Villas",
+          "th": "Villas",
+          "pl": "Villas"
+        },
+        "metaTitle": {
+          "en": "Villas | Varsovia Design",
+          "th": "Villas | Varsovia Design",
+          "pl": "Villas | Varsovia Design"
+        },
+        "metaDescription": {
+          "en": "Villas by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "th": "Villas by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "pl": "Villas by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+        },
+        "hero": {
+          "title": {
+            "en": "Villas",
+            "th": "Villas",
+            "pl": "Villas"
+          },
+          "subtitle": {
+            "en": "Private villa interiors tuned to outdoor living and Thai light.",
+            "th": "Private villa interiors tuned to outdoor living and Thai light.",
+            "pl": "Private villa interiors tuned to outdoor living and Thai light."
+          },
+          "image": "/home/stories/story-1.jpg",
+          "ctaLabel": {
+            "en": "Get a consultation",
+            "th": "Get a consultation",
+            "pl": "Get a consultation"
+          },
+          "ctaHref": "/contact"
+        },
+        "body": {
+          "en": "From open-plan living to guest suites, we design villa interiors that open to gardens and sea views while staying cool, durable, and quietly luxurious.",
+          "th": "From open-plan living to guest suites, we design villa interiors that open to gardens and sea views while staying cool, durable, and quietly luxurious.",
+          "pl": "From open-plan living to guest suites, we design villa interiors that open to gardens and sea views while staying cool, durable, and quietly luxurious."
+        },
+        "sections": [
+          {
+            "heading": {
+              "en": "Indoor–outdoor living",
+              "th": "Indoor–outdoor living",
+              "pl": "Indoor–outdoor living"
+            },
+            "text": {
+              "en": "Layouts open to gardens and terraces while interiors stay cool, durable, and quietly luxurious.",
+              "th": "Layouts open to gardens and terraces while interiors stay cool, durable, and quietly luxurious.",
+              "pl": "Layouts open to gardens and terraces while interiors stay cool, durable, and quietly luxurious."
+            },
+            "image": "/home/stories/story-1.jpg",
+            "imagePosition": "left",
+            "layout": "band"
+          },
+          {
+            "heading": {
+              "en": "Suites with intention",
+              "th": "Suites with intention",
+              "pl": "Suites with intention"
+            },
+            "text": {
+              "en": "Guest rooms and living spaces share materials and proportion so the villa feels whole.",
+              "th": "Guest rooms and living spaces share materials and proportion so the villa feels whole.",
+              "pl": "Guest rooms and living spaces share materials and proportion so the villa feels whole."
+            },
+            "image": "/home/featured/feature-3.jpg",
+            "imagePosition": "right",
+            "layout": "spotlight"
+          }
+        ],
+        "relatedTitle": {
+          "en": "",
+          "th": "",
+          "pl": ""
+        },
+        "indexable": false,
+        "order": 0
+      },
+      {
+        "slug": "condos",
+        "title": {
+          "en": "Condos",
+          "th": "Condos",
+          "pl": "Condos"
+        },
+        "metaTitle": {
+          "en": "Condos | Varsovia Design",
+          "th": "Condos | Varsovia Design",
+          "pl": "Condos | Varsovia Design"
+        },
+        "metaDescription": {
+          "en": "Condos by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "th": "Condos by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "pl": "Condos by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+        },
+        "hero": {
+          "title": {
+            "en": "Condos",
+            "th": "Condos",
+            "pl": "Condos"
+          },
+          "subtitle": {
+            "en": "Apartment interiors that maximise space without losing calm.",
+            "th": "Apartment interiors that maximise space without losing calm.",
+            "pl": "Apartment interiors that maximise space without losing calm."
+          },
+          "image": "/home/featured/feature-7.jpg",
+          "ctaLabel": {
+            "en": "Get a consultation",
+            "th": "Get a consultation",
+            "pl": "Get a consultation"
+          },
+          "ctaHref": "/contact"
+        },
+        "body": {
+          "en": "Smart storage, flexible layouts, and furniture scaled for condominium life — premium finishes without visual clutter.",
+          "th": "Smart storage, flexible layouts, and furniture scaled for condominium life — premium finishes without visual clutter.",
+          "pl": "Smart storage, flexible layouts, and furniture scaled for condominium life — premium finishes without visual clutter."
+        },
+        "sections": [
+          {
+            "heading": {
+              "en": "Space that works harder",
+              "th": "Space that works harder",
+              "pl": "Space that works harder"
+            },
+            "text": {
+              "en": "Storage and flexible furniture keep compact footprints calm — premium without clutter.",
+              "th": "Storage and flexible furniture keep compact footprints calm — premium without clutter.",
+              "pl": "Storage and flexible furniture keep compact footprints calm — premium without clutter."
+            },
+            "image": "/home/featured/feature-7.jpg",
+            "imagePosition": "left",
+            "layout": "band"
+          },
+          {
+            "heading": {
+              "en": "City-ready finishes",
+              "th": "City-ready finishes",
+              "pl": "City-ready finishes"
+            },
+            "text": {
+              "en": "Materials and joinery chosen for apartment life: durable, quiet, and easy to live with.",
+              "th": "Materials and joinery chosen for apartment life: durable, quiet, and easy to live with.",
+              "pl": "Materials and joinery chosen for apartment life: durable, quiet, and easy to live with."
+            },
+            "image": "/home/product/product-2.jpg",
+            "imagePosition": "right",
+            "layout": "spotlight"
+          }
+        ],
+        "relatedTitle": {
+          "en": "",
+          "th": "",
+          "pl": ""
+        },
+        "indexable": false,
+        "order": 1
+      },
+      {
+        "slug": "hotels-resorts",
+        "title": {
+          "en": "Hotels & Resorts",
+          "th": "Hotels & Resorts",
+          "pl": "Hotels & Resorts"
+        },
+        "metaTitle": {
+          "en": "Hotels & Resorts | Varsovia Design",
+          "th": "Hotels & Resorts | Varsovia Design",
+          "pl": "Hotels & Resorts | Varsovia Design"
+        },
+        "metaDescription": {
+          "en": "Hotels & Resorts by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "th": "Hotels & Resorts by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "pl": "Hotels & Resorts by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+        },
+        "hero": {
+          "title": {
+            "en": "Hotels & Resorts",
+            "th": "Hotels & Resorts",
+            "pl": "Hotels & Resorts"
+          },
+          "subtitle": {
+            "en": "Hospitality interiors that feel warm, brand-true, and maintainable.",
+            "th": "Hospitality interiors that feel warm, brand-true, and maintainable.",
+            "pl": "Hospitality interiors that feel warm, brand-true, and maintainable."
+          },
+          "image": "/home/core/core-2.jpg",
+          "ctaLabel": {
+            "en": "Get a consultation",
+            "th": "Get a consultation",
+            "pl": "Get a consultation"
+          },
+          "ctaHref": "/contact"
+        },
+        "body": {
+          "en": "Guest rooms, lobbies, and F&B spaces designed for atmosphere and operations — materials and joinery specified for lasting hospitality use.",
+          "th": "Guest rooms, lobbies, and F&B spaces designed for atmosphere and operations — materials and joinery specified for lasting hospitality use.",
+          "pl": "Guest rooms, lobbies, and F&B spaces designed for atmosphere and operations — materials and joinery specified for lasting hospitality use."
+        },
+        "sections": [
+          {
+            "heading": {
+              "en": "Atmosphere with operations in mind",
+              "th": "Atmosphere with operations in mind",
+              "pl": "Atmosphere with operations in mind"
+            },
+            "text": {
+              "en": "Guest rooms and public spaces designed for warmth and maintainability — hospitality-grade without feeling generic.",
+              "th": "Guest rooms and public spaces designed for warmth and maintainability — hospitality-grade without feeling generic.",
+              "pl": "Guest rooms and public spaces designed for warmth and maintainability — hospitality-grade without feeling generic."
+            },
+            "image": "/home/core/core-2.jpg",
+            "imagePosition": "left",
+            "layout": "band"
+          },
+          {
+            "heading": {
+              "en": "Brand-true detailing",
+              "th": "Brand-true detailing",
+              "pl": "Brand-true detailing"
+            },
+            "text": {
+              "en": "Joinery and finishes specified to hold up across rooms while staying true to the property’s story.",
+              "th": "Joinery and finishes specified to hold up across rooms while staying true to the property’s story.",
+              "pl": "Joinery and finishes specified to hold up across rooms while staying true to the property’s story."
+            },
+            "image": "/home/core/core-5.jpg",
+            "imagePosition": "right",
+            "layout": "spotlight"
+          }
+        ],
+        "relatedTitle": {
+          "en": "",
+          "th": "",
+          "pl": ""
+        },
+        "indexable": false,
+        "order": 2
+      },
+      {
+        "slug": "developers",
+        "title": {
+          "en": "Developers",
+          "th": "Developers",
+          "pl": "Developers"
+        },
+        "metaTitle": {
+          "en": "Developers | Varsovia Design",
+          "th": "Developers | Varsovia Design",
+          "pl": "Developers | Varsovia Design"
+        },
+        "metaDescription": {
+          "en": "Developers by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "th": "Developers by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "pl": "Developers by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+        },
+        "hero": {
+          "title": {
+            "en": "Developers",
+            "th": "Developers",
+            "pl": "Developers"
+          },
+          "subtitle": {
+            "en": "Scalable interior packages for residential and mixed-use projects.",
+            "th": "Scalable interior packages for residential and mixed-use projects.",
+            "pl": "Scalable interior packages for residential and mixed-use projects."
+          },
+          "image": "/home/core/core-4.jpg",
+          "ctaLabel": {
+            "en": "Get a consultation",
+            "th": "Get a consultation",
+            "pl": "Get a consultation"
+          },
+          "ctaHref": "/contact"
+        },
+        "body": {
+          "en": "Show units, standard apartment packages, and amenity interiors planned for rollout — consistent quality across floors and phases.",
+          "th": "Show units, standard apartment packages, and amenity interiors planned for rollout — consistent quality across floors and phases.",
+          "pl": "Show units, standard apartment packages, and amenity interiors planned for rollout — consistent quality across floors and phases."
+        },
+        "sections": [
+          {
+            "heading": {
+              "en": "Show units that sell",
+              "th": "Show units that sell",
+              "pl": "Show units that sell"
+            },
+            "text": {
+              "en": "Storytelling interiors for launch — then packages that roll out cleanly across floors and phases.",
+              "th": "Storytelling interiors for launch — then packages that roll out cleanly across floors and phases.",
+              "pl": "Storytelling interiors for launch — then packages that roll out cleanly across floors and phases."
+            },
+            "image": "/home/core/core-4.jpg",
+            "imagePosition": "left",
+            "layout": "band"
+          },
+          {
+            "heading": {
+              "en": "Specs that scale",
+              "th": "Specs that scale",
+              "pl": "Specs that scale"
+            },
+            "text": {
+              "en": "Clear FF&E and finish standards so every unit stays on brand and on schedule.",
+              "th": "Clear FF&E and finish standards so every unit stays on brand and on schedule.",
+              "pl": "Clear FF&E and finish standards so every unit stays on brand and on schedule."
+            },
+            "image": "/home/product/product-3.jpg",
+            "imagePosition": "right",
+            "layout": "spotlight"
+          }
+        ],
+        "relatedTitle": {
+          "en": "",
+          "th": "",
+          "pl": ""
+        },
+        "indexable": false,
+        "order": 3
+      }
+    ]
+  },
+  "services": {
+    "slug": "services",
+    "indexable": false,
+    "metaTitle": {
+      "en": "Services | Varsovia Design",
+      "th": "Services | Varsovia Design",
+      "pl": "Services | Varsovia Design"
+    },
+    "metaDescription": {
+      "en": "Varsovia services: custom furniture, interior design, packages, installation, and renovation across Thailand.",
+      "th": "Varsovia services: custom furniture, interior design, packages, installation, and renovation across Thailand.",
+      "pl": "Varsovia services: custom furniture, interior design, packages, installation, and renovation across Thailand."
+    },
+    "hero": {
+      "title": {
+        "en": "Services",
+        "th": "Services",
+        "pl": "Services"
+      },
+      "subtitle": {
+        "en": "Design, make, and install — one clear path from idea to finished space.",
+        "th": "Design, make, and install — one clear path from idea to finished space.",
+        "pl": "Design, make, and install — one clear path from idea to finished space."
+      },
+      "image": "/home/core/core-5.jpg",
+      "ctaLabel": {
+        "en": "Get a consultation",
+        "th": "Get a consultation",
+        "pl": "Get a consultation"
+      },
+      "ctaHref": "/contact"
+    },
+    "body": {
+      "en": "Whether you need a single custom piece or a full renovation, our services connect design intent with on-site craftsmanship — clear scopes, careful installation, and support after handover.",
+      "th": "Whether you need a single custom piece or a full renovation, our services connect design intent with on-site craftsmanship — clear scopes, careful installation, and support after handover.",
+      "pl": "Whether you need a single custom piece or a full renovation, our services connect design intent with on-site craftsmanship — clear scopes, careful installation, and support after handover."
+    },
+    "sections": [
+      {
+        "heading": {
+          "en": "From idea to finished space",
+          "th": "From idea to finished space",
+          "pl": "From idea to finished space"
+        },
+        "text": {
+          "en": "Design, making, and installation stay connected — so what you approve on paper is what you live with on site.",
+          "th": "Design, making, and installation stay connected — so what you approve on paper is what you live with on site.",
+          "pl": "Design, making, and installation stay connected — so what you approve on paper is what you live with on site."
+        },
+        "image": "/home/core/core-5.jpg",
+        "imagePosition": "left",
+        "layout": "rail"
+      },
+      {
+        "heading": {
+          "en": "Clear scopes, careful handover",
+          "th": "Clear scopes, careful handover",
+          "pl": "Clear scopes, careful handover"
+        },
+        "text": {
+          "en": "Every service comes with defined scope and aftercare — whether you need one custom piece or a full renovation.",
+          "th": "Every service comes with defined scope and aftercare — whether you need one custom piece or a full renovation.",
+          "pl": "Every service comes with defined scope and aftercare — whether you need one custom piece or a full renovation."
+        },
+        "image": "/home/product/product-2.jpg",
+        "imagePosition": "right",
+        "layout": "spotlight"
+      }
+    ],
+    "exploreTitle": {
+      "en": "Explore",
+      "th": "Explore",
+      "pl": "Explore"
+    },
+    "exploreSubtitle": {
+      "en": "Choose a focus area to continue.",
+      "th": "Choose a focus area to continue.",
+      "pl": "Choose a focus area to continue."
+    },
+    "servicesTitle": {
+      "en": "Services in this location",
+      "th": "Services in this location",
+      "pl": "Services in this location"
+    },
+    "servicesSubtitle": {
+      "en": "How we support homes and projects here.",
+      "th": "How we support homes and projects here.",
+      "pl": "How we support homes and projects here."
+    },
+    "children": [
+      {
+        "slug": "custom-furniture",
+        "title": {
+          "en": "Custom Furniture",
+          "th": "Custom Furniture",
+          "pl": "Custom Furniture"
+        },
+        "metaTitle": {
+          "en": "Custom Furniture | Varsovia Design",
+          "th": "Custom Furniture | Varsovia Design",
+          "pl": "Custom Furniture | Varsovia Design"
+        },
+        "metaDescription": {
+          "en": "Custom Furniture by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "th": "Custom Furniture by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "pl": "Custom Furniture by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+        },
+        "hero": {
+          "title": {
+            "en": "Custom Furniture",
+            "th": "Custom Furniture",
+            "pl": "Custom Furniture"
+          },
+          "subtitle": {
+            "en": "Bespoke pieces measured and made for your exact space.",
+            "th": "Bespoke pieces measured and made for your exact space.",
+            "pl": "Bespoke pieces measured and made for your exact space."
+          },
+          "image": "/home/product/product-2.jpg",
+          "ctaLabel": {
+            "en": "Get a consultation",
+            "th": "Get a consultation",
+            "pl": "Get a consultation"
+          },
+          "ctaHref": "/contact"
+        },
+        "body": {
+          "en": "From feature kitchens to one-off joinery, we design and produce furniture that fits walls, windows, and the way you live — not generic catalogue sizes.",
+          "th": "From feature kitchens to one-off joinery, we design and produce furniture that fits walls, windows, and the way you live — not generic catalogue sizes.",
+          "pl": "From feature kitchens to one-off joinery, we design and produce furniture that fits walls, windows, and the way you live — not generic catalogue sizes."
+        },
+        "sections": [
+          {
+            "heading": {
+              "en": "Measured for your walls",
+              "th": "Measured for your walls",
+              "pl": "Measured for your walls"
+            },
+            "text": {
+              "en": "Pieces designed around your windows, niches, and routines — not generic catalogue sizes.",
+              "th": "Pieces designed around your windows, niches, and routines — not generic catalogue sizes.",
+              "pl": "Pieces designed around your windows, niches, and routines — not generic catalogue sizes."
+            },
+            "image": "/home/product/product-2.jpg",
+            "imagePosition": "left",
+            "layout": "band"
+          },
+          {
+            "heading": {
+              "en": "Craft you can live with",
+              "th": "Craft you can live with",
+              "pl": "Craft you can live with"
+            },
+            "text": {
+              "en": "Feature kitchens and one-off joinery finished for tropical homes and daily use.",
+              "th": "Feature kitchens and one-off joinery finished for tropical homes and daily use.",
+              "pl": "Feature kitchens and one-off joinery finished for tropical homes and daily use."
+            },
+            "image": "/Interior-kitchen/kitchen1.jpg",
+            "imagePosition": "right",
+            "layout": "spotlight"
+          }
+        ],
+        "relatedTitle": {
+          "en": "",
+          "th": "",
+          "pl": ""
+        },
+        "indexable": false,
+        "order": 0,
+        "locationSlugs": [
+          "koh-samui",
+          "phuket",
+          "bangkok",
+          "pattaya",
+          "hua-hin",
+          "chiang-mai"
+        ]
+      },
+      {
+        "slug": "interior-design",
+        "title": {
+          "en": "Interior Design",
+          "th": "Interior Design",
+          "pl": "Interior Design"
+        },
+        "metaTitle": {
+          "en": "Interior Design | Varsovia Design",
+          "th": "Interior Design | Varsovia Design",
+          "pl": "Interior Design | Varsovia Design"
+        },
+        "metaDescription": {
+          "en": "Interior Design by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "th": "Interior Design by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "pl": "Interior Design by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+        },
+        "hero": {
+          "title": {
+            "en": "Interior Design",
+            "th": "Interior Design",
+            "pl": "Interior Design"
+          },
+          "subtitle": {
+            "en": "Full design support from mood to material schedule.",
+            "th": "Full design support from mood to material schedule.",
+            "pl": "Full design support from mood to material schedule."
+          },
+          "image": "/home/featured/feature-1.jpg",
+          "ctaLabel": {
+            "en": "Get a consultation",
+            "th": "Get a consultation",
+            "pl": "Get a consultation"
+          },
+          "ctaHref": "/contact"
+        },
+        "body": {
+          "en": "Concept, layout, finishes, and FF&E coordination — so architecture, furniture, and styling move together.",
+          "th": "Concept, layout, finishes, and FF&E coordination — so architecture, furniture, and styling move together.",
+          "pl": "Concept, layout, finishes, and FF&E coordination — so architecture, furniture, and styling move together."
+        },
+        "sections": [
+          {
+            "heading": {
+              "en": "Mood to material schedule",
+              "th": "Mood to material schedule",
+              "pl": "Mood to material schedule"
+            },
+            "text": {
+              "en": "Concept, layout, and finishes coordinated so architecture and furniture move as one.",
+              "th": "Concept, layout, and finishes coordinated so architecture and furniture move as one.",
+              "pl": "Concept, layout, and finishes coordinated so architecture and furniture move as one."
+            },
+            "image": "/home/featured/feature-1.jpg",
+            "imagePosition": "left",
+            "layout": "band"
+          },
+          {
+            "heading": {
+              "en": "FF&E that fits the story",
+              "th": "FF&E that fits the story",
+              "pl": "FF&E that fits the story"
+            },
+            "text": {
+              "en": "Furniture and styling chosen to complete the scheme — not added at the end.",
+              "th": "Furniture and styling chosen to complete the scheme — not added at the end.",
+              "pl": "Furniture and styling chosen to complete the scheme — not added at the end."
+            },
+            "image": "/home/featured/feature-3.jpg",
+            "imagePosition": "right",
+            "layout": "spotlight"
+          }
+        ],
+        "relatedTitle": {
+          "en": "",
+          "th": "",
+          "pl": ""
+        },
+        "indexable": false,
+        "order": 1,
+        "locationSlugs": [
+          "koh-samui",
+          "phuket",
+          "bangkok",
+          "hua-hin",
+          "chiang-mai"
+        ]
+      },
+      {
+        "slug": "furniture-packages",
+        "title": {
+          "en": "Furniture Packages",
+          "th": "Furniture Packages",
+          "pl": "Furniture Packages"
+        },
+        "metaTitle": {
+          "en": "Furniture Packages | Varsovia Design",
+          "th": "Furniture Packages | Varsovia Design",
+          "pl": "Furniture Packages | Varsovia Design"
+        },
+        "metaDescription": {
+          "en": "Furniture Packages by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "th": "Furniture Packages by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "pl": "Furniture Packages by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+        },
+        "hero": {
+          "title": {
+            "en": "Furniture Packages",
+            "th": "Furniture Packages",
+            "pl": "Furniture Packages"
+          },
+          "subtitle": {
+            "en": "Curated room packages ready to specify and install.",
+            "th": "Curated room packages ready to specify and install.",
+            "pl": "Curated room packages ready to specify and install."
+          },
+          "image": "/home/product/product-3.jpg",
+          "ctaLabel": {
+            "en": "Get a consultation",
+            "th": "Get a consultation",
+            "pl": "Get a consultation"
+          },
+          "ctaHref": "/contact"
+        },
+        "body": {
+          "en": "Pre-composed sets for living, sleeping, and dining — faster decisions with Varsovia quality and coherent styling.",
+          "th": "Pre-composed sets for living, sleeping, and dining — faster decisions with Varsovia quality and coherent styling.",
+          "pl": "Pre-composed sets for living, sleeping, and dining — faster decisions with Varsovia quality and coherent styling."
+        },
+        "sections": [
+          {
+            "heading": {
+              "en": "Faster, coherent decisions",
+              "th": "Faster, coherent decisions",
+              "pl": "Faster, coherent decisions"
+            },
+            "text": {
+              "en": "Pre-composed living, sleeping, and dining sets — Varsovia quality without endless option paralysis.",
+              "th": "Pre-composed living, sleeping, and dining sets — Varsovia quality without endless option paralysis.",
+              "pl": "Pre-composed living, sleeping, and dining sets — Varsovia quality without endless option paralysis."
+            },
+            "image": "/home/product/product-3.jpg",
+            "imagePosition": "left",
+            "layout": "band"
+          },
+          {
+            "heading": {
+              "en": "Ready to install",
+              "th": "Ready to install",
+              "pl": "Ready to install"
+            },
+            "text": {
+              "en": "Packages specified for clean site install so rooms feel finished together.",
+              "th": "Packages specified for clean site install so rooms feel finished together.",
+              "pl": "Packages specified for clean site install so rooms feel finished together."
+            },
+            "image": "/home/featured/feature-6.jpg",
+            "imagePosition": "right",
+            "layout": "spotlight"
+          }
+        ],
+        "relatedTitle": {
+          "en": "",
+          "th": "",
+          "pl": ""
+        },
+        "indexable": false,
+        "order": 2,
+        "locationSlugs": [
+          "koh-samui",
+          "phuket",
+          "pattaya",
+          "hua-hin",
+          "chiang-mai"
+        ]
+      },
+      {
+        "slug": "installation",
+        "title": {
+          "en": "Installation",
+          "th": "Installation",
+          "pl": "Installation"
+        },
+        "metaTitle": {
+          "en": "Installation | Varsovia Design",
+          "th": "Installation | Varsovia Design",
+          "pl": "Installation | Varsovia Design"
+        },
+        "metaDescription": {
+          "en": "Installation by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "th": "Installation by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "pl": "Installation by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+        },
+        "hero": {
+          "title": {
+            "en": "Installation",
+            "th": "Installation",
+            "pl": "Installation"
+          },
+          "subtitle": {
+            "en": "On-site craftsmanship and careful fitting.",
+            "th": "On-site craftsmanship and careful fitting.",
+            "pl": "On-site craftsmanship and careful fitting."
+          },
+          "image": "/home/core/core-6.jpg",
+          "ctaLabel": {
+            "en": "Get a consultation",
+            "th": "Get a consultation",
+            "pl": "Get a consultation"
+          },
+          "ctaHref": "/contact"
+        },
+        "body": {
+          "en": "Our installation teams protect floors, align lines, and finish details — so the design you approved is what you live with.",
+          "th": "Our installation teams protect floors, align lines, and finish details — so the design you approved is what you live with.",
+          "pl": "Our installation teams protect floors, align lines, and finish details — so the design you approved is what you live with."
+        },
+        "sections": [
+          {
+            "heading": {
+              "en": "Careful on site",
+              "th": "Careful on site",
+              "pl": "Careful on site"
+            },
+            "text": {
+              "en": "Floors protected, lines aligned, details finished — installation treated as part of the design.",
+              "th": "Floors protected, lines aligned, details finished — installation treated as part of the design.",
+              "pl": "Floors protected, lines aligned, details finished — installation treated as part of the design."
+            },
+            "image": "/home/core/core-6.jpg",
+            "imagePosition": "left",
+            "layout": "band"
+          },
+          {
+            "heading": {
+              "en": "What you approved, delivered",
+              "th": "What you approved, delivered",
+              "pl": "What you approved, delivered"
+            },
+            "text": {
+              "en": "Site craftsmanship that matches the drawings — so handover feels complete.",
+              "th": "Site craftsmanship that matches the drawings — so handover feels complete.",
+              "pl": "Site craftsmanship that matches the drawings — so handover feels complete."
+            },
+            "image": "/home/contact/contact-1.jpg",
+            "imagePosition": "right",
+            "layout": "spotlight"
+          }
+        ],
+        "relatedTitle": {
+          "en": "",
+          "th": "",
+          "pl": ""
+        },
+        "indexable": false,
+        "order": 3,
+        "locationSlugs": [
+          "koh-samui",
+          "phuket",
+          "bangkok",
+          "pattaya",
+          "hua-hin",
+          "chiang-mai"
+        ]
+      },
+      {
+        "slug": "renovation",
+        "title": {
+          "en": "Renovation",
+          "th": "Renovation",
+          "pl": "Renovation"
+        },
+        "metaTitle": {
+          "en": "Renovation | Varsovia Design",
+          "th": "Renovation | Varsovia Design",
+          "pl": "Renovation | Varsovia Design"
+        },
+        "metaDescription": {
+          "en": "Renovation by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "th": "Renovation by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "pl": "Renovation by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+        },
+        "hero": {
+          "title": {
+            "en": "Renovation",
+            "th": "Renovation",
+            "pl": "Renovation"
+          },
+          "subtitle": {
+            "en": "Refresh and remodel with a clear plan and finish standard.",
+            "th": "Refresh and remodel with a clear plan and finish standard.",
+            "pl": "Refresh and remodel with a clear plan and finish standard."
+          },
+          "image": "/home/stories/story-2.jpg",
+          "ctaLabel": {
+            "en": "Get a consultation",
+            "th": "Get a consultation",
+            "pl": "Get a consultation"
+          },
+          "ctaHref": "/contact"
+        },
+        "body": {
+          "en": "Kitchen and whole-home renovations that respect structure and timeline — new function without losing the soul of the space.",
+          "th": "Kitchen and whole-home renovations that respect structure and timeline — new function without losing the soul of the space.",
+          "pl": "Kitchen and whole-home renovations that respect structure and timeline — new function without losing the soul of the space."
+        },
+        "sections": [
+          {
+            "heading": {
+              "en": "Refresh with a plan",
+              "th": "Refresh with a plan",
+              "pl": "Refresh with a plan"
+            },
+            "text": {
+              "en": "Kitchen and whole-home renovations with clear scopes — new function without losing the soul of the space.",
+              "th": "Kitchen and whole-home renovations with clear scopes — new function without losing the soul of the space.",
+              "pl": "Kitchen and whole-home renovations with clear scopes — new function without losing the soul of the space."
+            },
+            "image": "/home/stories/story-2.jpg",
+            "imagePosition": "left",
+            "layout": "band"
+          },
+          {
+            "heading": {
+              "en": "Finish standards that stick",
+              "th": "Finish standards that stick",
+              "pl": "Finish standards that stick"
+            },
+            "text": {
+              "en": "Materials and detailing chosen to last through the next chapter of the home.",
+              "th": "Materials and detailing chosen to last through the next chapter of the home.",
+              "pl": "Materials and detailing chosen to last through the next chapter of the home."
+            },
+            "image": "/Interior-kitchen/kitchen2.jpg",
+            "imagePosition": "right",
+            "layout": "spotlight"
+          }
+        ],
+        "relatedTitle": {
+          "en": "",
+          "th": "",
+          "pl": ""
+        },
+        "indexable": false,
+        "order": 4,
+        "locationSlugs": [
+          "phuket",
+          "bangkok",
+          "pattaya",
+          "chiang-mai"
+        ]
+      }
+    ]
+  },
+  "locations": {
+    "slug": "locations",
+    "indexable": false,
+    "metaTitle": {
+      "en": "Locations | Varsovia Design",
+      "th": "Locations | Varsovia Design",
+      "pl": "Locations | Varsovia Design"
+    },
+    "metaDescription": {
+      "en": "Varsovia Design in Koh Samui, Phuket, Bangkok, Pattaya, Hua Hin, and Chiang Mai — local projects and services.",
+      "th": "Varsovia Design in Koh Samui, Phuket, Bangkok, Pattaya, Hua Hin, and Chiang Mai — local projects and services.",
+      "pl": "Varsovia Design in Koh Samui, Phuket, Bangkok, Pattaya, Hua Hin, and Chiang Mai — local projects and services."
+    },
+    "hero": {
+      "title": {
+        "en": "Locations",
+        "th": "Locations",
+        "pl": "Locations"
+      },
+      "subtitle": {
+        "en": "Varsovia interiors across Thailand’s key residential markets.",
+        "th": "Varsovia interiors across Thailand’s key residential markets.",
+        "pl": "Varsovia interiors across Thailand’s key residential markets."
+      },
+      "image": "/home/contact/contact-1.jpg",
+      "ctaLabel": {
+        "en": "Get a consultation",
+        "th": "Get a consultation",
+        "pl": "Get a consultation"
+      },
+      "ctaHref": "/contact"
+    },
+    "body": {
+      "en": "We work where our clients live and build — island villas, coastal homes, and city apartments. Explore a market to see services and related projects for that area.",
+      "th": "We work where our clients live and build — island villas, coastal homes, and city apartments. Explore a market to see services and related projects for that area.",
+      "pl": "We work where our clients live and build — island villas, coastal homes, and city apartments. Explore a market to see services and related projects for that area."
+    },
+    "sections": [
+      {
+        "heading": {
+          "en": "Where our clients live and build",
+          "th": "Where our clients live and build",
+          "pl": "Where our clients live and build"
+        },
+        "text": {
+          "en": "Island villas, coastal homes, and city apartments — local services and projects for each market.",
+          "th": "Island villas, coastal homes, and city apartments — local services and projects for each market.",
+          "pl": "Island villas, coastal homes, and city apartments — local services and projects for each market."
+        },
+        "image": "/home/contact/contact-1.jpg",
+        "imagePosition": "left",
+        "layout": "band"
+      },
+      {
+        "heading": {
+          "en": "Local knowledge, one standard",
+          "th": "Local knowledge, one standard",
+          "pl": "Local knowledge, one standard"
+        },
+        "text": {
+          "en": "Every location gets the same design care — tuned to climate, light, and how people live there.",
+          "th": "Every location gets the same design care — tuned to climate, light, and how people live there.",
+          "pl": "Every location gets the same design care — tuned to climate, light, and how people live there."
+        },
+        "image": "/home/stories/story-3.jpg",
+        "imagePosition": "right",
+        "layout": "spotlight"
+      }
+    ],
+    "exploreTitle": {
+      "en": "Explore",
+      "th": "Explore",
+      "pl": "Explore"
+    },
+    "exploreSubtitle": {
+      "en": "Choose a focus area to continue.",
+      "th": "Choose a focus area to continue.",
+      "pl": "Choose a focus area to continue."
+    },
+    "servicesTitle": {
+      "en": "Services in this location",
+      "th": "Services in this location",
+      "pl": "Services in this location"
+    },
+    "servicesSubtitle": {
+      "en": "How we support homes and projects here.",
+      "th": "How we support homes and projects here.",
+      "pl": "How we support homes and projects here."
+    },
+    "children": [
+      {
+        "slug": "koh-samui",
+        "title": {
+          "en": "Koh Samui",
+          "th": "Koh Samui",
+          "pl": "Koh Samui"
+        },
+        "metaTitle": {
+          "en": "Koh Samui | Varsovia Design",
+          "th": "Koh Samui | Varsovia Design",
+          "pl": "Koh Samui | Varsovia Design"
+        },
+        "metaDescription": {
+          "en": "Koh Samui by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "th": "Koh Samui by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "pl": "Koh Samui by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+        },
+        "hero": {
+          "title": {
+            "en": "Koh Samui",
+            "th": "Koh Samui",
+            "pl": "Koh Samui"
+          },
+          "subtitle": {
+            "en": "Island villas and residences shaped for sea air and outdoor living.",
+            "th": "Island villas and residences shaped for sea air and outdoor living.",
+            "pl": "Island villas and residences shaped for sea air and outdoor living."
+          },
+          "image": "/home/contact/contact-2.jpg",
+          "ctaLabel": {
+            "en": "Get a consultation",
+            "th": "Get a consultation",
+            "pl": "Get a consultation"
+          },
+          "ctaHref": "/contact"
+        },
+        "body": {
+          "en": "On Koh Samui we design interiors that open to terraces and gardens — durable materials, soft indoor–outdoor flow, and furniture built for tropical light.",
+          "th": "On Koh Samui we design interiors that open to terraces and gardens — durable materials, soft indoor–outdoor flow, and furniture built for tropical light.",
+          "pl": "On Koh Samui we design interiors that open to terraces and gardens — durable materials, soft indoor–outdoor flow, and furniture built for tropical light."
+        },
+        "sections": [
+          {
+            "heading": {
+              "en": "Island villas, open living",
+              "th": "Island villas, open living",
+              "pl": "Island villas, open living"
+            },
+            "text": {
+              "en": "Interiors that open to terraces and gardens — durable materials for sea air and tropical light.",
+              "th": "Interiors that open to terraces and gardens — durable materials for sea air and tropical light.",
+              "pl": "Interiors that open to terraces and gardens — durable materials for sea air and tropical light."
+            },
+            "image": "/home/contact/contact-2.jpg",
+            "imagePosition": "left",
+            "layout": "band"
+          },
+          {
+            "heading": {
+              "en": "Soft indoor–outdoor flow",
+              "th": "Soft indoor–outdoor flow",
+              "pl": "Soft indoor–outdoor flow"
+            },
+            "text": {
+              "en": "Furniture and finishes planned for how Samui homes actually live day to day.",
+              "th": "Furniture and finishes planned for how Samui homes actually live day to day.",
+              "pl": "Furniture and finishes planned for how Samui homes actually live day to day."
+            },
+            "image": "/home/stories/story-1.jpg",
+            "imagePosition": "right",
+            "layout": "spotlight"
+          }
+        ],
+        "relatedTitle": {
+          "en": "",
+          "th": "",
+          "pl": ""
+        },
+        "indexable": false,
+        "order": 0
+      },
+      {
+        "slug": "phuket",
+        "title": {
+          "en": "Phuket",
+          "th": "Phuket",
+          "pl": "Phuket"
+        },
+        "metaTitle": {
+          "en": "Phuket | Varsovia Design",
+          "th": "Phuket | Varsovia Design",
+          "pl": "Phuket | Varsovia Design"
+        },
+        "metaDescription": {
+          "en": "Phuket by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "th": "Phuket by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "pl": "Phuket by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+        },
+        "hero": {
+          "title": {
+            "en": "Phuket",
+            "th": "Phuket",
+            "pl": "Phuket"
+          },
+          "subtitle": {
+            "en": "Coastal homes and resorts with refined, maintainable finishes.",
+            "th": "Coastal homes and resorts with refined, maintainable finishes.",
+            "pl": "Coastal homes and resorts with refined, maintainable finishes."
+          },
+          "image": "/home/contact/contact-3.jpg",
+          "ctaLabel": {
+            "en": "Get a consultation",
+            "th": "Get a consultation",
+            "pl": "Get a consultation"
+          },
+          "ctaHref": "/contact"
+        },
+        "body": {
+          "en": "Phuket projects balance hospitality-grade durability with residential calm — from hillside villas to beachside living.",
+          "th": "Phuket projects balance hospitality-grade durability with residential calm — from hillside villas to beachside living.",
+          "pl": "Phuket projects balance hospitality-grade durability with residential calm — from hillside villas to beachside living."
+        },
+        "sections": [
+          {
+            "heading": {
+              "en": "Coastal calm, lasting finishes",
+              "th": "Coastal calm, lasting finishes",
+              "pl": "Coastal calm, lasting finishes"
+            },
+            "text": {
+              "en": "Hillside villas and beachside homes with hospitality-grade durability and residential quiet.",
+              "th": "Hillside villas and beachside homes with hospitality-grade durability and residential quiet.",
+              "pl": "Hillside villas and beachside homes with hospitality-grade durability and residential quiet."
+            },
+            "image": "/home/contact/contact-3.jpg",
+            "imagePosition": "left",
+            "layout": "band"
+          },
+          {
+            "heading": {
+              "en": "Refined for the coast",
+              "th": "Refined for the coast",
+              "pl": "Refined for the coast"
+            },
+            "text": {
+              "en": "Materials and joinery specified for salt air, bright light, and easy upkeep.",
+              "th": "Materials and joinery specified for salt air, bright light, and easy upkeep.",
+              "pl": "Materials and joinery specified for salt air, bright light, and easy upkeep."
+            },
+            "image": "/home/core/core-2.jpg",
+            "imagePosition": "right",
+            "layout": "spotlight"
+          }
+        ],
+        "relatedTitle": {
+          "en": "",
+          "th": "",
+          "pl": ""
+        },
+        "indexable": false,
+        "order": 1
+      },
+      {
+        "slug": "bangkok",
+        "title": {
+          "en": "Bangkok",
+          "th": "Bangkok",
+          "pl": "Bangkok"
+        },
+        "metaTitle": {
+          "en": "Bangkok | Varsovia Design",
+          "th": "Bangkok | Varsovia Design",
+          "pl": "Bangkok | Varsovia Design"
+        },
+        "metaDescription": {
+          "en": "Bangkok by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "th": "Bangkok by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "pl": "Bangkok by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+        },
+        "hero": {
+          "title": {
+            "en": "Bangkok",
+            "th": "Bangkok",
+            "pl": "Bangkok"
+          },
+          "subtitle": {
+            "en": "City apartments and townhomes with smart storage and calm detail.",
+            "th": "City apartments and townhomes with smart storage and calm detail.",
+            "pl": "City apartments and townhomes with smart storage and calm detail."
+          },
+          "image": "/home/contact/contact-4.jpg",
+          "ctaLabel": {
+            "en": "Get a consultation",
+            "th": "Get a consultation",
+            "pl": "Get a consultation"
+          },
+          "ctaHref": "/contact"
+        },
+        "body": {
+          "en": "In Bangkok we focus on light, storage, and quiet luxury — interiors that work hard in compact footprints without feeling crowded.",
+          "th": "In Bangkok we focus on light, storage, and quiet luxury — interiors that work hard in compact footprints without feeling crowded.",
+          "pl": "In Bangkok we focus on light, storage, and quiet luxury — interiors that work hard in compact footprints without feeling crowded."
+        },
+        "sections": [
+          {
+            "heading": {
+              "en": "City living, calm detail",
+              "th": "City living, calm detail",
+              "pl": "City living, calm detail"
+            },
+            "text": {
+              "en": "Apartments and townhomes with smart storage and quiet luxury for compact footprints.",
+              "th": "Apartments and townhomes with smart storage and quiet luxury for compact footprints.",
+              "pl": "Apartments and townhomes with smart storage and quiet luxury for compact footprints."
+            },
+            "image": "/home/contact/contact-4.jpg",
+            "imagePosition": "left",
+            "layout": "band"
+          },
+          {
+            "heading": {
+              "en": "Light without clutter",
+              "th": "Light without clutter",
+              "pl": "Light without clutter"
+            },
+            "text": {
+              "en": "Layouts and furniture that work hard without feeling crowded.",
+              "th": "Layouts and furniture that work hard without feeling crowded.",
+              "pl": "Layouts and furniture that work hard without feeling crowded."
+            },
+            "image": "/home/featured/feature-7.jpg",
+            "imagePosition": "right",
+            "layout": "spotlight"
+          }
+        ],
+        "relatedTitle": {
+          "en": "",
+          "th": "",
+          "pl": ""
+        },
+        "indexable": false,
+        "order": 2
+      },
+      {
+        "slug": "pattaya",
+        "title": {
+          "en": "Pattaya",
+          "th": "Pattaya",
+          "pl": "Pattaya"
+        },
+        "metaTitle": {
+          "en": "Pattaya | Varsovia Design",
+          "th": "Pattaya | Varsovia Design",
+          "pl": "Pattaya | Varsovia Design"
+        },
+        "metaDescription": {
+          "en": "Pattaya by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "th": "Pattaya by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "pl": "Pattaya by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+        },
+        "hero": {
+          "title": {
+            "en": "Pattaya",
+            "th": "Pattaya",
+            "pl": "Pattaya"
+          },
+          "subtitle": {
+            "en": "Coastal living with practical, stylish furniture packages.",
+            "th": "Coastal living with practical, stylish furniture packages.",
+            "pl": "Coastal living with practical, stylish furniture packages."
+          },
+          "image": "/home/contact/contact-5.jpg",
+          "ctaLabel": {
+            "en": "Get a consultation",
+            "th": "Get a consultation",
+            "pl": "Get a consultation"
+          },
+          "ctaHref": "/contact"
+        },
+        "body": {
+          "en": "Pattaya homes and investment properties get clear, livable schemes — furniture and finishes chosen for comfort and easy upkeep.",
+          "th": "Pattaya homes and investment properties get clear, livable schemes — furniture and finishes chosen for comfort and easy upkeep.",
+          "pl": "Pattaya homes and investment properties get clear, livable schemes — furniture and finishes chosen for comfort and easy upkeep."
+        },
+        "sections": [
+          {
+            "heading": {
+              "en": "Practical coastal packages",
+              "th": "Practical coastal packages",
+              "pl": "Practical coastal packages"
+            },
+            "text": {
+              "en": "Clear, livable schemes for homes and investment properties — comfort with easy upkeep.",
+              "th": "Clear, livable schemes for homes and investment properties — comfort with easy upkeep.",
+              "pl": "Clear, livable schemes for homes and investment properties — comfort with easy upkeep."
+            },
+            "image": "/home/contact/contact-5.jpg",
+            "imagePosition": "left",
+            "layout": "band"
+          },
+          {
+            "heading": {
+              "en": "Stylish and maintainable",
+              "th": "Stylish and maintainable",
+              "pl": "Stylish and maintainable"
+            },
+            "text": {
+              "en": "Furniture and finishes chosen for coastal living without high maintenance.",
+              "th": "Furniture and finishes chosen for coastal living without high maintenance.",
+              "pl": "Furniture and finishes chosen for coastal living without high maintenance."
+            },
+            "image": "/home/product/product-3.jpg",
+            "imagePosition": "right",
+            "layout": "spotlight"
+          }
+        ],
+        "relatedTitle": {
+          "en": "",
+          "th": "",
+          "pl": ""
+        },
+        "indexable": false,
+        "order": 3
+      },
+      {
+        "slug": "hua-hin",
+        "title": {
+          "en": "Hua Hin",
+          "th": "Hua Hin",
+          "pl": "Hua Hin"
+        },
+        "metaTitle": {
+          "en": "Hua Hin | Varsovia Design",
+          "th": "Hua Hin | Varsovia Design",
+          "pl": "Hua Hin | Varsovia Design"
+        },
+        "metaDescription": {
+          "en": "Hua Hin by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "th": "Hua Hin by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "pl": "Hua Hin by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+        },
+        "hero": {
+          "title": {
+            "en": "Hua Hin",
+            "th": "Hua Hin",
+            "pl": "Hua Hin"
+          },
+          "subtitle": {
+            "en": "Relaxed seaside homes with a quieter design pace.",
+            "th": "Relaxed seaside homes with a quieter design pace.",
+            "pl": "Relaxed seaside homes with a quieter design pace."
+          },
+          "image": "/home/contact/contact-6.jpg",
+          "ctaLabel": {
+            "en": "Get a consultation",
+            "th": "Get a consultation",
+            "pl": "Get a consultation"
+          },
+          "ctaHref": "/contact"
+        },
+        "body": {
+          "en": "Hua Hin interiors favour breezy layouts, soft palettes, and furniture that supports weekend and long-stay living alike.",
+          "th": "Hua Hin interiors favour breezy layouts, soft palettes, and furniture that supports weekend and long-stay living alike.",
+          "pl": "Hua Hin interiors favour breezy layouts, soft palettes, and furniture that supports weekend and long-stay living alike."
+        },
+        "sections": [
+          {
+            "heading": {
+              "en": "A quieter seaside pace",
+              "th": "A quieter seaside pace",
+              "pl": "A quieter seaside pace"
+            },
+            "text": {
+              "en": "Breezy layouts and soft palettes for weekend homes and long stays alike.",
+              "th": "Breezy layouts and soft palettes for weekend homes and long stays alike.",
+              "pl": "Breezy layouts and soft palettes for weekend homes and long stays alike."
+            },
+            "image": "/home/contact/contact-6.jpg",
+            "imagePosition": "left",
+            "layout": "band"
+          },
+          {
+            "heading": {
+              "en": "Furniture for real living",
+              "th": "Furniture for real living",
+              "pl": "Furniture for real living"
+            },
+            "text": {
+              "en": "Pieces that support relaxed Hua Hin days — durable, calm, and easy to live with.",
+              "th": "Pieces that support relaxed Hua Hin days — durable, calm, and easy to live with.",
+              "pl": "Pieces that support relaxed Hua Hin days — durable, calm, and easy to live with."
+            },
+            "image": "/home/featured/feature-6.jpg",
+            "imagePosition": "right",
+            "layout": "spotlight"
+          }
+        ],
+        "relatedTitle": {
+          "en": "",
+          "th": "",
+          "pl": ""
+        },
+        "indexable": false,
+        "order": 4
+      },
+      {
+        "slug": "chiang-mai",
+        "title": {
+          "en": "Chiang Mai",
+          "th": "Chiang Mai",
+          "pl": "Chiang Mai"
+        },
+        "metaTitle": {
+          "en": "Chiang Mai | Varsovia Design",
+          "th": "Chiang Mai | Varsovia Design",
+          "pl": "Chiang Mai | Varsovia Design"
+        },
+        "metaDescription": {
+          "en": "Chiang Mai by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "th": "Chiang Mai by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "pl": "Chiang Mai by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+        },
+        "hero": {
+          "title": {
+            "en": "Chiang Mai",
+            "th": "Chiang Mai",
+            "pl": "Chiang Mai"
+          },
+          "subtitle": {
+            "en": "Northern residences with warmth, craft, and mountain light.",
+            "th": "Northern residences with warmth, craft, and mountain light.",
+            "pl": "Northern residences with warmth, craft, and mountain light."
+          },
+          "image": "/home/stories/story-3.jpg",
+          "ctaLabel": {
+            "en": "Get a consultation",
+            "th": "Get a consultation",
+            "pl": "Get a consultation"
+          },
+          "ctaHref": "/contact"
+        },
+        "body": {
+          "en": "Chiang Mai projects lean into natural materials and calm rooms — interiors that feel rooted, not generic.",
+          "th": "Chiang Mai projects lean into natural materials and calm rooms — interiors that feel rooted, not generic.",
+          "pl": "Chiang Mai projects lean into natural materials and calm rooms — interiors that feel rooted, not generic."
+        },
+        "sections": [
+          {
+            "heading": {
+              "en": "Warmth and mountain light",
+              "th": "Warmth and mountain light",
+              "pl": "Warmth and mountain light"
+            },
+            "text": {
+              "en": "Natural materials and calm rooms for northern residences — rooted, not generic.",
+              "th": "Natural materials and calm rooms for northern residences — rooted, not generic.",
+              "pl": "Natural materials and calm rooms for northern residences — rooted, not generic."
+            },
+            "image": "/home/stories/story-3.jpg",
+            "imagePosition": "left",
+            "layout": "band"
+          },
+          {
+            "heading": {
+              "en": "Craft that feels local",
+              "th": "Craft that feels local",
+              "pl": "Craft that feels local"
+            },
+            "text": {
+              "en": "Interiors that respect Chiang Mai’s pace while meeting modern living standards.",
+              "th": "Interiors that respect Chiang Mai’s pace while meeting modern living standards.",
+              "pl": "Interiors that respect Chiang Mai’s pace while meeting modern living standards."
+            },
+            "image": "/home/about-2.jpg",
+            "imagePosition": "right",
+            "layout": "spotlight"
+          }
+        ],
+        "relatedTitle": {
+          "en": "",
+          "th": "",
+          "pl": ""
+        },
+        "indexable": false,
+        "order": 5
+      }
+    ]
+  },
+  "forDevelopers": {
+    "slug": "for-developers",
+    "indexable": false,
+    "metaTitle": {
+      "en": "For Developers | Varsovia Design",
+      "th": "For Developers | Varsovia Design",
+      "pl": "For Developers | Varsovia Design"
+    },
+    "metaDescription": {
+      "en": "Partner with Varsovia Design for developer interior packages, show units, and scalable FF&E across Thailand.",
+      "th": "Partner with Varsovia Design for developer interior packages, show units, and scalable FF&E across Thailand.",
+      "pl": "Partner with Varsovia Design for developer interior packages, show units, and scalable FF&E across Thailand."
+    },
+    "hero": {
+      "title": {
+        "en": "For Developers",
+        "th": "For Developers",
+        "pl": "For Developers"
+      },
+      "subtitle": {
+        "en": "Interior partners for show units, standard packages, and amenity spaces.",
+        "th": "Interior partners for show units, standard packages, and amenity spaces.",
+        "pl": "Interior partners for show units, standard packages, and amenity spaces."
+      },
+      "image": "/home/core/core-4.jpg",
+      "ctaLabel": {
+        "en": "Get a consultation",
+        "th": "Get a consultation",
+        "pl": "Get a consultation"
+      },
+      "ctaHref": "/contact"
+    },
+    "body": {
+      "en": "Developers need interiors that sell and scale. We deliver show-unit storytelling, repeatable apartment packages, and amenity design with clear specs, timelines, and installation support — so every phase stays on brand and on schedule.",
+      "th": "Developers need interiors that sell and scale. We deliver show-unit storytelling, repeatable apartment packages, and amenity design with clear specs, timelines, and installation support — so every phase stays on brand and on schedule.",
+      "pl": "Developers need interiors that sell and scale. We deliver show-unit storytelling, repeatable apartment packages, and amenity design with clear specs, timelines, and installation support — so every phase stays on brand and on schedule."
+    },
+    "sections": [
+      {
+        "heading": {
+          "en": "Show units that sell the vision",
+          "th": "Show units that sell the vision",
+          "pl": "Show units that sell the vision"
+        },
+        "text": {
+          "en": "Launch interiors with storytelling that buyers remember — then convert to packages that roll out cleanly across phases.",
+          "th": "Launch interiors with storytelling that buyers remember — then convert to packages that roll out cleanly across phases.",
+          "pl": "Launch interiors with storytelling that buyers remember — then convert to packages that roll out cleanly across phases."
+        },
+        "image": "/home/core/core-4.jpg",
+        "imagePosition": "left",
+        "layout": "editorial"
+      },
+      {
+        "heading": {
+          "en": "Packages, amenities, installation",
+          "th": "Packages, amenities, installation",
+          "pl": "Packages, amenities, installation"
+        },
+        "text": {
+          "en": "Standard apartment packages and amenity spaces with clear specs, timelines, and installation support so every phase stays on brand.",
+          "th": "Standard apartment packages and amenity spaces with clear specs, timelines, and installation support so every phase stays on brand.",
+          "pl": "Standard apartment packages and amenity spaces with clear specs, timelines, and installation support so every phase stays on brand."
+        },
+        "image": "/home/product/product-3.jpg",
+        "imagePosition": "right",
+        "layout": "overlay"
+      }
+    ],
+    "exploreTitle": {
+      "en": "Explore",
+      "th": "Explore",
+      "pl": "Explore"
+    },
+    "exploreSubtitle": {
+      "en": "Choose a focus area to continue.",
+      "th": "Choose a focus area to continue.",
+      "pl": "Choose a focus area to continue."
+    },
+    "servicesTitle": {
+      "en": "Services in this location",
+      "th": "Services in this location",
+      "pl": "Services in this location"
+    },
+    "servicesSubtitle": {
+      "en": "How we support homes and projects here.",
+      "th": "How we support homes and projects here.",
+      "pl": "How we support homes and projects here."
+    },
+    "children": []
+  },
+  "journal": {
+    "slug": "journal",
+    "indexable": false,
+    "metaTitle": {
+      "en": "Journal | Varsovia Design",
+      "th": "Journal | Varsovia Design",
+      "pl": "Journal | Varsovia Design"
+    },
+    "metaDescription": {
+      "en": "Varsovia Journal — guides on kitchens, furniture, materials, interior design, villas, and Thailand living.",
+      "th": "Varsovia Journal — guides on kitchens, furniture, materials, interior design, villas, and Thailand living.",
+      "pl": "Varsovia Journal — guides on kitchens, furniture, materials, interior design, villas, and Thailand living."
+    },
+    "hero": {
+      "title": {
+        "en": "Journal",
+        "th": "Journal",
+        "pl": "Journal"
+      },
+      "subtitle": {
+        "en": "Ideas on kitchens, materials, villas, and living in Thailand.",
+        "th": "Ideas on kitchens, materials, villas, and living in Thailand.",
+        "pl": "Ideas on kitchens, materials, villas, and living in Thailand."
+      },
+      "image": "/blog/blog1.jpg",
+      "ctaLabel": {
+        "en": "Get a consultation",
+        "th": "Get a consultation",
+        "pl": "Get a consultation"
+      },
+      "ctaHref": "/contact"
+    },
+    "body": {
+      "en": "Our journal collects practical design notes and project stories — written to help homeowners and partners make clearer decisions.",
+      "th": "Our journal collects practical design notes and project stories — written to help homeowners and partners make clearer decisions.",
+      "pl": "Our journal collects practical design notes and project stories — written to help homeowners and partners make clearer decisions."
+    },
+    "sections": [
+      {
+        "heading": {
+          "en": "Practical design notes",
+          "th": "Practical design notes",
+          "pl": "Practical design notes"
+        },
+        "text": {
+          "en": "Guides on kitchens, materials, and villas — written to help you make clearer decisions.",
+          "th": "Guides on kitchens, materials, and villas — written to help you make clearer decisions.",
+          "pl": "Guides on kitchens, materials, and villas — written to help you make clearer decisions."
+        },
+        "image": "/blog/blog1.jpg",
+        "imagePosition": "left",
+        "layout": "band"
+      },
+      {
+        "heading": {
+          "en": "Stories from real projects",
+          "th": "Stories from real projects",
+          "pl": "Stories from real projects"
+        },
+        "text": {
+          "en": "Project notes and Thailand living ideas drawn from homes we design and install.",
+          "th": "Project notes and Thailand living ideas drawn from homes we design and install.",
+          "pl": "Project notes and Thailand living ideas drawn from homes we design and install."
+        },
+        "image": "/home/stories/story-2.jpg",
+        "imagePosition": "right",
+        "layout": "spotlight"
+      }
+    ],
+    "exploreTitle": {
+      "en": "Explore",
+      "th": "Explore",
+      "pl": "Explore"
+    },
+    "exploreSubtitle": {
+      "en": "Choose a focus area to continue.",
+      "th": "Choose a focus area to continue.",
+      "pl": "Choose a focus area to continue."
+    },
+    "servicesTitle": {
+      "en": "Services in this location",
+      "th": "Services in this location",
+      "pl": "Services in this location"
+    },
+    "servicesSubtitle": {
+      "en": "How we support homes and projects here.",
+      "th": "How we support homes and projects here.",
+      "pl": "How we support homes and projects here."
+    },
+    "children": [
+      {
+        "slug": "kitchens",
+        "title": {
+          "en": "Kitchens",
+          "th": "Kitchens",
+          "pl": "Kitchens"
+        },
+        "metaTitle": {
+          "en": "Kitchens | Varsovia Design",
+          "th": "Kitchens | Varsovia Design",
+          "pl": "Kitchens | Varsovia Design"
+        },
+        "metaDescription": {
+          "en": "Kitchens by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "th": "Kitchens by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "pl": "Kitchens by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+        },
+        "hero": {
+          "title": {
+            "en": "Kitchens",
+            "th": "Kitchens",
+            "pl": "Kitchens"
+          },
+          "subtitle": {
+            "en": "Planning notes and kitchen stories from Varsovia projects.",
+            "th": "Planning notes and kitchen stories from Varsovia projects.",
+            "pl": "Planning notes and kitchen stories from Varsovia projects."
+          },
+          "image": "/Interior-kitchen/kitchen2.jpg",
+          "ctaLabel": {
+            "en": "Get a consultation",
+            "th": "Get a consultation",
+            "pl": "Get a consultation"
+          },
+          "ctaHref": "/contact"
+        },
+        "body": {
+          "en": "Layouts, materials, and detailing for kitchens that work in tropical homes.",
+          "th": "Layouts, materials, and detailing for kitchens that work in tropical homes.",
+          "pl": "Layouts, materials, and detailing for kitchens that work in tropical homes."
+        },
+        "sections": [
+          {
+            "heading": {
+              "en": "Kitchen planning notes",
+              "th": "Kitchen planning notes",
+              "pl": "Kitchen planning notes"
+            },
+            "text": {
+              "en": "Layouts, materials, and detailing drawn from tropical home projects.",
+              "th": "Layouts, materials, and detailing drawn from tropical home projects.",
+              "pl": "Layouts, materials, and detailing drawn from tropical home projects."
+            },
+            "image": "/Interior-kitchen/kitchen2.jpg",
+            "imagePosition": "left"
+          }
+        ],
+        "relatedTitle": {
+          "en": "",
+          "th": "",
+          "pl": ""
+        },
+        "indexable": false,
+        "order": 0
+      },
+      {
+        "slug": "furniture",
+        "title": {
+          "en": "Furniture",
+          "th": "Furniture",
+          "pl": "Furniture"
+        },
+        "metaTitle": {
+          "en": "Furniture | Varsovia Design",
+          "th": "Furniture | Varsovia Design",
+          "pl": "Furniture | Varsovia Design"
+        },
+        "metaDescription": {
+          "en": "Furniture by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "th": "Furniture by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "pl": "Furniture by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+        },
+        "hero": {
+          "title": {
+            "en": "Furniture",
+            "th": "Furniture",
+            "pl": "Furniture"
+          },
+          "subtitle": {
+            "en": "How we think about fitted furniture and freestanding pieces.",
+            "th": "How we think about fitted furniture and freestanding pieces.",
+            "pl": "How we think about fitted furniture and freestanding pieces."
+          },
+          "image": "/home/product/product-1.jpg",
+          "ctaLabel": {
+            "en": "Get a consultation",
+            "th": "Get a consultation",
+            "pl": "Get a consultation"
+          },
+          "ctaHref": "/contact"
+        },
+        "body": {
+          "en": "From wardrobes to dining — articles on choosing furniture that lasts.",
+          "th": "From wardrobes to dining — articles on choosing furniture that lasts.",
+          "pl": "From wardrobes to dining — articles on choosing furniture that lasts."
+        },
+        "sections": [
+          {
+            "heading": {
+              "en": "Furniture that lasts",
+              "th": "Furniture that lasts",
+              "pl": "Furniture that lasts"
+            },
+            "text": {
+              "en": "Notes on fitted and freestanding pieces chosen for Thai homes.",
+              "th": "Notes on fitted and freestanding pieces chosen for Thai homes.",
+              "pl": "Notes on fitted and freestanding pieces chosen for Thai homes."
+            },
+            "image": "/home/product/product-1.jpg",
+            "imagePosition": "left"
+          }
+        ],
+        "relatedTitle": {
+          "en": "",
+          "th": "",
+          "pl": ""
+        },
+        "indexable": false,
+        "order": 1
+      },
+      {
+        "slug": "materials",
+        "title": {
+          "en": "Materials",
+          "th": "Materials",
+          "pl": "Materials"
+        },
+        "metaTitle": {
+          "en": "Materials | Varsovia Design",
+          "th": "Materials | Varsovia Design",
+          "pl": "Materials | Varsovia Design"
+        },
+        "metaDescription": {
+          "en": "Materials by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "th": "Materials by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "pl": "Materials by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+        },
+        "hero": {
+          "title": {
+            "en": "Materials",
+            "th": "Materials",
+            "pl": "Materials"
+          },
+          "subtitle": {
+            "en": "Finishes and surfaces suited to Thai climate and daily use.",
+            "th": "Finishes and surfaces suited to Thai climate and daily use.",
+            "pl": "Finishes and surfaces suited to Thai climate and daily use."
+          },
+          "image": "/home/core/core-3.jpg",
+          "ctaLabel": {
+            "en": "Get a consultation",
+            "th": "Get a consultation",
+            "pl": "Get a consultation"
+          },
+          "ctaHref": "/contact"
+        },
+        "body": {
+          "en": "Guides to materials that look refined and perform in humidity and light.",
+          "th": "Guides to materials that look refined and perform in humidity and light.",
+          "pl": "Guides to materials that look refined and perform in humidity and light."
+        },
+        "sections": [
+          {
+            "heading": {
+              "en": "Materials for Thai climate",
+              "th": "Materials for Thai climate",
+              "pl": "Materials for Thai climate"
+            },
+            "text": {
+              "en": "Finishes that look refined and perform in humidity and bright light.",
+              "th": "Finishes that look refined and perform in humidity and bright light.",
+              "pl": "Finishes that look refined and perform in humidity and bright light."
+            },
+            "image": "/home/core/core-3.jpg",
+            "imagePosition": "left"
+          }
+        ],
+        "relatedTitle": {
+          "en": "",
+          "th": "",
+          "pl": ""
+        },
+        "indexable": false,
+        "order": 2
+      },
+      {
+        "slug": "interior-design",
+        "title": {
+          "en": "Interior Design",
+          "th": "Interior Design",
+          "pl": "Interior Design"
+        },
+        "metaTitle": {
+          "en": "Interior Design | Varsovia Design",
+          "th": "Interior Design | Varsovia Design",
+          "pl": "Interior Design | Varsovia Design"
+        },
+        "metaDescription": {
+          "en": "Interior Design by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "th": "Interior Design by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "pl": "Interior Design by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+        },
+        "hero": {
+          "title": {
+            "en": "Interior Design",
+            "th": "Interior Design",
+            "pl": "Interior Design"
+          },
+          "subtitle": {
+            "en": "Process and ideas behind Varsovia interiors.",
+            "th": "Process and ideas behind Varsovia interiors.",
+            "pl": "Process and ideas behind Varsovia interiors."
+          },
+          "image": "/home/featured/feature-1.jpg",
+          "ctaLabel": {
+            "en": "Get a consultation",
+            "th": "Get a consultation",
+            "pl": "Get a consultation"
+          },
+          "ctaHref": "/contact"
+        },
+        "body": {
+          "en": "How we approach flow, light, and atmosphere room by room.",
+          "th": "How we approach flow, light, and atmosphere room by room.",
+          "pl": "How we approach flow, light, and atmosphere room by room."
+        },
+        "sections": [
+          {
+            "heading": {
+              "en": "Process and atmosphere",
+              "th": "Process and atmosphere",
+              "pl": "Process and atmosphere"
+            },
+            "text": {
+              "en": "How we approach flow, light, and atmosphere room by room.",
+              "th": "How we approach flow, light, and atmosphere room by room.",
+              "pl": "How we approach flow, light, and atmosphere room by room."
+            },
+            "image": "/home/featured/feature-1.jpg",
+            "imagePosition": "left"
+          }
+        ],
+        "relatedTitle": {
+          "en": "",
+          "th": "",
+          "pl": ""
+        },
+        "indexable": false,
+        "order": 3
+      },
+      {
+        "slug": "villa-guides",
+        "title": {
+          "en": "Villa Guides",
+          "th": "Villa Guides",
+          "pl": "Villa Guides"
+        },
+        "metaTitle": {
+          "en": "Villa Guides | Varsovia Design",
+          "th": "Villa Guides | Varsovia Design",
+          "pl": "Villa Guides | Varsovia Design"
+        },
+        "metaDescription": {
+          "en": "Villa Guides by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "th": "Villa Guides by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "pl": "Villa Guides by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+        },
+        "hero": {
+          "title": {
+            "en": "Villa Guides",
+            "th": "Villa Guides",
+            "pl": "Villa Guides"
+          },
+          "subtitle": {
+            "en": "Design advice for villas and outdoor-connected living.",
+            "th": "Design advice for villas and outdoor-connected living.",
+            "pl": "Design advice for villas and outdoor-connected living."
+          },
+          "image": "/home/stories/story-1.jpg",
+          "ctaLabel": {
+            "en": "Get a consultation",
+            "th": "Get a consultation",
+            "pl": "Get a consultation"
+          },
+          "ctaHref": "/contact"
+        },
+        "body": {
+          "en": "Practical notes for villa owners planning interiors with gardens and terraces.",
+          "th": "Practical notes for villa owners planning interiors with gardens and terraces.",
+          "pl": "Practical notes for villa owners planning interiors with gardens and terraces."
+        },
+        "sections": [
+          {
+            "heading": {
+              "en": "Villa living notes",
+              "th": "Villa living notes",
+              "pl": "Villa living notes"
+            },
+            "text": {
+              "en": "Practical advice for interiors that open to gardens and terraces.",
+              "th": "Practical advice for interiors that open to gardens and terraces.",
+              "pl": "Practical advice for interiors that open to gardens and terraces."
+            },
+            "image": "/home/stories/story-1.jpg",
+            "imagePosition": "left"
+          }
+        ],
+        "relatedTitle": {
+          "en": "",
+          "th": "",
+          "pl": ""
+        },
+        "indexable": false,
+        "order": 4
+      },
+      {
+        "slug": "thailand-living",
+        "title": {
+          "en": "Thailand Living",
+          "th": "Thailand Living",
+          "pl": "Thailand Living"
+        },
+        "metaTitle": {
+          "en": "Thailand Living | Varsovia Design",
+          "th": "Thailand Living | Varsovia Design",
+          "pl": "Thailand Living | Varsovia Design"
+        },
+        "metaDescription": {
+          "en": "Thailand Living by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "th": "Thailand Living by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "pl": "Thailand Living by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+        },
+        "hero": {
+          "title": {
+            "en": "Thailand Living",
+            "th": "Thailand Living",
+            "pl": "Thailand Living"
+          },
+          "subtitle": {
+            "en": "Living well in Thailand — climate, ritual, and home.",
+            "th": "Living well in Thailand — climate, ritual, and home.",
+            "pl": "Living well in Thailand — climate, ritual, and home."
+          },
+          "image": "/home/stories/story-2.jpg",
+          "ctaLabel": {
+            "en": "Get a consultation",
+            "th": "Get a consultation",
+            "pl": "Get a consultation"
+          },
+          "ctaHref": "/contact"
+        },
+        "body": {
+          "en": "Stories and tips for homes that feel comfortable year-round in Thailand.",
+          "th": "Stories and tips for homes that feel comfortable year-round in Thailand.",
+          "pl": "Stories and tips for homes that feel comfortable year-round in Thailand."
+        },
+        "sections": [
+          {
+            "heading": {
+              "en": "Living well in Thailand",
+              "th": "Living well in Thailand",
+              "pl": "Living well in Thailand"
+            },
+            "text": {
+              "en": "Climate, ritual, and home — tips for comfortable year-round living.",
+              "th": "Climate, ritual, and home — tips for comfortable year-round living.",
+              "pl": "Climate, ritual, and home — tips for comfortable year-round living."
+            },
+            "image": "/home/stories/story-2.jpg",
+            "imagePosition": "left"
+          }
+        ],
+        "relatedTitle": {
+          "en": "",
+          "th": "",
+          "pl": ""
+        },
+        "indexable": false,
+        "order": 5
+      }
+    ]
+  },
+  "aboutBrand": {
+    "slug": "about",
+    "indexable": false,
+    "metaTitle": {
+      "en": "About | Varsovia Design",
+      "th": "About | Varsovia Design",
+      "pl": "About | Varsovia Design"
+    },
+    "metaDescription": {
+      "en": "About Varsovia Design, and partner brands Livo and Oppolia — craftsmanship and interiors for Thailand.",
+      "th": "About Varsovia Design, and partner brands Livo and Oppolia — craftsmanship and interiors for Thailand.",
+      "pl": "About Varsovia Design, and partner brands Livo and Oppolia — craftsmanship and interiors for Thailand."
+    },
+    "hero": {
+      "title": {
+        "en": "Varsovia",
+        "th": "Varsovia",
+        "pl": "Varsovia"
+      },
+      "subtitle": {
+        "en": "Design-led interiors and furniture, crafted for Thai living.",
+        "th": "Design-led interiors and furniture, crafted for Thai living.",
+        "pl": "Design-led interiors and furniture, crafted for Thai living."
+      },
+      "image": "/home/about-1.jpg",
+      "ctaLabel": {
+        "en": "Get a consultation",
+        "th": "Get a consultation",
+        "pl": "Get a consultation"
+      },
+      "ctaHref": "/contact"
+    },
+    "body": {
+      "en": "Varsovia Design creates interiors and furniture for homes across Thailand. Explore our story and the brand partners that support our quality.",
+      "th": "Varsovia Design creates interiors and furniture for homes across Thailand. Explore our story and the brand partners that support our quality.",
+      "pl": "Varsovia Design creates interiors and furniture for homes across Thailand. Explore our story and the brand partners that support our quality."
+    },
+    "sections": [
+      {
+        "heading": {
+          "en": "Design-led craftsmanship",
+          "th": "Design-led craftsmanship",
+          "pl": "Design-led craftsmanship"
+        },
+        "text": {
+          "en": "Interiors and furniture for Thai homes — calm, durable, and planned around light and daily ritual.",
+          "th": "Interiors and furniture for Thai homes — calm, durable, and planned around light and daily ritual.",
+          "pl": "Interiors and furniture for Thai homes — calm, durable, and planned around light and daily ritual."
+        },
+        "image": "/home/about-1.jpg",
+        "imagePosition": "left",
+        "layout": "band"
+      },
+      {
+        "heading": {
+          "en": "Brands we build with",
+          "th": "Brands we build with",
+          "pl": "Brands we build with"
+        },
+        "text": {
+          "en": "Explore Varsovia and partner brands that support our quality across kitchens and cabinetry.",
+          "th": "Explore Varsovia and partner brands that support our quality across kitchens and cabinetry.",
+          "pl": "Explore Varsovia and partner brands that support our quality across kitchens and cabinetry."
+        },
+        "image": "/home/about-3.jpg",
+        "imagePosition": "right",
+        "layout": "spotlight"
+      }
+    ],
+    "exploreTitle": {
+      "en": "Explore",
+      "th": "Explore",
+      "pl": "Explore"
+    },
+    "exploreSubtitle": {
+      "en": "Choose a focus area to continue.",
+      "th": "Choose a focus area to continue.",
+      "pl": "Choose a focus area to continue."
+    },
+    "servicesTitle": {
+      "en": "Services in this location",
+      "th": "Services in this location",
+      "pl": "Services in this location"
+    },
+    "servicesSubtitle": {
+      "en": "How we support homes and projects here.",
+      "th": "How we support homes and projects here.",
+      "pl": "How we support homes and projects here."
+    },
+    "children": [
+      {
+        "slug": "varsovia",
+        "title": {
+          "en": "Varsovia",
+          "th": "Varsovia",
+          "pl": "Varsovia"
+        },
+        "metaTitle": {
+          "en": "Varsovia | Varsovia Design",
+          "th": "Varsovia | Varsovia Design",
+          "pl": "Varsovia | Varsovia Design"
+        },
+        "metaDescription": {
+          "en": "Varsovia by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "th": "Varsovia by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "pl": "Varsovia by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+        },
+        "hero": {
+          "title": {
+            "en": "Varsovia",
+            "th": "Varsovia",
+            "pl": "Varsovia"
+          },
+          "subtitle": {
+            "en": "Design-led interiors and furniture, crafted for Thai living.",
+            "th": "Design-led interiors and furniture, crafted for Thai living.",
+            "pl": "Design-led interiors and furniture, crafted for Thai living."
+          },
+          "image": "/home/about-1.jpg",
+          "ctaLabel": {
+            "en": "Get a consultation",
+            "th": "Get a consultation",
+            "pl": "Get a consultation"
+          },
+          "ctaHref": "/contact"
+        },
+        "body": {
+          "en": "Varsovia Design is a Thailand-based studio focused on calm, durable interiors — from kitchens and fitted furniture to complete villa programmes. We design with light, climate, and daily ritual in mind.",
+          "th": "Varsovia Design is a Thailand-based studio focused on calm, durable interiors — from kitchens and fitted furniture to complete villa programmes. We design with light, climate, and daily ritual in mind.",
+          "pl": "Varsovia Design is a Thailand-based studio focused on calm, durable interiors — from kitchens and fitted furniture to complete villa programmes. We design with light, climate, and daily ritual in mind."
+        },
+        "sections": [
+          {
+            "heading": {
+              "en": "Calm, durable interiors",
+              "th": "Calm, durable interiors",
+              "pl": "Calm, durable interiors"
+            },
+            "text": {
+              "en": "From kitchens and fitted furniture to complete villa programmes — designed for Thai light and climate.",
+              "th": "From kitchens and fitted furniture to complete villa programmes — designed for Thai light and climate.",
+              "pl": "From kitchens and fitted furniture to complete villa programmes — designed for Thai light and climate."
+            },
+            "image": "/home/about-1.jpg",
+            "imagePosition": "left",
+            "layout": "band"
+          },
+          {
+            "heading": {
+              "en": "Craft for daily ritual",
+              "th": "Craft for daily ritual",
+              "pl": "Craft for daily ritual"
+            },
+            "text": {
+              "en": "Every project starts with how you live — then materials and furniture follow.",
+              "th": "Every project starts with how you live — then materials and furniture follow.",
+              "pl": "Every project starts with how you live — then materials and furniture follow."
+            },
+            "image": "/home/featured/feature-1.jpg",
+            "imagePosition": "right",
+            "layout": "spotlight"
+          }
+        ],
+        "relatedTitle": {
+          "en": "",
+          "th": "",
+          "pl": ""
+        },
+        "indexable": false,
+        "order": 0
+      },
+      {
+        "slug": "livo",
+        "title": {
+          "en": "Livo",
+          "th": "Livo",
+          "pl": "Livo"
+        },
+        "metaTitle": {
+          "en": "Livo | Varsovia Design",
+          "th": "Livo | Varsovia Design",
+          "pl": "Livo | Varsovia Design"
+        },
+        "metaDescription": {
+          "en": "Livo by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "th": "Livo by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "pl": "Livo by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+        },
+        "hero": {
+          "title": {
+            "en": "Livo",
+            "th": "Livo",
+            "pl": "Livo"
+          },
+          "subtitle": {
+            "en": "A brand partner in the Varsovia design ecosystem.",
+            "th": "A brand partner in the Varsovia design ecosystem.",
+            "pl": "A brand partner in the Varsovia design ecosystem."
+          },
+          "image": "/home/about-2.jpg",
+          "ctaLabel": {
+            "en": "Get a consultation",
+            "th": "Get a consultation",
+            "pl": "Get a consultation"
+          },
+          "ctaHref": "/contact"
+        },
+        "body": {
+          "en": "Livo collaborates with Varsovia on selected furniture and interior programmes — bringing complementary craft and product depth to projects that need both design vision and reliable making.",
+          "th": "Livo collaborates with Varsovia on selected furniture and interior programmes — bringing complementary craft and product depth to projects that need both design vision and reliable making.",
+          "pl": "Livo collaborates with Varsovia on selected furniture and interior programmes — bringing complementary craft and product depth to projects that need both design vision and reliable making."
+        },
+        "sections": [
+          {
+            "heading": {
+              "en": "Partner craftsmanship",
+              "th": "Partner craftsmanship",
+              "pl": "Partner craftsmanship"
+            },
+            "text": {
+              "en": "Livo works with Varsovia on selected furniture and interior programmes where product depth meets design vision.",
+              "th": "Livo works with Varsovia on selected furniture and interior programmes where product depth meets design vision.",
+              "pl": "Livo works with Varsovia on selected furniture and interior programmes where product depth meets design vision."
+            },
+            "image": "/home/about-2.jpg",
+            "imagePosition": "left",
+            "layout": "band"
+          },
+          {
+            "heading": {
+              "en": "Built for real homes",
+              "th": "Built for real homes",
+              "pl": "Built for real homes"
+            },
+            "text": {
+              "en": "Shared standards for finish and durability — so partner pieces feel native to Varsovia interiors.",
+              "th": "Shared standards for finish and durability — so partner pieces feel native to Varsovia interiors.",
+              "pl": "Shared standards for finish and durability — so partner pieces feel native to Varsovia interiors."
+            },
+            "image": "/home/product/product-2.jpg",
+            "imagePosition": "right",
+            "layout": "spotlight"
+          }
+        ],
+        "relatedTitle": {
+          "en": "",
+          "th": "",
+          "pl": ""
+        },
+        "indexable": false,
+        "order": 1
+      },
+      {
+        "slug": "oppolia",
+        "title": {
+          "en": "Oppolia",
+          "th": "Oppolia",
+          "pl": "Oppolia"
+        },
+        "metaTitle": {
+          "en": "Oppolia | Varsovia Design",
+          "th": "Oppolia | Varsovia Design",
+          "pl": "Oppolia | Varsovia Design"
+        },
+        "metaDescription": {
+          "en": "Oppolia by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "th": "Oppolia by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
+          "pl": "Oppolia by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+        },
+        "hero": {
+          "title": {
+            "en": "Oppolia",
+            "th": "Oppolia",
+            "pl": "Oppolia"
+          },
+          "subtitle": {
+            "en": "A brand partner supporting refined kitchen and cabinetry solutions.",
+            "th": "A brand partner supporting refined kitchen and cabinetry solutions.",
+            "pl": "A brand partner supporting refined kitchen and cabinetry solutions."
+          },
+          "image": "/home/about-3.jpg",
+          "ctaLabel": {
+            "en": "Get a consultation",
+            "th": "Get a consultation",
+            "pl": "Get a consultation"
+          },
+          "ctaHref": "/contact"
+        },
+        "body": {
+          "en": "Oppolia works alongside Varsovia where cabinetry and kitchen systems meet our design standard — refined fronts, reliable hardware, and detailing that holds up in tropical homes.",
+          "th": "Oppolia works alongside Varsovia where cabinetry and kitchen systems meet our design standard — refined fronts, reliable hardware, and detailing that holds up in tropical homes.",
+          "pl": "Oppolia works alongside Varsovia where cabinetry and kitchen systems meet our design standard — refined fronts, reliable hardware, and detailing that holds up in tropical homes."
+        },
+        "sections": [
+          {
+            "heading": {
+              "en": "Kitchens and cabinetry",
+              "th": "Kitchens and cabinetry",
+              "pl": "Kitchens and cabinetry"
+            },
+            "text": {
+              "en": "Oppolia supports Varsovia projects where kitchen systems and cabinetry need refined fronts and reliable hardware.",
+              "th": "Oppolia supports Varsovia projects where kitchen systems and cabinetry need refined fronts and reliable hardware.",
+              "pl": "Oppolia supports Varsovia projects where kitchen systems and cabinetry need refined fronts and reliable hardware."
+            },
+            "image": "/home/about-3.jpg",
+            "imagePosition": "left",
+            "layout": "spotlight"
+          },
+          {
+            "heading": {
+              "en": "Detail that holds up",
+              "th": "Detail that holds up",
+              "pl": "Detail that holds up"
+            },
+            "text": {
+              "en": "Tropical-ready detailing aligned with Varsovia’s finish standard — calm elevations, lasting use.",
+              "th": "Tropical-ready detailing aligned with Varsovia’s finish standard — calm elevations, lasting use.",
+              "pl": "Tropical-ready detailing aligned with Varsovia’s finish standard — calm elevations, lasting use."
+            },
+            "image": "/Interior-kitchen/kitchen1.jpg",
+            "imagePosition": "right",
+            "layout": "band"
+          }
+        ],
+        "relatedTitle": {
+          "en": "",
+          "th": "",
+          "pl": ""
+        },
+        "indexable": false,
+        "order": 2
+      }
+    ]
+  }
+}

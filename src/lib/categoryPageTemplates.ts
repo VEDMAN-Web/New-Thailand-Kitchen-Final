@@ -204,6 +204,33 @@ export function buildDefaultCategorySections(input: {
     ];
   }
 
+  if (type === "location") {
+    return [
+      {
+        heading: L(`Kitchen projects in ${title}`),
+        body: L(lead),
+        image: imageA,
+        layout: "image-left",
+      },
+      {
+        heading: L(`Local delivery for ${title}`),
+        body: L(
+          "Site survey|Local install crew|Climate-aware materials|Aftercare nearby"
+        ),
+        layout: "steps",
+        image: imageB,
+      },
+      {
+        heading: L(`Building in ${title}?`),
+        body: L(
+          "Book a consultation — we’ll map timelines and logistics for your address."
+        ),
+        layout: "band",
+        image: "",
+      },
+    ];
+  }
+
   return [
     {
       heading: L(title),
@@ -241,6 +268,8 @@ export function defaultEyebrowForType(categoryType: string): LocalizedText {
       return L("Services");
     case "built-in-furniture":
       return L("Built-in");
+    case "location":
+      return L("Explore");
     default:
       return L("Explore");
   }

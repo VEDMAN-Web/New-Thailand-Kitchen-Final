@@ -160,14 +160,14 @@ export default function MediaUpload({
     previewSize === "lg"
       ? "mt-2 w-full min-h-40 rounded-xl border border-[#E2E5EA] bg-[#F8FAFC]"
       : previewSize === "md"
-        ? "mt-2 h-40 w-full max-w-md rounded-lg border border-[#E2E5EA] bg-[#F8FAFC]"
+        ? "mt-2 min-h-44 w-full max-w-xl rounded-lg border border-[#E2E5EA] bg-[#F8FAFC]"
         : "mt-2 h-16 w-full max-w-xs rounded-md border border-[#E2E5EA] bg-[#F8FAFC]";
 
   const imgClass =
     previewSize === "lg"
       ? "h-auto max-h-72 w-full object-contain"
       : previewSize === "md"
-        ? "h-full w-full object-contain"
+        ? "max-h-56 w-full object-contain"
         : "h-full w-auto max-w-full object-contain";
 
   const showPreview = Boolean(value.trim()) && kind !== "pdf";

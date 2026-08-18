@@ -320,7 +320,21 @@ export default function AdminCategoriesPage() {
       footerCtaBody: localizedValue(footerBodyForm, "en")
         ? footerBodyForm
         : footerFallback.footerCtaBody,
-      sections: sectionsFromApi((item as any).sections),
+      sections: (() => {
+        const fromApi = sectionsFromApi((item as any).sections);
+        if (fromApi.length) return fromApi;
+        return buildDefaultCategorySections({
+          title:
+            localizedValue(asLocalizedForm(item.title), "en") || "Kitchen",
+          description: localizedValue(
+            asLocalizedForm(item.description),
+            "en"
+          ),
+          image: item.image,
+          categoryType: type,
+          slug: (item as any).slug,
+        });
+      })(),
     });
     setLocale("en");
     setModal("edit");

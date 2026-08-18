@@ -1,0 +1,88 @@
+{
+  "Kitchen Interior": [
+    {
+      "question": "Czy projektujecie kuchnie modułowe na wymiar?",
+      "answer": "Tak. Każda kuchnia jest projektowana indywidualnie — dopasowujemy ją do metrażu, sposobu gotowania i preferowanego stylu."
+    },
+    {
+      "question": "Jakich materiałów używacie do szafek kuchennych?",
+      "answer": "Stosujemy wysokiej klasy sklejkę wodoodporną, MDF oraz płyty wiórowe z wykończeniem akrylowym, laminowanym lub PU dla trwałości."
+    },
+    {
+      "question": "Czy mogę wybrać kolory i wykończenia?",
+      "answer": "Oczywiście. Oferujemy szeroki wybór kolorów i faktur — od matowych i błyszczących akryli po forniry drewniane z reliefem."
+    },
+    {
+      "question": "Ile trwa montaż kuchni?",
+      "answer": "Produkcja kuchni modułowej w naszej manufakturze trwa zwykle 3–4 tygodnie, a montaż na miejscu 3–5 dni."
+    },
+    {
+      "question": "Czy kuchnie modułowe objęte są gwarancją?",
+      "answer": "Tak — udzielamy 5-letniej gwarancji na wady produkcyjne i sprawność osprzętu."
+    }
+  ],
+  "Bedroom Interior": [
+    {
+      "question": "Jakie rozwiązania do przechowywania w sypialni oferujecie?",
+      "answer": "Projektujemy szafy na wymiar, garderoby walk-in, schowki pod łóżkiem, antresole oraz wbudowane toaletki."
+    },
+    {
+      "question": "Czy zaprojektujecie szafę pod konkretną wnękę?",
+      "answer": "Tak — każda szafa jest dopasowana do układu sypialni, wnęk ściennych i wysokości sufitu."
+    },
+    {
+      "question": "Jakie wykończenia sprawdzają się najlepiej w szafach?",
+      "answer": "Laminaty są trwałe i łatwe w pielęgnacji, a lustra i przesuwane fronty szklane optycznie powiększają mniejsze sypialnie."
+    }
+  ],
+  "Living Room": [
+    {
+      "question": "Jakie meble do salonu możecie wykonać na wymiar?",
+      "answer": "Tworzymy zabudowy RTV, panele ścienne, witryny, stoliki kawowe oraz ścianki działowe."
+    },
+    {
+      "question": "Jak podchodzicie do aranżacji salonu?",
+      "answer": "Stawiamy na wygodę siedzenia, kąty oglądania telewizora, optymalizację miejsca do przechowywania oraz czytelne ciągi komunikacyjne."
+    }
+  ],
+  "Bathroom Interior": [
+    {
+      "question": "Czy szafki umywalkowe są odporne na wilgoć?",
+      "answer": "Tak — używamy sklejki BWR (odpornej na wrzątek) lub płyt HDMR, aby szafki wytrzymały wilgoć w łazience."
+    },
+    {
+      "question": "Jakie pomysły na przechowywanie w łazience polecacie?",
+      "answer": "Polecamy szafki pod umywalką, wiszące szafki lustrzane oraz otwarte półki w wnękach na ręczniki."
+    }
+  ],
+  "Doors & Windows": [
+    {
+      "question": "Jakie materiały ram drzwi i okien polecacie?",
+      "answer": "Oferujemy drewno lite, PCV (uPVC) oraz wysokowydajne profile aluminiowe — w zależności od warunków atmosferycznych i stylu."
+    },
+    {
+      "question": "Czy projektujecie wzory drzwi na wymiar?",
+      "answer": "Tak — projektujemy drzwi wejściowe, przesuwne na balkon oraz drzwi wewnętrzne typu flush w różnych fornirach."
+    }
+  ],
+  "Furniture": [
+    {
+      "question": "Czy wykonujecie stoły jadalniane na wymiar?",
+      "answer": "Tak — produkujemy stoły z blatem marmurowym, z litego drewna i szklane, dopasowane do stylu wnętrza."
+    },
+    {
+      "question": "Jakich tkanin używacie do sof?",
+      "answer": "Stosujemy premium: len, aksamit oraz skórę ekologiczną — odporne na plamy i trwałe w codziennym użytkowaniu."
+    }
+  ],
+  "Whole Home": [
+    {
+      "question": "Co obejmuje pakiet aranżacji całego domu?",
+      "answer": "Obejmuje planowanie przestrzeni, sufity podwieszane, rozmieszczenie oświetlenia, malowanie, meble na wymiar oraz dobór dekoracji."
+    },
+    {
+      "question": "Ile trwa kompleksowy projekt wnętrz domu?",
+      "answer": "Realizacja end-to-end trwa zwykle 8–12 tygodni — w zależności od skali i złożoności projektu."
+    }
+  ]
+}

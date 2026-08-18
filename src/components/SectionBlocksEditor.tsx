@@ -5,6 +5,7 @@ import MediaUpload from "@/components/MediaUpload";
 import {
   asLocalizedForm,
   emptyLocalized,
+  localeFieldPlaceholder,
   localizedValue,
   writeLocalized,
   type LocaleCode,
@@ -351,6 +352,7 @@ export default function SectionBlocksEditor({
               </label>
               <input
                 value={localizedValue(block.heading, locale)}
+                placeholder={localeFieldPlaceholder(locale)}
                 onChange={(e) => {
                   const next = [...sections];
                   next[i] = {
@@ -369,7 +371,9 @@ export default function SectionBlocksEditor({
               </label>
               <textarea
                 rows={4}
-                placeholder={bodyPlaceholder(block.layout)}
+                placeholder={
+                  localeFieldPlaceholder(locale) || bodyPlaceholder(block.layout)
+                }
                 value={localizedValue(block.body, locale)}
                 onChange={(e) => {
                   const next = [...sections];
@@ -408,7 +412,7 @@ export function sectionsFromApi(raw: unknown): SectionBlockForm[] {
   if (!Array.isArray(raw)) return [];
   return raw.map((block: any) => ({
     heading: asLocalizedForm(block?.heading),
-    body: asLocalizedForm(block?.body),
+    body: asLocalizedForm(block?.body ?? block?.text),
     image: String(block?.image || ""),
     layout: String(block?.layout || "image-left"),
   }));

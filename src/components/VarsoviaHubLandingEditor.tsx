@@ -9,6 +9,7 @@ import { CMS_SYNCED_EVENT } from "@/lib/adminSectionNav";
 import {
   asLocalizedForm,
   emptyLocalized,
+  localeFieldPlaceholder,
   localizedValue,
   writeLocalized,
   type LocaleCode,
@@ -21,6 +22,7 @@ import {
   varsoviaErrorMessage,
 } from "@/services/varsoviaAPI";
 import { IA_HUB_PATHS } from "@/app/varsovia/iaPagesDefaults";
+import { mergeIaPagesFromLiveSite } from "@/app/varsovia/mergeIaPages";
 
 type ContentSection = {
   heading?: LocalizedText;
@@ -43,6 +45,8 @@ type HubDraft = {
   sections: ContentSection[];
   exploreTitle: LocalizedText;
   exploreSubtitle: LocalizedText;
+  servicesTitle: LocalizedText;
+  servicesSubtitle: LocalizedText;
   indexable: boolean;
   metaTitle: LocalizedText;
   metaDescription: LocalizedText;
@@ -62,6 +66,8 @@ function emptyHubDraft(): HubDraft {
     sections: [],
     exploreTitle: emptyLocalized(),
     exploreSubtitle: emptyLocalized(),
+    servicesTitle: emptyLocalized(),
+    servicesSubtitle: emptyLocalized(),
     indexable: false,
     metaTitle: emptyLocalized(),
     metaDescription: emptyLocalized(),
@@ -86,8 +92,11 @@ function sectionsFromApi(raw: unknown): ContentSection[] {
   });
 }
 
-function hubFromApi(raw: Record<string, unknown> | undefined): HubDraft {
-  const src = raw || {};
+function hubFromApi(raw: unknown): HubDraft {
+  const src =
+    raw && typeof raw === "object" && !Array.isArray(raw)
+      ? (raw as Record<string, unknown>)
+      : {};
   const hero =
     src.hero && typeof src.hero === "object"
       ? (src.hero as Record<string, unknown>)
@@ -105,6 +114,8 @@ function hubFromApi(raw: Record<string, unknown> | undefined): HubDraft {
     sections: sectionsFromApi(src.sections),
     exploreTitle: asLoc(src.exploreTitle),
     exploreSubtitle: asLoc(src.exploreSubtitle),
+    servicesTitle: asLoc(src.servicesTitle),
+    servicesSubtitle: asLoc(src.servicesSubtitle),
     indexable: src.indexable === true,
     metaTitle: asLoc(src.metaTitle),
     metaDescription: asLoc(src.metaDescription),
@@ -131,6 +142,8 @@ function hubToApi(draft: HubDraft): Record<string, unknown> {
     })),
     exploreTitle: asLocalizedForm(draft.exploreTitle),
     exploreSubtitle: asLocalizedForm(draft.exploreSubtitle),
+    servicesTitle: asLocalizedForm(draft.servicesTitle),
+    servicesSubtitle: asLocalizedForm(draft.servicesSubtitle),
     indexable: draft.indexable,
     metaTitle: asLocalizedForm(draft.metaTitle),
     metaDescription: asLocalizedForm(draft.metaDescription),
@@ -154,7 +167,7 @@ function TextField({
 }) {
   const cls =
     "mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3.5 py-2.5 text-sm";
-  const current = localizedValue(value, locale);
+  const current = localizedValue(value, locale, { strict: true });
   return (
     <label className="block text-xs font-semibold text-[#5C6370]">
       {label} ({locale.toUpperCase()})
@@ -163,6 +176,7 @@ function TextField({
           rows={3}
           value={current}
           maxLength={maxLength}
+          placeholder={localeFieldPlaceholder(locale)}
           onChange={(e) =>
             onChange(
               writeLocalized(
@@ -178,6 +192,7 @@ function TextField({
         <input
           value={current}
           maxLength={maxLength}
+          placeholder={localeFieldPlaceholder(locale)}
           onChange={(e) =>
             onChange(
               writeLocalized(
@@ -315,7 +330,7 @@ export default function VarsoviaHubLandingEditor({
     setLoading(true);
     try {
       const site = await getVarsoviaSite();
-      const allPages = (site.pages || {}) as Record<string, Record<string, unknown>>;
+      const allPages = mergeIaPagesFromLiveSite(site.pages);
       setPages(allPages);
       setDraft(hubFromApi(allPages[hubKey]));
     } catch (err) {
@@ -489,6 +504,31 @@ export default function VarsoviaHubLandingEditor({
                   setDraft((d) => ({ ...d, exploreSubtitle }))
                 }
               />
+            </>
+          ) : null}
+
+          {hubKey === "locations" ? (
+            <>
+              <TextField
+                label="City pages — services heading (default)"
+                value={draft.servicesTitle}
+                locale={locale}
+                onChange={(servicesTitle) =>
+                  setDraft((d) => ({ ...d, servicesTitle }))
+                }
+              />
+              <TextField
+                label="City pages — services subtitle (default)"
+                value={draft.servicesSubtitle}
+                locale={locale}
+                onChange={(servicesSubtitle) =>
+                  setDraft((d) => ({ ...d, servicesSubtitle }))
+                }
+              />
+              <p className="text-[11px] text-[#6B7280] -mt-1">
+                Used on /locations/[city] when that city does not set its own
+                heading in the city edit modal.
+              </p>
             </>
           ) : null}
 

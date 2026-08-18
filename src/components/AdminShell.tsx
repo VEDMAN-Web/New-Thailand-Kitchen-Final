@@ -843,7 +843,7 @@ function AdminShellContent({
               type="button"
               onClick={openSyncConfirm}
               disabled={syncing}
-              title="Sync from connected database (Journal articles mirrored to live set)"
+              title="Reload Varsovia from the connected database and fill blank page fields from live site content"
               className={clsx(
                 "inline-flex items-center gap-2 rounded-xl border border-[#E2E5EA] bg-white px-3 py-2 text-xs font-semibold text-[#1A2332] transition-colors",
                 syncing
@@ -950,8 +950,8 @@ function AdminShellContent({
                 {(isVarsovia
                   ? [
                       "Reloads Varsovia CMS into admin (same database as the live site)",
-                      "Journal page: mirrors live /journal article set (upsert + delete extras)",
-                      "Fills blank site fields from defaults (Journal hero, intro, explore…)",
+                      "Location / Furniture / Services / Journal pages: blank fields fill from live site copy — edited copy is kept",
+                      "Journal articles: mirrors live /journal set (upsert + delete extras)",
                       "Other resources: counts reload from DB — no wipe of edited products/projects",
                     ]
                   : [

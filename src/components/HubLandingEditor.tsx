@@ -14,6 +14,7 @@ import { CMS_SYNCED_EVENT } from "@/lib/adminSectionNav";
 import {
   asLocalizedForm,
   emptyLocalized,
+  localeFieldPlaceholder,
   localizedValue,
   writeLocalized,
   type LocaleCode,
@@ -120,12 +121,14 @@ function TextField({
         <textarea
           rows={3}
           value={localizedValue(value, locale)}
+          placeholder={localeFieldPlaceholder(locale)}
           onChange={(e) => onChange(writeLocalized(value, locale, e.target.value))}
           className={cls}
         />
       ) : (
         <input
           value={localizedValue(value, locale)}
+          placeholder={localeFieldPlaceholder(locale)}
           onChange={(e) => onChange(writeLocalized(value, locale, e.target.value))}
           className={cls}
         />
