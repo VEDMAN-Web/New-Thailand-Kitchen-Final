@@ -81,6 +81,19 @@ const PHRASES: Record<"th" | "pl", Record<string, string>> = {
     "Pattaya": "พัทยา",
     "Hua Hin": "หัวหิน",
     "Chiang Mai": "เชียงใหม่",
+    "Our locations": "สถานที่ของเรา",
+    "Choose a city to see services and local projects.":
+      "เลือกเมืองเพื่อดูบริการและผลงานในพื้นที่",
+    "Services in this location": "บริการในพื้นที่นี้",
+    "How we support homes and projects here.": "วิธีที่เราดูแลบ้านและโครงการที่นี่",
+    "Related projects": "ผลงานที่เกี่ยวข้อง",
+    "Locations | Varsovia Design": "สถานที่ | Varsovia Design",
+    "Koh Samui | Varsovia Design": "เกาะสมุย | Varsovia Design",
+    "Phuket | Varsovia Design": "ภูเก็ต | Varsovia Design",
+    "Bangkok | Varsovia Design": "กรุงเทพฯ | Varsovia Design",
+    "Pattaya | Varsovia Design": "พัทยา | Varsovia Design",
+    "Hua Hin | Varsovia Design": "หัวหิน | Varsovia Design",
+    "Chiang Mai | Varsovia Design": "เชียงใหม่ | Varsovia Design",
     "Home": "หน้าแรก",
     "Company": "บริษัท",
     "Projects": "ผลงาน",
@@ -127,6 +140,19 @@ const PHRASES: Record<"th" | "pl", Record<string, string>> = {
     "Pattaya": "Pattaya",
     "Hua Hin": "Hua Hin",
     "Chiang Mai": "Chiang Mai",
+    "Our locations": "Nasze lokalizacje",
+    "Choose a city to see services and local projects.":
+      "Wybierz miasto, aby zobaczyć usługi i realizacje.",
+    "Services in this location": "Usługi w tej lokalizacji",
+    "How we support homes and projects here.": "Jak wspieramy domy i projekty tutaj.",
+    "Related projects": "Powiązane realizacje",
+    "Locations | Varsovia Design": "Lokalizacje | Varsovia Design",
+    "Koh Samui | Varsovia Design": "Koh Samui | Varsovia Design",
+    "Phuket | Varsovia Design": "Phuket | Varsovia Design",
+    "Bangkok | Varsovia Design": "Bangkok | Varsovia Design",
+    "Pattaya | Varsovia Design": "Pattaya | Varsovia Design",
+    "Hua Hin | Varsovia Design": "Hua Hin | Varsovia Design",
+    "Chiang Mai | Varsovia Design": "Chiang Mai | Varsovia Design",
     "Home": "Strona główna",
     "Company": "Firma",
     "Projects": "Realizacje",
@@ -153,7 +179,7 @@ function iaOverlayFromSeed(seed: unknown, locale: "th" | "pl"): unknown {
   if (isPlainObject(seed)) {
     const out: Dict = {};
     for (const [key, value] of Object.entries(seed)) {
-      if (key === "image" || key === "ctaHref" || key === "slug" || key === "href") continue;
+      if (key === "image" || key === "ctaHref" || key === "href") continue;
       out[key] = iaOverlayFromSeed(value, locale);
     }
     return out;

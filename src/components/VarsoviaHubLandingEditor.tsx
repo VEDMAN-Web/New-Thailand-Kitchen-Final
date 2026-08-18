@@ -534,7 +534,9 @@ export default function VarsoviaHubLandingEditor({
               hint={
                 hubKey === "interiorDesign"
                   ? "Heading above the project catalogue on /interior-design."
-                  : "Heading above the sub-page cards."
+                  : hubKey === "locations"
+                    ? "Heading above the city cards on /locations (photo + name + tagline)."
+                    : "Heading above the sub-page cards."
               }
             >
               <TextField
@@ -557,7 +559,10 @@ export default function VarsoviaHubLandingEditor({
           ) : null}
 
           {hubKey === "locations" ? (
-            <FieldGroup title="City pages — services list">
+            <FieldGroup
+              title="5 · City-page services default"
+              hint="Fallback heading on /locations/[city] when that city does not set its own services heading."
+            >
               <TextField
                 label="Services heading (default)"
                 value={draft.servicesTitle}
@@ -575,14 +580,17 @@ export default function VarsoviaHubLandingEditor({
                 }
               />
               <p className="text-[11px] text-[#6B7280] -mt-1">
-                Used on /locations/[city] when that city does not set its own
-                heading in the city edit modal.
+                Each city modal can override this. Cards themselves come from
+                Services tagged with that city slug.
               </p>
             </FieldGroup>
           ) : null}
 
           {showSeo ? (
-            <FieldGroup title="5 · Google" hint="Not shown on the page body — browser tab and sitemap only.">
+            <FieldGroup
+              title={hubKey === "locations" ? "6 · Google" : "5 · Google"}
+              hint="Not shown on the page body — browser tab, share preview (banner photo), and sitemap only."
+            >
           <label className="flex items-start gap-3 text-sm text-[#1A2332] pt-1">
             <input
               type="checkbox"

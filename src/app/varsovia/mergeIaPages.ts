@@ -62,8 +62,74 @@ function mergeSections(saved: unknown, defaults: unknown): unknown[] {
     if (!sectionHasContent(block) && def) return clone(def);
     const row = block && typeof block === "object" ? { ...(block as Dict) } : {};
     if (isBlank(row.text) && !isBlank(row.body)) row.text = row.body;
+    if (def && typeof def === "object") {
+      const d = def as Dict;
+      row.heading = mergeObject(row.heading, d.heading);
+      row.text = mergeObject(row.text, d.text);
+      if (isBlank(row.image) && d.image) row.image = clone(d.image);
+      if (isBlank(row.imagePosition) && d.imagePosition) row.imagePosition = d.imagePosition;
+      if (isBlank(row.layout) && d.layout) row.layout = d.layout;
+    }
     return row;
   });
+}
+
+const SKIP_FILL_KEYS = new Set([
+  "slug",
+  "image",
+  "ctaHref",
+  "imagePosition",
+  "layout",
+  "href",
+  "locationSlugs",
+  "indexable",
+  "order",
+]);
+
+/** Empty Thai/Polish tabs show the same copy live /th and /pl fall back to. */
+function fillEmptyLocaleTabs(value: unknown, key = ""): unknown {
+  if (SKIP_FILL_KEYS.has(key)) return value;
+  if (isLocaleMap(value)) {
+    const map = value as Dict;
+    const en = String(map.en ?? "").trim();
+    const th = String(map.th ?? "").trim();
+    const pl = String(map.pl ?? "").trim();
+    return { en, th: th || en, pl: pl || en };
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => fillEmptyLocaleTabs(item, key));
+  }
+  if (value && typeof value === "object") {
+    const out: Dict = { ...(value as Dict) };
+    for (const [childKey, childValue] of Object.entries(out)) {
+      out[childKey] = fillEmptyLocaleTabs(childValue, childKey);
+    }
+    return out;
+  }
+  return value;
+}
+
+function localeEn(value: unknown): string {
+  if (typeof value === "string") return value.trim();
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    return String((value as Dict).en || "").trim();
+  }
+  return "";
+}
+
+/** Old seed used the same generic snippet on every city — treat as blank so Sync fills unique copy. */
+function isStaleLocationMeta(value: unknown): boolean {
+  const blob =
+    typeof value === "string"
+      ? value
+      : value && typeof value === "object"
+        ? Object.values(value as Dict)
+            .map((v) => String(v || ""))
+            .join(" ")
+        : "";
+  return /premium interiors and furniture craftsmanship across Thailand/i.test(
+    blob,
+  );
 }
 
 function mergeChild(saved: unknown, defaults: unknown): Dict {
@@ -80,7 +146,13 @@ function mergeChild(saved: unknown, defaults: unknown): Dict {
   } else if (Array.isArray(d.locationSlugs)) {
     out.locationSlugs = clone(d.locationSlugs);
   }
-  return out;
+  if (
+    isStaleLocationMeta(out.metaDescription) &&
+    !isBlank(d.metaDescription)
+  ) {
+    out.metaDescription = clone(d.metaDescription);
+  }
+  return fillEmptyLocaleTabs(out) as Dict;
 }
 
 function mergeHub(saved: unknown, defaults: unknown): Dict {
@@ -93,6 +165,18 @@ function mergeHub(saved: unknown, defaults: unknown): Dict {
   out.hero = mergeObject(s.hero, d.hero);
   out.sections = mergeSections(s.sections, d.sections);
   out.indexable = s.indexable === true;
+
+  if (String(out.slug || "") === "locations") {
+    if (!localeEn(out.exploreTitle) || localeEn(out.exploreTitle) === "Explore") {
+      out.exploreTitle = clone(d.exploreTitle);
+    }
+    if (
+      !localeEn(out.exploreSubtitle) ||
+      localeEn(out.exploreSubtitle) === "Choose a focus area to continue."
+    ) {
+      out.exploreSubtitle = clone(d.exploreSubtitle);
+    }
+  }
 
   const savedChildren = Array.isArray(s.children) ? s.children : [];
   const defaultChildren = Array.isArray(defChildren) ? defChildren : [];
@@ -115,7 +199,7 @@ function mergeHub(saved: unknown, defaults: unknown): Dict {
     }
   }
   out.children = children;
-  return out;
+  return fillEmptyLocaleTabs(out) as Dict;
 }
 
 const LIVE_DEFAULTS = LIVE_IA_PAGES as Record<string, unknown>;

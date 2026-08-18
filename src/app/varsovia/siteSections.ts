@@ -862,11 +862,15 @@ function iaHubSection(
     fields.push(
       divider(
         "div_explore",
-        hubKey === "interiorDesign"
+          hubKey === "locations"
+            ? "4 · Explore (city cards)"
+            : hubKey === "interiorDesign"
           ? "4 · Explore (project catalogue)"
           : "4 · Explore (sub-pages list)",
         hubKey === "interiorDesign"
           ? "Heading above the project grid on /interior-design."
+          : hubKey === "locations"
+            ? "Heading above city cards on /locations."
           : "Heading + cards linking to each child URL under this hub.",
       ),
       {
@@ -876,6 +880,8 @@ function iaHubSection(
         helpText:
           hubKey === "interiorDesign"
             ? 'Default "Explore". Shown above the project catalogue.'
+            : hubKey === "locations"
+              ? 'Shown above city cards. Default "Our locations".'
             : 'Default "Explore". Shown above the sub-page cards.',
       },
       {
@@ -885,6 +891,8 @@ function iaHubSection(
         helpText:
           hubKey === "interiorDesign"
             ? "Short line under the Explore heading, above the project grid."
+            : hubKey === "locations"
+              ? 'Default "Choose a city to see services and local projects."'
             : 'Default "Choose a focus area to continue."',
       },
     );
@@ -1004,7 +1012,7 @@ const SITE_SECTIONS_IA: SiteSection[] = [
   iaHubSection(
     "iaLocations",
     "Locations",
-    "/locations · cities + services list headings",
+    "/locations · banner → intro → blocks → city cards · each city has services + projects",
     "locations",
     MapPin,
     true,

@@ -1849,14 +1849,14 @@
       }
     ],
     "exploreTitle": {
-      "en": "Explore",
-      "th": "Explore",
-      "pl": "Explore"
+      "en": "Our locations",
+      "th": "Our locations",
+      "pl": "Our locations"
     },
     "exploreSubtitle": {
-      "en": "Choose a focus area to continue.",
-      "th": "Choose a focus area to continue.",
-      "pl": "Choose a focus area to continue."
+      "en": "Choose a city to see services and local projects.",
+      "th": "Choose a city to see services and local projects.",
+      "pl": "Choose a city to see services and local projects."
     },
     "servicesTitle": {
       "en": "Services in this location",
@@ -1882,9 +1882,9 @@
           "pl": "Koh Samui | Varsovia Design"
         },
         "metaDescription": {
-          "en": "Koh Samui by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "th": "Koh Samui by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "pl": "Koh Samui by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+          "en": "Koh Samui by Varsovia Design — Island villas and residences shaped for sea air and outdoor living.",
+          "th": "Koh Samui by Varsovia Design — Island villas and residences shaped for sea air and outdoor living.",
+          "pl": "Koh Samui by Varsovia Design — Island villas and residences shaped for sea air and outdoor living."
         },
         "hero": {
           "title": {
@@ -1943,12 +1943,22 @@
           }
         ],
         "relatedTitle": {
-          "en": "",
-          "th": "",
-          "pl": ""
+          "en": "Related projects",
+          "th": "Related projects",
+          "pl": "Related projects"
         },
         "indexable": false,
-        "order": 0
+        "order": 0,
+        "servicesTitle": {
+          "en": "Services in this location",
+          "th": "Services in this location",
+          "pl": "Services in this location"
+        },
+        "servicesSubtitle": {
+          "en": "How we support homes and projects here.",
+          "th": "How we support homes and projects here.",
+          "pl": "How we support homes and projects here."
+        }
       },
       {
         "slug": "phuket",
@@ -1963,9 +1973,9 @@
           "pl": "Phuket | Varsovia Design"
         },
         "metaDescription": {
-          "en": "Phuket by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "th": "Phuket by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "pl": "Phuket by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+          "en": "Phuket by Varsovia Design — Coastal homes and resorts with refined, maintainable finishes.",
+          "th": "Phuket by Varsovia Design — Coastal homes and resorts with refined, maintainable finishes.",
+          "pl": "Phuket by Varsovia Design — Coastal homes and resorts with refined, maintainable finishes."
         },
         "hero": {
           "title": {
@@ -2024,12 +2034,22 @@
           }
         ],
         "relatedTitle": {
-          "en": "",
-          "th": "",
-          "pl": ""
+          "en": "Related projects",
+          "th": "Related projects",
+          "pl": "Related projects"
         },
         "indexable": false,
-        "order": 1
+        "order": 1,
+        "servicesTitle": {
+          "en": "Services in this location",
+          "th": "Services in this location",
+          "pl": "Services in this location"
+        },
+        "servicesSubtitle": {
+          "en": "How we support homes and projects here.",
+          "th": "How we support homes and projects here.",
+          "pl": "How we support homes and projects here."
+        }
       },
       {
         "slug": "bangkok",
@@ -2044,9 +2064,9 @@
           "pl": "Bangkok | Varsovia Design"
         },
         "metaDescription": {
-          "en": "Bangkok by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "th": "Bangkok by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "pl": "Bangkok by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+          "en": "Bangkok by Varsovia Design — City apartments and townhomes with smart storage and calm detail.",
+          "th": "Bangkok by Varsovia Design — City apartments and townhomes with smart storage and calm detail.",
+          "pl": "Bangkok by Varsovia Design — City apartments and townhomes with smart storage and calm detail."
         },
         "hero": {
           "title": {
@@ -2105,12 +2125,22 @@
           }
         ],
         "relatedTitle": {
-          "en": "",
-          "th": "",
-          "pl": ""
+          "en": "Related projects",
+          "th": "Related projects",
+          "pl": "Related projects"
         },
         "indexable": false,
-        "order": 2
+        "order": 2,
+        "servicesTitle": {
+          "en": "Services in this location",
+          "th": "Services in this location",
+          "pl": "Services in this location"
+        },
+        "servicesSubtitle": {
+          "en": "How we support homes and projects here.",
+          "th": "How we support homes and projects here.",
+          "pl": "How we support homes and projects here."
+        }
       },
       {
         "slug": "pattaya",
@@ -2125,9 +2155,9 @@
           "pl": "Pattaya | Varsovia Design"
         },
         "metaDescription": {
-          "en": "Pattaya by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "th": "Pattaya by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "pl": "Pattaya by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+          "en": "Pattaya by Varsovia Design — Coastal living with practical, stylish furniture packages.",
+          "th": "Pattaya by Varsovia Design — Coastal living with practical, stylish furniture packages.",
+          "pl": "Pattaya by Varsovia Design — Coastal living with practical, stylish furniture packages."
         },
         "hero": {
           "title": {
@@ -2186,12 +2216,22 @@
           }
         ],
         "relatedTitle": {
-          "en": "",
-          "th": "",
-          "pl": ""
+          "en": "Related projects",
+          "th": "Related projects",
+          "pl": "Related projects"
         },
         "indexable": false,
-        "order": 3
+        "order": 3,
+        "servicesTitle": {
+          "en": "Services in this location",
+          "th": "Services in this location",
+          "pl": "Services in this location"
+        },
+        "servicesSubtitle": {
+          "en": "How we support homes and projects here.",
+          "th": "How we support homes and projects here.",
+          "pl": "How we support homes and projects here."
+        }
       },
       {
         "slug": "hua-hin",
@@ -2206,9 +2246,9 @@
           "pl": "Hua Hin | Varsovia Design"
         },
         "metaDescription": {
-          "en": "Hua Hin by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "th": "Hua Hin by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "pl": "Hua Hin by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+          "en": "Hua Hin by Varsovia Design — Relaxed seaside homes with a quieter design pace.",
+          "th": "Hua Hin by Varsovia Design — Relaxed seaside homes with a quieter design pace.",
+          "pl": "Hua Hin by Varsovia Design — Relaxed seaside homes with a quieter design pace."
         },
         "hero": {
           "title": {
@@ -2267,12 +2307,22 @@
           }
         ],
         "relatedTitle": {
-          "en": "",
-          "th": "",
-          "pl": ""
+          "en": "Related projects",
+          "th": "Related projects",
+          "pl": "Related projects"
         },
         "indexable": false,
-        "order": 4
+        "order": 4,
+        "servicesTitle": {
+          "en": "Services in this location",
+          "th": "Services in this location",
+          "pl": "Services in this location"
+        },
+        "servicesSubtitle": {
+          "en": "How we support homes and projects here.",
+          "th": "How we support homes and projects here.",
+          "pl": "How we support homes and projects here."
+        }
       },
       {
         "slug": "chiang-mai",
@@ -2287,9 +2337,9 @@
           "pl": "Chiang Mai | Varsovia Design"
         },
         "metaDescription": {
-          "en": "Chiang Mai by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "th": "Chiang Mai by Varsovia Design — premium interiors and furniture craftsmanship across Thailand.",
-          "pl": "Chiang Mai by Varsovia Design — premium interiors and furniture craftsmanship across Thailand."
+          "en": "Chiang Mai by Varsovia Design — Northern residences with warmth, craft, and mountain light.",
+          "th": "Chiang Mai by Varsovia Design — Northern residences with warmth, craft, and mountain light.",
+          "pl": "Chiang Mai by Varsovia Design — Northern residences with warmth, craft, and mountain light."
         },
         "hero": {
           "title": {
@@ -2348,12 +2398,22 @@
           }
         ],
         "relatedTitle": {
-          "en": "",
-          "th": "",
-          "pl": ""
+          "en": "Related projects",
+          "th": "Related projects",
+          "pl": "Related projects"
         },
         "indexable": false,
-        "order": 5
+        "order": 5,
+        "servicesTitle": {
+          "en": "Services in this location",
+          "th": "Services in this location",
+          "pl": "Services in this location"
+        },
+        "servicesSubtitle": {
+          "en": "How we support homes and projects here.",
+          "th": "How we support homes and projects here.",
+          "pl": "How we support homes and projects here."
+        }
       }
     ]
   },
