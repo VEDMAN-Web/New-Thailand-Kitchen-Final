@@ -401,26 +401,39 @@ export function defaultCategorySections(input: {
   ];
 }
 
+function cmsHasText(value: unknown): boolean {
+  if (typeof value === "string") return value.trim().length > 0;
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const map = value as Record<string, unknown>;
+    return ["en", "th", "pl"].some(
+      (key) => typeof map[key] === "string" && String(map[key]).trim()
+    );
+  }
+  return false;
+}
+
 export function sectionIsUsable(b: ContentSectionBlock) {
+  const extra = b as ContentSectionBlock & { text?: unknown };
   return Boolean(
-    (typeof b.heading === "string" && b.heading.trim()) ||
-      (b.heading && typeof b.heading === "object") ||
-      (typeof b.body === "string" && b.body.trim()) ||
-      (b.body && typeof b.body === "object") ||
+    cmsHasText(b.heading) ||
+      cmsHasText(b.body) ||
+      cmsHasText(extra.text) ||
       String(b.image || "").trim()
   );
 }
 
 /**
- * Use CMS sections when the field exists (including an empty list).
- * Fall back to seeded defaults only when the CMS has never saved sections.
+ * Use CMS sections that actually have copy or a photo.
+ * Empty location records were saved as `[]`, which used to hide the middle
+ * of the page (hero jumped straight to the footer CTA).
  */
 export function resolvePageSections(
   sections: ContentSectionBlock[] | undefined,
   fallback: ContentSectionBlock[]
 ): ContentSectionBlock[] {
   if (!Array.isArray(sections)) return fallback;
-  return sections.filter(sectionIsUsable);
+  const usable = sections.filter(sectionIsUsable);
+  return usable.length ? usable : fallback;
 }
 
 /** @deprecated Use resolvePageSections — kept for imports during migration */

@@ -24,6 +24,10 @@ export function pickCmsText(
     const localized =
       typeof map[key] === "string" ? String(map[key]).trim() : "";
     const en = typeof map.en === "string" ? map.en.trim() : "";
+    if (locale !== "EN") {
+      if (localized && localized !== en) return localized;
+      return fallback || localized || en;
+    }
     return localized || en || fallback;
   }
 

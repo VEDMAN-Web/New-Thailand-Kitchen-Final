@@ -6,6 +6,8 @@ import type { Locale } from "../../i18n/translations";
 export type ContentSectionBlock = {
   heading?: unknown;
   body?: unknown;
+  /** Alias used by some CMS payloads (Varsovia-style content blocks). */
+  text?: unknown;
   image?: string;
   layout?: string;
 };
@@ -80,7 +82,7 @@ export default function HubContentBlock({
   hubHref?: string;
 }) {
   const heading = pickCmsText(block.heading, "", locale);
-  const body = pickCmsText(block.body, "", locale);
+  const body = pickCmsText(block.body, pickCmsText(block.text, "", locale), locale);
   const image = String(block.image || "").trim();
   const layout = String(block.layout || "image-left").trim();
   const items = splitItems(body);
