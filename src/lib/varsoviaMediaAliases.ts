@@ -79,12 +79,30 @@ for (let i = 1; i <= 7; i += 1) {
     `https://images.unsplash.com/photo-1600607687644-c7171b42498b?auto=format&fit=crop&w=800&q=80`;
 }
 
+const PARTNER_LOGO_ALIASES: Record<string, string> = {
+  "/partners/figma/fischer.png": "/partners/fischer-mask.svg",
+  "/partners/figma/bostik.png": "/partners/bostik-mask.svg",
+  "/partners/figma/egger.png": "/partners/egger-mask.svg",
+  "/partners/figma/blum.png": "/partners/blum.svg",
+  "/partners/figma/jowat.png": "/partners/jowat-mask.svg",
+  "/partners/figma/emblem.png": "/partners/partner-emblem-mask.svg",
+  "/partners/fischer.png": "/partners/fischer-mask.svg",
+  "/partners/bostik.png": "/partners/bostik-mask.svg",
+  "/partners/egger.png": "/partners/egger-mask.svg",
+  "/partners/blum.png": "/partners/blum.svg",
+  "/partners/jowat.png": "/partners/jowat-mask.svg",
+  "/partners/emblem.png": "/partners/partner-emblem-mask.svg",
+};
+
+Object.assign(ALIASES, PARTNER_LOGO_ALIASES);
+
 const VARSOVIA_PUBLIC_PREFIXES = [
   "/home/",
   "/team/",
   "/quality-sale/",
   "/Interior-kitchen/",
   "/blog/blog",
+  "/partners/",
 ];
 
 /** Same-origin admin prefix rewritten to the Varsovia frontend in next.config. */
@@ -121,13 +139,42 @@ function withSwappedExt(path: string): string[] {
   return out;
 }
 
+function partnerLogoCandidates(path: string): string[] {
+  const key = normalizeKey(path);
+  if (!key.startsWith("/partners/")) return [];
+  const stem = key
+    .replace(/^\/partners\//, "")
+    .replace(/^figma\//, "")
+    .replace(/\.[^.]+$/, "")
+    .replace(/-mask$/, "");
+  const names =
+    stem === "emblem" || stem === "partner-emblem"
+      ? ["partner-emblem", "emblem"]
+      : [stem];
+  const out: string[] = [];
+  for (const name of names) {
+    out.push(`/partners/${name}.svg`);
+    out.push(`/partners/${name}-mask.svg`);
+    out.push(`/partners/${name}.png`);
+    out.push(`/partners/figma/${name}.png`);
+  }
+  return out;
+}
+
 /** Local + aliased + extension variants for an existing CMS media path. */
 export function varsoviaMediaPathCandidates(path: string): string[] {
   const key = normalizeKey(path);
   const aliased = aliasVarsoviaMediaPath(key);
   const seen = new Set<string>();
   const out: string[] = [];
-  for (const candidate of [key, aliased, ...withSwappedExt(key), ...withSwappedExt(aliased)]) {
+  for (const candidate of [
+    key,
+    aliased,
+    ...withSwappedExt(key),
+    ...withSwappedExt(aliased),
+    ...partnerLogoCandidates(key),
+    ...partnerLogoCandidates(aliased),
+  ]) {
     if (candidate && !seen.has(candidate)) {
       seen.add(candidate);
       out.push(candidate);

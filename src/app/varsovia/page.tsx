@@ -2346,11 +2346,13 @@ function PartnersInlineEditor({ embedded = false }: { embedded?: boolean }) {
                   <MediaUpload
                     label="Logo"
                     kind="icon"
+                    previewSize="md"
                     value={draft.logo}
                     onChange={(value) =>
                       updateDraft(draft.clientKey, { logo: value })
                     }
                     uploadFile={uploadVarsoviaMedia}
+                    hint="Brand logo shown in the homepage partners strip."
                   />
 
                   <label className="inline-flex items-center gap-2 text-sm text-[#374151]">
