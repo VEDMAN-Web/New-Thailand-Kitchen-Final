@@ -1,0 +1,29 @@
+name: Promote staging to production (manual approval gate)
+on:
+  workflow_dispatch: {}
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Fast-forward production branch from staging
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
+          git fetch origin thailand-kitchen-frontend-staging thailand-kitchen-frontend
+          git checkout thailand-kitchen-frontend
+          git merge --ff-only origin/thailand-kitchen-frontend-staging
+          git push origin thailand-kitchen-frontend
+
+      - name: SSH into droplet and run production deploy script
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: bash /var/www/deploy_scripts/thailand_kitchen_client.sh
