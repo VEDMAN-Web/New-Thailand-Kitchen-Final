@@ -20,9 +20,47 @@ import {
   listContacts,
   type ContactLead,
 } from "@/services/adminAPI";
+import {
+  deleteVarsoviaContact,
+  listVarsoviaContacts,
+  type VarsoviaRecord,
+} from "@/services/varsoviaAPI";
+
+function mapVarsoviaLead(row: VarsoviaRecord): ContactLead {
+  return {
+    _id: String(row._id || ""),
+    fullName: String(row.name || ""),
+    email: String(row.email || ""),
+    phoneNumber: String(row.phone || ""),
+    whatsappNumber: String(row.whatsapp || ""),
+    cityName: String(row.city || ""),
+    countryName: String(row.country || ""),
+    message: String(row.message || ""),
+    source: String(row.source || ""),
+    projectType: String(row.projectType || ""),
+    budget: String(row.budget || ""),
+    createdAt:
+      typeof row.createdAt === "string"
+        ? row.createdAt
+        : row.createdAt
+          ? new Date(String(row.createdAt)).toISOString()
+          : undefined,
+  };
+}
+
+function sourceLabel(source?: string) {
+  const value = String(source || "").trim();
+  if (!value) return "—";
+  if (value === "journal-contact" || value === "blog-contact") return "Journal · Get In Touch";
+  if (value === "get-in-touch") return "Get In Touch";
+  if (value === "catalogue") return "Catalogue";
+  if (value === "contact") return "Contact page";
+  return value;
+}
 
 export default function AdminContactsPage() {
   const { siteId } = useAdminAuth();
+  const isVarsovia = siteId === "varsovia-kitchen";
   const [items, setItems] = useState<ContactLead[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
@@ -31,21 +69,28 @@ export default function AdminContactsPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await listContacts();
-      setItems(res.data || []);
+      if (isVarsovia) {
+        const rows = await listVarsoviaContacts();
+        setItems(rows.map(mapVarsoviaLead));
+      } else {
+        const res = await listContacts();
+        setItems(res.data || []);
+      }
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } })?.response
         ?.status;
       toast.error(
         status === 401
           ? "Session expired — please log in again"
-          : "Failed to load contacts (is API running on port 5000?)"
+          : isVarsovia
+            ? "Failed to load Varsovia leads"
+            : "Failed to load contacts (is API running on port 5000?)"
       );
       setItems([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isVarsovia]);
 
   useEffect(() => {
     load();
@@ -63,6 +108,8 @@ export default function AdminContactsPage() {
         item.cityName,
         item.countryName,
         item.message,
+        item.source,
+        item.projectType,
       ]
         .filter(Boolean)
         .join(" ")
@@ -74,7 +121,11 @@ export default function AdminContactsPage() {
   const onDelete = async (item: ContactLead) => {
     if (!confirm(`Delete enquiry from "${item.fullName}"?`)) return;
     try {
-      await deleteContact(item._id);
+      if (isVarsovia) {
+        await deleteVarsoviaContact(item._id);
+      } else {
+        await deleteContact(item._id);
+      }
       toast.success("Deleted");
       if (selected?._id === item._id) setSelected(null);
       await load();
@@ -120,7 +171,9 @@ export default function AdminContactsPage() {
               </p>
             </div>
             <p className="text-xs text-[#9CA3AF]">
-              Live from website contact forms
+              {isVarsovia
+                ? "Live from Varsovia contact + Get In Touch forms"
+                : "Live from website contact forms"}
             </p>
           </div>
 
@@ -134,7 +187,9 @@ export default function AdminContactsPage() {
               </p>
               <p className="mt-1 text-xs text-[#6B7280] max-w-md mx-auto">
                 {items.length === 0
-                  ? "When visitors submit Contact, Free Consultation, or Catalogue forms on the Thailand Kitchen website, they appear here automatically."
+                  ? isVarsovia
+                    ? "When visitors submit Contact, Catalogue, or Get In Touch forms on Varsovia, they appear here automatically."
+                    : "When visitors submit Contact, Free Consultation, or Catalogue forms on the Thailand Kitchen website, they appear here automatically."
                   : "Try a different search."}
               </p>
             </div>
@@ -144,6 +199,7 @@ export default function AdminContactsPage() {
                 <thead className="bg-[#F8F9FB] text-left text-xs uppercase tracking-wide text-[#6B7280]">
                   <tr>
                     <th className="px-4 py-3 font-semibold">Name</th>
+                    <th className="px-4 py-3 font-semibold">Source</th>
                     <th className="px-4 py-3 font-semibold">Email</th>
                     <th className="px-4 py-3 font-semibold">Phone</th>
                     <th className="px-4 py-3 font-semibold">Location</th>
@@ -162,7 +218,10 @@ export default function AdminContactsPage() {
                       <td className="px-4 py-3 font-medium text-[#1A1D26]">
                         {item.fullName}
                       </td>
-                      <td className="px-4 py-3 text-[#4B5563]">{item.email}</td>
+                      <td className="px-4 py-3 text-[#4B5563] whitespace-nowrap">
+                        {sourceLabel(item.source)}
+                      </td>
+                      <td className="px-4 py-3 text-[#4B5563]">{item.email || "—"}</td>
                       <td className="px-4 py-3 text-[#4B5563]">
                         {item.phoneNumber || item.whatsappNumber || "—"}
                       </td>
@@ -230,9 +289,14 @@ export default function AdminContactsPage() {
 
             <div className="space-y-3 text-sm">
               <DetailRow
+                icon={<Inbox className="w-4 h-4" />}
+                label="Source"
+                value={sourceLabel(selected.source)}
+              />
+              <DetailRow
                 icon={<Mail className="w-4 h-4" />}
                 label="Email"
-                value={selected.email}
+                value={selected.email || "—"}
               />
               <DetailRow
                 icon={<Phone className="w-4 h-4" />}

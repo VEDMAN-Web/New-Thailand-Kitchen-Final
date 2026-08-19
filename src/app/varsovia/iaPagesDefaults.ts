@@ -51,6 +51,31 @@ export const IA_HUB_PATHS: Record<string, string> = {
   aboutBrand: "/about",
 };
 
+const ADMIN_PATH_TO_HUB: Record<string, string> = {
+  "/varsovia/furniture": "furniture",
+  "/varsovia/interior-design": "interiorDesign",
+  "/varsovia/complete-interiors": "completeInteriors",
+  "/varsovia/services": "services",
+  "/varsovia/locations": "locations",
+  "/varsovia/for-developers": "forDevelopers",
+  "/varsovia/journal": "journal",
+  "/varsovia/about-brand": "aboutBrand",
+};
+
+/** Hub key for the Varsovia admin page currently open, if any. */
+export function varsoviaHubKeyFromPath(pathname: string): string | undefined {
+  const path = String(pathname || "").replace(/\/+$/, "") || "/";
+  return ADMIN_PATH_TO_HUB[path];
+}
+
+export const SHOWCASE_LIVE_PATH = "/projects";
+
+/** Showcase is listing + mega-menu copy, not an IA hub. */
+export function isShowcaseAdminPath(pathname: string): boolean {
+  const path = String(pathname || "").replace(/\/+$/, "") || "/";
+  return path === "/varsovia/showcase";
+}
+
 export const DEFAULT_IA_PAGES = {
   furniture: hub("furniture", "Furniture", [
     child("kitchens", "Kitchens", 0),
@@ -125,8 +150,32 @@ export const DEFAULT_IA_PAGES = {
         layout: "editorial",
       },
     ],
-    exploreTitle: L("Explore"),
-    exploreSubtitle: L("Choose a focus area to continue."),
+    exploreTitle: L("Explore topics"),
+    exploreSubtitle: L("Kitchens, furniture, materials, and living in Thailand."),
+    articleContact: {
+      title: L("CONTACT VARSOVIA"),
+      subtitle: L(
+        "HAVE A QUESTION, NEED EXPERT ADVICE, OR PLANNING YOUR DREAM KITCHEN? OUR TEAM IS READY TO ASSIST YOU."
+      ),
+      ctaLabel: L("Contact Us"),
+      ctaHref: "/contact",
+    },
+    articleOffer: {
+      eyebrow: L("DESIGNED AROUND YOU"),
+      title: L("YOUR KITCHEN, DESIGNED YOUR WAY"),
+      text: L(
+        "Tell us about your space, style, and needs. Our kitchen specialists will help you create a solution that feels beautiful, functional, and uniquely yours."
+      ),
+      points: [
+        L("Tailored kitchen design based on your space"),
+        L("Expert guidance on materials, finishes & layouts"),
+        L("Personalized consultation with our kitchen specialists"),
+      ],
+      ctaLabel: L("Get Offers"),
+      ctaHref: "/contact",
+      image: "/Interior-kitchen/kitchen1.jpg",
+      imageAlt: L("Varsovia designed kitchen interior"),
+    },
     children: [
       child("kitchens", "Kitchens", 0),
       child("furniture", "Furniture", 1),

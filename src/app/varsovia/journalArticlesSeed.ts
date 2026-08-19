@@ -277,3 +277,58 @@ export const JOURNAL_ARTICLE_SEEDS: JournalArticleSeed[] = [
     "order": 24
   }
 ];
+
+/** Avatars used on live journal cards / article bylines. */
+export const JOURNAL_AUTHOR_AVATARS: Record<string, string> = {
+  "Courtney Henry": "/home/about-1.png",
+  "Marco Rossi": "/home/about-3.png",
+  "Priya Shah": "/home/about-1.png",
+  "Elena Varsovia": "/home/about-2.png",
+};
+
+/**
+ * Canonical /journal/p/[id] body (same Figma blocks the live site shows).
+ * Stored as CMS `{ heading, text, image }` so the admin panel matches the article.
+ */
+export const JOURNAL_DETAIL_COPY = {
+  intro:
+    "Interior design continues to evolve with changing lifestyles and modern living needs. In 2026, homeowners are embracing spaces that are elegant, functional, and personalized. Whether you're renovating a single room or designing your dream home, these trends will help you create interiors that are timeless and inspiring.",
+  afterHero:
+    "Interior design continues to evolve with changing lifestyles and modern living needs. In 2026, homeowners are embracing spaces that are elegant, functional, and personalized. Whether you're renovating a single room or designing your dream home, these trends will help you create interiors that are timeless and inspiring. Soft taupes, mushroom greys, and creamy off-whites continue to dominate palettes — paired with richer accents in wood, stone, and brushed metal so rooms never feel flat or cold. Curved silhouettes and soft edges continue to replace sharp, rigid forms. From arched doorways to rounded kitchen islands, these shapes create a sense of flow and make rooms feel more inviting without sacrificing structure.",
+  captionWarm: "Warm Neutral Color Palettes",
+  captionNatural: "Natural Materials & Layered Texture",
+  splitLeft:
+    "At **Varsovia Design**, we believe every project begins with understanding our clients' unique vision and lifestyle. Our approach combines creativity, craftsmanship, and innovative design solutions to create interiors that are elegant, functional, and built to stand the test of time. Whether you're renovating a single room, designing your dream home, or planning a complete interior transformation, staying informed about the latest design trends can help you make confident decisions and achieve exceptional results.",
+  splitRight:
+    "Natural stone, warm wood grains, and layered textiles add depth and character. The best interiors mix materials intentionally — pairing matte surfaces with subtle gloss, or smooth cabinetry with textured wall panels so every room feels layered, calm, and complete.",
+  imageWarm: "/home/featured/feature-2.jpg",
+  imageSplitLeft: "/home/featured/feature-3.jpg",
+  imageSplitRight: "/home/featured/feature-4.jpg",
+};
+
+type LocMap = { en: string; th: string; pl: string };
+
+export function journalDetailCmsSections(
+  loc: (en: string, th?: string, pl?: string) => LocMap
+) {
+  const d = JOURNAL_DETAIL_COPY;
+  return [
+    { heading: loc(""), text: loc(d.intro), image: "" },
+    { heading: loc(d.captionWarm), text: loc(""), image: d.imageWarm },
+    { heading: loc(""), text: loc(d.afterHero), image: "" },
+    { heading: loc(d.captionWarm), text: loc(d.splitLeft), image: d.imageSplitLeft, imagePosition: "left" },
+    {
+      heading: loc(d.captionNatural),
+      text: loc(d.splitRight),
+      image: d.imageSplitRight,
+      imagePosition: "right",
+    },
+  ];
+}
+
+/** One leftover listing card, or empty — not the live Figma article body. */
+export function isThinJournalArticleSections(sections: unknown): boolean {
+  if (!Array.isArray(sections) || sections.length === 0) return true;
+  if (sections.length >= 5) return false;
+  return sections.length === 1;
+}

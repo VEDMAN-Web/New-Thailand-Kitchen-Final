@@ -60,6 +60,28 @@ const PHRASES: Record<"th" | "pl", Record<string, string>> = {
     "Quality After Sales": "บริการหลังการขาย",
     "Contact": "ติดต่อ",
     "Contact Us": "ติดต่อเรา",
+    "Get Offers": "รับข้อเสนอ",
+    "CONTACT VARSOVIA": "ติดต่อ VARSOVIA",
+    "HAVE A QUESTION, NEED EXPERT ADVICE, OR PLANNING YOUR DREAM KITCHEN? OUR TEAM IS READY TO ASSIST YOU.":
+      "มีคำถาม ต้องการคำแนะนำจากผู้เชี่ยวชาญ หรือกำลังวางแผนครัวในฝัน? ทีมของเราพร้อมช่วยคุณ",
+    "DESIGNED AROUND YOU": "ออกแบบเพื่อคุณ",
+    "YOUR KITCHEN, DESIGNED YOUR WAY": "ครัวของคุณ ออกแบบในแบบของคุณ",
+    "Tell us about your space, style, and needs. Our kitchen specialists will help you create a solution that feels beautiful, functional, and uniquely yours.":
+      "บอกเราเกี่ยวกับพื้นที่ สไตล์ และความต้องการของคุณ ผู้เชี่ยวชาญครัวของเราจะช่วยสร้างโซลูชันที่สวย ใช้งานได้จริง และเป็นของคุณโดยเฉพาะ",
+    "Tailored kitchen design based on your space": "ออกแบบครัวให้พอดีกับพื้นที่ของคุณ",
+    "Expert guidance on materials, finishes & layouts":
+      "คำแนะนำจากผู้เชี่ยวชาญด้านวัสดุ ผิวสัมผัส และเลย์เอาต์",
+    "Personalized consultation with our kitchen specialists":
+      "คำปรึกษาเฉพาะบุคคลกับผู้เชี่ยวชาญครัวของเรา",
+    "Varsovia designed kitchen interior": "ครัวออกแบบโดย Varsovia",
+    "Varsovia Journal — guides on kitchens, furniture, materials, interior design, villas, and Thailand living.":
+      "วารสาร Varsovia — คู่มือครัว เฟอร์นิเจอร์ วัสดุ ออกแบบภายใน วิลล่า และการใช้ชีวิตในไทย",
+    "Our journal collects practical design notes and project stories — written to help homeowners and partners make clearer decisions.":
+      "วารสารของเรารวบรวมบันทึกการออกแบบและเรื่องราวจากโปรเจกต์จริง เพื่อช่วยเจ้าของบ้านและพาร์ทเนอร์ตัดสินใจได้ชัดขึ้น",
+    "Ideas on kitchens, materials, villas, and living in Thailand.":
+      "ไอเดียเรื่องครัว วัสดุ วิลล่า และการใช้ชีวิตในไทย",
+    "Practical design notes": "บันทึกการออกแบบที่ใช้ได้จริง",
+    "Stories from real projects": "เรื่องราวจากโปรเจกต์จริง",
     "FAQ": "คำถามที่พบบ่อย",
     "Privacy": "ความเป็นส่วนตัว",
     "Privacy Policy": "นโยบายความเป็นส่วนตัว",
@@ -81,6 +103,55 @@ const PHRASES: Record<"th" | "pl", Record<string, string>> = {
     "Pattaya": "พัทยา",
     "Hua Hin": "หัวหิน",
     "Chiang Mai": "เชียงใหม่",
+    "Our locations": "สถานที่ของเรา",
+    "Choose a city to see services and local projects.":
+      "เลือกเมืองเพื่อดูบริการและผลงานในพื้นที่",
+    "Services in this location": "บริการในพื้นที่นี้",
+    "How we support homes and projects here.": "วิธีที่เราดูแลบ้านและโครงการที่นี่",
+    "Related projects": "ผลงานที่เกี่ยวข้อง",
+    "Locations | Varsovia Design": "สถานที่ | Varsovia Design",
+    "Koh Samui | Varsovia Design": "เกาะสมุย | Varsovia Design",
+    "Phuket | Varsovia Design": "ภูเก็ต | Varsovia Design",
+    "Bangkok | Varsovia Design": "กรุงเทพฯ | Varsovia Design",
+    "Pattaya | Varsovia Design": "พัทยา | Varsovia Design",
+    "Hua Hin | Varsovia Design": "หัวหิน | Varsovia Design",
+    "Chiang Mai | Varsovia Design": "เชียงใหม่ | Varsovia Design",
+    "Our brands": "แบรนด์ของเรา",
+    "Choose a partner brand to continue.": "เลือกแบรนด์พาร์ทเนอร์เพื่อดูรายละเอียด",
+    "Project types": "ประเภทโครงการ",
+    "Villas, condos, hospitality, and developments.":
+      "วิลล่า คอนโด โรงแรม และโครงการพัฒนา",
+    "Explore topics": "สำรวจหัวข้อ",
+    "Kitchens, furniture, materials, and living in Thailand.":
+      "ครัว เฟอร์นิเจอร์ วัสดุ และการใช้ชีวิตในไทย",
+    "Articles in this topic": "บทความในหัวข้อนี้",
+    "Complete Interiors | Varsovia Design": "อินทีเรียครบวงจร | Varsovia Design",
+    "For Developers | Varsovia Design": "สำหรับนักพัฒนา | Varsovia Design",
+    "Journal | Varsovia Design": "วารสาร | Varsovia Design",
+    "Villas | Varsovia Design": "วิลล่า | Varsovia Design",
+    "Condos | Varsovia Design": "คอนโด | Varsovia Design",
+    "Hotels & Resorts | Varsovia Design": "โรงแรมและรีสอร์ต | Varsovia Design",
+    "Developers | Varsovia Design": "นักพัฒนา | Varsovia Design",
+    "Materials | Varsovia Design": "วัสดุ | Varsovia Design",
+    "Villa Guides | Varsovia Design": "คู่มือวิลล่า | Varsovia Design",
+    "Thailand Living | Varsovia Design": "การใช้ชีวิตในไทย | Varsovia Design",
+    "Free Catalogue | Varsovia Design": "แคตตาล็อกฟรี | Varsovia Design",
+    "Our Team | Varsovia Design": "ทีมของเรา | Varsovia Design",
+    "Quality After Sales | Varsovia Design": "บริการหลังการขาย | Varsovia Design",
+    "Quality & After-Sales | Varsovia Design": "คุณภาพและบริการหลังการขาย | Varsovia Design",
+    "Contact Us | Varsovia Design": "ติดต่อเรา | Varsovia Design",
+    "FAQ | Varsovia Design": "คำถามที่พบบ่อย | Varsovia Design",
+    "Villas": "วิลล่า",
+    "Condos": "คอนโด",
+    "Hotels & Resorts": "โรงแรมและรีสอร์ต",
+    "Developers": "นักพัฒนา",
+    "Materials": "วัสดุ",
+    "Villa Guides": "คู่มือวิลล่า",
+    "Thailand Living": "การใช้ชีวิตในไทย",
+    "About | Varsovia Design": "เกี่ยวกับเรา | Varsovia Design",
+    "Services | Varsovia Design": "บริการ | Varsovia Design",
+    "Livo | Varsovia Design": "Livo | Varsovia Design",
+    "Oppolia | Varsovia Design": "Oppolia | Varsovia Design",
     "Home": "หน้าแรก",
     "Company": "บริษัท",
     "Projects": "ผลงาน",
@@ -106,6 +177,29 @@ const PHRASES: Record<"th" | "pl", Record<string, string>> = {
     "Quality After Sales": "Serwis posprzedażowy",
     "Contact": "Kontakt",
     "Contact Us": "Kontakt",
+    "Get Offers": "Sprawdź oferty",
+    "CONTACT VARSOVIA": "KONTAKT Z VARSOVIA",
+    "HAVE A QUESTION, NEED EXPERT ADVICE, OR PLANNING YOUR DREAM KITCHEN? OUR TEAM IS READY TO ASSIST YOU.":
+      "MASZ PYTANIE, POTRZEBUJESZ PORADY EKSPERTA ALBO PLANUJESZ WYMARZONĄ KUCHNIĘ? NASZ ZESPÓŁ JEST GOTOWY, ABY CI POMÓC.",
+    "DESIGNED AROUND YOU": "ZAPROJEKTOWANE DLA CIEBIE",
+    "YOUR KITCHEN, DESIGNED YOUR WAY": "TWOJA KUCHNIA, ZAPROJEKTOWANA PO TWOJEMU",
+    "Tell us about your space, style, and needs. Our kitchen specialists will help you create a solution that feels beautiful, functional, and uniquely yours.":
+      "Opowiedz nam o swojej przestrzeni, stylu i potrzebach. Nasi specjaliści od kuchni pomogą stworzyć rozwiązanie, które jest piękne, funkcjonalne i wyjątkowo Twoje.",
+    "Tailored kitchen design based on your space":
+      "Projekt kuchni dopasowany do Twojej przestrzeni",
+    "Expert guidance on materials, finishes & layouts":
+      "Eksperckie doradztwo w zakresie materiałów, wykończeń i układów",
+    "Personalized consultation with our kitchen specialists":
+      "Indywidualna konsultacja z naszymi specjalistami od kuchni",
+    "Varsovia designed kitchen interior": "Wnętrze kuchni zaprojektowane przez Varsovia",
+    "Varsovia Journal — guides on kitchens, furniture, materials, interior design, villas, and Thailand living.":
+      "Dziennik Varsovia — przewodniki o kuchniach, meblach, materiałach, wnętrzach, willach i życiu w Tajlandii.",
+    "Our journal collects practical design notes and project stories — written to help homeowners and partners make clearer decisions.":
+      "Nasz dziennik zbiera praktyczne notatki projektowe i historie z realizacji — żeby właściciele i partnerzy podejmowali jaśniejsze decyzje.",
+    "Ideas on kitchens, materials, villas, and living in Thailand.":
+      "Pomysły na kuchnie, materiały, wille i życie w Tajlandii.",
+    "Practical design notes": "Praktyczne notatki projektowe",
+    "Stories from real projects": "Historie z prawdziwych realizacji",
     "FAQ": "FAQ",
     "Privacy": "Prywatność",
     "Privacy Policy": "Polityka prywatności",
@@ -127,6 +221,55 @@ const PHRASES: Record<"th" | "pl", Record<string, string>> = {
     "Pattaya": "Pattaya",
     "Hua Hin": "Hua Hin",
     "Chiang Mai": "Chiang Mai",
+    "Our locations": "Nasze lokalizacje",
+    "Choose a city to see services and local projects.":
+      "Wybierz miasto, aby zobaczyć usługi i realizacje.",
+    "Services in this location": "Usługi w tej lokalizacji",
+    "How we support homes and projects here.": "Jak wspieramy domy i projekty tutaj.",
+    "Related projects": "Powiązane realizacje",
+    "Locations | Varsovia Design": "Lokalizacje | Varsovia Design",
+    "Koh Samui | Varsovia Design": "Koh Samui | Varsovia Design",
+    "Phuket | Varsovia Design": "Phuket | Varsovia Design",
+    "Bangkok | Varsovia Design": "Bangkok | Varsovia Design",
+    "Pattaya | Varsovia Design": "Pattaya | Varsovia Design",
+    "Hua Hin | Varsovia Design": "Hua Hin | Varsovia Design",
+    "Chiang Mai | Varsovia Design": "Chiang Mai | Varsovia Design",
+    "Our brands": "Nasze marki",
+    "Choose a partner brand to continue.": "Wybierz markę partnerską, aby kontynuować.",
+    "Project types": "Typy projektów",
+    "Villas, condos, hospitality, and developments.":
+      "Wille, apartamenty, hospitality i inwestycje.",
+    "Explore topics": "Przeglądaj tematy",
+    "Kitchens, furniture, materials, and living in Thailand.":
+      "Kuchnie, meble, materiały i życie w Tajlandii.",
+    "Articles in this topic": "Artykuły w tym temacie",
+    "Complete Interiors | Varsovia Design": "Kompleksowe wnętrza | Varsovia Design",
+    "For Developers | Varsovia Design": "Dla deweloperów | Varsovia Design",
+    "Journal | Varsovia Design": "Dziennik | Varsovia Design",
+    "Villas | Varsovia Design": "Wille | Varsovia Design",
+    "Condos | Varsovia Design": "Apartamenty | Varsovia Design",
+    "Hotels & Resorts | Varsovia Design": "Hotele i kurorty | Varsovia Design",
+    "Developers | Varsovia Design": "Deweloperzy | Varsovia Design",
+    "Materials | Varsovia Design": "Materiały | Varsovia Design",
+    "Villa Guides | Varsovia Design": "Przewodniki willi | Varsovia Design",
+    "Thailand Living | Varsovia Design": "Życie w Tajlandii | Varsovia Design",
+    "Free Catalogue | Varsovia Design": "Darmowy katalog | Varsovia Design",
+    "Our Team | Varsovia Design": "Nasz zespół | Varsovia Design",
+    "Quality After Sales | Varsovia Design": "Serwis posprzedażowy | Varsovia Design",
+    "Quality & After-Sales | Varsovia Design": "Jakość i serwis | Varsovia Design",
+    "Contact Us | Varsovia Design": "Kontakt | Varsovia Design",
+    "FAQ | Varsovia Design": "FAQ | Varsovia Design",
+    "Villas": "Wille",
+    "Condos": "Apartamenty",
+    "Hotels & Resorts": "Hotele i kurorty",
+    "Developers": "Deweloperzy",
+    "Materials": "Materiały",
+    "Villa Guides": "Przewodniki willi",
+    "Thailand Living": "Życie w Tajlandii",
+    "About | Varsovia Design": "O nas | Varsovia Design",
+    "Services | Varsovia Design": "Usługi | Varsovia Design",
+    "Livo | Varsovia Design": "Livo | Varsovia Design",
+    "Oppolia | Varsovia Design": "Oppolia | Varsovia Design",
     "Home": "Strona główna",
     "Company": "Firma",
     "Projects": "Realizacje",
@@ -153,7 +296,7 @@ function iaOverlayFromSeed(seed: unknown, locale: "th" | "pl"): unknown {
   if (isPlainObject(seed)) {
     const out: Dict = {};
     for (const [key, value] of Object.entries(seed)) {
-      if (key === "image" || key === "ctaHref" || key === "slug" || key === "href") continue;
+      if (key === "image" || key === "ctaHref" || key === "href") continue;
       out[key] = iaOverlayFromSeed(value, locale);
     }
     return out;
@@ -250,7 +393,7 @@ function navOverlay(m: Msg, locale: "th" | "pl"): Dict {
           featuredSubtitle: showcase.navEverySpace || drop["/projects"] || "",
           sectionLabel: showcase.navByRegion || "",
           links: [
-            link("/projects", tabs.homeCase || "Home Case", showcase.categoryMeta?.homeCase?.subtitle),
+            link("/projects?tab=Home%20case", tabs.homeCase || "Home Case", showcase.categoryMeta?.homeCase?.subtitle),
             link("/projects?tab=North%20America", tabs.northAmerica, showcase.categoryMeta?.northAmerica?.subtitle),
             link("/projects?tab=South%20America", tabs.southAmerica, showcase.categoryMeta?.southAmerica?.subtitle),
             link("/projects?tab=Africa", tabs.africa, showcase.categoryMeta?.africa?.subtitle),
@@ -382,6 +525,10 @@ function inquiryOverlay(m: Msg): Dict {
   });
   return {
     submitLabel: c.submit || common.submit,
+    compactTitle: c.getInTouchTitle,
+    compactSubtitle: c.getInTouchSubtitle,
+    compactSubmitLabel: c.getInTouchSubmit,
+    compactPrivacy: c.getInTouchPrivacy,
     fields: [
       field("name", c.fullName, c.fullNamePh),
       field("email", c.email, c.emailPh),
@@ -473,6 +620,8 @@ function siteOverlayFromMessages(m: Msg, locale: "th" | "pl"): Dict {
       architectBody: team.architectBody,
       toolsTitle: team.toolsTitle,
       toolsBody: team.toolsBody,
+      metaTitle: pageMeta.teamTitle || search.teamTitle,
+      metaDescription: search.teamDesc,
       stats: [
         { value: team.statProjectsValue, label: team.statProjectsLabel },
         { value: team.statYearsValue, label: team.statYearsLabel },
@@ -482,6 +631,8 @@ function siteOverlayFromMessages(m: Msg, locale: "th" | "pl"): Dict {
       heroTitle: quality.heroTitle,
       heroSubtitle: quality.heroSubtitle,
       heroBody: quality.heroBody,
+      metaTitle: pageMeta.qualityTitle || search.qualityTitle,
+      metaDescription: search.qualityDesc,
       feature1Title: quality.feature1Title,
       feature2Title: quality.feature2Title,
       feature3Title: quality.feature3Title,
@@ -510,8 +661,9 @@ function siteOverlayFromMessages(m: Msg, locale: "th" | "pl"): Dict {
     projectsPage: {
       metaTitle: showcase.heroTitle || pageMeta.showcaseTitle,
       metaDescription: pageMeta.showcaseDescription,
-      heroTitle: showcase.heroTitle,
-      heroSubtitle: showcase.heroSubtitle,
+      heroTitle: showcase.categoryMeta?.all?.title || showcase.heroTitle,
+      heroSubtitle: showcase.categoryMeta?.all?.subtitle || showcase.heroSubtitle,
+      navSectionLabel: showcase.navByRegion,
     },
     aboutPageSettings: {
       metaTitle: pageMeta.aboutTitle,

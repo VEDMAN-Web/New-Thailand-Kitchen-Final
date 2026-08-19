@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FolderOpen, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import LocaleTabs from "@/components/LocaleTabs";
@@ -15,11 +15,11 @@ import {
 } from "@/lib/localized";
 import {
   getVarsoviaSite,
-  updateVarsoviaSite,
   varsoviaErrorMessage,
 } from "@/services/varsoviaAPI";
 import { IA_HUB_PATHS } from "@/app/varsovia/iaPagesDefaults";
 import { mergeIaPagesFromLiveSite } from "@/app/varsovia/mergeIaPages";
+import { persistIaHubChildren } from "@/app/varsovia/persistIaHub";
 
 const HUB_KEY = "services";
 
@@ -32,6 +32,7 @@ type IaChildRow = {
   relatedTitle?: unknown;
   indexable?: boolean;
   order?: number;
+  locationSlugs?: string[];
   sections?: unknown[];
   hero?: {
     eyebrow?: unknown;
@@ -56,6 +57,43 @@ function liveChildPath(slug: string) {
   return `${base}/${slug}`;
 }
 
+function withFilledLocales(value: unknown, fallbackEn = "") {
+  const map = asLocalizedForm(value);
+  const en = map.en.trim() || fallbackEn;
+  return {
+    en,
+    th: map.th.trim() || en,
+    pl: map.pl.trim() || en,
+  };
+}
+
+function fillChildLocaleTabs(child: IaChildRow): IaChildRow {
+  const hero = child.hero || {};
+  return {
+    ...child,
+    title: withFilledLocales(child.title),
+    metaTitle: withFilledLocales(child.metaTitle),
+    metaDescription: withFilledLocales(child.metaDescription),
+    body: withFilledLocales(child.body),
+    relatedTitle: withFilledLocales(child.relatedTitle),
+    hero: {
+      ...hero,
+      eyebrow: withFilledLocales(hero.eyebrow),
+      title: withFilledLocales(hero.title),
+      subtitle: withFilledLocales(hero.subtitle),
+      ctaLabel: withFilledLocales(hero.ctaLabel, "Get a consultation"),
+    },
+    sections: (Array.isArray(child.sections) ? child.sections : []).map((sec) => {
+      const row = sec && typeof sec === "object" ? (sec as Record<string, unknown>) : {};
+      return {
+        ...row,
+        heading: withFilledLocales(row.heading),
+        text: withFilledLocales(row.text),
+      };
+    }),
+  };
+}
+
 function emptyChild(order: number): IaChildRow {
   return {
     slug: "",
@@ -67,10 +105,15 @@ function emptyChild(order: number): IaChildRow {
       title: emptyLocalized(),
       subtitle: emptyLocalized(),
       image: "",
-      ctaLabel: emptyLocalized(),
-      ctaHref: "",
+      ctaLabel: { en: "Get a consultation", th: "Get a consultation", pl: "Get a consultation" },
+      ctaHref: "/contact",
     },
     body: emptyLocalized(),
+    relatedTitle: {
+      en: "Related projects",
+      th: "Related projects",
+      pl: "Related projects",
+    },
     indexable: false,
     order,
     sections: [],
@@ -78,7 +121,6 @@ function emptyChild(order: number): IaChildRow {
 }
 
 export default function VarsoviaServicesPage() {
-  const [pages, setPages] = useState<Record<string, unknown>>({});
   const [children, setChildren] = useState<IaChildRow[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
@@ -88,13 +130,13 @@ export default function VarsoviaServicesPage() {
   const [draftSlug, setDraftSlug] = useState("");
   const [draftChild, setDraftChild] = useState<IaChildRow>(emptyChild(0));
   const [locale, setLocale] = useState<LocaleCode>("en");
+  const hasLoadedRef = useRef(false);
 
   const load = useCallback(async () => {
-    setLoading(true);
+    if (!hasLoadedRef.current) setLoading(true);
     try {
       const site = await getVarsoviaSite();
       const allPages = mergeIaPagesFromLiveSite(site.pages);
-      setPages(allPages);
       const hub = (allPages[HUB_KEY] || {}) as Record<string, unknown>;
       const list = Array.isArray(hub.children) ? (hub.children as IaChildRow[]) : [];
       setChildren(
@@ -102,6 +144,7 @@ export default function VarsoviaServicesPage() {
           (a, b) => Number(a.order ?? 0) - Number(b.order ?? 0)
         )
       );
+      hasLoadedRef.current = true;
     } catch (err) {
       toast.error(varsoviaErrorMessage(err, "Failed to load services pages"));
     } finally {
@@ -132,20 +175,12 @@ export default function VarsoviaServicesPage() {
   const persistChildren = async (nextChildren: IaChildRow[]) => {
     setSaving(true);
     try {
-      const existing = (pages[HUB_KEY] || {}) as Record<string, unknown>;
-      const nextPages = {
-        ...pages,
-        [HUB_KEY]: {
-          ...existing,
-          children: nextChildren.map((item, index) => ({
-            ...item,
-            order: index,
-          })),
-        },
-      };
-      await updateVarsoviaSite({ pages: nextPages });
-      setPages(nextPages);
-      setChildren(nextChildren.map((item, index) => ({ ...item, order: index })));
+      const allPages = await persistIaHubChildren(HUB_KEY, nextChildren);
+      const hub = (allPages[HUB_KEY] || {}) as Record<string, unknown>;
+      const list = Array.isArray(hub.children) ? (hub.children as IaChildRow[]) : [];
+      setChildren(
+        [...list].sort((a, b) => Number(a.order ?? 0) - Number(b.order ?? 0))
+      );
       toast.success("Services sub-page saved");
     } catch (err) {
       toast.error(varsoviaErrorMessage(err, "Save failed"));
@@ -166,7 +201,7 @@ export default function VarsoviaServicesPage() {
   const openEdit = (index: number) => {
     const item = children[index];
     setDraftSlug(item.slug || "");
-    setDraftChild(JSON.parse(JSON.stringify(item)) as IaChildRow);
+    setDraftChild(fillChildLocaleTabs(JSON.parse(JSON.stringify(item)) as IaChildRow));
     setEditIndex(index);
     setLocale("en");
     setModal("edit");
@@ -186,7 +221,27 @@ export default function VarsoviaServicesPage() {
       return;
     }
 
-    const nextChild: IaChildRow = { ...draftChild, slug };
+    const nextChild: IaChildRow = fillChildLocaleTabs({ ...draftChild, slug });
+    const name =
+      localizedValue(nextChild.title, "en") || nextChild.slug || "Service";
+    if (!localizedValue(nextChild.metaTitle, "en").trim()) {
+      nextChild.metaTitle = withFilledLocales(
+        nextChild.metaTitle,
+        `${name} | Varsovia Design`.slice(0, 60)
+      );
+    }
+    if (!localizedValue(nextChild.metaDescription, "en").trim()) {
+      const tagline =
+        localizedValue(nextChild.hero?.subtitle, "en") ||
+        "design, make, and install.";
+      nextChild.metaDescription = withFilledLocales(
+        nextChild.metaDescription,
+        `${name} by Varsovia Design — ${tagline}`.slice(0, 160)
+      );
+    }
+    if (!String(nextChild.hero?.ctaHref || "").trim()) {
+      nextChild.hero = { ...(nextChild.hero || {}), ctaHref: "/contact" };
+    }
     const duplicate = children.some(
       (item, index) =>
         item.slug === slug && (modal === "create" || index !== editIndex)

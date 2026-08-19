@@ -20,6 +20,15 @@ export function isLocaleMap(value: unknown): value is Partial<Record<LocaleCode,
   return keys.every((key) => LOCALE_KEYS.has(key));
 }
 
+function readLocaleString(
+  map: Partial<Record<LocaleCode, unknown>>,
+  locale: LocaleCode
+): string {
+  // Never trim — trailing spaces are how users type words. Trim here and the
+  // controlled input immediately drops the spacebar character.
+  return typeof map[locale] === "string" ? String(map[locale]) : "";
+}
+
 export function localizedValue(
   value: unknown,
   locale: LocaleCode = "en",
@@ -28,17 +37,14 @@ export function localizedValue(
   if (typeof value === "string") return locale === "en" || options?.strict === false ? value : "";
   if (value && typeof value === "object" && !Array.isArray(value)) {
     const map = value as Partial<Record<LocaleCode, unknown>>;
-    const raw =
-      typeof map[locale] === "string" ? String(map[locale]).trim() : "";
+    const raw = readLocaleString(map, locale);
     const strict = options?.strict ?? locale !== "en";
     if (strict) {
-      if (raw) return raw;
-      return locale === "en" && typeof map.en === "string"
-        ? String(map.en).trim()
-        : "";
+      if (raw !== "") return raw;
+      return locale === "en" ? readLocaleString(map, "en") : "";
     }
-    if (raw) return raw;
-    return typeof map.en === "string" ? String(map.en).trim() : "";
+    if (raw !== "") return raw;
+    return readLocaleString(map, "en");
   }
   return "";
 }
@@ -49,10 +55,9 @@ export function isLocaleFallback(value: unknown, locale: LocaleCode): boolean {
   if (typeof value === "string") return false;
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
   const map = value as Partial<Record<LocaleCode, unknown>>;
-  const localized =
-    typeof map[locale] === "string" ? String(map[locale]).trim() : "";
-  const en = typeof map.en === "string" ? String(map.en).trim() : "";
-  return !localized && Boolean(en);
+  const localized = readLocaleString(map, locale);
+  const en = readLocaleString(map, "en");
+  return localized === "" && en !== "";
 }
 
 export function writeLocalized(
@@ -90,14 +95,15 @@ export function asLocalizedForm(
 ): Record<LocaleCode, string> {
   if (value && typeof value === "object" && !Array.isArray(value)) {
     const map = value as Record<string, unknown>;
+    const en = String(map.en ?? "");
     return {
-      en: String(map.en ?? "").trim() || fallbackEn,
-      th: String(map.th ?? "").trim(),
-      pl: String(map.pl ?? "").trim(),
+      en: en === "" ? fallbackEn : en,
+      th: String(map.th ?? ""),
+      pl: String(map.pl ?? ""),
     };
   }
-  if (typeof value === "string" && value.trim()) {
-    return { en: value.trim(), th: "", pl: "" };
+  if (typeof value === "string") {
+    return { en: value === "" ? fallbackEn : value, th: "", pl: "" };
   }
   return { en: fallbackEn, th: "", pl: "" };
 }

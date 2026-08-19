@@ -1,4 +1,5 @@
 import axios from "axios";
+import { padShowcaseGallery } from "@/lib/showcaseGallery";
 
 export type LocaleCode = "en" | "th" | "pl";
 export type LocalizedText =
@@ -242,6 +243,7 @@ export type VarsoviaSyncReport = {
   preserved: boolean;
   resources: Record<string, number>;
   filledSiteKeys: number;
+  replacedHub?: string;
   journalSync?: {
     upserted: number;
     deleted: number;
@@ -276,9 +278,13 @@ async function syncJournalArticlesMirror(): Promise<{
   deleted: number;
   total: number;
 }> {
-  const { JOURNAL_ARTICLE_SEEDS } = await import(
-    "@/app/varsovia/journalArticlesSeed"
-  );
+  const {
+    JOURNAL_ARTICLE_SEEDS,
+    JOURNAL_AUTHOR_AVATARS,
+    JOURNAL_DETAIL_COPY,
+    journalDetailCmsSections,
+    isThinJournalArticleSections,
+  } = await import("@/app/varsovia/journalArticlesSeed");
 
   const existing = await listVarsoviaRecords("blogs");
   const byTitle = new Map<string, VarsoviaRecord>();
@@ -296,6 +302,15 @@ async function syncJournalArticlesMirror(): Promise<{
     const titleKey = seed.title.trim().toLowerCase();
     keepTitles.add(titleKey);
     const pack = journalLocalePack(seed.seedKey);
+    const match = byTitle.get(titleKey);
+    const existingAuthor =
+      match?.author && typeof match.author === "object"
+        ? (match.author as Record<string, unknown>)
+        : {};
+    const existingAvatar = String(existingAuthor.avatar || "").trim();
+    const keepSections =
+      match && !isThinJournalArticleSections(match.sections) ? match.sections : null;
+
     const payload = {
       title: loc(seed.title, String(pack.th?.title || ""), String(pack.pl?.title || "")),
       excerpt: loc(
@@ -303,41 +318,24 @@ async function syncJournalArticlesMirror(): Promise<{
         String(pack.th?.excerpt || ""),
         String(pack.pl?.excerpt || "")
       ),
-      content: loc(
-        seed.excerpt,
-        String(pack.th?.excerpt || ""),
-        String(pack.pl?.excerpt || "")
-      ),
-      category: loc(
-        seed.category,
-        String(pack.th?.category || ""),
-        String(pack.pl?.category || "")
-      ),
+      content: loc(JOURNAL_DETAIL_COPY.intro),
+      category: seed.category,
       date: seed.date,
       readTime: loc(seed.readTime),
       image: seed.image,
-      author: { name: loc(seed.author), avatar: "" },
-      sections: [
-        {
-          heading: loc(
-            seed.title,
-            String(pack.th?.title || ""),
-            String(pack.pl?.title || "")
-          ),
-          text: loc(
-            seed.excerpt,
-            String(pack.th?.excerpt || ""),
-            String(pack.pl?.excerpt || "")
-          ),
-          image: seed.image,
-        },
-      ],
-      views: 0,
+      author: {
+        name: loc(seed.author),
+        avatar: existingAvatar || JOURNAL_AUTHOR_AVATARS[seed.author] || "",
+      },
+      sections: keepSections || journalDetailCmsSections(loc),
+      views:
+        typeof match?.views === "number" && Number.isFinite(match.views)
+          ? match.views
+          : 0,
       order: seed.order,
       visible: true,
     };
 
-    const match = byTitle.get(titleKey);
     if (match?._id) {
       await updateVarsoviaRecord("blogs", match._id, payload);
     } else {
@@ -361,44 +359,18 @@ async function syncJournalArticlesMirror(): Promise<{
   };
 }
 
-function isBlankValue(value: unknown): boolean {
-  if (value === undefined || value === null) return true;
-  if (typeof value === "string") return value.trim() === "";
-  if (Array.isArray(value)) return value.length === 0;
-  if (typeof value === "object") {
-    const values = Object.values(value as Record<string, unknown>);
-    return values.length === 0 || values.every(isBlankValue);
+function locText(value: unknown, fallback = ""): { en: string; th: string; pl: string } {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const map = value as Record<string, unknown>;
+    const en = String(map.en || "").trim() || fallback;
+    return {
+      en,
+      th: String(map.th || "").trim() || en,
+      pl: String(map.pl || "").trim() || en,
+    };
   }
-  return false;
-}
-
-/** Fill blank Journal hub fields from live-page defaults (does not wipe edited copy). */
-function mergeJournalHub(
-  current: Record<string, unknown> | undefined,
-  defaults: Record<string, unknown>
-): Record<string, unknown> {
-  const out = structuredClone(current && typeof current === "object" ? current : {});
-  for (const [key, defaultValue] of Object.entries(defaults)) {
-    const cur = out[key];
-    if (isBlankValue(cur)) {
-      out[key] = structuredClone(defaultValue);
-      continue;
-    }
-    if (
-      cur &&
-      defaultValue &&
-      typeof cur === "object" &&
-      typeof defaultValue === "object" &&
-      !Array.isArray(cur) &&
-      !Array.isArray(defaultValue)
-    ) {
-      out[key] = mergeJournalHub(
-        cur as Record<string, unknown>,
-        defaultValue as Record<string, unknown>
-      );
-    }
-  }
-  return out;
+  const en = (typeof value === "string" ? value.trim() : "") || fallback;
+  return { en, th: en, pl: en };
 }
 
 export async function hydrateVarsoviaSiteDocument(
@@ -431,21 +403,100 @@ export async function hydrateVarsoviaSiteDocument(
     ),
   };
 }
-export async function syncVarsoviaFromDb(): Promise<{
+
+/** Fill every Showcase item field so admin tabs match the live /projects card + detail. */
+function completeShowcaseRecord(item: VarsoviaRecord): VarsoviaRecord {
+  const image = String(item.image || "").trim();
+  const typeLabel = locText(item.typeLabel, "Type");
+  return {
+    ...item,
+    title: locText(item.title),
+    category: locText(item.category).en || "Home case",
+    location: locText(item.location),
+    typeLabel,
+    typeValue: locText(item.typeValue),
+    supplyArea: locText(item.supplyArea),
+    image,
+    gallery: padShowcaseGallery(item.gallery, image),
+    visible: item.visible !== false,
+    order: typeof item.order === "number" && Number.isFinite(item.order) ? item.order : 0,
+  };
+}
+
+/** Fill Journal article fields so admin tabs match live /journal cards + /journal/p/[id]. */
+function completeBlogRecord(item: VarsoviaRecord): VarsoviaRecord {
+  const image = String(item.image || "").trim();
+  const author =
+    item.author && typeof item.author === "object"
+      ? (item.author as Record<string, unknown>)
+      : {};
+  const categoryRaw = item.category;
+  const category =
+    typeof categoryRaw === "string"
+      ? categoryRaw.trim()
+      : locText(categoryRaw).en;
+  return {
+    ...item,
+    title: locText(item.title),
+    excerpt: locText(item.excerpt),
+    content: locText(item.content),
+    category,
+    readTime: locText(item.readTime),
+    image,
+    author: {
+      name: locText(author.name),
+      avatar: String(author.avatar || "").trim(),
+    },
+    visible: item.visible !== false,
+    order: typeof item.order === "number" && Number.isFinite(item.order) ? item.order : 0,
+  };
+}
+
+export async function syncVarsoviaFromDb(
+  replaceHubKey?: string,
+  opts?: { replaceShowcase?: boolean }
+): Promise<{
   success: boolean;
   message: string;
   report: VarsoviaSyncReport;
 }> {
-  const { faqTranslatedRow } = await import("@/app/varsovia/liveLocaleOverlay");
+  const { faqTranslatedRow, buildVarsoviaLiveOverlays } = await import(
+    "@/app/varsovia/liveLocaleOverlay"
+  );
   const { hydrateCmsFromLiveLocales, countFilledLocaleFields } = await import(
     "@/lib/hydrateLiveLocales"
   );
+  const { replaceIaHubFromLiveSeed } = await import("@/app/varsovia/mergeIaPages");
+  const { IA_HUB_PATHS, SHOWCASE_LIVE_PATH } = await import("@/app/varsovia/iaPagesDefaults");
+  const { replaceShowcaseFromLiveSeed } = await import("@/app/varsovia/siteDefaults");
 
+  const replaceShowcase = opts?.replaceShowcase === true;
   const loaded = await getVarsoviaSite();
-  const { site: merged, filled: overlayFilled } = await hydrateVarsoviaSiteDocument(loaded);
+  const { site: hydrated, filled: overlayFilled } = await hydrateVarsoviaSiteDocument(loaded);
+  let merged: Record<string, unknown> = replaceHubKey
+    ? {
+        ...hydrated,
+        pages: replaceIaHubFromLiveSeed(hydrated.pages, replaceHubKey),
+      }
+    : hydrated;
+
+  if (replaceHubKey || replaceShowcase) {
+    merged = replaceShowcase
+      ? replaceShowcaseFromLiveSeed(merged)
+      : merged;
+    merged = hydrateCmsFromLiveLocales(merged, buildVarsoviaLiveOverlays(), {
+      fillFromEnglish: true,
+    }) as Record<string, unknown>;
+  }
 
   let siteUpdated = false;
   let filledSiteKeys = overlayFilled;
+  if (replaceHubKey || replaceShowcase) {
+    filledSiteKeys = countFilledLocaleFields(
+      pickVarsoviaSiteUpdate(loaded),
+      pickVarsoviaSiteUpdate(merged)
+    );
+  }
   await updateVarsoviaSite(merged);
   siteUpdated = true;
 
@@ -484,6 +535,12 @@ export async function syncVarsoviaFromDb(): Promise<{
           items.map(async (item, itemIndex) => {
             if (!item?._id) return;
             let next = hydrateCmsFromLiveLocales(item, {}, { fillFromEnglish: true });
+            if (resource === "showcases") {
+              next = completeShowcaseRecord(next as VarsoviaRecord);
+            }
+            if (resource === "blogs") {
+              next = completeBlogRecord(next as VarsoviaRecord);
+            }
             if (resource === "faqs") {
               const category =
                 typeof item.category === "object" && item.category
@@ -516,7 +573,18 @@ export async function syncVarsoviaFromDb(): Promise<{
               );
             }
             const filled = countFilledLocaleFields(item, next);
-            if (!filled) return;
+            if (!filled && resource !== "showcases" && resource !== "blogs") return;
+            if (resource === "showcases" || resource === "blogs") {
+              const title = (next as VarsoviaRecord).title as
+                | { en?: string }
+                | string
+                | undefined;
+              const titleEn =
+                typeof title === "string"
+                  ? title.trim()
+                  : String(title?.en || "").trim();
+              if (!titleEn) return;
+            }
             const { _id, __v, createdAt, updatedAt, ...body } = next as Record<
               string, unknown
             >;
@@ -545,17 +613,26 @@ export async function syncVarsoviaFromDb(): Promise<{
     /* ignore */
   }
 
+  const livePath = replaceHubKey
+    ? IA_HUB_PATHS[replaceHubKey] || `/${replaceHubKey}`
+    : replaceShowcase
+      ? SHOWCASE_LIVE_PATH
+      : "";
+
   return {
     success: true,
-    message: `Synced from Varsovia DB. Filled ${filledSiteKeys} language fields across EN / TH / PL. Journal articles: ${journalSync?.total ?? 0} (${journalSync?.deleted ?? 0} extras removed).`,
+    message: livePath
+      ? `Synced from Varsovia DB. This page now matches live ${livePath}. Filled ${filledSiteKeys} language fields across EN / TH / PL.`
+      : `Synced from Varsovia DB. Filled ${filledSiteKeys} language fields across EN / TH / PL. Journal articles: ${journalSync?.total ?? 0} (${journalSync?.deleted ?? 0} extras removed).`,
     report: {
       database,
       host,
       siteId: "varsovia-kitchen",
       siteUpdated,
-      preserved: true,
+      preserved: !replaceHubKey && !replaceShowcase,
       resources,
       filledSiteKeys,
+      replacedHub: replaceHubKey || (replaceShowcase ? "showcase" : undefined),
       journalSync,
     },
   };
@@ -603,6 +680,11 @@ export async function listVarsoviaContacts() {
 export async function updateVarsoviaContactStatus(id: string, status: string) {
   const { data } = await varsoviaApi.patch(`/contacts/${id}`, { status });
   return unwrapApiData<VarsoviaRecord>(data);
+}
+
+export async function deleteVarsoviaContact(id: string) {
+  const { data } = await varsoviaApi.delete(`/contacts/${id}`);
+  return unwrapApiData<{ deleted?: boolean }>(data);
 }
 
 /** Upload image/PDF to Varsovia API (public /api/media/:id URL for the live site). */

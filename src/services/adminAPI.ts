@@ -438,6 +438,9 @@ export type ContactLead = {
   cityName: string;
   countryName: string;
   message: string;
+  source?: string;
+  projectType?: string;
+  budget?: string;
   createdAt?: string;
 };
 

@@ -69,6 +69,36 @@ function Group({ title, hint, children }: { title: string; hint?: string; childr
   );
 }
 
+function IndexableControl({
+  checked,
+  onChange,
+  hint,
+}: {
+  checked: boolean;
+  onChange: (next: boolean) => void;
+  hint: string;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4 rounded-lg border border-[#E8EDF2] bg-white px-3 py-3">
+      <div className="min-w-0">
+        <p className="text-sm font-medium text-[#1A2332]">Indexable</p>
+        <FieldHint>{hint}</FieldHint>
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        onClick={() => onChange(!checked)}
+        className={`inline-flex h-8 min-w-[3.25rem] shrink-0 items-center justify-center rounded-full px-3 text-[11px] font-bold tracking-wide ${
+          checked ? "bg-emerald-600 text-white" : "bg-[#E2E8F0] text-[#64748B]"
+        }`}
+      >
+        {checked ? "ON" : "OFF"}
+      </button>
+    </div>
+  );
+}
+
 export default function IaChildrenListEditor({
   value,
   onChange,
@@ -86,7 +116,13 @@ export default function IaChildrenListEditor({
   const items: IaChildRow[] = Array.isArray(value) ? (value as IaChildRow[]) : [];
 
   const update = (index: number, patch: Partial<IaChildRow>) => {
-    onChange(items.map((item, i) => (i === index ? { ...item, ...patch } : item)));
+    onChange(
+      items.map((item, i) =>
+        i === index
+          ? { ...item, ...patch, slug: String(patch.slug ?? item.slug ?? "") }
+          : item
+      )
+    );
   };
 
   const updateHero = (index: number, patch: NonNullable<IaChildRow["hero"]>) => {
@@ -111,6 +147,9 @@ export default function IaChildrenListEditor({
   }
 
   const isLocation = hubKey === "locations";
+  const isAbout = hubKey === "aboutBrand";
+  const isJournal = hubKey === "journal";
+  const isCompleteInteriors = hubKey === "completeInteriors";
 
   return (
     <div className="md:col-span-2 space-y-4">
@@ -121,7 +160,13 @@ export default function IaChildrenListEditor({
             <p className="mt-1 text-xs leading-relaxed">
               {isLocation
                 ? "Field order matches the live city page: banner → intro → content blocks → services list → related projects → SEO."
-                : "Field order matches the live page: banner → intro → content blocks → related heading → SEO."}{" "}
+                : isAbout
+                  ? "Field order matches the live brand page: banner → intro → content blocks → SEO."
+                  : isJournal
+                    ? "Field order matches the live topic page: banner → intro → content blocks → articles in this topic → SEO."
+                    : isCompleteInteriors
+                      ? "Field order matches the live programme page: banner → intro → content blocks → related heading → SEO."
+                  : "Field order matches the live page: banner → intro → content blocks → related heading → SEO."}{" "}
               Use ↑↓ to reorder Explore cards. Indexable OFF until photo + copy are final.
             </p>
           </div>
@@ -144,20 +189,36 @@ export default function IaChildrenListEditor({
         const heroSubtitle = asLoc(item.hero?.subtitle);
         const ctaLabel = asLoc(item.hero?.ctaLabel);
         const liveUrl = liveChildPath(hubKey, item.slug || "slug");
+        const tab = (value: unknown) => localizedValue(value, locale, { strict: true });
 
         return (
           <div
             key={item.slug || index}
-            className="space-y-4 rounded-xl border border-[#E2E5EA] bg-[#F8FAFC] p-4"
+            className={
+              embedded
+                ? "space-y-4"
+                : "space-y-4 rounded-xl border border-[#E2E5EA] bg-[#F8FAFC] p-4"
+            }
           >
+            {embedded ? (
+              <IndexableControl
+                checked={item.indexable === true}
+                onChange={(indexable) => update(index, { indexable })}
+                hint={
+                  isLocation
+                    ? "OFF = noindex, omitted from sitemap. ON = Google can list this city URL."
+                    : isAbout
+                      ? "OFF = noindex, omitted from sitemap. ON = Google can list this brand URL."
+                      : "OFF until final photo + copy."
+                }
+              />
+            ) : (
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div>
                 <p className="text-sm font-semibold text-[#1A2332]">/{item.slug}</p>
                 <p className="text-xs font-mono text-[#6B7280]">Live URL: {liveUrl}</p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                {embedded ? null : (
-                  <>
                     <button
                       type="button"
                       disabled={index === 0}
@@ -174,8 +235,6 @@ export default function IaChildrenListEditor({
                     >
                       ↓
                     </button>
-                  </>
-                )}
                 <label className="inline-flex max-w-xs items-start gap-2 text-sm text-[#1A2332]">
                   <input
                     type="checkbox"
@@ -185,11 +244,18 @@ export default function IaChildrenListEditor({
                   />
                   <span>
                     <span className="font-medium">Indexable</span>
-                    <FieldHint>OFF until final photo + copy.</FieldHint>
+                    <FieldHint>
+                      {isLocation
+                        ? "OFF = noindex, omitted from sitemap. ON = Google can list this city URL."
+                        : isAbout
+                          ? "OFF = noindex, omitted from sitemap. ON = Google can list this brand URL."
+                          : "OFF until final photo + copy."}
+                    </FieldHint>
                   </span>
                 </label>
               </div>
             </div>
+            )}
 
             {hubKey === "services" ? (
               <label className="block text-xs font-semibold text-[#5C6370]">
@@ -213,60 +279,66 @@ export default function IaChildrenListEditor({
               </label>
             ) : null}
 
-            <Group title="1 · Banner (Hero)" hint="Same fields as the live page top.">
+            <Group
+              title="1 · Banner"
+              hint={
+                isLocation
+                  ? "Live /locations/[city] top: photo, heading, tagline, button. Card photo + name + tagline also appear on /locations."
+                  : isAbout
+                    ? "Live /about/[brand] top: photo, heading, tagline, button. Card photo + name + tagline also appear on /about."
+                    : hubKey === "services"
+                      ? "Live /services/[slug] top: photo, heading, tagline, button. Card photo + name also appear on /services."
+                      : isCompleteInteriors
+                        ? "Live /complete-interiors/[slug] top: photo, heading, tagline, button. Card photo + name also appear on /complete-interiors."
+                        : isJournal
+                          ? "Live /journal/topic/[slug] top: photo, heading, tagline, button. Card photo + name also appear on /journal."
+                          : "Same fields as the live page top: photo, heading, description, button."
+              }
+            >
               <div className="grid gap-3 md:grid-cols-2">
                 <label className="block text-xs font-semibold text-[#5C6370]">
                   Card / nav title
                   <input
                     className="mt-1 w-full rounded-lg border border-[#DDE1E7] bg-white px-3 py-2 text-sm"
                     placeholder={localeFieldPlaceholder(locale)}
-                    value={localizedValue(title, locale)}
-                    onChange={(e) =>
-                      update(index, {
-                        title: writeLocalized(title, locale, e.target.value),
-                      })
-                    }
+                    value={tab(title)}
+                    onChange={(e) => {
+                      const next = e.target.value;
+                      const prevCard = localizedValue(title, locale);
+                      const prevHero = localizedValue(heroTitle, locale);
+                      const patch: Partial<IaChildRow> = {
+                        title: writeLocalized(title, locale, next),
+                      };
+                      if (!prevHero || prevHero === prevCard) {
+                        patch.hero = {
+                          ...(item.hero || {}),
+                          title: writeLocalized(heroTitle, locale, next),
+                        };
+                      }
+                      update(index, patch);
+                    }}
                   />
-                </label>
-                <label className="block text-xs font-semibold text-[#5C6370]">
-                  Eyebrow (optional)
-                  <input
-                    className="mt-1 w-full rounded-lg border border-[#DDE1E7] bg-white px-3 py-2 text-sm"
-                    placeholder={localeFieldPlaceholder(locale)}
-                    value={localizedValue(heroEyebrow, locale)}
-                    onChange={(e) =>
-                      updateHero(index, {
-                        eyebrow: writeLocalized(heroEyebrow, locale, e.target.value),
-                      })
-                    }
-                  />
-                </label>
-                <label className="md:col-span-2 block text-xs font-semibold text-[#5C6370]">
-                  Headline (H1)
-                  <input
-                    className="mt-1 w-full rounded-lg border border-[#DDE1E7] bg-white px-3 py-2 text-sm"
-                    placeholder={localeFieldPlaceholder(locale)}
-                    value={localizedValue(heroTitle, locale)}
-                    onChange={(e) =>
-                      updateHero(index, {
-                        title: writeLocalized(heroTitle, locale, e.target.value),
-                      })
-                    }
-                  />
-                </label>
-                <label className="md:col-span-2 block text-xs font-semibold text-[#5C6370]">
-                  Intro line under headline
-                  <textarea
-                    rows={2}
-                    className="mt-1 w-full rounded-lg border border-[#DDE1E7] bg-white px-3 py-2 text-sm"
-                    placeholder={localeFieldPlaceholder(locale)}
-                    value={localizedValue(heroSubtitle, locale)}
-                    onChange={(e) =>
-                      updateHero(index, {
-                        subtitle: writeLocalized(heroSubtitle, locale, e.target.value),
-                      })
-                    }
-                  />
+                  {isLocation ? (
+                    <FieldHint>
+                      City name on /locations cards, mega-menu, and breadcrumbs.
+                    </FieldHint>
+                  ) : isAbout ? (
+                    <FieldHint>
+                      Brand name on /about cards, mega-menu, and breadcrumbs.
+                    </FieldHint>
+                  ) : hubKey === "services" ? (
+                    <FieldHint>
+                      Service name on /services cards and breadcrumbs.
+                    </FieldHint>
+                  ) : isCompleteInteriors ? (
+                    <FieldHint>
+                      Programme name on /complete-interiors cards and breadcrumbs.
+                    </FieldHint>
+                  ) : isJournal ? (
+                    <FieldHint>
+                      Topic name on /journal cards and breadcrumbs.
+                    </FieldHint>
+                  ) : null}
                 </label>
                 <div className="md:col-span-2">
                   <MediaUpload
@@ -278,10 +350,66 @@ export default function IaChildrenListEditor({
                   />
                 </div>
                 <label className="block text-xs font-semibold text-[#5C6370]">
+                  Tag (optional)
+                  <input
+                    className="mt-1 w-full rounded-lg border border-[#DDE1E7] bg-white px-3 py-2 text-sm"
+                    placeholder={localeFieldPlaceholder(locale)}
+                    value={tab(heroEyebrow)}
+                    onChange={(e) =>
+                      updateHero(index, {
+                        eyebrow: writeLocalized(heroEyebrow, locale, e.target.value),
+                      })
+                    }
+                  />
+                </label>
+                <label className="md:col-span-2 block text-xs font-semibold text-[#5C6370]">
+                  Heading
+                  <input
+                    className="mt-1 w-full rounded-lg border border-[#DDE1E7] bg-white px-3 py-2 text-sm"
+                    placeholder={localeFieldPlaceholder(locale)}
+                    value={tab(heroTitle)}
+                    onChange={(e) =>
+                      updateHero(index, {
+                        title: writeLocalized(heroTitle, locale, e.target.value),
+                      })
+                    }
+                  />
+                  {isLocation ? (
+                    <FieldHint>H1 on the /locations/[city] banner.</FieldHint>
+                  ) : isAbout ? (
+                    <FieldHint>H1 on the /about/[brand] banner.</FieldHint>
+                  ) : hubKey === "services" ? (
+                    <FieldHint>H1 on the /services/[slug] banner.</FieldHint>
+                  ) : null}
+                </label>
+                <label className="md:col-span-2 block text-xs font-semibold text-[#5C6370]">
+                  Description
+                  <textarea
+                    rows={2}
+                    className="mt-1 w-full rounded-lg border border-[#DDE1E7] bg-white px-3 py-2 text-sm"
+                    placeholder={localeFieldPlaceholder(locale)}
+                    value={tab(heroSubtitle)}
+                    onChange={(e) =>
+                      updateHero(index, {
+                        subtitle: writeLocalized(heroSubtitle, locale, e.target.value),
+                      })
+                    }
+                  />
+                  {isLocation ? (
+                    <FieldHint>
+                      Tagline under the city name on /locations cards and on the city banner.
+                    </FieldHint>
+                  ) : isAbout ? (
+                    <FieldHint>
+                      Tagline under the brand name on /about cards and on the brand banner.
+                    </FieldHint>
+                  ) : null}
+                </label>
+                <label className="block text-xs font-semibold text-[#5C6370]">
                   Button text
                   <input
                     className="mt-1 w-full rounded-lg border border-[#DDE1E7] bg-white px-3 py-2 text-sm"
-                    value={localizedValue(ctaLabel, locale)}
+                    value={tab(ctaLabel)}
                     onChange={(e) =>
                       updateHero(index, {
                         ctaLabel: writeLocalized(ctaLabel, locale, e.target.value),
@@ -308,7 +436,7 @@ export default function IaChildrenListEditor({
                 <textarea
                   rows={4}
                   className="mt-1 w-full rounded-lg border border-[#DDE1E7] bg-white px-3 py-2 text-sm"
-                  value={localizedValue(body, locale)}
+                  value={tab(body)}
                   onChange={(e) =>
                     update(index, {
                       body: writeLocalized(body, locale, e.target.value),
@@ -320,7 +448,7 @@ export default function IaChildrenListEditor({
 
             <Group
               title="3 · Content blocks"
-              hint="Same image + text blocks as the live page. Heading, copy, and photo."
+              hint="Same photo + heading + text cards as the live page."
             >
               <div className="flex justify-end">
                 <button
@@ -332,7 +460,7 @@ export default function IaChildrenListEditor({
                       text: emptyLocalized(),
                       image: "",
                       imagePosition: sections.length % 2 === 0 ? "left" : "right",
-                      layout: "auto",
+                      layout: "band",
                     });
                     update(index, { sections });
                   }}
@@ -364,11 +492,23 @@ export default function IaChildrenListEditor({
                         Remove
                       </button>
                     </div>
+                    <MediaUpload
+                      label={`Block ${sIdx + 1} photo`}
+                      kind="image"
+                      value={String(sec.image || "")}
+                      onChange={(url) => {
+                        const next = sections.map((current, i) =>
+                          i === sIdx ? { ...current, image: url } : current,
+                        );
+                        update(index, { sections: next });
+                      }}
+                      uploadFile={uploadVarsoviaMedia}
+                    />
                     <label className="block text-xs font-semibold text-[#5C6370]">
                       Heading
                       <input
                         className="mt-1 w-full rounded-lg border border-[#DDE1E7] bg-white px-3 py-2 text-sm"
-                        value={localizedValue(heading, locale)}
+                        value={tab(heading)}
                         onChange={(e) => {
                           const next = sections.map((current, i) =>
                             i === sIdx
@@ -387,7 +527,7 @@ export default function IaChildrenListEditor({
                       <textarea
                         rows={3}
                         className="mt-1 w-full rounded-lg border border-[#DDE1E7] bg-white px-3 py-2 text-sm"
-                        value={localizedValue(text, locale)}
+                        value={tab(text)}
                         onChange={(e) => {
                           const next = sections.map((current, i) =>
                             i === sIdx
@@ -401,18 +541,6 @@ export default function IaChildrenListEditor({
                         }}
                       />
                     </label>
-                    <MediaUpload
-                      label={`Block ${sIdx + 1} — Photo`}
-                      kind="image"
-                      value={String(sec.image || "")}
-                      onChange={(url) => {
-                        const next = sections.map((current, i) =>
-                          i === sIdx ? { ...current, image: url } : current,
-                        );
-                        update(index, { sections: next });
-                      }}
-                      uploadFile={uploadVarsoviaMedia}
-                    />
                   </div>
                 );
               })}
@@ -427,7 +555,7 @@ export default function IaChildrenListEditor({
                   Services heading
                   <input
                     className="mt-1 w-full rounded-lg border border-[#DDE1E7] bg-white px-3 py-2 text-sm"
-                    value={localizedValue(servicesTitle, locale)}
+                    value={tab(servicesTitle)}
                     onChange={(e) =>
                       update(index, {
                         servicesTitle: writeLocalized(
@@ -444,7 +572,7 @@ export default function IaChildrenListEditor({
                   Services subtitle
                   <input
                     className="mt-1 w-full rounded-lg border border-[#DDE1E7] bg-white px-3 py-2 text-sm"
-                    value={localizedValue(servicesSubtitle, locale)}
+                    value={tab(servicesSubtitle)}
                     onChange={(e) =>
                       update(index, {
                         servicesSubtitle: writeLocalized(
@@ -464,33 +592,60 @@ export default function IaChildrenListEditor({
               </Group>
             ) : null}
 
+            {isAbout ? null : (
             <Group
-              title={isLocation ? "5 · Related projects heading" : "4 · Related projects heading"}
-              hint="Shown above related projects / articles on this page."
+              title={
+                isLocation
+                  ? "5 · Related projects heading"
+                  : isJournal
+                    ? "4 · Articles in this topic"
+                    : "4 · Related projects heading"
+              }
+              hint={
+                isJournal
+                  ? "Shown above matching journal articles on /journal/topic/[slug]."
+                  : "Shown above related projects / articles on this page."
+              }
             >
               <label className="block text-xs font-semibold text-[#5C6370]">
                 Related section title
                 <input
                   className="mt-1 w-full rounded-lg border border-[#DDE1E7] bg-white px-3 py-2 text-sm"
-                  value={localizedValue(relatedTitle, locale)}
+                  value={tab(relatedTitle)}
                   onChange={(e) =>
                     update(index, {
                       relatedTitle: writeLocalized(relatedTitle, locale, e.target.value),
                     })
                   }
-                  placeholder="Related projects"
+                  placeholder={isJournal ? "Articles in this topic" : "Related projects"}
                 />
               </label>
             </Group>
+            )}
 
-            <Group title={isLocation ? "6 · Google / SEO" : "5 · Google / SEO"}>
+            <Group
+              title={
+                isLocation
+                  ? "6 · Google / SEO"
+                  : isAbout
+                    ? "4 · Google / SEO"
+                    : "5 · Google / SEO"
+              }
+              hint={
+                isLocation
+                  ? "Browser tab, Google snippet, and share preview. Banner photo is the Open Graph / Twitter image. City pages also emit LocalBusiness JSON-LD."
+                  : isAbout
+                    ? "Browser tab, Google snippet, and share preview. Banner photo is the Open Graph / Twitter image."
+                    : "Browser tab, Google snippet, and share preview. Banner photo is the Open Graph / Twitter image."
+              }
+            >
               <div className="grid gap-3 md:grid-cols-2">
                 <label className="block text-xs font-semibold text-[#5C6370]">
-                  Google title ({localizedValue(metaTitle, locale).length}/60)
+                  Google title ({tab(metaTitle).length}/60)
                   <input
                     maxLength={60}
                     className="mt-1 w-full rounded-lg border border-[#DDE1E7] bg-white px-3 py-2 text-sm"
-                    value={localizedValue(metaTitle, locale)}
+                    value={tab(metaTitle)}
                     onChange={(e) =>
                       update(index, {
                         metaTitle: writeLocalized(
@@ -501,14 +656,17 @@ export default function IaChildrenListEditor({
                       })
                     }
                   />
+                  <FieldHint>
+                    Browser tab + Google headline. Keep under 60. Brand is not added twice if you already include “| Varsovia Design”.
+                  </FieldHint>
                 </label>
                 <label className="md:col-span-2 block text-xs font-semibold text-[#5C6370]">
-                  Google description ({localizedValue(metaDescription, locale).length}/160)
+                  Google description ({tab(metaDescription).length}/160)
                   <textarea
                     rows={2}
                     maxLength={160}
                     className="mt-1 w-full rounded-lg border border-[#DDE1E7] bg-white px-3 py-2 text-sm"
-                    value={localizedValue(metaDescription, locale)}
+                    value={tab(metaDescription)}
                     onChange={(e) =>
                       update(index, {
                         metaDescription: writeLocalized(
@@ -519,6 +677,19 @@ export default function IaChildrenListEditor({
                       })
                     }
                   />
+                  {isLocation ? (
+                    <FieldHint>
+                      Unique per city. Live default: “City by Varsovia Design — [banner tagline]”. Max 160.
+                    </FieldHint>
+                  ) : isAbout ? (
+                    <FieldHint>
+                      Unique per brand. Live default: “Brand by Varsovia Design — [banner tagline]”. Max 160.
+                    </FieldHint>
+                  ) : (
+                    <FieldHint>
+                      Unique per page. Live default: “Title by Varsovia Design — [banner tagline]”. Max 160.
+                    </FieldHint>
+                  )}
                 </label>
               </div>
             </Group>

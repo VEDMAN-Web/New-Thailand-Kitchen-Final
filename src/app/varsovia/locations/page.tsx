@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FolderOpen, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import LocaleTabs from "@/components/LocaleTabs";
@@ -15,11 +15,12 @@ import {
 } from "@/lib/localized";
 import {
   getVarsoviaSite,
-  updateVarsoviaSite,
   varsoviaErrorMessage,
 } from "@/services/varsoviaAPI";
 import { IA_HUB_PATHS } from "@/app/varsovia/iaPagesDefaults";
 import { mergeIaPagesFromLiveSite } from "@/app/varsovia/mergeIaPages";
+import { persistIaHubChildren } from "@/app/varsovia/persistIaHub";
+import { resolveAdminMediaPreviewUrl } from "@/lib/adminMediaPreview";
 
 const HUB_KEY = "locations";
 
@@ -58,6 +59,48 @@ function liveChildPath(slug: string) {
   return `${base}/${slug}`;
 }
 
+function withFilledLocales(value: unknown, fallbackEn = "") {
+  const map = asLocalizedForm(value);
+  const en = map.en.trim() || fallbackEn;
+  return {
+    en,
+    th: map.th.trim() || en,
+    pl: map.pl.trim() || en,
+  };
+}
+
+function fillChildLocaleTabs(child: IaChildRow): IaChildRow {
+  const hero = child.hero || {};
+  return {
+    ...child,
+    title: withFilledLocales(child.title),
+    metaTitle: withFilledLocales(child.metaTitle),
+    metaDescription: withFilledLocales(child.metaDescription),
+    body: withFilledLocales(child.body),
+    relatedTitle: withFilledLocales(child.relatedTitle, "Related projects"),
+    servicesTitle: withFilledLocales(child.servicesTitle, "Services in this location"),
+    servicesSubtitle: withFilledLocales(
+      child.servicesSubtitle,
+      "How we support homes and projects here."
+    ),
+    hero: {
+      ...hero,
+      eyebrow: withFilledLocales(hero.eyebrow),
+      title: withFilledLocales(hero.title),
+      subtitle: withFilledLocales(hero.subtitle),
+      ctaLabel: withFilledLocales(hero.ctaLabel, "Get a consultation"),
+    },
+    sections: (Array.isArray(child.sections) ? child.sections : []).map((sec) => {
+      const row = sec && typeof sec === "object" ? (sec as Record<string, unknown>) : {};
+      return {
+        ...row,
+        heading: withFilledLocales(row.heading),
+        text: withFilledLocales(row.text),
+      };
+    }),
+  };
+}
+
 function emptyChild(order: number): IaChildRow {
   return {
     slug: "",
@@ -69,17 +112,25 @@ function emptyChild(order: number): IaChildRow {
       title: emptyLocalized(),
       subtitle: emptyLocalized(),
       image: "",
-      ctaLabel: { en: "Get a consultation", th: "", pl: "" },
+      ctaLabel: { en: "Get a consultation", th: "Get a consultation", pl: "Get a consultation" },
       ctaHref: "/contact",
     },
     body: emptyLocalized(),
-    servicesTitle: { en: "Services in this location", th: "", pl: "" },
+    servicesTitle: {
+      en: "Services in this location",
+      th: "Services in this location",
+      pl: "Services in this location",
+    },
     servicesSubtitle: {
       en: "How we support homes and projects here.",
-      th: "",
-      pl: "",
+      th: "How we support homes and projects here.",
+      pl: "How we support homes and projects here.",
     },
-    relatedTitle: emptyLocalized(),
+    relatedTitle: {
+      en: "Related projects",
+      th: "Related projects",
+      pl: "Related projects",
+    },
     indexable: false,
     order,
     sections: [],
@@ -87,7 +138,6 @@ function emptyChild(order: number): IaChildRow {
 }
 
 export default function VarsoviaLocationsPage() {
-  const [pages, setPages] = useState<Record<string, unknown>>({});
   const [children, setChildren] = useState<IaChildRow[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
@@ -97,13 +147,13 @@ export default function VarsoviaLocationsPage() {
   const [draftSlug, setDraftSlug] = useState("");
   const [draftChild, setDraftChild] = useState<IaChildRow>(emptyChild(0));
   const [locale, setLocale] = useState<LocaleCode>("en");
+  const hasLoadedRef = useRef(false);
 
   const load = useCallback(async () => {
-    setLoading(true);
+    if (!hasLoadedRef.current) setLoading(true);
     try {
       const site = await getVarsoviaSite();
       const allPages = mergeIaPagesFromLiveSite(site.pages);
-      setPages(allPages);
       const hub = (allPages[HUB_KEY] || {}) as Record<string, unknown>;
       const list = Array.isArray(hub.children) ? (hub.children as IaChildRow[]) : [];
       setChildren(
@@ -111,6 +161,7 @@ export default function VarsoviaLocationsPage() {
           (a, b) => Number(a.order ?? 0) - Number(b.order ?? 0)
         )
       );
+      hasLoadedRef.current = true;
     } catch (err) {
       toast.error(varsoviaErrorMessage(err, "Failed to load locations pages"));
     } finally {
@@ -141,20 +192,12 @@ export default function VarsoviaLocationsPage() {
   const persistChildren = async (nextChildren: IaChildRow[]) => {
     setSaving(true);
     try {
-      const existing = (pages[HUB_KEY] || {}) as Record<string, unknown>;
-      const nextPages = {
-        ...pages,
-        [HUB_KEY]: {
-          ...existing,
-          children: nextChildren.map((item, index) => ({
-            ...item,
-            order: index,
-          })),
-        },
-      };
-      await updateVarsoviaSite({ pages: nextPages });
-      setPages(nextPages);
-      setChildren(nextChildren.map((item, index) => ({ ...item, order: index })));
+      const allPages = await persistIaHubChildren(HUB_KEY, nextChildren);
+      const hub = (allPages[HUB_KEY] || {}) as Record<string, unknown>;
+      const list = Array.isArray(hub.children) ? (hub.children as IaChildRow[]) : [];
+      setChildren(
+        [...list].sort((a, b) => Number(a.order ?? 0) - Number(b.order ?? 0))
+      );
       toast.success("Locations sub-page saved");
     } catch (err) {
       toast.error(varsoviaErrorMessage(err, "Save failed"));
@@ -174,17 +217,7 @@ export default function VarsoviaLocationsPage() {
 
   const openEdit = (index: number) => {
     const item = children[index];
-    const copy = JSON.parse(JSON.stringify(item)) as IaChildRow;
-    if (!localizedValue(copy.servicesTitle, "en").trim()) {
-      copy.servicesTitle = { en: "Services in this location", th: "", pl: "" };
-    }
-    if (!localizedValue(copy.servicesSubtitle, "en").trim()) {
-      copy.servicesSubtitle = {
-        en: "How we support homes and projects here.",
-        th: "",
-        pl: "",
-      };
-    }
+    const copy = fillChildLocaleTabs(JSON.parse(JSON.stringify(item)) as IaChildRow);
     if (!String(copy.hero?.ctaHref || "").trim()) {
       copy.hero = { ...(copy.hero || {}), ctaHref: "/contact" };
     }
@@ -209,7 +242,27 @@ export default function VarsoviaLocationsPage() {
       return;
     }
 
-    const nextChild: IaChildRow = { ...draftChild, slug };
+    const nextChild: IaChildRow = fillChildLocaleTabs({ ...draftChild, slug });
+    const city =
+      localizedValue(nextChild.title, "en") || nextChild.slug || "City";
+    if (!localizedValue(nextChild.metaTitle, "en").trim()) {
+      nextChild.metaTitle = withFilledLocales(
+        nextChild.metaTitle,
+        `${city} | Varsovia Design`.slice(0, 60)
+      );
+    }
+    if (!localizedValue(nextChild.metaDescription, "en").trim()) {
+      const tagline =
+        localizedValue(nextChild.hero?.subtitle, "en") ||
+        "local interiors and furniture.";
+      nextChild.metaDescription = withFilledLocales(
+        nextChild.metaDescription,
+        `${city} by Varsovia Design — ${tagline}`.slice(0, 160)
+      );
+    }
+    if (!String(nextChild.hero?.ctaHref || "").trim()) {
+      nextChild.hero = { ...(nextChild.hero || {}), ctaHref: "/contact" };
+    }
     const duplicate = children.some(
       (item, index) =>
         item.slug === slug && (modal === "create" || index !== editIndex)
@@ -254,6 +307,7 @@ export default function VarsoviaLocationsPage() {
         <VarsoviaHubLandingEditor
           hubKey={HUB_KEY}
           label="Locations"
+          helpText="Matches live /locations from top to bottom: banner, intro, content blocks, then city cards. Each city below is /locations/[city] — services list + related projects + Google."
           onSaved={() => void load()}
         />
 
@@ -263,7 +317,7 @@ export default function VarsoviaLocationsPage() {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search locations sub-pages…"
+              placeholder="Search cities… koh-samui, phuket, bangkok…"
               className="w-full rounded-xl border border-[#E2E5EA] bg-white pl-10 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A2332]/15"
             />
           </div>
@@ -273,7 +327,7 @@ export default function VarsoviaLocationsPage() {
             className="inline-flex items-center gap-2 rounded-xl bg-[#1A2332] text-white px-4 py-2.5 text-sm font-semibold"
           >
             <Plus className="w-4 h-4" />
-            Add Locations page
+            Add city page
           </button>
         </div>
 
@@ -282,7 +336,7 @@ export default function VarsoviaLocationsPage() {
         ) : filtered.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-[#E2E5EA] bg-white p-12 text-center">
             <FolderOpen className="w-8 h-8 text-[#9CA3AF] mx-auto mb-3" />
-            <p className="text-sm text-[#6B7280]">No locations sub-pages yet</p>
+            <p className="text-sm text-[#6B7280]">No city pages yet</p>
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -291,8 +345,28 @@ export default function VarsoviaLocationsPage() {
               return (
                 <div
                   key={item.slug || index}
-                  className="rounded-2xl border border-[#E8EAED] bg-white p-4 flex gap-3"
+                  className="overflow-hidden rounded-2xl border border-[#E8EAED] bg-white"
                 >
+                  <div className="relative h-36 w-full bg-[#F3F4F6]">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={resolveAdminMediaPreviewUrl(
+                        String(item.hero?.image || "") || "/home/contact/contact-1.jpg"
+                      )}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                    <span
+                      className={`absolute left-2 top-2 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                        item.indexable === true
+                          ? "bg-emerald-50 text-emerald-700"
+                          : "bg-white/90 text-[#64748B]"
+                      }`}
+                    >
+                      {item.indexable === true ? "In sitemap" : "Noindex"}
+                    </span>
+                  </div>
+                  <div className="flex gap-3 p-4">
                   <div className="min-w-0 flex-1">
                     <p className="font-semibold text-[#1A2332]">
                       {localizedValue(item.title, "en") || item.slug}
@@ -301,7 +375,8 @@ export default function VarsoviaLocationsPage() {
                       {liveChildPath(item.slug || "slug")}
                     </p>
                     <p className="mt-1 text-sm text-[#6B7280] line-clamp-2">
-                      {localizedValue(item.body, "en")}
+                      {localizedValue(item.hero?.subtitle, "en") ||
+                        localizedValue(item.body, "en")}
                     </p>
                   </div>
                   <div className="flex flex-col gap-1 shrink-0">
@@ -319,6 +394,7 @@ export default function VarsoviaLocationsPage() {
                     >
                       <Trash2 className="w-4 h-4 text-red-600" />
                     </button>
+                  </div>
                   </div>
                 </div>
               );
@@ -359,7 +435,7 @@ export default function VarsoviaLocationsPage() {
                         .replace(/-+/g, "-")
                     )
                   }
-                  placeholder="kitchens"
+                  placeholder="koh-samui"
                   className="w-full rounded-lg border border-[#E2E5EA] px-3.5 py-2.5 text-sm font-mono"
                   required={modal === "create"}
                   readOnly={modal === "edit"}
