@@ -60,6 +60,28 @@ const PHRASES: Record<"th" | "pl", Record<string, string>> = {
     "Quality After Sales": "บริการหลังการขาย",
     "Contact": "ติดต่อ",
     "Contact Us": "ติดต่อเรา",
+    "Get Offers": "รับข้อเสนอ",
+    "CONTACT VARSOVIA": "ติดต่อ VARSOVIA",
+    "HAVE A QUESTION, NEED EXPERT ADVICE, OR PLANNING YOUR DREAM KITCHEN? OUR TEAM IS READY TO ASSIST YOU.":
+      "มีคำถาม ต้องการคำแนะนำจากผู้เชี่ยวชาญ หรือกำลังวางแผนครัวในฝัน? ทีมของเราพร้อมช่วยคุณ",
+    "DESIGNED AROUND YOU": "ออกแบบเพื่อคุณ",
+    "YOUR KITCHEN, DESIGNED YOUR WAY": "ครัวของคุณ ออกแบบในแบบของคุณ",
+    "Tell us about your space, style, and needs. Our kitchen specialists will help you create a solution that feels beautiful, functional, and uniquely yours.":
+      "บอกเราเกี่ยวกับพื้นที่ สไตล์ และความต้องการของคุณ ผู้เชี่ยวชาญครัวของเราจะช่วยสร้างโซลูชันที่สวย ใช้งานได้จริง และเป็นของคุณโดยเฉพาะ",
+    "Tailored kitchen design based on your space": "ออกแบบครัวให้พอดีกับพื้นที่ของคุณ",
+    "Expert guidance on materials, finishes & layouts":
+      "คำแนะนำจากผู้เชี่ยวชาญด้านวัสดุ ผิวสัมผัส และเลย์เอาต์",
+    "Personalized consultation with our kitchen specialists":
+      "คำปรึกษาเฉพาะบุคคลกับผู้เชี่ยวชาญครัวของเรา",
+    "Varsovia designed kitchen interior": "ครัวออกแบบโดย Varsovia",
+    "Varsovia Journal — guides on kitchens, furniture, materials, interior design, villas, and Thailand living.":
+      "วารสาร Varsovia — คู่มือครัว เฟอร์นิเจอร์ วัสดุ ออกแบบภายใน วิลล่า และการใช้ชีวิตในไทย",
+    "Our journal collects practical design notes and project stories — written to help homeowners and partners make clearer decisions.":
+      "วารสารของเรารวบรวมบันทึกการออกแบบและเรื่องราวจากโปรเจกต์จริง เพื่อช่วยเจ้าของบ้านและพาร์ทเนอร์ตัดสินใจได้ชัดขึ้น",
+    "Ideas on kitchens, materials, villas, and living in Thailand.":
+      "ไอเดียเรื่องครัว วัสดุ วิลล่า และการใช้ชีวิตในไทย",
+    "Practical design notes": "บันทึกการออกแบบที่ใช้ได้จริง",
+    "Stories from real projects": "เรื่องราวจากโปรเจกต์จริง",
     "FAQ": "คำถามที่พบบ่อย",
     "Privacy": "ความเป็นส่วนตัว",
     "Privacy Policy": "นโยบายความเป็นส่วนตัว",
@@ -155,6 +177,29 @@ const PHRASES: Record<"th" | "pl", Record<string, string>> = {
     "Quality After Sales": "Serwis posprzedażowy",
     "Contact": "Kontakt",
     "Contact Us": "Kontakt",
+    "Get Offers": "Sprawdź oferty",
+    "CONTACT VARSOVIA": "KONTAKT Z VARSOVIA",
+    "HAVE A QUESTION, NEED EXPERT ADVICE, OR PLANNING YOUR DREAM KITCHEN? OUR TEAM IS READY TO ASSIST YOU.":
+      "MASZ PYTANIE, POTRZEBUJESZ PORADY EKSPERTA ALBO PLANUJESZ WYMARZONĄ KUCHNIĘ? NASZ ZESPÓŁ JEST GOTOWY, ABY CI POMÓC.",
+    "DESIGNED AROUND YOU": "ZAPROJEKTOWANE DLA CIEBIE",
+    "YOUR KITCHEN, DESIGNED YOUR WAY": "TWOJA KUCHNIA, ZAPROJEKTOWANA PO TWOJEMU",
+    "Tell us about your space, style, and needs. Our kitchen specialists will help you create a solution that feels beautiful, functional, and uniquely yours.":
+      "Opowiedz nam o swojej przestrzeni, stylu i potrzebach. Nasi specjaliści od kuchni pomogą stworzyć rozwiązanie, które jest piękne, funkcjonalne i wyjątkowo Twoje.",
+    "Tailored kitchen design based on your space":
+      "Projekt kuchni dopasowany do Twojej przestrzeni",
+    "Expert guidance on materials, finishes & layouts":
+      "Eksperckie doradztwo w zakresie materiałów, wykończeń i układów",
+    "Personalized consultation with our kitchen specialists":
+      "Indywidualna konsultacja z naszymi specjalistami od kuchni",
+    "Varsovia designed kitchen interior": "Wnętrze kuchni zaprojektowane przez Varsovia",
+    "Varsovia Journal — guides on kitchens, furniture, materials, interior design, villas, and Thailand living.":
+      "Dziennik Varsovia — przewodniki o kuchniach, meblach, materiałach, wnętrzach, willach i życiu w Tajlandii.",
+    "Our journal collects practical design notes and project stories — written to help homeowners and partners make clearer decisions.":
+      "Nasz dziennik zbiera praktyczne notatki projektowe i historie z realizacji — żeby właściciele i partnerzy podejmowali jaśniejsze decyzje.",
+    "Ideas on kitchens, materials, villas, and living in Thailand.":
+      "Pomysły na kuchnie, materiały, wille i życie w Tajlandii.",
+    "Practical design notes": "Praktyczne notatki projektowe",
+    "Stories from real projects": "Historie z prawdziwych realizacji",
     "FAQ": "FAQ",
     "Privacy": "Prywatność",
     "Privacy Policy": "Polityka prywatności",
@@ -480,6 +525,10 @@ function inquiryOverlay(m: Msg): Dict {
   });
   return {
     submitLabel: c.submit || common.submit,
+    compactTitle: c.getInTouchTitle,
+    compactSubtitle: c.getInTouchSubtitle,
+    compactSubmitLabel: c.getInTouchSubmit,
+    compactPrivacy: c.getInTouchPrivacy,
     fields: [
       field("name", c.fullName, c.fullNamePh),
       field("email", c.email, c.emailPh),

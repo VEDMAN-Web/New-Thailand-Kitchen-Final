@@ -374,6 +374,13 @@ const CONFIGS: Record<VarsoviaResource, ResourceConfig> = {
         label: "Content Sections (detail body + section images)",
         type: "content-sections",
       },
+      {
+        key: "__div_article_footer_ctas",
+        label: "Article footer — Contact Varsovia + Your kitchen",
+        type: "section-divider",
+        helpText:
+          "Those two bands under Discover more are the same on every article. Edit them on the Journal page, below All articles — not on this form.",
+      },
       { key: "author.name", label: "Author Name", localized: true },
       { key: "author.avatar", label: "Author Avatar (1)", media: "image" },
       { key: "views", label: "Views", type: "number" },
@@ -4728,16 +4735,28 @@ function FieldControl({
 
   if (field.type === "localized-string-list") {
     const itemKey = field.itemKey;
+    const minItems = field.minItems ?? 0;
+    const labels = field.listLabels || [];
+    const rows = [...items];
+    while (rows.length < minItems) {
+      rows.push(itemKey ? { [itemKey]: { en: "" } } : { en: "" });
+    }
     const unwrap = (item: unknown) =>
       itemKey && item && typeof item === "object" && !Array.isArray(item)
         ? (item as Record<string, unknown>)[itemKey]
         : item;
+    const writeRows = (next: unknown[]) => onChange(next);
     return (
       <div className="md:col-span-2">
         <FieldLabel field={field} />
         <div className="space-y-2">
-          {items.map((item, index) => (
+          {rows.map((item, index) => (
             <div key={index} className="flex gap-2">
+              {labels[index] ? (
+                <span className="w-16 shrink-0 pt-2.5 text-[11px] font-semibold uppercase tracking-wide text-[#5C6370]">
+                  {labels[index]}
+                </span>
+              ) : null}
               <input
                 value={localizedValue(unwrap(item), locale)}
                 onChange={(event) => {
@@ -4748,8 +4767,8 @@ function FieldControl({
                       : { en: typeof inner === "string" ? inner : "" };
                   current[locale] = event.target.value;
                   const next = itemKey ? { [itemKey]: current } : current;
-                  onChange(
-                    items.map((entry, itemIndex) =>
+                  writeRows(
+                    rows.map((entry, itemIndex) =>
                       itemIndex === index ? next : entry
                     )
                   );
@@ -4759,16 +4778,36 @@ function FieldControl({
               />
               <ListButtons
                 index={index}
-                length={items.length}
-                onMove={move}
-                onRemove={() => onChange(items.filter((_, i) => i !== index))}
+                length={rows.length}
+                onMove={(index, direction) => {
+                  const target = index + direction;
+                  if (target < 0 || target >= rows.length) return;
+                  const next = [...rows];
+                  [next[index], next[target]] = [next[target], next[index]];
+                  writeRows(next);
+                }}
+                onRemove={() => {
+                  if (rows.length <= minItems) {
+                    writeRows(
+                      rows.map((entry, i) =>
+                        i === index
+                          ? itemKey
+                            ? { [itemKey]: { en: "" } }
+                            : { en: "" }
+                          : entry
+                      )
+                    );
+                    return;
+                  }
+                  writeRows(rows.filter((_, i) => i !== index));
+                }}
               />
             </div>
           ))}
           <button
             type="button"
             onClick={() =>
-              onChange([...items, itemKey ? { [itemKey]: { en: "" } } : { en: "" }])
+              writeRows([...rows, itemKey ? { [itemKey]: { en: "" } } : { en: "" }])
             }
             className="inline-flex items-center gap-2 rounded-lg border border-dashed border-[#B9C0CA] px-3 py-2 text-xs font-semibold text-[#5C6370]"
           >
@@ -6113,6 +6152,7 @@ function FieldControl({
         <FieldLabel field={field} />
         <p className="mb-3 text-xs text-[#6B7280]">
           Labels and placeholders match the website contact / catalogue form.
+          Compact Get In Touch copy is used by the article Contact Us modal.
           Switch language tabs above to edit Thai or Polish copy.
         </p>
         <div className="mb-4 rounded-xl border border-[#E2E5EA] bg-[#FAFBFC] p-4">
@@ -6123,6 +6163,45 @@ function FieldControl({
               patchForm(setEntryLocalized(form, "submitLabel", next))
             }
           />
+        </div>
+        <div className="mb-4 rounded-xl border border-[#E2E5EA] bg-[#FAFBFC] p-4">
+          <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-[#6B7280]">
+            Get In Touch modal — article Contact Us
+          </p>
+          <div className="grid gap-3 md:grid-cols-2">
+            <SmallInput
+              label="Modal title"
+              value={localizedValue(form.compactTitle, locale)}
+              onChange={(next) =>
+                patchForm(setEntryLocalized(form, "compactTitle", next))
+              }
+            />
+            <SmallInput
+              label="Send button"
+              value={localizedValue(form.compactSubmitLabel, locale)}
+              onChange={(next) =>
+                patchForm(setEntryLocalized(form, "compactSubmitLabel", next))
+              }
+            />
+            <div className="md:col-span-2">
+              <SmallInput
+                label="Modal subtitle"
+                value={localizedValue(form.compactSubtitle, locale)}
+                onChange={(next) =>
+                  patchForm(setEntryLocalized(form, "compactSubtitle", next))
+                }
+              />
+            </div>
+            <div className="md:col-span-2">
+              <SmallInput
+                label="Privacy line"
+                value={localizedValue(form.compactPrivacy, locale)}
+                onChange={(next) =>
+                  patchForm(setEntryLocalized(form, "compactPrivacy", next))
+                }
+              />
+            </div>
+          </div>
         </div>
         <div className="space-y-3">
           {formFields.map((entry, index) => {

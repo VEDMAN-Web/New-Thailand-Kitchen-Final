@@ -2988,7 +2988,71 @@
         "indexable": false,
         "order": 5
       }
-    ]
+    ],
+    "articleContact": {
+      "title": {
+        "en": "CONTACT VARSOVIA",
+        "th": "CONTACT VARSOVIA",
+        "pl": "CONTACT VARSOVIA"
+      },
+      "subtitle": {
+        "en": "HAVE A QUESTION, NEED EXPERT ADVICE, OR PLANNING YOUR DREAM KITCHEN? OUR TEAM IS READY TO ASSIST YOU.",
+        "th": "HAVE A QUESTION, NEED EXPERT ADVICE, OR PLANNING YOUR DREAM KITCHEN? OUR TEAM IS READY TO ASSIST YOU.",
+        "pl": "HAVE A QUESTION, NEED EXPERT ADVICE, OR PLANNING YOUR DREAM KITCHEN? OUR TEAM IS READY TO ASSIST YOU."
+      },
+      "ctaLabel": {
+        "en": "Contact Us",
+        "th": "Contact Us",
+        "pl": "Contact Us"
+      },
+      "ctaHref": "/contact"
+    },
+    "articleOffer": {
+      "eyebrow": {
+        "en": "DESIGNED AROUND YOU",
+        "th": "DESIGNED AROUND YOU",
+        "pl": "DESIGNED AROUND YOU"
+      },
+      "title": {
+        "en": "YOUR KITCHEN, DESIGNED YOUR WAY",
+        "th": "YOUR KITCHEN, DESIGNED YOUR WAY",
+        "pl": "YOUR KITCHEN, DESIGNED YOUR WAY"
+      },
+      "text": {
+        "en": "Tell us about your space, style, and needs. Our kitchen specialists will help you create a solution that feels beautiful, functional, and uniquely yours.",
+        "th": "Tell us about your space, style, and needs. Our kitchen specialists will help you create a solution that feels beautiful, functional, and uniquely yours.",
+        "pl": "Tell us about your space, style, and needs. Our kitchen specialists will help you create a solution that feels beautiful, functional, and uniquely yours."
+      },
+      "points": [
+        {
+          "en": "Tailored kitchen design based on your space",
+          "th": "Tailored kitchen design based on your space",
+          "pl": "Tailored kitchen design based on your space"
+        },
+        {
+          "en": "Expert guidance on materials, finishes & layouts",
+          "th": "Expert guidance on materials, finishes & layouts",
+          "pl": "Expert guidance on materials, finishes & layouts"
+        },
+        {
+          "en": "Personalized consultation with our kitchen specialists",
+          "th": "Personalized consultation with our kitchen specialists",
+          "pl": "Personalized consultation with our kitchen specialists"
+        }
+      ],
+      "ctaLabel": {
+        "en": "Get Offers",
+        "th": "Get Offers",
+        "pl": "Get Offers"
+      },
+      "ctaHref": "/contact",
+      "image": "/Interior-kitchen/kitchen1.jpg",
+      "imageAlt": {
+        "en": "Varsovia designed kitchen interior",
+        "th": "Varsovia designed kitchen interior",
+        "pl": "Varsovia designed kitchen interior"
+      }
+    }
   },
   "aboutBrand": {
     "slug": "about",

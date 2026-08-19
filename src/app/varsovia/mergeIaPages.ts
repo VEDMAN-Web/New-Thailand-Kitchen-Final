@@ -132,6 +132,17 @@ function isStaleLocationMeta(value: unknown): boolean {
   );
 }
 
+function mergeArticleOffer(saved: unknown, defaults: unknown): Dict | undefined {
+  if (isBlank(saved) && isBlank(defaults)) return undefined;
+  const s = saved && typeof saved === "object" ? (saved as Dict) : {};
+  const d = defaults && typeof defaults === "object" ? (defaults as Dict) : {};
+  const out = mergeObject(s, d) as Dict;
+  if (isBlank(s.points)) out.points = clone(d.points);
+  if (isBlank(s.image)) out.image = clone(d.image);
+  if (isBlank(s.ctaHref)) out.ctaHref = d.ctaHref || "/contact";
+  return out;
+}
+
 function mergeChild(saved: unknown, defaults: unknown): Dict {
   const s = saved && typeof saved === "object" ? (saved as Dict) : {};
   const d = defaults && typeof defaults === "object" ? (defaults as Dict) : {};
@@ -164,6 +175,8 @@ function mergeHub(saved: unknown, defaults: unknown): Dict {
   out.slug = String(d.slug || s.slug || "");
   out.hero = mergeObject(s.hero, d.hero);
   out.sections = mergeSections(s.sections, d.sections);
+  out.articleContact = mergeObject(s.articleContact, d.articleContact);
+  out.articleOffer = mergeArticleOffer(s.articleOffer, d.articleOffer);
   out.indexable = s.indexable === true;
 
   const slug = String(out.slug || "");

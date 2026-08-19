@@ -61,7 +61,7 @@ function isLocalizableKey(key: string): boolean {
   if (!key || shouldSkipKey(key)) return false;
   if (key === "address") return false;
   if (/brandWordmark/i.test(key)) return true;
-  return /(title|subtitle|label|text|body|heading|headline|eyebrow|name|quote|question|answer|description|intro|story|placeholder|copyright|bio|message)$/i.test(
+  return /(title|subtitle|label|text|body|heading|headline|eyebrow|name|quote|question|answer|description|intro|story|placeholder|copyright|bio|message|alt|privacy)$/i.test(
     key
   );
 }

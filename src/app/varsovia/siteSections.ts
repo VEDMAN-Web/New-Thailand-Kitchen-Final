@@ -380,6 +380,8 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
         key: "inquiryForm",
         label: "Contact Form Fields (labels, placeholders, options, required)",
         type: "inquiry-form",
+        helpText:
+          "Full /contact form plus the compact Get In Touch modal. Journal Contact Us opens that modal when the button link is /contact. Get Offers goes to the contact page.",
       },
       { key: "sectionCopy.contact.title", label: "Get In touch Title", localized: true },
       { key: "sectionCopy.contact.subtitle", label: "Get In touch Subtitle", localized: true },
@@ -1123,7 +1125,7 @@ function journalSiteSection(): SiteSection {
   const section = iaHubSection(
     "iaJournal",
     "Journal",
-    "/journal · Hero → Intro → Stories → Explore topics → All articles",
+    "/journal · Hero → Intro → Stories → Explore topics → All articles · /journal/p/[id] Contact + kitchen offer",
     "journal",
     Newspaper,
     true,
@@ -1151,7 +1153,7 @@ function journalSiteSection(): SiteSection {
         "EXPLORE strip + topic cards (Kitchens, Furniture, Materials…). Each card is a /journal/topic/… page.",
     },
     "pages.journal.__div_seo": {
-      label: "6 · Google / SEO",
+      label: "8 · Google / SEO",
       helpText: "Search listing for /journal. Keep Indexable OFF until copy is final.",
     },
   };
@@ -1177,10 +1179,110 @@ function journalSiteSection(): SiteSection {
     itemKey: "iaJournal",
   };
 
+  const contactDivider: Field = {
+    key: "pages.journal.__div_article_contact",
+    label: "6 · Article · Contact Varsovia",
+    type: "section-divider",
+    helpText:
+      "Centered blush band on every /journal/p/[id] page, below Discover more. Heading, all-caps line, Contact Us button.",
+  };
+  const contactFields: Field[] = [
+    {
+      key: "pages.journal.articleContact.title",
+      label: "Heading",
+      localized: true,
+      helpText: 'Live default: "CONTACT VARSOVIA". Shown in Oswald, all caps.',
+    },
+    {
+      key: "pages.journal.articleContact.subtitle",
+      label: "Supporting line",
+      localized: true,
+      type: "textarea",
+      helpText:
+        "All-caps pink line under the heading. Live default: “HAVE A QUESTION, NEED EXPERT ADVICE…”",
+    },
+    {
+      key: "pages.journal.articleContact.ctaLabel",
+      label: "Button text",
+      localized: true,
+      helpText: 'Title case. Live default: "Contact Us". Clear to hide the button.',
+    },
+    {
+      key: "pages.journal.articleContact.ctaHref",
+      label: "Button link",
+      helpText:
+        "Use /contact (default) to open the Get In Touch modal. External URLs still navigate away.",
+    },
+  ];
+
+  const offerDivider: Field = {
+    key: "pages.journal.__div_article_offer",
+    label: "7 · Article · Your kitchen",
+    type: "section-divider",
+    helpText:
+      "Split card under Contact Varsovia on every article: left copy + checklist, right kitchen photo with logo.",
+  };
+  const offerFields: Field[] = [
+    {
+      key: "pages.journal.articleOffer.eyebrow",
+      label: "Eyebrow (small pink line)",
+      localized: true,
+      helpText: 'Live default: "DESIGNED AROUND YOU". Leave blank to hide.',
+    },
+    {
+      key: "pages.journal.articleOffer.title",
+      label: "Headline",
+      localized: true,
+      helpText: 'Live default: "YOUR KITCHEN, DESIGNED YOUR WAY".',
+    },
+    {
+      key: "pages.journal.articleOffer.text",
+      label: "Paragraph",
+      localized: true,
+      type: "textarea",
+      helpText: "Body copy under the headline.",
+    },
+    {
+      key: "pages.journal.articleOffer.points",
+      label: "Checklist (3 points)",
+      type: "localized-string-list",
+      minItems: 3,
+      listLabels: ["Point 1", "Point 2", "Point 3"],
+      helpText:
+        "Circular check items. Live defaults: tailored design, materials & layouts, personalized consultation.",
+    },
+    {
+      key: "pages.journal.articleOffer.ctaLabel",
+      label: "Button text",
+      localized: true,
+      helpText: 'Title case. Live default: "Get Offers". Clear to hide the button.',
+    },
+    {
+      key: "pages.journal.articleOffer.ctaHref",
+      label: "Button link",
+      helpText:
+        "Goes to the contact page. Default /contact navigates to /contact — it does not open the Get In Touch modal.",
+    },
+    {
+      key: "pages.journal.articleOffer.image",
+      label: "Kitchen photo (right side)",
+      media: "image",
+      helpText: "Full-bleed image on the right. Default: /Interior-kitchen/kitchen1.jpg",
+    },
+    {
+      key: "pages.journal.articleOffer.imageAlt",
+      label: "Photo alt text",
+      localized: true,
+      helpText: "Describe the kitchen photo for accessibility.",
+    },
+  ];
+
+  const articleCtas = [contactDivider, ...contactFields, offerDivider, ...offerFields];
+
   if (seoIdx >= 0) {
-    fields.splice(seoIdx, 0, articlesDivider, articlesEmbed);
+    fields.splice(seoIdx, 0, articlesDivider, articlesEmbed, ...articleCtas);
   } else {
-    fields.push(articlesDivider, articlesEmbed);
+    fields.push(articlesDivider, articlesEmbed, ...articleCtas);
   }
 
   // Hero field labels match live banner

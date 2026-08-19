@@ -152,6 +152,30 @@ export const DEFAULT_IA_PAGES = {
     ],
     exploreTitle: L("Explore topics"),
     exploreSubtitle: L("Kitchens, furniture, materials, and living in Thailand."),
+    articleContact: {
+      title: L("CONTACT VARSOVIA"),
+      subtitle: L(
+        "HAVE A QUESTION, NEED EXPERT ADVICE, OR PLANNING YOUR DREAM KITCHEN? OUR TEAM IS READY TO ASSIST YOU."
+      ),
+      ctaLabel: L("Contact Us"),
+      ctaHref: "/contact",
+    },
+    articleOffer: {
+      eyebrow: L("DESIGNED AROUND YOU"),
+      title: L("YOUR KITCHEN, DESIGNED YOUR WAY"),
+      text: L(
+        "Tell us about your space, style, and needs. Our kitchen specialists will help you create a solution that feels beautiful, functional, and uniquely yours."
+      ),
+      points: [
+        L("Tailored kitchen design based on your space"),
+        L("Expert guidance on materials, finishes & layouts"),
+        L("Personalized consultation with our kitchen specialists"),
+      ],
+      ctaLabel: L("Get Offers"),
+      ctaHref: "/contact",
+      image: "/Interior-kitchen/kitchen1.jpg",
+      imageAlt: L("Varsovia designed kitchen interior"),
+    },
     children: [
       child("kitchens", "Kitchens", 0),
       child("furniture", "Furniture", 1),

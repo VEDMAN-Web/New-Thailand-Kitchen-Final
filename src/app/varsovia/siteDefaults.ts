@@ -239,6 +239,18 @@ export const VARSOVIA_SITE_DEFAULTS: SiteRecord = {
   inquiryForm: {
     version: 1,
     submitLabel: { en: "Submit", th: "ส่ง", pl: "Wyślij" },
+    compactTitle: { en: "GET IN TOUCH", th: "ติดต่อเรา", pl: "SKONTAKTUJ SIĘ" },
+    compactSubtitle: {
+      en: "YOUR DREAM SPACE BEGINS WITH A SIMPLE CONVERSATION",
+      th: "พื้นที่ในฝันเริ่มต้นจากการพูดคุยสั้น ๆ",
+      pl: "TWOJA WYMARZONA PRZESTRZEŃ ZACZYNA SIĘ OD PROSTEJ ROZMOWY",
+    },
+    compactSubmitLabel: { en: "Send Inquiry", th: "ส่งข้อความ", pl: "Wyślij zapytanie" },
+    compactPrivacy: {
+      en: "Your data is safe. We do not share it with third parties.",
+      th: "ข้อมูลของคุณปลอดภัย เราไม่แชร์กับบุคคลที่สาม",
+      pl: "Twoje dane są bezpieczne. Nie udostępniamy ich osobom trzecim.",
+    },
     fields: [
       {
         key: "name",

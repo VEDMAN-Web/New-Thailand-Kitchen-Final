@@ -255,6 +255,7 @@ const VARSOVIA_NAV: {
     icon: Settings,
     group: "admin",
   },
+  { href: "/contacts", label: "Contact Inbox", icon: Inbox, group: "admin" },
 ];
 
 
@@ -383,7 +384,9 @@ function AdminShellContent({
 
   useEffect(() => {
     if (isVarsovia && !pathname.startsWith("/varsovia")) {
-      router.replace("/varsovia?resource=site");
+      const allowedOutside =
+        pathname === "/contacts" || pathname === "/users" || pathname === "/login";
+      if (!allowedOutside) router.replace("/varsovia?resource=site");
     } else if (!isVarsovia && pathname.startsWith("/varsovia")) {
       router.replace("/");
     }

@@ -2,6 +2,7 @@
 
 import { ResourceManager } from "@/app/varsovia/page";
 import VarsoviaIaChildrenHubPage from "@/app/varsovia/VarsoviaIaChildrenHubPage";
+import JournalArticleFooterCtasEditor from "@/components/JournalArticleFooterCtasEditor";
 
 export default function VarsoviaJournalPage() {
   return (
@@ -9,7 +10,7 @@ export default function VarsoviaJournalPage() {
       hubKey="journal"
       label="Journal"
       pathLabel="/journal"
-      helpText="Matches live /journal: banner, intro, story blocks, topic cards, then all articles. Each topic is /journal/topic/[slug]."
+      helpText="Matches live /journal and every /journal/p/[id]: banner, intro, stories, topics, all articles, then Contact Varsovia + kitchen offer. Sync from DB fills the same copy."
       itemNoun="topic"
       addLabel="Add journal topic"
       searchPlaceholder="Search topics… kitchens, materials…"
@@ -21,11 +22,14 @@ export default function VarsoviaJournalPage() {
       childPath={(slug) => `/journal/topic/${slug}`}
       defaultRelatedTitle="Articles in this topic"
       extraAfterCards={
-        <div className="rounded-2xl border border-[#E8EAED] bg-white p-5">
-          <p className="mb-4 text-sm font-semibold text-[#1A2332]">
-            All articles — same cards as live /journal
-          </p>
-          <ResourceManager resource="blogs" embedded />
+        <div className="space-y-4">
+          <div className="rounded-2xl border border-[#E8EAED] bg-white p-5">
+            <p className="mb-4 text-sm font-semibold text-[#1A2332]">
+              All articles — same cards as live /journal
+            </p>
+            <ResourceManager resource="blogs" embedded />
+          </div>
+          <JournalArticleFooterCtasEditor />
         </div>
       }
     />
