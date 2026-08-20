@@ -35,7 +35,19 @@ import {
   varsoviaHubKeyFromPath,
   IA_HUB_PATHS,
   isShowcaseAdminPath,
+  isCatalogueAdminSection,
+  isTeamAdminSection,
+  isQualityAdminSection,
+  isContactAdminSection,
+  isFaqAdminSection,
+  isFooterAdminSection,
   SHOWCASE_LIVE_PATH,
+  CATALOGUE_LIVE_PATH,
+  TEAM_LIVE_PATH,
+  QUALITY_LIVE_PATH,
+  CONTACT_LIVE_PATH,
+  FAQ_LIVE_PATH,
+  FOOTER_LIVE_PATH,
 } from "@/app/varsovia/iaPagesDefaults";
 import { toast } from "sonner";
 import { clsx } from "clsx";
@@ -340,13 +352,6 @@ function AdminShellContent({
   const searchParams = useSearchParams();
   const { user, logout, siteId, setSiteId } = useAdminAuth();
   const isVarsovia = siteId === "varsovia-kitchen";
-  const syncHubKey = isVarsovia ? varsoviaHubKeyFromPath(pathname) : undefined;
-  const syncShowcase = isVarsovia && isShowcaseAdminPath(pathname);
-  const syncPagePath = syncHubKey
-    ? IA_HUB_PATHS[syncHubKey]
-    : syncShowcase
-      ? SHOWCASE_LIVE_PATH
-      : "";
   const [profileOpen, setProfileOpen] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [syncConfirmOpen, setSyncConfirmOpen] = useState(false);
@@ -355,6 +360,38 @@ function AdminShellContent({
   const [varsoviaNav, setVarsoviaNav] = useState<VarsoviaNavDetail>(() =>
     readVarsoviaNavFromUrl()
   );
+  const syncHubKey = isVarsovia ? varsoviaHubKeyFromPath(pathname) : undefined;
+  const syncShowcase = isVarsovia && isShowcaseAdminPath(pathname);
+  const syncCatalogue =
+    isVarsovia &&
+    isCatalogueAdminSection(varsoviaNav.section || searchParams.get("section"));
+  const syncTeam =
+    isVarsovia && isTeamAdminSection(varsoviaNav.section || searchParams.get("section"));
+  const syncQuality =
+    isVarsovia && isQualityAdminSection(varsoviaNav.section || searchParams.get("section"));
+  const syncContact =
+    isVarsovia && isContactAdminSection(varsoviaNav.section || searchParams.get("section"));
+  const syncFaq =
+    isVarsovia && isFaqAdminSection(varsoviaNav.section || searchParams.get("section"));
+  const syncFooter =
+    isVarsovia && isFooterAdminSection(varsoviaNav.section || searchParams.get("section"));
+  const syncPagePath = syncHubKey
+    ? IA_HUB_PATHS[syncHubKey]
+    : syncShowcase
+      ? SHOWCASE_LIVE_PATH
+      : syncCatalogue
+        ? CATALOGUE_LIVE_PATH
+        : syncTeam
+          ? TEAM_LIVE_PATH
+          : syncQuality
+            ? QUALITY_LIVE_PATH
+            : syncContact
+              ? CONTACT_LIVE_PATH
+              : syncFaq
+                ? FAQ_LIVE_PATH
+                : syncFooter
+                  ? FOOTER_LIVE_PATH
+                  : "";
 
   useEffect(() => {
     setHomeSection(readAdminSectionFromUrl());
@@ -550,6 +587,12 @@ function AdminShellContent({
         const replaceHubKey = syncHubKey;
         const res = await syncVarsoviaFromDb(replaceHubKey, {
           replaceShowcase: syncShowcase,
+          replaceCatalogue: syncCatalogue,
+          replaceTeam: syncTeam,
+          replaceQuality: syncQuality,
+          replaceContact: syncContact,
+          replaceFaq: syncFaq,
+          replaceFooter: syncFooter,
         });
         const report = res.report;
         const resourceBits = Object.entries(report.resources || {})
@@ -562,6 +605,9 @@ function AdminShellContent({
             report.database,
             report.journalSync
               ? `Journal articles:${report.journalSync.total} (removed ${report.journalSync.deleted})`
+              : null,
+            report.catalogueSync
+              ? `Catalogues:${report.catalogueSync.total} (removed ${report.catalogueSync.deleted})`
               : null,
             report.siteUpdated
               ? `Site fields filled: ${report.filledSiteKeys}`
@@ -979,7 +1025,15 @@ function AdminShellContent({
                       "Journal articles: mirrors live /journal set (upsert + delete extras)",
                       syncShowcase
                         ? "Showcase cards: fill every listing + detail field (cover, title, category, location, type, supply area, gallery) in EN / TH / PL"
-                        : "Other resources: counts reload from DB — no wipe of edited products/projects",
+                        : syncCatalogue
+                          ? "Brochures: the 6 live /catalogue cards (title, cover, PDF) in EN / TH / PL — extras removed"
+                          : syncTeam
+                            ? "Team members: fill name and role in EN / TH / PL — photos kept"
+                            : syncContact
+                              ? "Showrooms: fill name and location in EN / TH / PL — photos kept"
+                              : syncFaq
+                                ? "FAQ Q&A: add and delete match live /faq — Sync fills translations, does not restore deleted questions"
+                                : "Other resources: counts reload from DB — no wipe of edited products/projects",
                     ]
                   : [
                       "Same MongoDB the public site uses — admin list reloads to match",

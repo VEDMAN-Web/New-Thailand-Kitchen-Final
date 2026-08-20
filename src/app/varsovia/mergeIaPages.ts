@@ -249,7 +249,10 @@ export function liveHubDefault(hubKey: string): Dict | null {
   return hub && typeof hub === "object" ? (hub as Dict) : null;
 }
 
-/** Replace one IA hub with the live-site seed (Sync from DB on that hub page). */
+/**
+ * Replace one IA hub with the live-site seed (Sync from DB on that hub page).
+ * Keeps the editor’s indexable flag so Sync does not silently un-index the URL.
+ */
 export function replaceIaHubFromLiveSeed(
   pages: unknown,
   hubKey: string
@@ -259,6 +262,16 @@ export function replaceIaHubFromLiveSeed(
       ? { ...(pages as Record<string, unknown>) }
       : {};
   const def = liveHubDefault(hubKey);
-  if (def) current[hubKey] = clone(def);
+  if (def) {
+    const existing = current[hubKey];
+    const keepIndexable =
+      existing && typeof existing === "object" && !Array.isArray(existing)
+        ? (existing as Dict).indexable === true
+        : false;
+    current[hubKey] = clone(def);
+    if (keepIndexable && current[hubKey] && typeof current[hubKey] === "object") {
+      (current[hubKey] as Dict).indexable = true;
+    }
+  }
   return current;
 }

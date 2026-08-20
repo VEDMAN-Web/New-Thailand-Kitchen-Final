@@ -2422,49 +2422,49 @@
     "indexable": false,
     "metaTitle": {
       "en": "For Developers | Varsovia Design",
-      "th": "For Developers | Varsovia Design",
-      "pl": "For Developers | Varsovia Design"
+      "th": "สำหรับนักพัฒนา | Varsovia Design",
+      "pl": "Dla deweloperów | Varsovia Design"
     },
     "metaDescription": {
-      "en": "Partner with Varsovia Design for developer interior packages, show units, and scalable FF&E across Thailand.",
-      "th": "Partner with Varsovia Design for developer interior packages, show units, and scalable FF&E across Thailand.",
-      "pl": "Partner with Varsovia Design for developer interior packages, show units, and scalable FF&E across Thailand."
+      "en": "Partner with Varsovia Design for developer interior packages, show units, and scalable FF&E across Thailand. Specs, timelines, and installation in every phase.",
+      "th": "ร่วมงานกับ Varsovia Design สำหรับแพ็กเกจอินทีเรียนักพัฒนา ยูนิตตัวอย่าง และ FF&E ที่ขยายได้ทั่วไทย พร้อมสเปก ไทม์ไลน์ และการติดตั้งในทุกเฟส",
+      "pl": "Współpracuj z Varsovia Design przy pakietach wnętrz deweloperskich, show unitach i FF&E w Tajlandii. Specyfikacje, harmonogram i montaż na każdym etapie."
     },
     "hero": {
       "title": {
         "en": "For Developers",
-        "th": "For Developers",
-        "pl": "For Developers"
+        "th": "สำหรับนักพัฒนา",
+        "pl": "Dla deweloperów"
       },
       "subtitle": {
         "en": "Interior partners for show units, standard packages, and amenity spaces.",
-        "th": "Interior partners for show units, standard packages, and amenity spaces.",
-        "pl": "Interior partners for show units, standard packages, and amenity spaces."
+        "th": "พาร์ทเนอร์อินทีเรียสำหรับยูนิตตัวอย่าง แพ็กเกจมาตรฐาน และพื้นที่ส่วนกลาง",
+        "pl": "Partnerzy wnętrzarscy do mieszkań show, pakietów standardowych i przestrzeni wspólnych."
       },
       "image": "/home/core/core-4.jpg",
       "ctaLabel": {
         "en": "Get a consultation",
-        "th": "Get a consultation",
-        "pl": "Get a consultation"
+        "th": "ปรึกษาฟรี",
+        "pl": "Bezpłatna konsultacja"
       },
       "ctaHref": "/contact"
     },
     "body": {
       "en": "Developers need interiors that sell and scale. We deliver show-unit storytelling, repeatable apartment packages, and amenity design with clear specs, timelines, and installation support — so every phase stays on brand and on schedule.",
-      "th": "Developers need interiors that sell and scale. We deliver show-unit storytelling, repeatable apartment packages, and amenity design with clear specs, timelines, and installation support — so every phase stays on brand and on schedule.",
-      "pl": "Developers need interiors that sell and scale. We deliver show-unit storytelling, repeatable apartment packages, and amenity design with clear specs, timelines, and installation support — so every phase stays on brand and on schedule."
+      "th": "นักพัฒนาต้องการอินทีเรียที่ขายได้และขยายได้ เราส่งมอบเรื่องราวยูนิตตัวอย่าง แพ็กเกจอพาร์ตเมนต์ที่ทำซ้ำได้ และการออกแบบพื้นที่ส่วนกลาง พร้อมสเปก ไทม์ไลน์ และการติดตั้งที่ชัดเจน ให้ทุกเฟสคงแบรนด์และตรงเวลา",
+      "pl": "Deweloperzy potrzebują wnętrz, które sprzedają i skalują się. Dostarczamy storytelling mieszkań show, powtarzalne pakiety apartamentów i projekt przestrzeni wspólnych z jasnymi specyfikacjami, harmonogramem i wsparciem montażu — żeby każdy etap zostawał w zgodzie z marką i terminem."
     },
     "sections": [
       {
         "heading": {
           "en": "Show units that sell the vision",
-          "th": "Show units that sell the vision",
-          "pl": "Show units that sell the vision"
+          "th": "ยูนิตตัวอย่างที่ขายวิสัยทัศน์",
+          "pl": "Mieszkania show, które sprzedają wizję"
         },
         "text": {
           "en": "Launch interiors with storytelling that buyers remember — then convert to packages that roll out cleanly across phases.",
-          "th": "Launch interiors with storytelling that buyers remember — then convert to packages that roll out cleanly across phases.",
-          "pl": "Launch interiors with storytelling that buyers remember — then convert to packages that roll out cleanly across phases."
+          "th": "เปิดตัวอินทีเรียด้วยเรื่องราวที่ผู้ซื้อจำได้ แล้วแปลงเป็นแพ็กเกจที่ขยายได้ทุกเฟสอย่างเรียบร้อย",
+          "pl": "Wprowadzaj wnętrza z opowieścią, którą kupujący zapamiętają — a potem zamieniaj je w pakiety wdrażane czysto w kolejnych etapach."
         },
         "image": "/home/core/core-4.jpg",
         "imagePosition": "left",
@@ -2473,13 +2473,13 @@
       {
         "heading": {
           "en": "Packages, amenities, installation",
-          "th": "Packages, amenities, installation",
-          "pl": "Packages, amenities, installation"
+          "th": "แพ็กเกจ พื้นที่ส่วนกลาง และการติดตั้ง",
+          "pl": "Pakiety, udogodnienia, montaż"
         },
         "text": {
           "en": "Standard apartment packages and amenity spaces with clear specs, timelines, and installation support so every phase stays on brand.",
-          "th": "Standard apartment packages and amenity spaces with clear specs, timelines, and installation support so every phase stays on brand.",
-          "pl": "Standard apartment packages and amenity spaces with clear specs, timelines, and installation support so every phase stays on brand."
+          "th": "แพ็กเกจอพาร์ตเมนต์มาตรฐานและพื้นที่ส่วนกลาง พร้อมสเปก ไทม์ไลน์ และการติดตั้งที่ชัดเจน ให้ทุกเฟสคงแบรนด์",
+          "pl": "Standardowe pakiety mieszkań i przestrzenie wspólne z jasnymi specyfikacjami, harmonogramem i wsparciem montażu, żeby każdy etap zostawał w zgodzie z marką."
         },
         "image": "/home/product/product-3.jpg",
         "imagePosition": "right",

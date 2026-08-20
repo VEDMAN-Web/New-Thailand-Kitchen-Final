@@ -1487,7 +1487,7 @@ function CataloguesInlineEditor({ embedded = false }: { embedded?: boolean }) {
           <div>
             <h2 className="text-lg font-bold text-[#1A2332]">Free Catalogue</h2>
             <p className="mt-0.5 text-sm text-[#6B7280]">
-              3 downloadable PDF catalogs
+              Same 6 downloadable brochure cards as live /catalogue
             </p>
           </div>
           {complete ? (
@@ -3066,7 +3066,7 @@ function FaqsInlineEditor({ embedded = false }: { embedded?: boolean }) {
         const payload = {
           question: ensureEnglishCopy(draft.question),
           answer: ensureEnglishCopy(draft.answer),
-          category: activeTopic,
+          category: emptyLocalized(activeTopic),
           visible: draft.visible !== false,
           order,
         };

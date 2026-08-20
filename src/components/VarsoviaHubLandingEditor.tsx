@@ -281,13 +281,41 @@ function ContentSectionsEditor({
         >
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-bold text-[#5C6370]">Block {index + 1}</span>
-            <button
-              type="button"
-              onClick={() => onChange(sections.filter((_, i) => i !== index))}
-              className="text-xs font-semibold text-[#B42318]"
-            >
-              Remove
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled={index === 0}
+                onClick={() => {
+                  if (index === 0) return;
+                  const next = [...sections];
+                  [next[index - 1], next[index]] = [next[index], next[index - 1]];
+                  onChange(next);
+                }}
+                className="text-xs font-semibold text-[#5C6370] disabled:opacity-30"
+              >
+                ↑
+              </button>
+              <button
+                type="button"
+                disabled={index === sections.length - 1}
+                onClick={() => {
+                  if (index === sections.length - 1) return;
+                  const next = [...sections];
+                  [next[index + 1], next[index]] = [next[index], next[index + 1]];
+                  onChange(next);
+                }}
+                className="text-xs font-semibold text-[#5C6370] disabled:opacity-30"
+              >
+                ↓
+              </button>
+              <button
+                type="button"
+                onClick={() => onChange(sections.filter((_, i) => i !== index))}
+                className="text-xs font-semibold text-[#B42318]"
+              >
+                Remove
+              </button>
+            </div>
           </div>
           <MediaUpload
             label={`Block ${index + 1} photo`}
@@ -296,6 +324,25 @@ function ContentSectionsEditor({
             onChange={(image) => update(index, { image })}
             uploadFile={uploadVarsoviaMedia}
           />
+          <div>
+            <p className="mb-1.5 text-xs font-semibold text-[#5C6370]">Photo side (live card)</p>
+            <div className="inline-flex rounded-lg border border-[#E2E5EA] bg-[#F8FAFC] p-0.5">
+              {(["left", "right"] as const).map((side) => (
+                <button
+                  key={side}
+                  type="button"
+                  onClick={() => update(index, { imagePosition: side })}
+                  className={`rounded-md px-3 py-1.5 text-xs font-semibold ${
+                    (sec.imagePosition === "right" ? "right" : "left") === side
+                      ? "bg-[#1A2332] text-white"
+                      : "text-[#5C6370]"
+                  }`}
+                >
+                  {side === "left" ? "Left" : "Right"}
+                </button>
+              ))}
+            </div>
+          </div>
           <TextField
             label="Heading"
             value={sec.heading || emptyLocalized()}
@@ -502,7 +549,11 @@ export default function VarsoviaHubLandingEditor({
           {showSections ? (
           <FieldGroup
             title="3 · Content blocks"
-            hint="Same photo + heading + text cards as the live page."
+            hint={
+              hubKey === "forDevelopers"
+                ? "Same photo + heading + text cards as live /for-developers. Photo side matches the live split."
+                : "Same photo + heading + text cards as the live page."
+            }
           >
           <ContentSectionsEditor
             locale={locale}
@@ -579,7 +630,13 @@ export default function VarsoviaHubLandingEditor({
 
           {showSeo ? (
             <FieldGroup
-              title={hubKey === "locations" ? "6 · Google" : "5 · Google"}
+              title={
+                hubKey === "locations"
+                  ? "6 · Google"
+                  : exploreVisible
+                    ? "5 · Google"
+                    : "4 · Google"
+              }
               hint="Not shown on the page body — browser tab, share preview (banner photo), and sitemap only."
             >
           <label className="flex items-start justify-between gap-4 rounded-lg border border-[#E8EDF2] bg-[#F8FAFC] px-3 py-3 text-sm text-[#1A2332]">

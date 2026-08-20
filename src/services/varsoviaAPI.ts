@@ -249,6 +249,11 @@ export type VarsoviaSyncReport = {
     deleted: number;
     total: number;
   };
+  catalogueSync?: {
+    upserted: number;
+    deleted: number;
+    total: number;
+  };
 };
 
 function loc(en: string, th = "", pl = "") {
@@ -359,6 +364,76 @@ async function syncJournalArticlesMirror(): Promise<{
   };
 }
 
+function catalogueTitleEn(item: VarsoviaRecord): string {
+  const title = item.title;
+  if (typeof title === "string") return title.trim();
+  if (title && typeof title === "object") {
+    const map = title as Record<string, unknown>;
+    return String(map.en || map.th || map.pl || "").trim();
+  }
+  return "";
+}
+
+function isUploadedCataloguePdf(url: string): boolean {
+  const value = String(url || "").trim();
+  if (!value || value === "/catalogue" || value === "/catalogue/") return false;
+  return /\.pdf($|\?)/i.test(value) || /\/media\//i.test(value) || /^https?:\/\//i.test(value);
+}
+
+/** Mirror live /catalogue brochure cards: upsert the 6 seed covers, delete extras. */
+async function syncCatalogueBrochuresMirror(): Promise<{
+  upserted: number;
+  deleted: number;
+  total: number;
+}> {
+  const { CATALOGUE_BROCHURE_SEEDS } = await import("@/app/varsovia/cataloguesSeed");
+  const existing = await listVarsoviaRecords("catalogues");
+  const unused = [...existing];
+
+  const takeMatch = (seedTitle: string, seedOrder: number): VarsoviaRecord | undefined => {
+    const titleKey = seedTitle.trim().toLowerCase();
+    const titleIndex = unused.findIndex(
+      (row) => catalogueTitleEn(row).toLowerCase() === titleKey
+    );
+    if (titleIndex >= 0) return unused.splice(titleIndex, 1)[0];
+    const orderIndex = unused.findIndex((row) => Number(row.order) === seedOrder);
+    if (orderIndex >= 0) return unused.splice(orderIndex, 1)[0];
+    return undefined;
+  };
+
+  let upserted = 0;
+  for (const seed of CATALOGUE_BROCHURE_SEEDS) {
+    const match = takeMatch(seed.title.en, seed.order);
+    const existingPdf = String(match?.downloadUrl || "").trim();
+    const payload = {
+      title: { en: seed.title.en, th: seed.title.th, pl: seed.title.pl },
+      coverImage: seed.coverImage,
+      downloadUrl: isUploadedCataloguePdf(existingPdf) ? existingPdf : seed.downloadUrl,
+      visible: true,
+      order: seed.order,
+    };
+    if (match?._id) {
+      await updateVarsoviaRecord("catalogues", match._id, payload);
+    } else {
+      await createVarsoviaRecord("catalogues", payload);
+    }
+    upserted += 1;
+  }
+
+  let deleted = 0;
+  for (const row of unused) {
+    if (!row._id) continue;
+    await deleteVarsoviaRecord("catalogues", row._id);
+    deleted += 1;
+  }
+
+  return {
+    upserted,
+    deleted,
+    total: CATALOGUE_BROCHURE_SEEDS.length,
+  };
+}
+
 function locText(value: unknown, fallback = ""): { en: string; th: string; pl: string } {
   if (value && typeof value === "object" && !Array.isArray(value)) {
     const map = value as Record<string, unknown>;
@@ -452,9 +527,40 @@ function completeBlogRecord(item: VarsoviaRecord): VarsoviaRecord {
   };
 }
 
+/** Fill catalogue brochure titles so admin tabs match live /catalogue cards. */
+function completeCatalogueRecord(item: VarsoviaRecord): VarsoviaRecord {
+  return {
+    ...item,
+    title: locText(item.title),
+    coverImage: String(item.coverImage || "").trim(),
+    downloadUrl: String(item.downloadUrl || "").trim(),
+    visible: item.visible !== false,
+    order: typeof item.order === "number" && Number.isFinite(item.order) ? item.order : 0,
+  };
+}
+
+function completeTeamRecord(item: VarsoviaRecord): VarsoviaRecord {
+  return {
+    ...item,
+    name: locText(item.name),
+    role: locText(item.role),
+    image: String(item.image || "").trim(),
+    visible: item.visible !== false,
+    order: typeof item.order === "number" && Number.isFinite(item.order) ? item.order : 0,
+  };
+}
+
 export async function syncVarsoviaFromDb(
   replaceHubKey?: string,
-  opts?: { replaceShowcase?: boolean }
+  opts?: {
+    replaceShowcase?: boolean;
+    replaceCatalogue?: boolean;
+    replaceTeam?: boolean;
+    replaceQuality?: boolean;
+    replaceContact?: boolean;
+    replaceFaq?: boolean;
+    replaceFooter?: boolean;
+  }
 ): Promise<{
   success: boolean;
   message: string;
@@ -467,10 +573,37 @@ export async function syncVarsoviaFromDb(
     "@/lib/hydrateLiveLocales"
   );
   const { replaceIaHubFromLiveSeed } = await import("@/app/varsovia/mergeIaPages");
-  const { IA_HUB_PATHS, SHOWCASE_LIVE_PATH } = await import("@/app/varsovia/iaPagesDefaults");
-  const { replaceShowcaseFromLiveSeed } = await import("@/app/varsovia/siteDefaults");
+  const { IA_HUB_PATHS, SHOWCASE_LIVE_PATH, CATALOGUE_LIVE_PATH, TEAM_LIVE_PATH, QUALITY_LIVE_PATH, CONTACT_LIVE_PATH, FAQ_LIVE_PATH, FOOTER_LIVE_PATH } = await import(
+    "@/app/varsovia/iaPagesDefaults"
+  );
+  const {
+    replaceShowcaseFromLiveSeed,
+    replaceCatalogueFromLiveSeed,
+    replaceTeamFromLiveSeed,
+    replaceQualityFromLiveSeed,
+    replaceContactFromLiveSeed,
+    replaceFaqFromLiveSeed,
+    replaceFooterFromLiveSeed,
+  } =
+    await import("@/app/varsovia/siteDefaults");
 
   const replaceShowcase = opts?.replaceShowcase === true;
+  const replaceCatalogue = opts?.replaceCatalogue === true;
+  const replaceTeam = opts?.replaceTeam === true;
+  const replaceQuality = opts?.replaceQuality === true;
+  const replaceContact = opts?.replaceContact === true;
+  const replaceFaq = opts?.replaceFaq === true;
+  const replaceFooter = opts?.replaceFooter === true;
+  const pageReplace = Boolean(
+    replaceHubKey ||
+      replaceShowcase ||
+      replaceCatalogue ||
+      replaceTeam ||
+      replaceQuality ||
+      replaceContact ||
+      replaceFaq ||
+      replaceFooter
+  );
   const loaded = await getVarsoviaSite();
   const { site: hydrated, filled: overlayFilled } = await hydrateVarsoviaSiteDocument(loaded);
   let merged: Record<string, unknown> = replaceHubKey
@@ -480,10 +613,14 @@ export async function syncVarsoviaFromDb(
       }
     : hydrated;
 
-  if (replaceHubKey || replaceShowcase) {
-    merged = replaceShowcase
-      ? replaceShowcaseFromLiveSeed(merged)
-      : merged;
+  if (pageReplace) {
+    if (replaceShowcase) merged = replaceShowcaseFromLiveSeed(merged);
+    if (replaceCatalogue) merged = replaceCatalogueFromLiveSeed(merged);
+    if (replaceTeam) merged = replaceTeamFromLiveSeed(merged);
+    if (replaceQuality) merged = replaceQualityFromLiveSeed(merged);
+    if (replaceContact) merged = replaceContactFromLiveSeed(merged);
+    if (replaceFaq) merged = replaceFaqFromLiveSeed(merged);
+    if (replaceFooter) merged = replaceFooterFromLiveSeed(merged);
     merged = hydrateCmsFromLiveLocales(merged, buildVarsoviaLiveOverlays(), {
       fillFromEnglish: true,
     }) as Record<string, unknown>;
@@ -491,7 +628,7 @@ export async function syncVarsoviaFromDb(
 
   let siteUpdated = false;
   let filledSiteKeys = overlayFilled;
-  if (replaceHubKey || replaceShowcase) {
+  if (pageReplace) {
     filledSiteKeys = countFilledLocaleFields(
       pickVarsoviaSiteUpdate(loaded),
       pickVarsoviaSiteUpdate(merged)
@@ -509,6 +646,19 @@ export async function syncVarsoviaFromDb(
         ? `Journal articles sync failed: ${error.message}`
         : "Journal articles sync failed"
     );
+  }
+
+  let catalogueSync: VarsoviaSyncReport["catalogueSync"];
+  if (replaceCatalogue) {
+    try {
+      catalogueSync = await syncCatalogueBrochuresMirror();
+    } catch (error) {
+      throw new Error(
+        error instanceof Error
+          ? `Catalogue brochures sync failed: ${error.message}`
+          : "Catalogue brochures sync failed"
+      );
+    }
   }
 
   const resourceList: VarsoviaResource[] = [
@@ -540,6 +690,12 @@ export async function syncVarsoviaFromDb(
             }
             if (resource === "blogs") {
               next = completeBlogRecord(next as VarsoviaRecord);
+            }
+            if (resource === "catalogues") {
+              next = completeCatalogueRecord(next as VarsoviaRecord);
+            }
+            if (resource === "team-members") {
+              next = completeTeamRecord(next as VarsoviaRecord);
             }
             if (resource === "faqs") {
               const category =
@@ -573,16 +729,16 @@ export async function syncVarsoviaFromDb(
               );
             }
             const filled = countFilledLocaleFields(item, next);
-            if (!filled && resource !== "showcases" && resource !== "blogs") return;
-            if (resource === "showcases" || resource === "blogs") {
-              const title = (next as VarsoviaRecord).title as
-                | { en?: string }
-                | string
-                | undefined;
+            if (!filled && resource !== "showcases" && resource !== "blogs" && resource !== "catalogues" && resource !== "team-members") return;
+            if (resource === "showcases" || resource === "blogs" || resource === "catalogues" || resource === "team-members") {
+              const label =
+                resource === "team-members"
+                  ? (next as VarsoviaRecord).name
+                  : (next as VarsoviaRecord).title;
               const titleEn =
-                typeof title === "string"
-                  ? title.trim()
-                  : String(title?.en || "").trim();
+                typeof label === "string"
+                  ? label.trim()
+                  : String((label as { en?: string } | undefined)?.en || "").trim();
               if (!titleEn) return;
             }
             const { _id, __v, createdAt, updatedAt, ...body } = next as Record<
@@ -598,7 +754,7 @@ export async function syncVarsoviaFromDb(
     })
   );
 
-  let host = "varsovia-api";
+  const host = "varsovia-api";
   let database = "varsovia";
   try {
     const { data } = await varsoviaApi.get("/health");
@@ -617,7 +773,19 @@ export async function syncVarsoviaFromDb(
     ? IA_HUB_PATHS[replaceHubKey] || `/${replaceHubKey}`
     : replaceShowcase
       ? SHOWCASE_LIVE_PATH
-      : "";
+      : replaceCatalogue
+        ? CATALOGUE_LIVE_PATH
+        : replaceTeam
+          ? TEAM_LIVE_PATH
+          : replaceQuality
+            ? QUALITY_LIVE_PATH
+            : replaceContact
+              ? CONTACT_LIVE_PATH
+              : replaceFaq
+                ? FAQ_LIVE_PATH
+                : replaceFooter
+                  ? FOOTER_LIVE_PATH
+                  : "";
 
   return {
     success: true,
@@ -629,11 +797,20 @@ export async function syncVarsoviaFromDb(
       host,
       siteId: "varsovia-kitchen",
       siteUpdated,
-      preserved: !replaceHubKey && !replaceShowcase,
+      preserved: !pageReplace,
       resources,
       filledSiteKeys,
-      replacedHub: replaceHubKey || (replaceShowcase ? "showcase" : undefined),
+      replacedHub:
+        replaceHubKey ||
+        (replaceShowcase ? "showcase" : undefined) ||
+        (replaceCatalogue ? "catalogue" : undefined) ||
+        (replaceTeam ? "team" : undefined) ||
+        (replaceQuality ? "quality" : undefined) ||
+        (replaceContact ? "contact" : undefined) ||
+        (replaceFaq ? "faq" : undefined) ||
+        (replaceFooter ? "footer" : undefined),
       journalSync,
+      catalogueSync,
     },
   };
 }

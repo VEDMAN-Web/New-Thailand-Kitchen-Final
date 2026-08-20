@@ -69,11 +69,42 @@ export function varsoviaHubKeyFromPath(pathname: string): string | undefined {
 }
 
 export const SHOWCASE_LIVE_PATH = "/projects";
+export const CATALOGUE_LIVE_PATH = "/catalogue";
+export const TEAM_LIVE_PATH = "/team";
+export const QUALITY_LIVE_PATH = "/quality-sale";
+export const CONTACT_LIVE_PATH = "/contact";
+export const FAQ_LIVE_PATH = "/faq";
+export const FOOTER_LIVE_PATH = "/";
 
 /** Showcase is listing + mega-menu copy, not an IA hub. */
 export function isShowcaseAdminPath(pathname: string): boolean {
   const path = String(pathname || "").replace(/\/+$/, "") || "/";
   return path === "/varsovia/showcase";
+}
+
+/** Free Catalogue is a site section on `/varsovia?section=cataloguePage`. */
+export function isCatalogueAdminSection(section: string | null | undefined): boolean {
+  return section === "cataloguePage";
+}
+
+export function isTeamAdminSection(section: string | null | undefined): boolean {
+  return section === "teamPage";
+}
+
+export function isQualityAdminSection(section: string | null | undefined): boolean {
+  return section === "qualitySale";
+}
+
+export function isContactAdminSection(section: string | null | undefined): boolean {
+  return section === "contactPage" || section === "contact";
+}
+
+export function isFaqAdminSection(section: string | null | undefined): boolean {
+  return section === "faqPage";
+}
+
+export function isFooterAdminSection(section: string | null | undefined): boolean {
+  return section === "footer";
 }
 
 export const DEFAULT_IA_PAGES = {
@@ -109,7 +140,70 @@ export const DEFAULT_IA_PAGES = {
     child("hua-hin", "Hua Hin", 4),
     child("chiang-mai", "Chiang Mai", 5),
   ]),
-  forDevelopers: hub("for-developers", "For Developers", []),
+  forDevelopers: {
+    slug: "for-developers",
+    indexable: false,
+    metaTitle: L(
+      "For Developers | Varsovia Design",
+      "สำหรับนักพัฒนา | Varsovia Design",
+      "Dla deweloperów | Varsovia Design"
+    ),
+    metaDescription: L(
+      "Partner with Varsovia Design for developer interior packages, show units, and scalable FF&E across Thailand. Specs, timelines, and installation in every phase.",
+      "ร่วมงานกับ Varsovia Design สำหรับแพ็กเกจอินทีเรียนักพัฒนา ยูนิตตัวอย่าง และ FF&E ที่ขยายได้ทั่วไทย พร้อมสเปก ไทม์ไลน์ และการติดตั้งในทุกเฟส",
+      "Współpracuj z Varsovia Design przy pakietach wnętrz deweloperskich, show unitach i FF&E w Tajlandii. Specyfikacje, harmonogram i montaż na każdym etapie."
+    ),
+    hero: {
+      eyebrow: L(""),
+      title: L("For Developers", "สำหรับนักพัฒนา", "Dla deweloperów"),
+      subtitle: L(
+        "Interior partners for show units, standard packages, and amenity spaces.",
+        "พาร์ทเนอร์อินทีเรียสำหรับยูนิตตัวอย่าง แพ็กเกจมาตรฐาน และพื้นที่ส่วนกลาง",
+        "Partnerzy wnętrzarscy do mieszkań show, pakietów standardowych i przestrzeni wspólnych."
+      ),
+      image: "/home/core/core-4.jpg",
+      ctaLabel: L("Get a consultation", "ปรึกษาฟรี", "Bezpłatna konsultacja"),
+      ctaHref: "/contact",
+    },
+    body: L(
+      "Developers need interiors that sell and scale. We deliver show-unit storytelling, repeatable apartment packages, and amenity design with clear specs, timelines, and installation support — so every phase stays on brand and on schedule.",
+      "นักพัฒนาต้องการอินทีเรียที่ขายได้และขยายได้ เราส่งมอบเรื่องราวยูนิตตัวอย่าง แพ็กเกจอพาร์ตเมนต์ที่ทำซ้ำได้ และการออกแบบพื้นที่ส่วนกลาง พร้อมสเปก ไทม์ไลน์ และการติดตั้งที่ชัดเจน ให้ทุกเฟสคงแบรนด์และตรงเวลา",
+      "Deweloperzy potrzebują wnętrz, które sprzedają i skalują się. Dostarczamy storytelling mieszkań show, powtarzalne pakiety apartamentów i projekt przestrzeni wspólnych z jasnymi specyfikacjami, harmonogramem i wsparciem montażu — żeby każdy etap zostawał w zgodzie z marką i terminem."
+    ),
+    sections: [
+      {
+        heading: L(
+          "Show units that sell the vision",
+          "ยูนิตตัวอย่างที่ขายวิสัยทัศน์",
+          "Mieszkania show, które sprzedają wizję"
+        ),
+        text: L(
+          "Launch interiors with storytelling that buyers remember — then convert to packages that roll out cleanly across phases.",
+          "เปิดตัวอินทีเรียด้วยเรื่องราวที่ผู้ซื้อจำได้ แล้วแปลงเป็นแพ็กเกจที่ขยายได้ทุกเฟสอย่างเรียบร้อย",
+          "Wprowadzaj wnętrza z opowieścią, którą kupujący zapamiętają — a potem zamieniaj je w pakiety wdrażane czysto w kolejnych etapach."
+        ),
+        image: "/home/core/core-4.jpg",
+        imagePosition: "left",
+        layout: "editorial",
+      },
+      {
+        heading: L(
+          "Packages, amenities, installation",
+          "แพ็กเกจ พื้นที่ส่วนกลาง และการติดตั้ง",
+          "Pakiety, udogodnienia, montaż"
+        ),
+        text: L(
+          "Standard apartment packages and amenity spaces with clear specs, timelines, and installation support so every phase stays on brand.",
+          "แพ็กเกจอพาร์ตเมนต์มาตรฐานและพื้นที่ส่วนกลาง พร้อมสเปก ไทม์ไลน์ และการติดตั้งที่ชัดเจน ให้ทุกเฟสคงแบรนด์",
+          "Standardowe pakiety mieszkań i przestrzenie wspólne z jasnymi specyfikacjami, harmonogramem i wsparciem montażu, żeby każdy etap zostawał w zgodzie z marką."
+        ),
+        image: "/home/product/product-3.jpg",
+        imagePosition: "right",
+        layout: "overlay",
+      },
+    ],
+    children: [],
+  },
   journal: {
     slug: "journal",
     indexable: false,
