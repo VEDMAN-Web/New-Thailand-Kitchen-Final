@@ -214,6 +214,10 @@ async function proxy(
 
   const headers = new Headers({ Accept: "application/json" });
   headers.set("x-admin-key", adminKey);
+  // Aggressive cache-busting headers
+  headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
+  headers.set("Pragma", "no-cache");
+  headers.set("Expires", "0");
   const contentType = request.headers.get("content-type");
   if (contentType) headers.set("content-type", contentType);
 
@@ -234,6 +238,10 @@ async function proxy(
       headers: {
         "content-type":
           upstream.headers.get("content-type") || "application/json",
+        // Prevent any caching of admin responses
+        "Cache-Control": "no-store, no-cache, must-revalidate, private, max-age=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
       },
     });
   } catch {

@@ -28,6 +28,14 @@ const PUBLIC_ASSET_PREFIXES = [
   "/images/",
   "/assets/",
   "/gallery/",
+  // Varsovia-specific paths that must be recognized
+  "/home/",
+  "/team/",
+  "/quality-sale/",
+  "/Interior-kitchen/",
+  "/showcase/",
+  "/partners/",
+  "/vision/",
 ];
 
 function thailandFrontendOrigin(): string {
@@ -288,7 +296,9 @@ export function resolveAdminMediaPreviewUrl(url: string): string {
         return `${pathname}${parsed.search}`;
       }
       if (isVarsoviaPublicAssetPath(pathname)) {
-        return `${varsoviaFrontendOrigin()}${pathname}${parsed.search}`;
+        const resolved = `${varsoviaFrontendOrigin()}${pathname}${parsed.search}`;
+        console.log(`[Preview] Varsovia asset: ${trimmed} -> ${resolved}`);
+        return resolved;
       }
       if (localHost && isPublicSiteAssetPath(pathname)) {
         return `${publicFrontendOrigin()}${pathname}${parsed.search}`;
@@ -300,13 +310,24 @@ export function resolveAdminMediaPreviewUrl(url: string): string {
   }
 
   const path = encodeMediaPath(trimmed.startsWith("/") ? trimmed : `/${trimmed}`);
+  
+  // Priority order: uploads -> Varsovia assets -> Thailand assets
   if (path.startsWith("/uploads/")) return path;
+  
+  // Check if this is a Varsovia asset path (most showcase/project images)
   if (isVarsoviaPublicAssetPath(path)) {
-    return `${varsoviaFrontendOrigin()}${path}`;
+    const resolved = `${varsoviaFrontendOrigin()}${path}`;
+    console.log(`[Preview] Varsovia asset: ${trimmed} -> ${resolved}`);
+    return resolved;
   }
+  
+  // Check if this is a Thailand asset path
   if (isPublicSiteAssetPath(path)) {
     return `${publicFrontendOrigin()}${path}`;
   }
+  
+  // Default: treat as relative path
+  console.log(`[Preview] Unknown path type: ${trimmed} -> ${path}`);
   return path;
 }
 
@@ -333,20 +354,35 @@ export function resolveAdminMediaPreviewFallbacks(url: string): string[] {
   }
 
   const encoded = encodeMediaPath(path.startsWith("/") ? path : `/${path}`);
+  
+  // Priority 1: Varsovia assets (where most showcase/project images live)
   if (isVarsoviaPublicAssetPath(encoded)) {
     push(`${varsoviaFrontendOrigin()}${encoded}`);
     push(withVarsoviaStatic(encoded));
-  } else if (encoded.startsWith("/uploads/")) {
+    push(varsoviaRemotePreviewUrl(encoded));
+  } 
+  // Priority 2: Uploads
+  else if (encoded.startsWith("/uploads/")) {
     push(encoded);
-  } else if (isPublicSiteAssetPath(encoded)) {
+  } 
+  // Priority 3: Thailand assets
+  else if (isPublicSiteAssetPath(encoded)) {
     push(`${publicFrontendOrigin()}${encoded}`);
     push(encoded);
-  } else {
-    push(encoded);
+  } 
+  // Priority 4: Try both origins
+  else {
     push(`${varsoviaFrontendOrigin()}${encoded}`);
+    push(`${publicFrontendOrigin()}${encoded}`);
+    push(encoded);
+    push(withVarsoviaStatic(encoded));
   }
-  push(varsoviaRemotePreviewUrl(encoded));
-  return out.filter((item) => !/\/products\/Kitchen/i.test(item)).slice(0, 4);
+  
+  // Add remote fallback as last resort
+  const remote = varsoviaRemotePreviewUrl(encoded);
+  if (remote) push(remote);
+  
+  return out.filter((item) => !/\/products\/Kitchen/i.test(item)).slice(0, 5);
 }
 
 export function needsRemoteResolve(kind: MediaUrlKind): boolean {

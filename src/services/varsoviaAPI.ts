@@ -52,7 +52,11 @@ const ADMIN_LIST_LIMIT = 100;
 // Served by the admin Next route handler outside /api so Thailand rewrites do not intercept it.
 const varsoviaApi = axios.create({
   baseURL: "/varsovia-api",
-  headers: { "Content-Type": "application/json" },
+  headers: {
+    "Content-Type": "application/json",
+    "Cache-Control": "no-cache, no-store, must-revalidate",
+    "Pragma": "no-cache",
+  },
   timeout: 95000,
 });
 
@@ -60,6 +64,13 @@ varsoviaApi.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
     const token = localStorage.getItem("admin_token");
     if (token) config.headers.Authorization = `Bearer ${token}`;
+    
+    // Add cache-busting timestamp to all requests
+    const cacheBuster = `_t=${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+    if (config.url) {
+      const separator = config.url.includes('?') ? '&' : '?';
+      config.url = `${config.url}${separator}${cacheBuster}`;
+    }
   }
   return config;
 });
@@ -242,8 +253,21 @@ export async function updateVarsoviaSite(
   if (!opts?.persistPages && !pagesOnlyPatch) {
     delete picked.pages;
   }
+  
+  console.log(`[varsoviaAPI] Updating site content`, {
+    timestamp: new Date().toISOString(),
+    fieldCount: Object.keys(picked).length,
+    hasPages: Boolean(picked.pages),
+  });
+  
   const { data } = await varsoviaApi.put("/site", picked);
-  return unwrapApiData<Record<string, unknown>>(data);
+  const result = unwrapApiData<Record<string, unknown>>(data);
+  
+  console.log(`[varsoviaAPI] Site update successful`, {
+    timestamp: new Date().toISOString(),
+  });
+  
+  return result;
 }
 
 export type VarsoviaSyncReport = {
@@ -871,8 +895,20 @@ export async function updateVarsoviaRecord(
   id: string,
   body: Record<string, unknown>
 ) {
+  console.log(`[varsoviaAPI] Updating ${resource}/${id}`, {
+    timestamp: new Date().toISOString(),
+    bodyKeys: Object.keys(body),
+  });
+  
   const { data } = await varsoviaApi.put(`/${resource}/${id}`, body);
-  return unwrapApiData<VarsoviaRecord>(data);
+  const result = unwrapApiData<VarsoviaRecord>(data);
+  
+  console.log(`[varsoviaAPI] Update successful for ${resource}/${id}`, {
+    timestamp: new Date().toISOString(),
+    resultId: result._id,
+  });
+  
+  return result;
 }
 
 export async function deleteVarsoviaRecord(

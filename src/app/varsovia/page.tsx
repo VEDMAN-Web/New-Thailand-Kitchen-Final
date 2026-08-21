@@ -942,16 +942,29 @@ function SiteSettings() {
       }
 
       await flushSaves?.flushAll();
-      await updateVarsoviaSite(current);
+      
+      // Save to backend
+      const savedData = await updateVarsoviaSite(current);
+      
+      // Optimistic update: use the saved data immediately
       savedPayloadRef.current = nextSerialized;
       contentRef.current = current;
       setContent(current);
+      
+      // Save embedded sections
       for (const handler of embeddedHandlers) {
         await handler({ quiet: true });
       }
+      
       if (!opts?.quiet) {
         toast.success(siteDirty ? "Saved — live site updated" : "Saved");
       }
+      
+      // Reload after a delay to ensure backend consistency
+      setTimeout(() => {
+        void loadContent();
+      }, 800);
+      
     } catch (error) {
       const msg = error instanceof Error ? error.message : "";
       if (!/validation failed/i.test(msg)) {
@@ -3919,19 +3932,41 @@ export function ResourceManager({
 
     try {
       setSaving(true);
+      let savedRecord: VarsoviaRecord;
+      
       if (editing?._id) {
-        await updateVarsoviaRecord(resource, editing._id, payload);
+        // Update existing record
+        savedRecord = await updateVarsoviaRecord(resource, editing._id, payload);
+        
+        // Optimistic update: immediately update local state with saved data
+        setItems((prev) => 
+          prev.map((item) => 
+            item._id === editing._id ? { ...savedRecord, _id: editing._id } : item
+          )
+        );
+        
         toast.success(
           resource === "projects"
             ? "Project saved — live /interior-design card uses these fields"
             : `${config.singular} updated`
         );
       } else {
-        await createVarsoviaRecord(resource, payload);
+        // Create new record
+        savedRecord = await createVarsoviaRecord(resource, payload);
+        
+        // Optimistic update: immediately add to local state
+        setItems((prev) => [...prev, savedRecord]);
+        
         toast.success(`${config.singular} created`);
       }
+      
       setEditing(undefined);
-      await load();
+      
+      // Reload to ensure consistency (with delay to allow backend to settle)
+      setTimeout(() => {
+        void load();
+      }, 500);
+      
       return true;
     } catch (error) {
       toast.error(errorMessage(error));
