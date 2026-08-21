@@ -118,7 +118,13 @@ function unwrapApiList<T>(body: unknown): T[] {
 }
 
 export async function getVarsoviaSite() {
-  const { data } = await varsoviaApi.get("/site", { params: { cms: 1 } });
+  // Add timestamp to force fresh data and prevent any caching
+  const { data } = await varsoviaApi.get("/site", { 
+    params: { 
+      cms: 1,
+      _t: Date.now() // Cache buster
+    } 
+  });
   return unwrapApiData<Record<string, unknown>>(data);
 }
 
