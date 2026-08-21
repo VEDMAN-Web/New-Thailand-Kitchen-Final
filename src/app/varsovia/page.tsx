@@ -946,10 +946,11 @@ function SiteSettings() {
       // Save to backend (with persistPages to save furniture hub data)
       const savedData = await updateVarsoviaSite(current, { persistPages: true });
       
-      // Optimistic update: use the saved data immediately
-      savedPayloadRef.current = nextSerialized;
-      contentRef.current = current;
-      setContent(current);
+      // Update state with the freshly saved data from backend
+      const freshPayload = pickVarsoviaSiteUpdate(savedData);
+      savedPayloadRef.current = JSON.stringify(freshPayload);
+      contentRef.current = savedData;
+      setContent(savedData);
       
       // Save embedded sections
       for (const handler of embeddedHandlers) {
@@ -960,10 +961,7 @@ function SiteSettings() {
         toast.success(siteDirty ? "Saved — live site updated" : "Saved");
       }
       
-      // Reload after a delay to ensure backend consistency
-      setTimeout(() => {
-        void loadContent();
-      }, 800);
+      // NO delayed reload - trust the backend response to avoid overwriting changes
       
     } catch (error) {
       const msg = error instanceof Error ? error.message : "";
@@ -1512,7 +1510,7 @@ function CataloguesInlineEditor({ embedded = false }: { embedded?: boolean }) {
         }
       }
       if (!opts?.quiet) toast.success("Catalogues saved");
-      await load();
+      // Don't reload - data already saved successfully
     } catch (error) {
       toast.error(errorMessage(error));
       throw error;
@@ -1862,7 +1860,7 @@ function TeamInlineEditor({ embedded = false }: { embedded?: boolean }) {
         }
       }
       if (!opts?.quiet) toast.success("Team saved");
-      await load();
+      // Don't reload - data already saved successfully
     } catch (error) {
       toast.error(errorMessage(error));
       throw error;
@@ -2259,7 +2257,7 @@ function PartnersInlineEditor({ embedded = false }: { embedded?: boolean }) {
         }
       }
       if (!opts?.quiet) toast.success("Partners saved");
-      await load();
+      // Don't reload - data already saved successfully
     } catch (error) {
       toast.error(errorMessage(error));
       throw error;
@@ -2579,7 +2577,7 @@ function ShowcasesInlineEditor({ embedded = false }: { embedded?: boolean }) {
         }
       }
       if (!opts?.quiet) toast.success("Showcases saved");
-      await load();
+      // Don't reload - data already saved successfully
     } catch (error) {
       toast.error(errorMessage(error));
       throw error;
@@ -3138,7 +3136,7 @@ function FaqsInlineEditor({ embedded = false }: { embedded?: boolean }) {
       );
 
       if (!opts?.quiet) toast.success(`${activeTopic} FAQs saved`);
-      await load();
+      // Don't reload - data already saved successfully
     } catch (error) {
       toast.error(errorMessage(error));
       throw error;
@@ -3534,7 +3532,7 @@ function TestimonialsInlineEditor({ embedded = false }: { embedded?: boolean }) 
         }
       }
       if (!opts?.quiet) toast.success("Testimonials saved");
-      await load();
+      // Don't reload - data already saved successfully
     } catch (error) {
       toast.error(errorMessage(error));
       throw error;
@@ -3962,10 +3960,7 @@ export function ResourceManager({
       
       setEditing(undefined);
       
-      // Reload to ensure consistency (with delay to allow backend to settle)
-      setTimeout(() => {
-        void load();
-      }, 500);
+      // Don't reload - optimistic updates already applied
       
       return true;
     } catch (error) {
@@ -3994,7 +3989,8 @@ export function ResourceManager({
     try {
       await deleteVarsoviaRecord(resource, item._id);
       toast.success(`${config.singular} deleted`);
-      await load();
+      // Remove item from local state instead of reloading
+      setItems((prev) => prev.filter((i) => i._id !== item._id));
     } catch (error) {
       toast.error(errorMessage(error));
     }
