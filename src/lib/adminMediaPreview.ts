@@ -311,12 +311,12 @@ export function resolveAdminMediaPreviewUrl(url: string): string {
           : aliasVarsoviaMediaPath(parsed.pathname)
       );
       
-      // Uploads: ALWAYS use backend directly for 100% reliability
+      // Uploads: use Thailand backend
       if (pathname.startsWith("/uploads/")) {
         return `${backendOrigin()}${pathname}${parsed.search}`;
       }
       
-      // Varsovia assets from Varsovia backend
+      // Varsovia assets: use Varsovia BACKEND (now serves static files)
       if (isVarsoviaPublicAssetPath(pathname)) {
         return `${varsoviaBackendOrigin()}${pathname}${parsed.search}`;
       }
@@ -336,12 +336,12 @@ export function resolveAdminMediaPreviewUrl(url: string): string {
   // Relative paths
   const path = encodeMediaPath(trimmed.startsWith("/") ? trimmed : `/${trimmed}`);
   
-  // Uploads: backend direct access
+  // Uploads: Thailand backend
   if (path.startsWith("/uploads/")) {
     return `${backendOrigin()}${path}`;
   }
   
-  // Varsovia assets: use Varsovia backend for reliability
+  // Varsovia assets: use Varsovia BACKEND (now serves static files)
   if (isVarsoviaPublicAssetPath(path)) {
     return `${varsoviaBackendOrigin()}${path}`;
   }
@@ -381,9 +381,13 @@ export function resolveAdminMediaPreviewFallbacks(url: string): string[] {
   
   // Comprehensive fallback order
   if (isVarsoviaPublicAssetPath(encoded)) {
+    // Backend now serves static files - try it first
     push(`${varsoviaBackendOrigin()}${encoded}`);
+    // Then frontend
     push(`${varsoviaFrontendOrigin()}${encoded}`);
+    // Then static prefix
     push(withVarsoviaStatic(encoded));
+    // Finally remote fallback
     const remote = varsoviaRemotePreviewUrl(encoded);
     if (remote) push(remote);
   } else if (encoded.startsWith("/uploads/")) {
