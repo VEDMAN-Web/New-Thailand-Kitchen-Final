@@ -361,6 +361,7 @@ function AdminShellContent({
   const [syncConfirmOpen, setSyncConfirmOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
+  const pendingSiteRef = useRef<SiteId | null>(null);
   const [homeSection, setHomeSection] = useState<string | null>(null);
   const [varsoviaNav, setVarsoviaNav] = useState<VarsoviaNavDetail>(() =>
     readVarsoviaNavFromUrl()
@@ -425,6 +426,20 @@ function AdminShellContent({
   }, [pathname]);
 
   useEffect(() => {
+    const pending = pendingSiteRef.current;
+    if (pending === "thailand-kitchen") {
+      if (isVarsoviaRoute) return;
+      pendingSiteRef.current = null;
+      if (siteId !== "thailand-kitchen") setSiteId("thailand-kitchen");
+      return;
+    }
+    if (pending === "varsovia-kitchen") {
+      if (!isVarsoviaRoute) return;
+      pendingSiteRef.current = null;
+      if (siteId !== "varsovia-kitchen") setSiteId("varsovia-kitchen");
+      return;
+    }
+
     if (isVarsoviaRoute) {
       if (siteId !== "varsovia-kitchen") setSiteId("varsovia-kitchen");
       return;
@@ -432,16 +447,6 @@ function AdminShellContent({
     if (isSharedAdmin || pathname === "/login") return;
     if (siteId !== "thailand-kitchen") setSiteId("thailand-kitchen");
   }, [isVarsoviaRoute, isSharedAdmin, pathname, siteId, setSiteId]);
-
-  useEffect(() => {
-    // Never bounce /varsovia → / on first paint (siteId still defaults to Thailand).
-    if (pathname.startsWith("/varsovia")) return;
-    if (siteId !== "varsovia-kitchen") return;
-    if (pathname === "/contacts" || pathname === "/users" || pathname === "/login") {
-      return;
-    }
-    router.replace("/varsovia?resource=site");
-  }, [siteId, pathname, router]);
 
   useEffect(() => {
     if (!profileOpen) return;
@@ -607,10 +612,15 @@ function AdminShellContent({
   }, [syncConfirmOpen]);
 
   const changeSite = (next: SiteId) => {
+    pendingSiteRef.current = next;
     setSiteId(next);
-    router.push(
-      next === "varsovia-kitchen" ? "/varsovia?resource=site" : "/"
-    );
+    if (next === "varsovia-kitchen") {
+      if (!isVarsoviaRoute) router.push("/varsovia?resource=site");
+      return;
+    }
+    if (isVarsoviaRoute || (isSharedAdmin && siteId === "varsovia-kitchen")) {
+      router.push("/");
+    }
   };
 
   const openSyncConfirm = () => {

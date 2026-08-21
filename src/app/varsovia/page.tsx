@@ -1067,12 +1067,12 @@ function SiteSettings() {
           className={clsx(
             "grid min-h-0 flex-1 items-stretch gap-5",
             showHomeRail
-              ? "grid-cols-1 xl:grid-cols-[340px_1fr]"
+              ? "grid-cols-1 lg:grid-cols-[340px_1fr]"
               : "grid-cols-1"
           )}
         >
           {showHomeRail ? (
-          <div className="xl:hidden -mx-1 px-1 tk-chip-scroll">
+          <div className="flex lg:hidden -mx-1 px-1 tk-chip-scroll">
             {homeSections.map((section) => {
                 const selected = active === section.id;
                 const ok = isVarsoviaSectionComplete(section, content, locale);
@@ -1098,7 +1098,7 @@ function SiteSettings() {
           </div>
           ) : null}
           {showHomeRail ? (
-          <div className="hidden xl:flex min-h-0 flex-col overflow-hidden rounded-xl border border-[#E8EAED] bg-white">
+          <div className="hidden lg:flex min-h-0 flex-col overflow-hidden rounded-xl border border-[#E8EAED] bg-white">
             <div className="flex items-center justify-between border-b border-[#E8EAED] px-4 py-3">
               <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#5C6370]">
                 Same order as website
@@ -1155,7 +1155,7 @@ function SiteSettings() {
 
           <div
             className={clsx(
-              "flex min-h-0 flex-col overflow-hidden rounded-xl border border-[#E8EAED] bg-white",
+              "flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-[#E8EAED] bg-white",
               activeSection?.group === "chrome" ? "w-full max-w-3xl" : ""
             )}
           >

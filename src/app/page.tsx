@@ -500,12 +500,12 @@ export default function AdminHomePage() {
           <div
             className={
               showHomeRail
-                ? "grid grid-cols-1 xl:grid-cols-[340px_1fr] gap-5 items-start"
+                ? "grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-5 items-start"
                 : "grid grid-cols-1 gap-5 items-start"
             }
           >
             {showHomeRail ? (
-            <div className="xl:hidden col-span-full -mx-1 px-1 tk-chip-scroll">
+            <div className="flex lg:hidden col-span-full -mx-1 px-1 tk-chip-scroll">
               {HOME_RAIL_META.map(({ key, title, icon: Icon }) => {
                   const selected = active === key;
                   const ok = isSectionComplete(key, sections);
@@ -530,7 +530,7 @@ export default function AdminHomePage() {
             </div>
             ) : null}
             {showHomeRail ? (
-            <div className="hidden xl:block bg-white rounded-xl border border-[#E8EAED] overflow-hidden">
+            <div className="hidden lg:block bg-white rounded-xl border border-[#E8EAED] overflow-hidden">
               <div className="px-4 py-3 border-b border-[#E8EAED] flex items-center justify-between">
                 <span className="text-[11px] font-bold tracking-[0.12em] uppercase text-[#5C6370]">
                   Same order as website

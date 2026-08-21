@@ -86,7 +86,6 @@ textarea {
 }
 
 .tk-chip-scroll {
-  display: flex;
   gap: 0.5rem;
   overflow-x: auto;
   overscroll-behavior-x: contain;
@@ -94,10 +93,17 @@ textarea {
   scrollbar-width: none;
   touch-action: pan-x;
   padding-bottom: 2px;
+  align-self: start;
 }
 
 .tk-chip-scroll::-webkit-scrollbar {
   display: none;
+}
+
+@media (min-width: 1024px) {
+  .tk-chip-scroll {
+    display: none;
+  }
 }
 
 [data-sonner-toaster] {
