@@ -230,8 +230,19 @@ export function pickVarsoviaSiteUpdate(body: Record<string, unknown>) {
   return out;
 }
 
-export async function updateVarsoviaSite(body: Record<string, unknown>) {
-  const { data } = await varsoviaApi.put("/site", pickVarsoviaSiteUpdate(body));
+export async function updateVarsoviaSite(
+  body: Record<string, unknown>,
+  opts?: { persistPages?: boolean }
+) {
+  const picked = pickVarsoviaSiteUpdate(body);
+  const explicitKeys = Object.keys(body).filter(
+    (key) => key !== "_id" && key !== "key" && key !== "__v"
+  );
+  const pagesOnlyPatch = explicitKeys.length === 1 && explicitKeys[0] === "pages";
+  if (!opts?.persistPages && !pagesOnlyPatch) {
+    delete picked.pages;
+  }
+  const { data } = await varsoviaApi.put("/site", picked);
   return unwrapApiData<Record<string, unknown>>(data);
 }
 
@@ -629,7 +640,7 @@ export async function syncVarsoviaFromDb(
   const { site: hydrated } = await hydrateVarsoviaSiteDocument(loaded);
   let merged: Record<string, unknown> = {
     ...hydrated,
-    pages: mergeIaPagesFromLiveSite(hydrated.pages),
+    pages: mergeIaPagesFromLiveSite(hydrated.pages, { fillLive: true }),
   };
 
   if (replaceShowcase) merged = replaceShowcaseFromLiveSeed(merged);
@@ -648,7 +659,7 @@ export async function syncVarsoviaFromDb(
     pickVarsoviaSiteUpdate(loaded),
     pickVarsoviaSiteUpdate(merged)
   );
-  await updateVarsoviaSite(merged);
+  await updateVarsoviaSite(merged, { persistPages: true });
   siteUpdated = true;
 
   let filledCount = filledSiteKeys;

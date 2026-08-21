@@ -3,7 +3,7 @@
  * panel mirrors the public pages after Sync. Blank photos and copy take
  * live values. Saved non-empty copy stays (it is already what live shows).
  */
-import { isLocaleMap, mergeLocaleMapsFillLive } from "@/lib/localized";
+import { isLocaleMap, mergeLocaleMaps, mergeLocaleMapsFillLive } from "@/lib/localized";
 import LIVE_IA_PAGES from "./iaPagesSeed.json";
 
 type Dict = Record<string, unknown>;
@@ -29,9 +29,11 @@ function sectionHasContent(section: unknown): boolean {
   return !isBlank(row.heading) || !isBlank(row.text) || !isBlank(row.body) || !isBlank(row.image);
 }
 
-function mergeObject(current: unknown, defaults: unknown): unknown {
+function mergeObject(current: unknown, defaults: unknown, fillLive = false): unknown {
   if (isLocaleMap(current) || isLocaleMap(defaults)) {
-    return mergeLocaleMapsFillLive(current, defaults);
+    return fillLive
+      ? mergeLocaleMapsFillLive(current, defaults)
+      : mergeLocaleMaps(current, defaults);
   }
   if (isBlank(current)) return clone(defaults);
   if (
@@ -44,14 +46,14 @@ function mergeObject(current: unknown, defaults: unknown): unknown {
   ) {
     const out: Dict = { ...(current as Dict) };
     for (const [key, defaultValue] of Object.entries(defaults as Dict)) {
-      out[key] = mergeObject(out[key], defaultValue);
+      out[key] = mergeObject(out[key], defaultValue, fillLive);
     }
     return out;
   }
   return current;
 }
 
-function mergeSections(saved: unknown, defaults: unknown): unknown[] {
+function mergeSections(saved: unknown, defaults: unknown, fillLive = false): unknown[] {
   const fallback = Array.isArray(defaults) ? clone(defaults) : [];
   if (!Array.isArray(saved) || saved.length === 0) return fallback;
   if (!saved.some(sectionHasContent)) return fallback;
@@ -62,8 +64,8 @@ function mergeSections(saved: unknown, defaults: unknown): unknown[] {
     if (isBlank(row.text) && !isBlank(row.body)) row.text = row.body;
     if (def && typeof def === "object") {
       const d = def as Dict;
-      row.heading = mergeObject(row.heading, d.heading);
-      row.text = mergeObject(row.text, d.text);
+      row.heading = mergeObject(row.heading, d.heading, fillLive);
+      row.text = mergeObject(row.text, d.text, fillLive);
       if (isBlank(row.image) && d.image) row.image = clone(d.image);
       if (isBlank(row.imagePosition) && d.imagePosition) row.imagePosition = d.imagePosition;
       if (isBlank(row.layout) && d.layout) row.layout = d.layout;
@@ -133,11 +135,11 @@ function isStaleLocationMeta(value: unknown): boolean {
   );
 }
 
-function mergeArticleOffer(saved: unknown, defaults: unknown): Dict | undefined {
+function mergeArticleOffer(saved: unknown, defaults: unknown, fillLive = false): Dict | undefined {
   if (isBlank(saved) && isBlank(defaults)) return undefined;
   const s = saved && typeof saved === "object" ? (saved as Dict) : {};
   const d = defaults && typeof defaults === "object" ? (defaults as Dict) : {};
-  const out = mergeObject(s, d) as Dict;
+  const out = mergeObject(s, d, fillLive) as Dict;
   if (isBlank(s.points)) out.points = clone(d.points);
   if (isBlank(s.image)) out.image = clone(d.image);
   if (isBlank(s.ctaHref)) out.ctaHref = d.ctaHref || "/contact";
@@ -155,13 +157,13 @@ function applyLiveHeroImage(hero: unknown, liveHero: unknown): Dict {
   return h;
 }
 
-function mergeChild(saved: unknown, defaults: unknown): Dict {
+function mergeChild(saved: unknown, defaults: unknown, fillLive = false): Dict {
   const s = saved && typeof saved === "object" ? (saved as Dict) : {};
   const d = defaults && typeof defaults === "object" ? (defaults as Dict) : {};
-  const out = mergeObject(s, d) as Dict;
+  const out = mergeObject(s, d, fillLive) as Dict;
   out.slug = String(s.slug || d.slug || "");
-  out.hero = applyLiveHeroImage(mergeObject(s.hero, d.hero), d.hero);
-  out.sections = mergeSections(s.sections, d.sections);
+  out.hero = applyLiveHeroImage(mergeObject(s.hero, d.hero, fillLive), d.hero);
+  out.sections = mergeSections(s.sections, d.sections, fillLive);
   out.indexable = s.indexable === true;
   out.order = s.order ?? d.order ?? 0;
   if (Array.isArray(s.locationSlugs) && s.locationSlugs.length) {
@@ -175,20 +177,20 @@ function mergeChild(saved: unknown, defaults: unknown): Dict {
   ) {
     out.metaDescription = clone(d.metaDescription);
   }
-  return fillEmptyLocaleTabs(out) as Dict;
+  return fillLive ? (fillEmptyLocaleTabs(out) as Dict) : out;
 }
 
-function mergeHub(saved: unknown, defaults: unknown): Dict {
+function mergeHub(saved: unknown, defaults: unknown, fillLive = false): Dict {
   const s = saved && typeof saved === "object" ? (saved as Dict) : {};
   const d = defaults && typeof defaults === "object" ? (defaults as Dict) : {};
   const { children: _sc, ...savedRest } = s;
   const { children: defChildren, ...defRest } = d;
-  const out = mergeObject(savedRest, defRest) as Dict;
+  const out = mergeObject(savedRest, defRest, fillLive) as Dict;
   out.slug = String(d.slug || s.slug || "");
-  out.hero = applyLiveHeroImage(mergeObject(s.hero, d.hero), d.hero);
-  out.sections = mergeSections(s.sections, d.sections);
-  out.articleContact = mergeObject(s.articleContact, d.articleContact);
-  out.articleOffer = mergeArticleOffer(s.articleOffer, d.articleOffer);
+  out.hero = applyLiveHeroImage(mergeObject(s.hero, d.hero, fillLive), d.hero);
+  out.sections = mergeSections(s.sections, d.sections, fillLive);
+  out.articleContact = mergeObject(s.articleContact, d.articleContact, fillLive);
+  out.articleOffer = mergeArticleOffer(s.articleOffer, d.articleOffer, fillLive);
   out.indexable = s.indexable === true;
 
   const slug = String(out.slug || "");
@@ -214,33 +216,37 @@ function mergeHub(saved: unknown, defaults: unknown): Dict {
   const bySlug = new Map<string, Dict>();
   for (const child of savedChildren) {
     if (!child || typeof child !== "object") continue;
-    const slug = String((child as Dict).slug || "").trim();
-    if (!slug) continue;
-    bySlug.set(slug, { ...(child as Dict), slug });
+    const childSlug = String((child as Dict).slug || "").trim();
+    if (!childSlug) continue;
+    bySlug.set(childSlug, { ...(child as Dict), slug: childSlug });
   }
   const children = defaultChildren.map((defChild) => {
     const def = defChild && typeof defChild === "object" ? (defChild as Dict) : {};
-    return mergeChild(bySlug.get(String(def.slug || "")), def);
+    return mergeChild(bySlug.get(String(def.slug || "")), def, fillLive);
   });
   for (const extra of savedChildren) {
-    const slug =
+    const extraSlug =
       extra && typeof extra === "object" ? String((extra as Dict).slug || "").trim() : "";
-    if (slug && !children.some((c) => c.slug === slug)) {
-      children.push(mergeChild({ ...(extra as Dict), slug }, { slug }));
+    if (extraSlug && !children.some((c) => c.slug === extraSlug)) {
+      children.push(mergeChild({ ...(extra as Dict), slug: extraSlug }, { slug: extraSlug }, fillLive));
     }
   }
   out.children = children;
-  return fillEmptyLocaleTabs(out) as Dict;
+  return fillLive ? (fillEmptyLocaleTabs(out) as Dict) : out;
 }
 
 const LIVE_DEFAULTS = LIVE_IA_PAGES as Record<string, unknown>;
 
-/** Deep-fill `site.pages` from live IA seed. Existing CMS copy wins. */
-export function mergeIaPagesFromLiveSite(pages: unknown): Record<string, unknown> {
+/** Deep-fill blank IA fields from seed. Saved CMS copy always wins. */
+export function mergeIaPagesFromLiveSite(
+  pages: unknown,
+  opts?: { fillLive?: boolean }
+): Record<string, unknown> {
+  const fillLive = opts?.fillLive === true;
   const current = pages && typeof pages === "object" ? (pages as Record<string, unknown>) : {};
   const out: Record<string, unknown> = { ...current };
   for (const [hubKey, defHub] of Object.entries(LIVE_DEFAULTS)) {
-    out[hubKey] = mergeHub(current[hubKey], defHub);
+    out[hubKey] = mergeHub(current[hubKey], defHub, fillLive);
   }
   return out;
 }
@@ -259,7 +265,7 @@ export function fillIaHubFromLiveSite(
       : {};
   const def = LIVE_DEFAULTS[hubKey];
   if (!def) return current;
-  current[hubKey] = mergeHub(current[hubKey], def);
+  current[hubKey] = mergeHub(current[hubKey], def, true);
   return current;
 }
 
