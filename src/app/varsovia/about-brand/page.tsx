@@ -137,12 +137,16 @@ export default function VarsoviaAboutBrandPage() {
   const [draftChild, setDraftChild] = useState<IaChildRow>(emptyChild(0));
   const [locale, setLocale] = useState<LocaleCode>("en");
   const hasLoadedRef = useRef(false);
+  const loadSeqRef = useRef(0);
 
   const load = useCallback(async () => {
+    const seq = ++loadSeqRef.current;
     if (!hasLoadedRef.current) setLoading(true);
     try {
       const site = await getVarsoviaSite();
+      if (seq !== loadSeqRef.current) return;
       const allPages = mergeIaPagesFromLiveSite(site.pages);
+      if (seq !== loadSeqRef.current) return;
       const hub = (allPages[HUB_KEY] || {}) as Record<string, unknown>;
       const list = Array.isArray(hub.children) ? (hub.children as IaChildRow[]) : [];
       setChildren(
@@ -150,9 +154,10 @@ export default function VarsoviaAboutBrandPage() {
       );
       hasLoadedRef.current = true;
     } catch (err) {
+      if (seq !== loadSeqRef.current) return;
       toast.error(varsoviaErrorMessage(err, "Failed to load About pages"));
     } finally {
-      setLoading(false);
+      if (seq === loadSeqRef.current) setLoading(false);
     }
   }, []);
 

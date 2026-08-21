@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CloudUpload } from "lucide-react";
 import { toast } from "sonner";
 import LocaleTabs from "@/components/LocaleTabs";
@@ -393,17 +393,22 @@ export default function VarsoviaHubLandingEditor({
   const [draft, setDraft] = useState<HubDraft>(emptyHubDraft());
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const loadSeqRef = useRef(0);
 
   const load = useCallback(async () => {
+    const seq = ++loadSeqRef.current;
     setLoading(true);
     try {
       const site = await getVarsoviaSite();
+      if (seq !== loadSeqRef.current) return;
       const allPages = mergeIaPagesFromLiveSite(site.pages);
+      if (seq !== loadSeqRef.current) return;
       setDraft(hubFromApi(allPages[hubKey]));
     } catch (err) {
+      if (seq !== loadSeqRef.current) return;
       toast.error(varsoviaErrorMessage(err, "Failed to load hub page"));
     } finally {
-      setLoading(false);
+      if (seq === loadSeqRef.current) setLoading(false);
     }
   }, [hubKey]);
 

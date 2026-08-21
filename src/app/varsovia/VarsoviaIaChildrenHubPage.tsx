@@ -186,6 +186,7 @@ export default function VarsoviaIaChildrenHubPage({
   );
   const [locale, setLocale] = useState<LocaleCode>("en");
   const hasLoadedRef = useRef(false);
+  const loadSeqRef = useRef(0);
   const hidden = useMemo(
     () => new Set(hideSlugs.map((s) => s.toLowerCase())),
     [hideSlugs],
@@ -206,10 +207,13 @@ export default function VarsoviaIaChildrenHubPage({
   );
 
   const load = useCallback(async () => {
+    const seq = ++loadSeqRef.current;
     if (!hasLoadedRef.current) setLoading(true);
     try {
       const site = await getVarsoviaSite();
+      if (seq !== loadSeqRef.current) return;
       const allPages = mergeIaPagesFromLiveSite(site.pages);
+      if (seq !== loadSeqRef.current) return;
       const hub = (allPages[hubKey] || {}) as Record<string, unknown>;
       const list = Array.isArray(hub.children) ? (hub.children as IaChildRow[]) : [];
       setChildren(
@@ -217,9 +221,10 @@ export default function VarsoviaIaChildrenHubPage({
       );
       hasLoadedRef.current = true;
     } catch (err) {
+      if (seq !== loadSeqRef.current) return;
       toast.error(varsoviaErrorMessage(err, loadError));
     } finally {
-      setLoading(false);
+      if (seq === loadSeqRef.current) setLoading(false);
     }
   }, [hubKey, loadError]);
 
