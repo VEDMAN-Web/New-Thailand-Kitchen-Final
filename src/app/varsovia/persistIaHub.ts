@@ -1,6 +1,6 @@
 import { asLocalizedForm, localizedValue, type LocaleCode } from "@/lib/localized";
 import { getVarsoviaSite, updateVarsoviaSite } from "@/services/varsoviaAPI";
-import { liveChildDefault, mergeIaPagesFromLiveSite } from "@/app/varsovia/mergeIaPages";
+import { liveChildDefault } from "@/app/varsovia/mergeIaPages";
 
 function slugify(value: string) {
   return String(value || "")
@@ -92,7 +92,10 @@ export async function persistIaHubPatch(
     },
   });
   const saved = await getVarsoviaSite();
-  return mergeIaPagesFromLiveSite(saved.pages);
+  // Trust MongoDB data AS-IS - do NOT merge with defaults
+  return (saved.pages && typeof saved.pages === "object" && !Array.isArray(saved.pages))
+    ? (saved.pages as Record<string, unknown>)
+    : {};
 }
 
 export async function persistIaHubChildren(

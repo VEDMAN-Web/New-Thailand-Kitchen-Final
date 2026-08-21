@@ -18,7 +18,6 @@ import {
   varsoviaErrorMessage,
 } from "@/services/varsoviaAPI";
 import { IA_HUB_PATHS } from "@/app/varsovia/iaPagesDefaults";
-import { mergeIaPagesFromLiveSite } from "@/app/varsovia/mergeIaPages";
 import { persistIaHubChildren } from "@/app/varsovia/persistIaHub";
 import { useRegisterCmsFlush } from "@/lib/cmsFlushSaves";
 import { resolveAdminMediaPreviewUrl } from "@/lib/adminMediaPreview";
@@ -146,7 +145,10 @@ export default function VarsoviaAboutBrandPage() {
     try {
       const site = await getVarsoviaSite();
       if (seq !== loadSeqRef.current) return;
-      const allPages = mergeIaPagesFromLiveSite(site.pages);
+      // Trust MongoDB data AS-IS - do NOT merge with defaults
+      const allPages = (site.pages && typeof site.pages === "object" && !Array.isArray(site.pages))
+        ? (site.pages as Record<string, unknown>)
+        : {};
       if (seq !== loadSeqRef.current) return;
       const hub = (allPages[HUB_KEY] || {}) as Record<string, unknown>;
       const list = Array.isArray(hub.children) ? (hub.children as IaChildRow[]) : [];

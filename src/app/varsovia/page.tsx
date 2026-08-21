@@ -874,10 +874,11 @@ function SiteSettings() {
       const loaded = normalizeRecord(
         (await getVarsoviaSite()) as VarsoviaRecord
       );
-      const { site: hydrated } = await hydrateVarsoviaSiteDocument(loaded);
+      // DO NOT hydrate/merge with defaults - trust MongoDB data as-is
+      // The backend already returns properly merged data
       if (seq !== loadSeqRef.current) return;
-      contentRef.current = hydrated;
-      setContent(hydrated);
+      contentRef.current = loaded;
+      setContent(loaded);
       savedPayloadRef.current = JSON.stringify(pickVarsoviaSiteUpdate(loaded));
     } catch (error) {
       toast.error(errorMessage(error));
@@ -946,9 +947,9 @@ function SiteSettings() {
       // Save to backend (with persistPages to save furniture hub data)
       const savedData = await updateVarsoviaSite(current, { persistPages: true });
       
-      // Update state with the freshly saved data from backend
-      const freshPayload = pickVarsoviaSiteUpdate(savedData);
-      savedPayloadRef.current = JSON.stringify(freshPayload);
+      // Trust the backend response AS-IS without re-merging with defaults
+      // The backend already has the correct merged data
+      savedPayloadRef.current = JSON.stringify(pickVarsoviaSiteUpdate(savedData));
       contentRef.current = savedData;
       setContent(savedData);
       
@@ -961,7 +962,7 @@ function SiteSettings() {
         toast.success(siteDirty ? "Saved — live site updated" : "Saved");
       }
       
-      // NO delayed reload - trust the backend response to avoid overwriting changes
+      // NO reload, NO hydration - backend response is the source of truth
       
     } catch (error) {
       const msg = error instanceof Error ? error.message : "";

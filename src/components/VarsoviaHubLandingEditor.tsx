@@ -21,7 +21,6 @@ import {
   varsoviaErrorMessage,
 } from "@/services/varsoviaAPI";
 import { IA_HUB_PATHS } from "@/app/varsovia/iaPagesDefaults";
-import { mergeIaPagesFromLiveSite } from "@/app/varsovia/mergeIaPages";
 import { persistIaHubPatch } from "@/app/varsovia/persistIaHub";
 import { useCmsFlushSaves } from "@/lib/cmsFlushSaves";
 
@@ -403,7 +402,10 @@ export default function VarsoviaHubLandingEditor({
     try {
       const site = await getVarsoviaSite();
       if (seq !== loadSeqRef.current) return;
-      const allPages = mergeIaPagesFromLiveSite(site.pages);
+      // Trust MongoDB data AS-IS - do NOT merge with defaults
+      const allPages = (site.pages && typeof site.pages === "object" && !Array.isArray(site.pages))
+        ? (site.pages as Record<string, unknown>)
+        : {};
       if (seq !== loadSeqRef.current) return;
       setDraft(hubFromApi(allPages[hubKey]));
     } catch (err) {

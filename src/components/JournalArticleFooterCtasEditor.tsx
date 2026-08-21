@@ -21,7 +21,6 @@ import {
   varsoviaErrorMessage,
 } from "@/services/varsoviaAPI";
 import { DEFAULT_IA_PAGES } from "@/app/varsovia/iaPagesDefaults";
-import { mergeIaPagesFromLiveSite } from "@/app/varsovia/mergeIaPages";
 import { persistIaHubPatch } from "@/app/varsovia/persistIaHub";
 import { useRegisterCmsFlush } from "@/lib/cmsFlushSaves";
 
@@ -174,7 +173,10 @@ export default function JournalArticleFooterCtasEditor() {
     setLoading(true);
     try {
       const site = await getVarsoviaSite();
-      const allPages = mergeIaPagesFromLiveSite(site.pages);
+      // Trust MongoDB data AS-IS - do NOT merge with defaults
+      const allPages = (site.pages && typeof site.pages === "object" && !Array.isArray(site.pages))
+        ? (site.pages as Record<string, unknown>)
+        : {};
       const hub = (allPages.journal || {}) as Record<string, unknown>;
       setContact(contactFromApi(hub.articleContact));
       setOffer(offerFromApi(hub.articleOffer));
