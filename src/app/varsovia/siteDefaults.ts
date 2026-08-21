@@ -783,8 +783,19 @@ export function mergeVarsoviaSiteDefaults(
     "pages",
   ]);
 
+  const imageListKeys = new Set(["aboutImages", "aboutStoryImages", "contactImages"]);
+
   for (const [key, defaultValue] of Object.entries(defaults)) {
     const currentValue = merged[key];
+
+    if (imageListKeys.has(key) && Array.isArray(defaultValue)) {
+      const currentList = Array.isArray(currentValue) ? currentValue : [];
+      merged[key] = defaultValue.map((live, index) => {
+        const cur = currentList[index];
+        return typeof cur === "string" && cur.trim() ? cur.trim() : structuredClone(live);
+      });
+      continue;
+    }
 
     if (isBlank(currentValue)) {
       merged[key] = structuredClone(defaultValue);

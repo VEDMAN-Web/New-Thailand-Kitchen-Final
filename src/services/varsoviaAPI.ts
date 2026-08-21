@@ -539,6 +539,27 @@ function completeCatalogueRecord(item: VarsoviaRecord): VarsoviaRecord {
   };
 }
 
+function completeProjectRecord(item: VarsoviaRecord): VarsoviaRecord {
+  const coverImage = String(item.coverImage || "").trim();
+  const gallery = Array.isArray(item.gallery)
+    ? item.gallery.map((url) => String(url || "").trim()).filter(Boolean)
+    : [];
+  return {
+    ...item,
+    title: locText(item.title),
+    description: locText(item.description),
+    location: locText(item.location),
+    detailTitle: locText(item.detailTitle),
+    detailDescription: locText(item.detailDescription),
+    narrativeOne: locText(item.narrativeOne),
+    narrativeTwo: locText(item.narrativeTwo),
+    coverImage,
+    gallery: gallery.length ? gallery : coverImage ? [coverImage] : [],
+    visible: item.visible !== false,
+    order: typeof item.order === "number" && Number.isFinite(item.order) ? item.order : 0,
+  };
+}
+
 function completeTeamRecord(item: VarsoviaRecord): VarsoviaRecord {
   return {
     ...item,
@@ -572,7 +593,7 @@ export async function syncVarsoviaFromDb(
   const { hydrateCmsFromLiveLocales, countFilledLocaleFields } = await import(
     "@/lib/hydrateLiveLocales"
   );
-  const { replaceIaHubFromLiveSeed } = await import("@/app/varsovia/mergeIaPages");
+  const { mergeIaPagesFromLiveSite } = await import("@/app/varsovia/mergeIaPages");
   const { IA_HUB_PATHS, SHOWCASE_LIVE_PATH, CATALOGUE_LIVE_PATH, TEAM_LIVE_PATH, QUALITY_LIVE_PATH, CONTACT_LIVE_PATH, FAQ_LIVE_PATH, FOOTER_LIVE_PATH } = await import(
     "@/app/varsovia/iaPagesDefaults"
   );
@@ -605,37 +626,32 @@ export async function syncVarsoviaFromDb(
       replaceFooter
   );
   const loaded = await getVarsoviaSite();
-  const { site: hydrated, filled: overlayFilled } = await hydrateVarsoviaSiteDocument(loaded);
-  let merged: Record<string, unknown> = replaceHubKey
-    ? {
-        ...hydrated,
-        pages: replaceIaHubFromLiveSeed(hydrated.pages, replaceHubKey),
-      }
-    : hydrated;
+  const { site: hydrated } = await hydrateVarsoviaSiteDocument(loaded);
+  let merged: Record<string, unknown> = {
+    ...hydrated,
+    pages: mergeIaPagesFromLiveSite(hydrated.pages),
+  };
 
-  if (pageReplace) {
-    if (replaceShowcase) merged = replaceShowcaseFromLiveSeed(merged);
-    if (replaceCatalogue) merged = replaceCatalogueFromLiveSeed(merged);
-    if (replaceTeam) merged = replaceTeamFromLiveSeed(merged);
-    if (replaceQuality) merged = replaceQualityFromLiveSeed(merged);
-    if (replaceContact) merged = replaceContactFromLiveSeed(merged);
-    if (replaceFaq) merged = replaceFaqFromLiveSeed(merged);
-    if (replaceFooter) merged = replaceFooterFromLiveSeed(merged);
-    merged = hydrateCmsFromLiveLocales(merged, buildVarsoviaLiveOverlays(), {
-      fillFromEnglish: true,
-    }) as Record<string, unknown>;
-  }
+  if (replaceShowcase) merged = replaceShowcaseFromLiveSeed(merged);
+  if (replaceCatalogue) merged = replaceCatalogueFromLiveSeed(merged);
+  if (replaceTeam) merged = replaceTeamFromLiveSeed(merged);
+  if (replaceQuality) merged = replaceQualityFromLiveSeed(merged);
+  if (replaceContact) merged = replaceContactFromLiveSeed(merged);
+  if (replaceFaq) merged = replaceFaqFromLiveSeed(merged);
+  if (replaceFooter) merged = replaceFooterFromLiveSeed(merged);
+  merged = hydrateCmsFromLiveLocales(merged, buildVarsoviaLiveOverlays(), {
+    fillFromEnglish: true,
+  }) as Record<string, unknown>;
 
   let siteUpdated = false;
-  let filledSiteKeys = overlayFilled;
-  if (pageReplace) {
-    filledSiteKeys = countFilledLocaleFields(
-      pickVarsoviaSiteUpdate(loaded),
-      pickVarsoviaSiteUpdate(merged)
-    );
-  }
+  const filledSiteKeys = countFilledLocaleFields(
+    pickVarsoviaSiteUpdate(loaded),
+    pickVarsoviaSiteUpdate(merged)
+  );
   await updateVarsoviaSite(merged);
   siteUpdated = true;
+
+  let filledCount = filledSiteKeys;
 
   let journalSync: VarsoviaSyncReport["journalSync"];
   try {
@@ -697,6 +713,9 @@ export async function syncVarsoviaFromDb(
             if (resource === "team-members") {
               next = completeTeamRecord(next as VarsoviaRecord);
             }
+            if (resource === "projects") {
+              next = completeProjectRecord(next as VarsoviaRecord);
+            }
             if (resource === "faqs") {
               const category =
                 typeof item.category === "object" && item.category
@@ -728,9 +747,15 @@ export async function syncVarsoviaFromDb(
                 { fillFromEnglish: true }
               );
             }
+            const alwaysWrite =
+              resource === "showcases" ||
+              resource === "blogs" ||
+              resource === "catalogues" ||
+              resource === "team-members" ||
+              resource === "projects";
             const filled = countFilledLocaleFields(item, next);
-            if (!filled && resource !== "showcases" && resource !== "blogs" && resource !== "catalogues" && resource !== "team-members") return;
-            if (resource === "showcases" || resource === "blogs" || resource === "catalogues" || resource === "team-members") {
+            if (!filled && !alwaysWrite) return;
+            if (alwaysWrite) {
               const label =
                 resource === "team-members"
                   ? (next as VarsoviaRecord).name
@@ -745,7 +770,7 @@ export async function syncVarsoviaFromDb(
               string, unknown
             >;
             await updateVarsoviaRecord(resource, String(item._id), body);
-            filledSiteKeys += filled;
+            filledCount += filled;
           })
         );
       } catch {
@@ -790,8 +815,8 @@ export async function syncVarsoviaFromDb(
   return {
     success: true,
     message: livePath
-      ? `Synced from Varsovia DB. This page now matches live ${livePath}. Filled ${filledSiteKeys} language fields across EN / TH / PL.`
-      : `Synced from Varsovia DB. Filled ${filledSiteKeys} language fields across EN / TH / PL. Journal articles: ${journalSync?.total ?? 0} (${journalSync?.deleted ?? 0} extras removed).`,
+      ? `Synced from Varsovia DB. Admin now matches live ${livePath} (copy + images). Filled ${filledCount} language fields across EN / TH / PL.`
+      : `Synced from Varsovia DB. Admin now matches the live site across all pages (copy + images). Filled ${filledCount} language fields. Journal articles: ${journalSync?.total ?? 0} (${journalSync?.deleted ?? 0} extras removed).`,
     report: {
       database,
       host,
@@ -799,7 +824,7 @@ export async function syncVarsoviaFromDb(
       siteUpdated,
       preserved: !pageReplace,
       resources,
-      filledSiteKeys,
+      filledSiteKeys: filledCount,
       replacedHub:
         replaceHubKey ||
         (replaceShowcase ? "showcase" : undefined) ||
@@ -864,7 +889,13 @@ export async function deleteVarsoviaContact(id: string) {
   return unwrapApiData<{ deleted?: boolean }>(data);
 }
 
-/** Upload image/PDF to Varsovia API (public /api/media/:id URL for the live site). */
+function adminBearerToken() {
+  if (typeof window === "undefined") return "";
+  const token = localStorage.getItem("admin_token")?.trim();
+  return token ? `Bearer ${token}` : "";
+}
+
+/** Upload image/PDF via the admin proxy (JWT must be on the request — axios FormData drops it). */
 export async function uploadVarsoviaMedia(
   file: File,
   kind: "image" | "icon" | "pdf" | "any" = "image"
@@ -872,18 +903,42 @@ export async function uploadVarsoviaMedia(
   const form = new FormData();
   form.append("kind", kind);
   form.append("file", file);
-  const { data } = await varsoviaApi.post("/media", form, {
-    params: { kind },
-    timeout: 120000,
-    transformRequest: [
-      (body, headers) => {
-        if (headers && body instanceof FormData) {
-          delete headers["Content-Type"];
-        }
-        return body;
-      },
-    ],
-  });
+  const authorization = adminBearerToken();
+  if (!authorization) {
+    throw new Error("Sign in again, then retry the image upload.");
+  }
+
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), 120000);
+  let res: Response;
+  try {
+    res = await fetch(
+      `/varsovia-api/media?kind=${encodeURIComponent(kind)}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: authorization,
+          "X-Admin-Authorization": authorization,
+        },
+        body: form,
+        signal: controller.signal,
+      }
+    );
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new Error("Upload timed out. Try a smaller file.");
+    }
+    throw error;
+  } finally {
+    window.clearTimeout(timer);
+  }
+
+  const data = await res.json().catch(() => ({}));
+  if (res.status === 401) {
+    throw new Error(
+      readEnvelopeError(data, "Sign in again, then retry the image upload.")
+    );
+  }
   const payload = unwrapApiData<{
     file?: {
       url: string;

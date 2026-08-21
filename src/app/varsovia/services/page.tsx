@@ -20,6 +20,7 @@ import {
 import { IA_HUB_PATHS } from "@/app/varsovia/iaPagesDefaults";
 import { mergeIaPagesFromLiveSite } from "@/app/varsovia/mergeIaPages";
 import { persistIaHubChildren } from "@/app/varsovia/persistIaHub";
+import { useRegisterCmsFlush } from "@/lib/cmsFlushSaves";
 
 const HUB_KEY = "services";
 
@@ -212,18 +213,18 @@ export default function VarsoviaServicesPage() {
     setModal("edit");
   };
 
-  const onSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (e?: FormEvent): Promise<boolean> => {
+    e?.preventDefault();
     const slug =
       slugifyPreview(draftSlug) ||
       slugifyPreview(localizedValue(draftChild.title, "en"));
     if (!slug) {
       toast.error("Slug or English title is required");
-      return;
+      return false;
     }
     if (!localizedValue(draftChild.title, "en").trim()) {
       toast.error("English title is required");
-      return;
+      return false;
     }
 
     const nextChild: IaChildRow = fillChildLocaleTabs({ ...draftChild, slug });
@@ -253,7 +254,7 @@ export default function VarsoviaServicesPage() {
     );
     if (duplicate) {
       toast.error("Another sub-page already uses this slug");
-      return;
+      return false;
     }
 
     try {
@@ -265,14 +266,18 @@ export default function VarsoviaServicesPage() {
           index === editIndex ? nextChild : item
         );
       } else {
-        return;
+        return false;
       }
       await persistChildren(next);
       setModal(null);
+      return true;
     } catch {
       /* toast handled in persistChildren */
+      return false;
     }
   };
+
+  useRegisterCmsFlush("ia-child:services", modal !== null, () => onSubmit());
 
   const onDelete = async (index: number) => {
     const item = children[index];

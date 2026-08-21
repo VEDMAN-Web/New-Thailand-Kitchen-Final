@@ -23,6 +23,7 @@ import {
 import { DEFAULT_IA_PAGES } from "@/app/varsovia/iaPagesDefaults";
 import { mergeIaPagesFromLiveSite } from "@/app/varsovia/mergeIaPages";
 import { persistIaHubPatch } from "@/app/varsovia/persistIaHub";
+import { useRegisterCmsFlush } from "@/lib/cmsFlushSaves";
 
 const POINT_COUNT = 3;
 const INPUT_CLS =
@@ -194,7 +195,7 @@ export default function JournalArticleFooterCtasEditor() {
     return () => window.removeEventListener(CMS_SYNCED_EVENT, onSynced);
   }, [load]);
 
-  const save = async () => {
+  const save = async (opts?: { quiet?: boolean }): Promise<boolean> => {
     setSaving(true);
     try {
       const merged = await persistIaHubPatch("journal", {
@@ -218,13 +219,17 @@ export default function JournalArticleFooterCtasEditor() {
       const hub = (merged.journal || {}) as Record<string, unknown>;
       setContact(contactFromApi(hub.articleContact));
       setOffer(offerFromApi(hub.articleOffer));
-      toast.success("Article footer bands saved");
+      if (!opts?.quiet) toast.success("Article footer bands saved");
+      return true;
     } catch (err) {
       toast.error(varsoviaErrorMessage(err, "Failed to save article footer bands"));
+      return false;
     } finally {
       setSaving(false);
     }
   };
+
+  useRegisterCmsFlush("journal-footer", true, () => save({ quiet: true }));
 
   return (
     <div className="rounded-2xl border border-[#E8EAED] bg-white p-5 space-y-4">

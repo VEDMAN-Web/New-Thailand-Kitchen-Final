@@ -1003,8 +1003,8 @@ function AdminShellContent({
               aria-label={syncing ? "Syncing from database" : "Sync from DB"}
               title={
                 syncPagePath
-                  ? `Overwrite this page with live ${syncPagePath} copy`
-                  : "Reload Varsovia from the connected database and fill blank page fields from live site content"
+                  ? `Overwrite this page from live ${syncPagePath} (photos + copy)`
+                  : "Overwrite admin from the live site — all pages, photos, and copy"
               }
               className={clsx(
                 "inline-flex items-center gap-2 rounded-xl border border-[#E2E5EA] bg-white px-2.5 sm:px-3 py-2 text-xs font-semibold text-[#1A2332] transition-colors",
@@ -1109,27 +1109,23 @@ function AdminShellContent({
 
             <div className="min-h-0 flex-1 overflow-y-auto px-4 sm:px-5 pb-4">
               <ul className="space-y-2 rounded-xl border border-[#E8EDF2] bg-[#F8FAFC] px-4 py-3.5">
-                {(isVarsovia
-                  ? [
-                      syncPagePath
-                        ? `Overwrites this page only (${syncPagePath}) with live site copy — panel and live match`
-                        : "Reloads Varsovia CMS into admin (same database as the live site)",
-                      syncPagePath
-                        ? "Other Varsovia pages are left as they are"
-                        : "Location / Furniture / Services / Journal pages: blank fields fill from live site copy — edited copy is kept",
-                      "Journal articles: mirrors live /journal set (upsert + delete extras)",
-                      syncShowcase
-                        ? "Showcase cards: fill every listing + detail field (cover, title, category, location, type, supply area, gallery) in EN / TH / PL"
-                        : syncCatalogue
-                          ? "Brochures: the 6 live /catalogue cards (title, cover, PDF) in EN / TH / PL — extras removed"
-                          : syncTeam
-                            ? "Team members: fill name and role in EN / TH / PL — photos kept"
-                            : syncContact
-                              ? "Showrooms: fill name and location in EN / TH / PL — photos kept"
-                              : syncFaq
-                                ? "FAQ Q&A: add and delete match live /faq — Sync fills translations, does not restore deleted questions"
-                                : "Other resources: counts reload from DB — no wipe of edited products/projects",
-                    ]
+                    {(isVarsovia
+                      ? [
+                          "Overwrites the admin panel with the live site — photos, banners, and copy across all Varsovia pages",
+                          "Blank or missing fields take the live values. Unsaved panel edits that differ from live are discarded",
+                          "Journal articles: mirrors live /journal set (upsert + delete extras)",
+                          syncShowcase
+                            ? "Showcase cards: fill every listing + detail field (cover, title, category, location, type, supply area, gallery) in EN / TH / PL"
+                            : syncCatalogue
+                              ? "Brochures: the 6 live /catalogue cards (title, cover, PDF) in EN / TH / PL — extras removed"
+                              : syncTeam
+                                ? "Team members: fill name and role in EN / TH / PL — photos kept"
+                                : syncContact
+                                  ? "Showrooms: fill name and location in EN / TH / PL — photos kept"
+                                  : syncFaq
+                                    ? "FAQ Q&A: add and delete match live /faq — Sync fills translations, does not restore deleted questions"
+                                    : "Interior projects and other resources: photos and language tabs reload to match live",
+                        ]
                   : [
                       "Same MongoDB the public site uses — admin list reloads to match",
                       "Services, Materials, Locations, Gallery, Guides, Products & FAQ counts mirror the live site",

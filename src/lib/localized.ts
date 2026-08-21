@@ -149,8 +149,8 @@ export function mergeLocaleMaps(current: unknown, defaults: unknown): Record<Loc
 }
 
 /**
- * Sync-time merge: keep real translations, then fill remaining tabs from
- * the live seed (even when seed th/pl still equal English).
+ * Sync-time merge: keep real translations, then fill remaining tabs with
+ * what live /th and /pl actually show (real seed copy, else English fallback).
  */
 export function mergeLocaleMapsFillLive(
   current: unknown,
@@ -173,10 +173,9 @@ export function mergeLocaleMapsFillLive(
     const saved = String(c[loc] ?? "").trim();
     const seed = String(d[loc] ?? "").trim();
     const seedEn = String(d.en ?? "").trim();
-    if (saved && saved !== en) return saved;
+    if (saved && saved !== en && saved !== seedEn) return saved;
     if (seed && seed !== seedEn) return seed;
-    if (saved) return saved;
-    return seed;
+    return en;
   };
   return { en, th: take("th"), pl: take("pl") };
 }

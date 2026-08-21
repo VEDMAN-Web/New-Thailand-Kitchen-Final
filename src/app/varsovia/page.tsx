@@ -68,6 +68,7 @@ import {
   writeVarsoviaNav,
   type VarsoviaNavDetail,
 } from "@/lib/adminSectionNav";
+import { useCmsFlushSaves } from "@/lib/cmsFlushSaves";
 import {
   localeFieldPlaceholder,
 } from "@/lib/localized";
@@ -824,6 +825,7 @@ function SiteSettings() {
   const contentRef = useRef<Record<string, unknown>>({});
   const loadSeqRef = useRef(0);
   const sectionSavesRef = useRef(new Map<string, SectionSaveHandler>());
+  const flushSaves = useCmsFlushSaves();
 
   const registerSectionSave = useCallback(
     (id: string, handler: SectionSaveHandler | null) => {
@@ -939,6 +941,7 @@ function SiteSettings() {
         return;
       }
 
+      await flushSaves?.flushAll();
       await updateVarsoviaSite(current);
       savedPayloadRef.current = nextSerialized;
       contentRef.current = current;
@@ -3757,6 +3760,8 @@ export function ResourceManager({
   const [query, setQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All categories");
   const card = config.card;
+  const flushSaves = useCmsFlushSaves();
+  const saveRef = useRef<() => Promise<boolean>>(async () => true);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -3892,7 +3897,7 @@ export function ResourceManager({
     setForm(setAtPath(form, field.key, value));
   };
 
-  const save = async () => {
+  const save = async (): Promise<boolean> => {
     const requiredMissing = fields.some(
       (field) =>
         field.required &&
@@ -3901,7 +3906,7 @@ export function ResourceManager({
     if (requiredMissing) {
       toast.error("Complete all required English fields");
       setLocale("en");
-      return;
+      return false;
     }
 
     const payload = sanitizeRecordMediaUrls(form);
@@ -3916,19 +3921,37 @@ export function ResourceManager({
       setSaving(true);
       if (editing?._id) {
         await updateVarsoviaRecord(resource, editing._id, payload);
-        toast.success(`${config.singular} updated`);
+        toast.success(
+          resource === "projects"
+            ? "Project saved — live /interior-design card uses these fields"
+            : `${config.singular} updated`
+        );
       } else {
         await createVarsoviaRecord(resource, payload);
         toast.success(`${config.singular} created`);
       }
       setEditing(undefined);
       await load();
+      return true;
     } catch (error) {
       toast.error(errorMessage(error));
+      return false;
     } finally {
       setSaving(false);
     }
   };
+
+  saveRef.current = save;
+
+  useEffect(() => {
+    if (!flushSaves) return;
+    if (editing === undefined) {
+      flushSaves.register(`resource:${resource}`, null);
+      return;
+    }
+    flushSaves.register(`resource:${resource}`, () => saveRef.current());
+    return () => flushSaves.register(`resource:${resource}`, null);
+  }, [flushSaves, resource, editing]);
 
   const remove = async (item: VarsoviaRecord) => {
     const title = localizedValue(getAtPath(item, config.titleKey));
@@ -4140,14 +4163,14 @@ export function ResourceManager({
                       <div className="relative h-40 w-full bg-[#F3F4F6]">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                          src={resolveAdminMediaPreviewUrl(image || "/products/Kitchen1.png")}
+                          src={resolveAdminMediaPreviewUrl(image || "/home/product/product-1.jpg")}
                           alt={title}
                           referrerPolicy="no-referrer"
                           className="h-full w-full object-cover"
                           onError={(event) => {
                             const el = event.currentTarget;
                             const fallbacks = resolveAdminMediaPreviewFallbacks(
-                              image || "/products/Kitchen1.png"
+                              image || "/home/product/product-1.jpg"
                             );
                             const idx = Number(el.dataset.fb || "0");
                             const next = fallbacks[idx + 1];
@@ -4158,7 +4181,7 @@ export function ResourceManager({
                             }
                             if (el.dataset.fallback === "1") return;
                             el.dataset.fallback = "1";
-                            el.src = "/products/Kitchen1.png";
+                            el.src = resolveAdminMediaPreviewUrl("/home/product/product-1.jpg");
                           }}
                         />
                         <span className="absolute left-2 top-2 rounded-md bg-white px-2 py-1 text-[10px] font-semibold text-[#475569]">

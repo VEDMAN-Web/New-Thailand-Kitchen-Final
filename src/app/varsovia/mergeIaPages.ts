@@ -1,9 +1,7 @@
 /**
- * Fill blank IA hub/child CMS fields from the live-site seed so the admin
- * panel mirrors /furniture, /locations/[city], etc. after Sync from DB.
- * Never overwrites copy that already exists in Mongo.
- * Sync fills each language tab from the live seed (including copy that is
- * still English on /th and /pl) so the panel matches the public site.
+ * Fill IA hub/child CMS fields from the live-site seed so the admin
+ * panel mirrors the public pages after Sync. Blank photos and copy take
+ * live values. Saved non-empty copy stays (it is already what live shows).
  */
 import { isLocaleMap, mergeLocaleMapsFillLive } from "@/lib/localized";
 import LIVE_IA_PAGES from "./iaPagesSeed.json";
@@ -57,7 +55,7 @@ function mergeSections(saved: unknown, defaults: unknown): unknown[] {
   const fallback = Array.isArray(defaults) ? clone(defaults) : [];
   if (!Array.isArray(saved) || saved.length === 0) return fallback;
   if (!saved.some(sectionHasContent)) return fallback;
-  return saved.map((block, index) => {
+  const merged = saved.map((block, index) => {
     const def = Array.isArray(defaults) ? defaults[index] : undefined;
     if (!sectionHasContent(block) && def) return clone(def);
     const row = block && typeof block === "object" ? { ...(block as Dict) } : {};
@@ -72,11 +70,14 @@ function mergeSections(saved: unknown, defaults: unknown): unknown[] {
     }
     return row;
   });
+  if (fallback.length > merged.length) {
+    merged.push(...fallback.slice(merged.length).map((block) => clone(block)));
+  }
+  return merged;
 }
 
 const SKIP_FILL_KEYS = new Set([
   "slug",
-  "image",
   "ctaHref",
   "imagePosition",
   "layout",
@@ -143,12 +144,23 @@ function mergeArticleOffer(saved: unknown, defaults: unknown): Dict | undefined 
   return out;
 }
 
+function applyLiveHeroImage(hero: unknown, liveHero: unknown): Dict {
+  const h =
+    hero && typeof hero === "object" && !Array.isArray(hero) ? { ...(hero as Dict) } : {};
+  const live =
+    liveHero && typeof liveHero === "object" && !Array.isArray(liveHero)
+      ? (liveHero as Dict)
+      : {};
+  if (isBlank(h.image) && !isBlank(live.image)) h.image = clone(live.image);
+  return h;
+}
+
 function mergeChild(saved: unknown, defaults: unknown): Dict {
   const s = saved && typeof saved === "object" ? (saved as Dict) : {};
   const d = defaults && typeof defaults === "object" ? (defaults as Dict) : {};
   const out = mergeObject(s, d) as Dict;
   out.slug = String(s.slug || d.slug || "");
-  out.hero = mergeObject(s.hero, d.hero);
+  out.hero = applyLiveHeroImage(mergeObject(s.hero, d.hero), d.hero);
   out.sections = mergeSections(s.sections, d.sections);
   out.indexable = s.indexable === true;
   out.order = s.order ?? d.order ?? 0;
@@ -173,7 +185,7 @@ function mergeHub(saved: unknown, defaults: unknown): Dict {
   const { children: defChildren, ...defRest } = d;
   const out = mergeObject(savedRest, defRest) as Dict;
   out.slug = String(d.slug || s.slug || "");
-  out.hero = mergeObject(s.hero, d.hero);
+  out.hero = applyLiveHeroImage(mergeObject(s.hero, d.hero), d.hero);
   out.sections = mergeSections(s.sections, d.sections);
   out.articleContact = mergeObject(s.articleContact, d.articleContact);
   out.articleOffer = mergeArticleOffer(s.articleOffer, d.articleOffer);
@@ -231,6 +243,24 @@ export function mergeIaPagesFromLiveSite(pages: unknown): Record<string, unknown
     out[hubKey] = mergeHub(current[hubKey], defHub);
   }
   return out;
+}
+
+/**
+ * Sync one hub to match live (photos + copy). Blank fields take the live
+ * snapshot. Saved non-empty copy stays because that is already on live.
+ */
+export function fillIaHubFromLiveSite(
+  pages: unknown,
+  hubKey: string
+): Record<string, unknown> {
+  const current =
+    pages && typeof pages === "object" && !Array.isArray(pages)
+      ? { ...(pages as Record<string, unknown>) }
+      : {};
+  const def = LIVE_DEFAULTS[hubKey];
+  if (!def) return current;
+  current[hubKey] = mergeHub(current[hubKey], def);
+  return current;
 }
 
 export function liveChildDefault(hubKey: string, slug: string): Dict | null {

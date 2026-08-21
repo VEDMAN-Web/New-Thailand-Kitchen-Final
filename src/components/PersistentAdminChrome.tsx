@@ -3,6 +3,7 @@
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import AdminShell from "@/components/AdminShell";
+import { CmsFlushSavesProvider } from "@/lib/cmsFlushSaves";
 import { adminHubByParam } from "@/lib/thailandHubs";
 
 const TITLE_BY_PATH: Record<string, string> = {
@@ -61,7 +62,9 @@ function ChromeInner({ children }: { children: React.ReactNode }) {
     else title = "Home";
   }
 
-  return <AdminShell title={title}>{children}</AdminShell>;
+  return (
+    <AdminShell title={title}>{children}</AdminShell>
+  );
 }
 
 export default function PersistentAdminChrome({
@@ -70,8 +73,10 @@ export default function PersistentAdminChrome({
   children: React.ReactNode;
 }) {
   return (
-    <Suspense fallback={<AdminShell title="Admin">{children}</AdminShell>}>
-      <ChromeInner>{children}</ChromeInner>
-    </Suspense>
+    <CmsFlushSavesProvider>
+      <Suspense fallback={<AdminShell title="Admin">{children}</AdminShell>}>
+        <ChromeInner>{children}</ChromeInner>
+      </Suspense>
+    </CmsFlushSavesProvider>
   );
 }

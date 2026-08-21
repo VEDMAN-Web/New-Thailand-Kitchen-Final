@@ -42,6 +42,14 @@ function mediaPublicBase() {
     .replace(/\/+$/, "");
 }
 
+function requestAuthorization(request: NextRequest) {
+  return (
+    request.headers.get("authorization") ||
+    request.headers.get("x-admin-authorization") ||
+    ""
+  ).trim();
+}
+
 function toAbsoluteUploadUrl(url: string): string {
   const value = String(url || "").trim();
   if (!value) return value;
@@ -58,12 +66,12 @@ function toAbsoluteUploadUrl(url: string): string {
 }
 
 async function isAuthenticated(request: NextRequest) {
-  const authorization = request.headers.get("authorization");
+  const authorization = requestAuthorization(request);
   if (!authorization) return false;
 
   try {
     const response = await fetch(`${thailandBase()}/auth/me`, {
-      headers: { authorization },
+      headers: { Authorization: authorization },
       cache: "no-store",
     });
     return response.ok;
@@ -77,7 +85,7 @@ async function isAuthenticated(request: NextRequest) {
  * then return absolute URLs suitable for the Varsovia public site.
  */
 async function proxyMediaToThailand(request: NextRequest) {
-  const authorization = request.headers.get("authorization") || "";
+  const authorization = requestAuthorization(request);
   const contentType = request.headers.get("content-type") || "";
   const body = await request.arrayBuffer();
 
@@ -103,15 +111,18 @@ async function proxyMediaToThailand(request: NextRequest) {
     } | null;
 
     if (!upstream.ok || !json?.file?.url) {
+      const message =
+        upstream.status === 401
+          ? "Sign in again, then retry the image upload."
+          : json?.message ||
+            "Media upload failed. Ensure Thailand Kitchen backend is running.";
       return Response.json(
         {
           success: false,
           data: null,
           error: {
-            code: "UPLOAD_FAILED",
-            message:
-              json?.message ||
-              "Media upload failed. Ensure Thailand Kitchen backend is running.",
+            code: upstream.status === 401 ? "UNAUTHORIZED" : "UPLOAD_FAILED",
+            message,
           },
         },
         { status: upstream.status || 502 }
@@ -149,7 +160,16 @@ async function proxy(
   context: { params: Promise<{ path: string[] }> }
 ) {
   if (!(await isAuthenticated(request))) {
-    return Response.json({ message: "Unauthorized" }, { status: 401 });
+    return Response.json(
+      {
+        message: "Sign in again to continue.",
+        error: {
+          code: "UNAUTHORIZED",
+          message: "Sign in again to continue.",
+        },
+      },
+      { status: 401 }
+    );
   }
 
   const { path = [] } = await context.params;

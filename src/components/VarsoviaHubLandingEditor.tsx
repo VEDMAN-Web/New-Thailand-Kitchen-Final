@@ -23,6 +23,7 @@ import {
 import { IA_HUB_PATHS } from "@/app/varsovia/iaPagesDefaults";
 import { mergeIaPagesFromLiveSite } from "@/app/varsovia/mergeIaPages";
 import { persistIaHubPatch } from "@/app/varsovia/persistIaHub";
+import { useCmsFlushSaves } from "@/lib/cmsFlushSaves";
 
 type ContentSection = {
   heading?: LocalizedText;
@@ -394,6 +395,7 @@ export default function VarsoviaHubLandingEditor({
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const loadSeqRef = useRef(0);
+  const flushSaves = useCmsFlushSaves();
 
   const load = useCallback(async () => {
     const seq = ++loadSeqRef.current;
@@ -425,13 +427,14 @@ export default function VarsoviaHubLandingEditor({
   const save = async () => {
     setSaving(true);
     try {
+      await flushSaves?.flushAll();
       const nextHub = {
         ...hubToApi(draft),
         slug: (IA_HUB_PATHS[hubKey] || `/${hubKey}`).replace(/^\//, ""),
       };
       const merged = await persistIaHubPatch(hubKey, nextHub);
       setDraft(hubFromApi(merged[hubKey]));
-      toast.success(`${label} page saved`);
+      toast.success(`${label} page saved — live ${sitePath} uses these fields`);
       onSaved?.();
     } catch (err) {
       toast.error(varsoviaErrorMessage(err, "Failed to save page"));
