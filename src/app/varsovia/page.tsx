@@ -943,8 +943,8 @@ function SiteSettings() {
 
       await flushSaves?.flushAll();
       
-      // Save to backend
-      const savedData = await updateVarsoviaSite(current);
+      // Save to backend (with persistPages to save furniture hub data)
+      const savedData = await updateVarsoviaSite(current, { persistPages: true });
       
       // Optimistic update: use the saved data immediately
       savedPayloadRef.current = nextSerialized;
