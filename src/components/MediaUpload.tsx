@@ -177,7 +177,7 @@ export default function MediaUpload({
       <label className="block text-xs font-semibold text-[#5C6370] mb-1.5">
         {label}
       </label>
-      <div className="flex gap-2">
+      <div className="flex min-w-0 gap-2">
         <input
           type="text"
           value={value}
@@ -187,13 +187,13 @@ export default function MediaUpload({
               ? "PDF URL or upload…"
               : "Paste image URL or upload…"
           }
-          className="flex-1 rounded-lg border border-[#E2E5EA] bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A2332]/15 focus:border-[#1A2332]"
+          className="min-w-0 flex-1 rounded-lg border border-[#E2E5EA] bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A2332]/15 focus:border-[#1A2332]"
         />
         <button
           type="button"
           disabled={uploading}
           onClick={() => inputRef.current?.click()}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-[#E2E5EA] bg-[#F9FAFB] px-3 py-2 text-xs font-semibold text-[#1A2332] hover:bg-[#F3F4F6] disabled:opacity-60"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[#E2E5EA] bg-[#F9FAFB] px-3 py-2 text-xs font-semibold text-[#1A2332] hover:bg-[#F3F4F6] disabled:opacity-60"
         >
           {uploading ? (
             <Loader2 className="w-3.5 h-3.5 animate-spin" />

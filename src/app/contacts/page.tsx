@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Inbox,
   Mail,
@@ -65,18 +65,23 @@ export default function AdminContactsPage() {
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<ContactLead | null>(null);
+  const loadSeqRef = useRef(0);
 
   const load = useCallback(async () => {
+    const seq = ++loadSeqRef.current;
     setLoading(true);
     try {
       if (isVarsovia) {
         const rows = await listVarsoviaContacts();
+        if (seq !== loadSeqRef.current) return;
         setItems(rows.map(mapVarsoviaLead));
       } else {
         const res = await listContacts();
+        if (seq !== loadSeqRef.current) return;
         setItems(res.data || []);
       }
     } catch (err: unknown) {
+      if (seq !== loadSeqRef.current) return;
       const status = (err as { response?: { status?: number } })?.response
         ?.status;
       toast.error(
@@ -88,7 +93,7 @@ export default function AdminContactsPage() {
       );
       setItems([]);
     } finally {
-      setLoading(false);
+      if (seq === loadSeqRef.current) setLoading(false);
     }
   }, [isVarsovia]);
 
@@ -138,7 +143,7 @@ export default function AdminContactsPage() {
     <>
     <div className="space-y-4">
         <div className="flex flex-wrap items-center gap-3 justify-between">
-          <div className="relative flex-1 min-w-[220px] max-w-md">
+          <div className="relative flex-1 min-w-0 w-full sm:min-w-[220px] max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9CA3AF]" />
             <input
               value={query}
@@ -159,9 +164,9 @@ export default function AdminContactsPage() {
         </div>
 
         <div className="bg-white rounded-xl border border-[#E8EAED] overflow-hidden">
-          <div className="px-5 py-4 border-b border-[#E8EAED] flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <Inbox className="w-4 h-4 text-[#6B7280]" />
+          <div className="px-4 sm:px-5 py-4 border-b border-[#E8EAED] flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <Inbox className="w-4 h-4 text-[#6B7280] shrink-0" />
               <p className="text-sm text-[#6B7280]">
                 {loading
                   ? "Loading…"
@@ -170,7 +175,7 @@ export default function AdminContactsPage() {
                     } enquiries`}
               </p>
             </div>
-            <p className="text-xs text-[#9CA3AF]">
+            <p className="text-xs text-[#9CA3AF] max-w-full sm:max-w-xs text-left sm:text-right">
               {isVarsovia
                 ? "Live from Varsovia contact + Get In Touch forms"
                 : "Live from website contact forms"}
@@ -195,7 +200,7 @@ export default function AdminContactsPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full min-w-[880px] text-sm">
                 <thead className="bg-[#F8F9FB] text-left text-xs uppercase tracking-wide text-[#6B7280]">
                   <tr>
                     <th className="px-4 py-3 font-semibold">Name</th>
@@ -264,11 +269,11 @@ export default function AdminContactsPage() {
 
       {selected ? (
         <div
-          className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
+          className="tk-overlay"
           onClick={() => setSelected(null)}
         >
           <div
-            className="w-full max-w-lg bg-white rounded-2xl border border-[#E8EAED] p-6 space-y-4 max-h-[90vh] overflow-y-auto"
+            className="tk-sheet w-full max-w-lg bg-white border border-[#E8EAED] p-4 sm:p-6 space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between gap-3">

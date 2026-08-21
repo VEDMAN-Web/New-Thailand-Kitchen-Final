@@ -3,6 +3,25 @@
 :root {
   --background: #f4f5f7;
   --foreground: #1a1d26;
+  --admin-header: 64px;
+  --admin-gutter: 16px;
+  --admin-sidebar: 240px;
+}
+
+@media (min-width: 640px) {
+  :root {
+    --admin-gutter: 20px;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --admin-gutter: 24px;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
@@ -10,6 +29,89 @@ body {
   color: var(--foreground);
   margin: 0;
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  min-width: 0;
+}
+
+img,
+video,
+canvas {
+  max-width: 100%;
+}
+
+input,
+select,
+textarea {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Full-screen dialogs: phone = bottom sheet, tablet+ = centered card */
+.tk-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: rgb(0 0 0 / 0.4);
+  -webkit-overflow-scrolling: touch;
+}
+
+.tk-sheet {
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  max-height: min(96dvh, 100%);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+}
+
+@media (min-width: 640px) {
+  .tk-overlay {
+    align-items: center;
+    padding: 16px;
+    padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .tk-sheet {
+    max-height: min(92dvh, 100%);
+    border-radius: 16px;
+  }
+}
+
+.tk-chip-scroll {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  touch-action: pan-x;
+  padding-bottom: 2px;
+}
+
+.tk-chip-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+[data-sonner-toaster] {
+  left: 12px !important;
+  right: 12px !important;
+  width: auto !important;
+}
+
+@media (min-width: 640px) {
+  [data-sonner-toaster] {
+    left: auto !important;
+    right: 16px !important;
+    width: 356px !important;
+  }
 }
 
 /* Soft content swap when switching admin sections/pages */
@@ -59,11 +161,6 @@ body {
 
 *::-webkit-scrollbar-thumb:active {
   background: rgba(26, 29, 38, 0.28);
-}
-
-/* Smooth scrolling for admin panel */
-html {
-  scroll-behavior: smooth;
 }
 
 @media (prefers-reduced-motion: reduce) {

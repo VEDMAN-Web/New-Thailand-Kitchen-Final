@@ -18,7 +18,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F4F5F7] flex items-center justify-center text-sm text-[#6B7280]">
+      <div className="min-h-dvh bg-[#F4F5F7] flex items-center justify-center text-sm text-[#6B7280]">
         Loading admin…
       </div>
     );

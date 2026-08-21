@@ -1015,7 +1015,7 @@ function SiteSettings() {
     <VarsoviaSectionSaveContext.Provider value={sectionSaveApi}>
     <section className="flex h-full min-h-0 flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
           {showHomeRail ? (
             <>
               <span className="text-xs font-bold uppercase tracking-[0.1em] text-[#5C6370]">
@@ -1023,7 +1023,12 @@ function SiteSettings() {
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-[#DCFCE7] px-2.5 py-1 text-xs font-semibold text-[#166534]">
                 <Check className="h-3.5 w-3.5" />
-                {homeDoneCount} of {homeSections.length} Sections Ready
+                <span className="sm:hidden">
+                  {homeDoneCount}/{homeSections.length}
+                </span>
+                <span className="hidden sm:inline">
+                  {homeDoneCount} of {homeSections.length} Sections Ready
+                </span>
               </span>
             </>
           ) : (
@@ -1032,7 +1037,7 @@ function SiteSettings() {
             </span>
           )}
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <button
             type="button"
             onClick={() => void saveContent()}
@@ -1067,7 +1072,33 @@ function SiteSettings() {
           )}
         >
           {showHomeRail ? (
-          <div className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-[#E8EAED] bg-white">
+          <div className="xl:hidden -mx-1 px-1 tk-chip-scroll">
+            {homeSections.map((section) => {
+                const selected = active === section.id;
+                const ok = isVarsoviaSectionComplete(section, content, locale);
+                const Icon = section.icon;
+                return (
+                  <button
+                    key={section.id}
+                    type="button"
+                    onClick={() => selectSection(section.id)}
+                    className={clsx(
+                      "inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-3 py-2 text-xs font-semibold",
+                      selected
+                        ? "border-[#1A2332] bg-[#1A2332] text-white"
+                        : "border-[#E2E5EA] bg-white text-[#1A2332]"
+                    )}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    {section.title}
+                    {ok ? <Check className="h-3 w-3" strokeWidth={3} /> : null}
+                  </button>
+                );
+              })}
+          </div>
+          ) : null}
+          {showHomeRail ? (
+          <div className="hidden xl:flex min-h-0 flex-col overflow-hidden rounded-xl border border-[#E8EAED] bg-white">
             <div className="flex items-center justify-between border-b border-[#E8EAED] px-4 py-3">
               <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#5C6370]">
                 Same order as website
@@ -4024,7 +4055,7 @@ export function ResourceManager({
           ) : null}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-3">
-              <div className="relative w-[270px]">
+              <div className="relative w-full sm:w-[270px]">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9CA3AF]" />
                 <input
                   value={query}
@@ -4033,11 +4064,11 @@ export function ResourceManager({
                   className="h-11 w-full rounded-xl border border-[#E2E5EA] bg-white pl-10 pr-3 text-sm outline-none focus:ring-2 focus:ring-[#1A2332]/15"
                 />
               </div>
-              <div className="relative">
+              <div className="relative w-full sm:w-auto">
                 <select
                   value={categoryFilter}
                   onChange={(event) => setCategoryFilter(event.target.value)}
-                  className="h-11 min-w-[170px] appearance-none rounded-xl border border-[#E2E5EA] bg-white px-4 pr-9 text-sm outline-none focus:ring-2 focus:ring-[#1A2332]/15"
+                  className="h-11 w-full sm:w-auto sm:min-w-[170px] appearance-none rounded-xl border border-[#E2E5EA] bg-white px-4 pr-9 text-sm outline-none focus:ring-2 focus:ring-[#1A2332]/15"
                 >
                   {cardCategories.map((category) => (
                     <option key={category} value={category}>
@@ -4203,14 +4234,14 @@ export function ResourceManager({
         </>
       ) : (
         <>
-          <div className="flex items-center justify-between gap-4">
-            <div>
+          <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
+            <div className="min-w-0">
               <h2 className="text-xl font-bold">{config.label}</h2>
               <p className="mt-1 text-sm text-[#6B7280]">
                 Manage English, Thai and Polish content in Varsovia API.
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {resource === "blogs" ? (
                 <button
                   type="button"
@@ -4292,10 +4323,10 @@ export function ResourceManager({
       )}
 
       {editing !== undefined && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4">
-          <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#E8EAED] bg-white px-6 py-4">
-              <h3 className="font-bold">
+        <div className="tk-overlay">
+          <div className="tk-sheet max-h-[92vh] w-full max-w-3xl bg-white shadow-2xl">
+            <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-[#E8EAED] bg-white px-4 sm:px-6 py-4">
+              <h3 className="min-w-0 truncate font-bold">
                 {editing ? `Edit ${config.singular}` : `Add ${config.singular}`}
               </h3>
               <button
@@ -4427,8 +4458,8 @@ export function ResourceManager({
       )}
 
       {resource === "blogs" && aiOpen ? (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-lg max-h-[90vh] space-y-4 overflow-y-auto rounded-2xl bg-white p-6">
+        <div className="tk-overlay z-[60]">
+          <div className="tk-sheet w-full max-w-lg space-y-4 bg-white p-4 sm:p-6">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h3 className="text-lg font-bold text-[#1A2332]">

@@ -324,7 +324,7 @@ export default function VarsoviaLocationsPage() {
           <button
             type="button"
             onClick={openCreate}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#1A2332] text-white px-4 py-2.5 text-sm font-semibold"
+            className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-[#1A2332] text-white px-4 py-2.5 text-sm font-semibold"
           >
             <Plus className="w-4 h-4" />
             Add city page
@@ -334,7 +334,7 @@ export default function VarsoviaLocationsPage() {
         {loading ? (
           <p className="text-sm text-[#6B7280]">Loading…</p>
         ) : filtered.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-[#E2E5EA] bg-white p-12 text-center">
+          <div className="rounded-2xl border border-dashed border-[#E2E5EA] bg-white p-8 sm:p-12 text-center">
             <FolderOpen className="w-8 h-8 text-[#9CA3AF] mx-auto mb-3" />
             <p className="text-sm text-[#6B7280]">No city pages yet</p>
           </div>
@@ -404,10 +404,10 @@ export default function VarsoviaLocationsPage() {
       </div>
 
       {modal ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 overflow-y-auto">
+        <div className="tk-overlay">
           <form
             onSubmit={(e) => void onSubmit(e)}
-            className="w-full max-w-3xl rounded-2xl bg-white p-6 space-y-4 shadow-xl my-8 max-h-[90vh] overflow-y-auto"
+            className="tk-sheet w-full max-w-3xl bg-white p-4 sm:p-6 space-y-4 shadow-xl my-0 sm:my-8"
           >
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-lg font-semibold text-[#1A2332]">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Check,
   CloudUpload,
@@ -328,6 +328,7 @@ export default function AdminHomePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [locale, setLocale] = useState<LocaleCode>("en");
+  const loadSeqRef = useRef(0);
 
   // Read deep-link once on mount + listen for sidebar section picks (no Next navigation).
   useEffect(() => {
@@ -355,13 +356,16 @@ export default function AdminHomePage() {
   };
 
   const load = useCallback(async () => {
+    const seq = ++loadSeqRef.current;
     try {
       const res = await getHome(siteId);
+      if (seq !== loadSeqRef.current) return;
       setSections(res.home.sections || {});
     } catch {
+      if (seq !== loadSeqRef.current) return;
       toast.error("Failed to load home content");
     } finally {
-      setLoading(false);
+      if (seq === loadSeqRef.current) setLoading(false);
     }
   }, [siteId]);
 
@@ -445,7 +449,7 @@ export default function AdminHomePage() {
   return (
     <div className="flex flex-col gap-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
             {showHomeRail ? (
               <>
                 <span className="text-xs font-bold tracking-[0.1em] uppercase text-[#5C6370]">
@@ -453,7 +457,12 @@ export default function AdminHomePage() {
                 </span>
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-[#DCFCE7] text-[#166534] text-xs font-semibold px-2.5 py-1">
                   <Check className="w-3.5 h-3.5" />
-                  {doneCount} of {HOME_RAIL_META.length} Sections Ready
+                  <span className="sm:hidden">
+                    {doneCount}/{HOME_RAIL_META.length}
+                  </span>
+                  <span className="hidden sm:inline">
+                    {doneCount} of {HOME_RAIL_META.length} Sections Ready
+                  </span>
                 </span>
               </>
             ) : (
@@ -462,7 +471,7 @@ export default function AdminHomePage() {
               </span>
             )}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <button
               type="button"
               onClick={saveAll}
@@ -496,7 +505,32 @@ export default function AdminHomePage() {
             }
           >
             {showHomeRail ? (
-            <div className="bg-white rounded-xl border border-[#E8EAED] overflow-hidden">
+            <div className="xl:hidden col-span-full -mx-1 px-1 tk-chip-scroll">
+              {HOME_RAIL_META.map(({ key, title, icon: Icon }) => {
+                  const selected = active === key;
+                  const ok = isSectionComplete(key, sections);
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => selectSection(key)}
+                      className={clsx(
+                        "inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-3 py-2 text-xs font-semibold",
+                        selected
+                          ? "border-[#1A2332] bg-[#1A2332] text-white"
+                          : "border-[#E2E5EA] bg-white text-[#1A2332]"
+                      )}
+                    >
+                      <Icon className="h-3.5 w-3.5" />
+                      {title}
+                      {ok ? <Check className="h-3 w-3" strokeWidth={3} /> : null}
+                    </button>
+                  );
+                })}
+            </div>
+            ) : null}
+            {showHomeRail ? (
+            <div className="hidden xl:block bg-white rounded-xl border border-[#E8EAED] overflow-hidden">
               <div className="px-4 py-3 border-b border-[#E8EAED] flex items-center justify-between">
                 <span className="text-[11px] font-bold tracking-[0.12em] uppercase text-[#5C6370]">
                   Same order as website
@@ -563,8 +597,8 @@ export default function AdminHomePage() {
             </div>
             ) : null}
 
-            <div className="bg-white rounded-xl border border-[#E8EAED] p-5 lg:p-6 tk-admin-panel-swap">
-              <div className="flex items-start justify-between gap-3 mb-6">
+            <div className="bg-white rounded-xl border border-[#E8EAED] p-4 sm:p-5 lg:p-6 tk-admin-panel-swap min-w-0">
+              <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
                 <div>
                   <h2 className="text-lg font-bold text-[#1A2332]">
                     {activeMeta.title}

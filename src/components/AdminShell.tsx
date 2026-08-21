@@ -26,6 +26,7 @@ import {
   RefreshCw,
   X,
   Database,
+  Menu,
 } from "lucide-react";
 import { useAdminAuth } from "@/lib/AdminAuthContext";
 import type { SiteId } from "@/services/adminAPI";
@@ -333,7 +334,7 @@ export default function AdminShell(props: AdminShellProps) {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#F4F5F7] p-8 text-sm text-[#6B7280]">
+            <div className="min-h-dvh bg-[#F4F5F7] p-4 sm:p-8 text-sm text-[#6B7280]">
           Loading admin…
         </div>
       }
@@ -351,10 +352,14 @@ function AdminShellContent({
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, logout, siteId, setSiteId } = useAdminAuth();
-  const isVarsovia = siteId === "varsovia-kitchen";
+  const isVarsoviaRoute = pathname.startsWith("/varsovia");
+  const isSharedAdmin = pathname === "/contacts" || pathname === "/users";
+  const isVarsovia =
+    isVarsoviaRoute || (isSharedAdmin && siteId === "varsovia-kitchen");
   const [profileOpen, setProfileOpen] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [syncConfirmOpen, setSyncConfirmOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const [homeSection, setHomeSection] = useState<string | null>(null);
   const [varsoviaNav, setVarsoviaNav] = useState<VarsoviaNavDetail>(() =>
@@ -420,14 +425,23 @@ function AdminShellContent({
   }, [pathname]);
 
   useEffect(() => {
-    if (isVarsovia && !pathname.startsWith("/varsovia")) {
-      const allowedOutside =
-        pathname === "/contacts" || pathname === "/users" || pathname === "/login";
-      if (!allowedOutside) router.replace("/varsovia?resource=site");
-    } else if (!isVarsovia && pathname.startsWith("/varsovia")) {
-      router.replace("/");
+    if (isVarsoviaRoute) {
+      if (siteId !== "varsovia-kitchen") setSiteId("varsovia-kitchen");
+      return;
     }
-  }, [isVarsovia, pathname, router]);
+    if (isSharedAdmin || pathname === "/login") return;
+    if (siteId !== "thailand-kitchen") setSiteId("thailand-kitchen");
+  }, [isVarsoviaRoute, isSharedAdmin, pathname, siteId, setSiteId]);
+
+  useEffect(() => {
+    // Never bounce /varsovia → / on first paint (siteId still defaults to Thailand).
+    if (pathname.startsWith("/varsovia")) return;
+    if (siteId !== "varsovia-kitchen") return;
+    if (pathname === "/contacts" || pathname === "/users" || pathname === "/login") {
+      return;
+    }
+    router.replace("/varsovia?resource=site");
+  }, [siteId, pathname, router]);
 
   useEffect(() => {
     if (!profileOpen) return;
@@ -555,6 +569,34 @@ function AdminShellContent({
     }
   };
 
+  const searchKey = searchParams.toString();
+
+  useEffect(() => {
+    setNavOpen(false);
+  }, [pathname, searchKey]);
+
+  useEffect(() => {
+    if (!navOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setNavOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = previous;
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [navOpen]);
+
+  const handleNavItem = (
+    event: React.MouseEvent,
+    item: { href: string; section?: string; resource?: string }
+  ) => {
+    openNavItem(event, item);
+    setNavOpen(false);
+  };
+
   useEffect(() => {
     if (!syncConfirmOpen) return;
     const onKey = (event: KeyboardEvent) => {
@@ -678,13 +720,39 @@ function AdminShellContent({
   };
 
   return (
-    <div className="bg-[#F4F5F7] text-[#1A1D26] flex h-screen overflow-hidden">
-      <aside className="w-[240px] shrink-0 bg-white border-r border-[#E8EAED] flex flex-col h-full overflow-hidden">
+    <div className="bg-[#F4F5F7] text-[#1A1D26] flex h-screen h-dvh max-h-dvh overflow-hidden overscroll-none">
+      {navOpen ? (
+        <button
+          type="button"
+          className="lg:hidden fixed inset-0 z-[80] bg-[#1A2332]/45"
+          aria-label="Close navigation"
+          onClick={() => setNavOpen(false)}
+        />
+      ) : null}
+      <aside
+        className={clsx(
+          "bg-white border-r border-[#E8EAED] flex flex-col h-full overflow-hidden shrink-0",
+          "fixed lg:static inset-y-0 left-0 z-[85] w-[min(280px,88vw)] lg:w-[240px]",
+          "transition-transform duration-200 ease-out pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]",
+          navOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
+          !navOpen && "pointer-events-none lg:pointer-events-auto"
+        )}
+      >
         <div className="px-5 py-5 flex items-center gap-2.5 border-b border-[#E8EAED] shrink-0">
-          <div className="w-8 h-8 rounded-full bg-[#1A2332] flex items-center justify-center">
+          <div className="w-8 h-8 rounded-full bg-[#1A2332] flex items-center justify-center shrink-0">
             <Shield className="w-4 h-4 text-white" strokeWidth={2} />
           </div>
-          <span className="font-bold tracking-wide text-[15px]">TK & VD Admin Panel</span>
+          <span className="font-bold tracking-wide text-[15px] min-w-0 flex-1 truncate leading-tight">
+            TK & VD Admin Panel
+          </span>
+          <button
+            type="button"
+            onClick={() => setNavOpen(false)}
+            className="lg:hidden ml-auto inline-flex h-9 w-9 items-center justify-center rounded-lg text-[#6B7280] hover:bg-[#F5F6F8]"
+            aria-label="Close navigation"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
 
         <nav className="px-3 py-4 space-y-1 flex-1 overflow-y-auto min-h-0">
@@ -699,9 +767,9 @@ function AdminShellContent({
                   <Link
                     key={`${href}-${label}`}
                     href={href}
-                    onClick={(e) => openNavItem(e, item)}
+                    onClick={(e) => handleNavItem(e, item)}
                     className={clsx(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                      "flex min-h-11 items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                       isActive(item)
                         ? "bg-[#EEF0F3] text-[#1A2332]"
                         : "text-[#5C6370] hover:bg-[#F5F6F8] hover:text-[#1A2332]"
@@ -721,9 +789,9 @@ function AdminShellContent({
                   <Link
                     key={`${href}-${label}`}
                     href={href}
-                    onClick={(e) => openNavItem(e, item)}
+                    onClick={(e) => handleNavItem(e, item)}
                     className={clsx(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                      "flex min-h-11 items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                       isActive(item)
                         ? "bg-[#EEF0F3] text-[#1A2332]"
                         : "text-[#5C6370] hover:bg-[#F5F6F8] hover:text-[#1A2332]"
@@ -743,8 +811,9 @@ function AdminShellContent({
                   <Link
                     key={`${href}-${label}`}
                     href={href}
+                    onClick={() => setNavOpen(false)}
                     className={clsx(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                      "flex min-h-11 items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                       isActive(item)
                         ? "bg-[#EEF0F3] text-[#1A2332]"
                         : "text-[#5C6370] hover:bg-[#F5F6F8] hover:text-[#1A2332]"
@@ -760,8 +829,11 @@ function AdminShellContent({
               <div className="pt-3 mt-3 border-t border-[#E8EAED]">
                 <button
                   type="button"
-                  onClick={logout}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[#DC2626] hover:bg-red-50 transition-colors"
+                  onClick={() => {
+                    setNavOpen(false);
+                    logout();
+                  }}
+                  className="w-full flex min-h-11 items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[#DC2626] hover:bg-red-50 transition-colors"
                 >
                   <LogOut className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />
                   Sign Out
@@ -779,9 +851,9 @@ function AdminShellContent({
                   <Link
                     key={`${href}-${label}`}
                     href={href}
-                    onClick={(e) => openNavItem(e, item)}
+                    onClick={(e) => handleNavItem(e, item)}
                     className={clsx(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                      "flex min-h-11 items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                       isActive(item)
                         ? "bg-[#EEF0F3] text-[#1A2332]"
                         : "text-[#5C6370] hover:bg-[#F5F6F8] hover:text-[#1A2332]"
@@ -801,9 +873,9 @@ function AdminShellContent({
                   <Link
                     key={`${href}-${label}`}
                     href={href}
-                    onClick={(e) => openNavItem(e, item)}
+                    onClick={(e) => handleNavItem(e, item)}
                     className={clsx(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                      "flex min-h-11 items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                       isActive(item)
                         ? "bg-[#EEF0F3] text-[#1A2332]"
                         : "text-[#5C6370] hover:bg-[#F5F6F8] hover:text-[#1A2332]"
@@ -825,9 +897,9 @@ function AdminShellContent({
                       <Link
                         key={`${href}-${label}`}
                         href={href}
-                        onClick={(e) => openNavItem(e, item)}
+                        onClick={(e) => handleNavItem(e, item)}
                         className={clsx(
-                          "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                          "flex min-h-11 items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                           isActive(item)
                             ? "bg-[#EEF0F3] text-[#1A2332]"
                             : "text-[#5C6370] hover:bg-[#F5F6F8] hover:text-[#1A2332]"
@@ -849,9 +921,9 @@ function AdminShellContent({
                   <Link
                     key={`${href}-${label}`}
                     href={href}
-                    onClick={(e) => openNavItem(e, item)}
+                    onClick={(e) => handleNavItem(e, item)}
                     className={clsx(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                      "flex min-h-11 items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                       isActive(item)
                         ? "bg-[#EEF0F3] text-[#1A2332]"
                         : "text-[#5C6370] hover:bg-[#F5F6F8] hover:text-[#1A2332]"
@@ -867,8 +939,11 @@ function AdminShellContent({
               <div className="pt-3 mt-3 border-t border-[#E8EAED]">
                 <button
                   type="button"
-                  onClick={logout}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[#DC2626] hover:bg-red-50 transition-colors"
+                  onClick={() => {
+                    setNavOpen(false);
+                    logout();
+                  }}
+                  className="w-full flex min-h-11 items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[#DC2626] hover:bg-red-50 transition-colors"
                 >
                   <LogOut className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />
                   Sign Out
@@ -880,16 +955,25 @@ function AdminShellContent({
       </aside>
 
       <div className="flex-1 min-w-0 flex flex-col h-full overflow-hidden">
-        <header className="h-16 bg-white border-b border-[#E8EAED] px-6 flex items-center justify-between gap-4 shrink-0">
-          <div className="flex items-center gap-4 min-w-0">
-            <h1 className="text-sm font-bold tracking-[0.12em] uppercase truncate">
+        <header className="min-h-16 bg-white border-b border-[#E8EAED] px-3 sm:px-4 lg:px-6 py-2 lg:py-0 flex items-center justify-between gap-2 sm:gap-4 shrink-0 pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))]">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
+            <button
+              type="button"
+              onClick={() => setNavOpen(true)}
+              className="lg:hidden inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[#1A2332] hover:bg-[#F5F6F8]"
+              aria-label="Open navigation"
+              aria-expanded={navOpen}
+            >
+              <Menu className="h-5 w-5" strokeWidth={2} />
+            </button>
+            <h1 className="text-xs sm:text-sm font-bold tracking-[0.12em] uppercase truncate min-w-0 flex-1">
               {title}
             </h1>
-            <div className="relative">
+            <div className="relative shrink-0">
               <select
                 value={siteId}
                 onChange={(e) => changeSite(e.target.value as SiteId)}
-                className="appearance-none bg-[#F5F6F8] border border-[#E2E5EA] rounded-lg pl-3 pr-8 py-2 text-sm font-medium text-[#1A2332] cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#1A2332]/20"
+                className="appearance-none bg-[#F5F6F8] border border-[#E2E5EA] rounded-lg pl-2.5 sm:pl-3 pr-7 sm:pr-8 py-2 text-xs sm:text-sm font-medium text-[#1A2332] cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#1A2332]/20 max-w-[110px] sm:max-w-[180px] truncate"
               >
                 {SITES.map((s) => (
                   <option key={s.id} value={s.id}>
@@ -906,13 +990,14 @@ function AdminShellContent({
               type="button"
               onClick={openSyncConfirm}
               disabled={syncing}
+              aria-label={syncing ? "Syncing from database" : "Sync from DB"}
               title={
                 syncPagePath
                   ? `Overwrite this page with live ${syncPagePath} copy`
                   : "Reload Varsovia from the connected database and fill blank page fields from live site content"
               }
               className={clsx(
-                "inline-flex items-center gap-2 rounded-xl border border-[#E2E5EA] bg-white px-3 py-2 text-xs font-semibold text-[#1A2332] transition-colors",
+                "inline-flex items-center gap-2 rounded-xl border border-[#E2E5EA] bg-white px-2.5 sm:px-3 py-2 text-xs font-semibold text-[#1A2332] transition-colors",
                 syncing
                   ? "opacity-70 cursor-wait"
                   : "hover:bg-[#F5F6F8] hover:border-[#CBD5E1]"
@@ -922,7 +1007,7 @@ function AdminShellContent({
                 className={clsx("w-3.5 h-3.5", syncing && "animate-spin")}
                 strokeWidth={2}
               />
-              {syncing ? "Syncing…" : "Sync from DB"}
+              <span className="hidden sm:inline">{syncing ? "Syncing…" : "Sync from DB"}</span>
             </button>
 
             <div className="relative shrink-0" ref={profileRef}>
@@ -940,7 +1025,7 @@ function AdminShellContent({
             {profileOpen ? (
               <div
                 role="menu"
-                className="absolute right-0 top-[calc(100%+10px)] z-50 min-w-[240px] rounded-2xl bg-white px-5 py-4 shadow-[0_8px_28px_rgba(15,23,42,0.14)] border border-[#EEF0F3]"
+                className="absolute right-0 top-[calc(100%+10px)] z-50 w-[min(240px,calc(100vw-24px))] rounded-2xl bg-white px-5 py-4 shadow-[0_8px_28px_rgba(15,23,42,0.14)] border border-[#EEF0F3]"
               >
                 <p className="text-[14px] text-[#4B5563] truncate">
                   {user?.email || "thailandkichens@gmail.com"}
@@ -963,7 +1048,7 @@ function AdminShellContent({
           </div>
         </header>
 
-        <main className="flex-1 p-5 lg:p-6 bg-[#F4F5F7] overflow-y-auto">
+        <main className="flex-1 p-3 sm:p-5 lg:p-6 bg-[#F4F5F7] overflow-y-auto overflow-x-hidden min-w-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <div key={pathname} className="tk-admin-panel-swap">
             {children}
           </div>
@@ -972,7 +1057,7 @@ function AdminShellContent({
 
       {syncConfirmOpen ? (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#1A2332]/45 backdrop-blur-[2px]"
+          className="tk-overlay z-[100] bg-[#1A2332]/45 backdrop-blur-[2px]"
           role="presentation"
           onClick={() => !syncing && setSyncConfirmOpen(false)}
         >
@@ -980,10 +1065,10 @@ function AdminShellContent({
             role="dialog"
             aria-modal="true"
             aria-labelledby="sync-dialog-title"
-            className="w-full max-w-md rounded-2xl bg-white shadow-[0_24px_64px_rgba(26,35,50,0.22)] border border-[#E8EAED] overflow-hidden"
+            className="tk-sheet flex w-full max-w-md flex-col overflow-hidden bg-white shadow-[0_24px_64px_rgba(26,35,50,0.22)] border border-[#E8EAED]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-start justify-between gap-3 px-5 pt-5 pb-3">
+            <div className="flex shrink-0 items-start justify-between gap-3 px-4 sm:px-5 pt-5 pb-3">
               <div className="flex items-start gap-3 min-w-0">
                 <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#EEF0F3] text-[#1A2332]">
                   <Database className="h-5 w-5" strokeWidth={1.75} />
@@ -1012,7 +1097,7 @@ function AdminShellContent({
               </button>
             </div>
 
-            <div className="px-5 pb-4">
+            <div className="min-h-0 flex-1 overflow-y-auto px-4 sm:px-5 pb-4">
               <ul className="space-y-2 rounded-xl border border-[#E8EDF2] bg-[#F8FAFC] px-4 py-3.5">
                 {(isVarsovia
                   ? [
@@ -1054,7 +1139,7 @@ function AdminShellContent({
               </ul>
             </div>
 
-            <div className="flex items-center justify-end gap-2 border-t border-[#EEF0F3] bg-[#FAFBFC] px-5 py-3.5">
+            <div className="flex flex-wrap items-center justify-end gap-2 border-t border-[#EEF0F3] bg-[#FAFBFC] px-4 sm:px-5 py-3.5 shrink-0 pb-[max(0.875rem,env(safe-area-inset-bottom))]">
               <button
                 type="button"
                 onClick={() => setSyncConfirmOpen(false)}

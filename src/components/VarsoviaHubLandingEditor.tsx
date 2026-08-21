@@ -437,7 +437,7 @@ export default function VarsoviaHubLandingEditor({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <span className="min-w-0 truncate text-xs font-bold uppercase tracking-[0.1em] text-[#5C6370]">
           {label}
         </span>

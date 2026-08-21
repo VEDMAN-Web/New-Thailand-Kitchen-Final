@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Images, Pencil, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import LocaleTabs from "@/components/LocaleTabs";
@@ -99,14 +99,17 @@ export default function AdminGalleryPage() {
   const [form, setForm] = useState<GalleryForm>(emptyForm);
   const [locale, setLocale] = useState<LocaleCode>("en");
   const [listFilter, setListFilter] = useState<string>("All");
+  const loadSeqRef = useRef(0);
 
   const load = useCallback(async () => {
+    const seq = ++loadSeqRef.current;
     setLoading(true);
     try {
       const [galleryRes, homeRes] = await Promise.all([
         listGallery(siteId),
         getHome(siteId),
       ]);
+      if (seq !== loadSeqRef.current) return;
       setItems(galleryRes.items || []);
       const nextSections = homeRes.home?.sections || {};
       setSections(nextSections);
@@ -135,9 +138,10 @@ export default function AdminGalleryPage() {
         .filter((f) => f.id);
       setFilters(nextFilters.length ? nextFilters : DEFAULT_FILTERS);
     } catch {
+      if (seq !== loadSeqRef.current) return;
       toast.error("Failed to load gallery");
     } finally {
-      setLoading(false);
+      if (seq === loadSeqRef.current) setLoading(false);
     }
   }, [siteId]);
 
@@ -334,7 +338,7 @@ export default function AdminGalleryPage() {
   return (
     <>
       <div className="space-y-6">
-        <div className="bg-white rounded-xl border border-[#E8EAED] p-5 space-y-4">
+        <div className="bg-white rounded-xl border border-[#E8EAED] p-4 sm:p-5 space-y-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <h2 className="text-base font-bold text-[#1A2332]">
@@ -515,7 +519,7 @@ export default function AdminGalleryPage() {
           <button
             type="button"
             onClick={openCreate}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#1A2332] text-white text-sm font-semibold px-4 py-2.5"
+            className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-lg bg-[#1A2332] text-white text-sm font-semibold px-4 py-2.5"
           >
             <Plus className="w-4 h-4" />
             Add photo
@@ -623,10 +627,10 @@ export default function AdminGalleryPage() {
       </div>
 
       {modal ? (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+        <div className="tk-overlay">
           <form
             onSubmit={onSubmit}
-            className="w-full max-w-lg bg-white rounded-2xl p-6 space-y-3 max-h-[90vh] overflow-y-auto"
+            className="tk-sheet w-full max-w-lg bg-white p-4 sm:p-6 space-y-3"
           >
             <div className="flex justify-between items-center mb-2 gap-3">
               <div>

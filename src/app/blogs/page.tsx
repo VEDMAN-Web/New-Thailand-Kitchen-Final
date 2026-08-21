@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   BookOpen,
   Calendar,
@@ -197,14 +197,17 @@ export default function AdminBlogsPage() {
   const [sections, setSections] = useState<Record<string, unknown>>({});
   const [savingHero, setSavingHero] = useState(false);
   const [heroLocale, setHeroLocale] = useState<LocaleCode>("en");
+  const loadSeqRef = useRef(0);
 
   const load = useCallback(async () => {
+    const seq = ++loadSeqRef.current;
     setLoading(true);
     try {
       const [res, homeRes] = await Promise.all([
         listBlogs(siteId),
         getHome(siteId),
       ]);
+      if (seq !== loadSeqRef.current) return;
       setItems(res.items || []);
       const nextSections = homeRes.home?.sections || {};
       setSections(nextSections);
@@ -228,9 +231,10 @@ export default function AdminBlogsPage() {
           : [],
       });
     } catch {
+      if (seq !== loadSeqRef.current) return;
       toast.error("Failed to load guides");
     } finally {
-      setLoading(false);
+      if (seq === loadSeqRef.current) setLoading(false);
     }
   }, [siteId]);
 
@@ -906,7 +910,7 @@ export default function AdminBlogsPage() {
                 setAiTopic("");
                 setAiOpen(true);
               }}
-              className="inline-flex h-11 items-center gap-2 rounded-xl border border-[#E2E5EA] bg-[#F8FAFC] text-[#1A2332] text-sm font-semibold px-4 hover:bg-[#F1F5F9]"
+              className="inline-flex h-11 w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-[#E2E5EA] bg-[#F8FAFC] text-[#1A2332] text-sm font-semibold px-4 hover:bg-[#F1F5F9]"
             >
               <Sparkles className="w-4 h-4" />
               Generate with AI
@@ -914,7 +918,7 @@ export default function AdminBlogsPage() {
             <button
               type="button"
               onClick={openCreate}
-              className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#1A2332] text-white text-sm font-semibold px-4"
+              className="inline-flex h-11 w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-[#1A2332] text-white text-sm font-semibold px-4"
             >
               <Plus className="w-4 h-4" />
               Create guide
@@ -924,7 +928,7 @@ export default function AdminBlogsPage() {
 
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-3">
-            <div className="relative w-[320px] max-w-full">
+            <div className="relative w-full sm:w-[320px] max-w-full">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9CA3AF]" />
               <input
                 value={query}
@@ -1103,9 +1107,9 @@ export default function AdminBlogsPage() {
       </div>
 
       {modal && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <div className="w-full max-w-4xl bg-white rounded-2xl p-6 space-y-4 max-h-[92vh] overflow-y-auto">
-            <div className="flex justify-between items-center">
+        <div className="tk-overlay">
+          <div className="tk-sheet w-full max-w-4xl bg-white p-4 sm:p-6 space-y-4">
+            <div className="flex flex-wrap justify-between items-start gap-3">
               <h3 className="font-bold text-lg">
                 {modal === "create"
                   ? "Create New Blog Article"
@@ -1143,7 +1147,7 @@ export default function AdminBlogsPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
               {[
                 ["1. Header & Cover", "Title, author, read time & cover photo"],
                 ["2. Body Sections", "Article headings, content & section images"],
@@ -1670,8 +1674,8 @@ export default function AdminBlogsPage() {
       )}
 
       {aiOpen ? (
-        <div className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4">
-          <div className="w-full max-w-lg bg-white rounded-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+        <div className="tk-overlay z-[60]">
+          <div className="tk-sheet w-full max-w-lg bg-white p-4 sm:p-6 space-y-4">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h3 className="font-bold text-lg text-[#1A2332]">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   CheckCircle2,
@@ -161,23 +161,29 @@ export default function AdminProductsPage() {
   const [query, setQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All categories");
   const [locale, setLocale] = useState<LocaleCode>("en");
+  const loadSeqRef = useRef(0);
 
   const load = useCallback(async () => {
+    const seq = ++loadSeqRef.current;
     setLoading(true);
     try {
       const res = await listProducts(siteId);
+      if (seq !== loadSeqRef.current) return;
       setItems(res.items || []);
     } catch {
+      if (seq !== loadSeqRef.current) return;
       toast.error("Failed to load products");
     } finally {
-      setLoading(false);
+      if (seq === loadSeqRef.current) setLoading(false);
     }
   }, [siteId]);
 
   const loadCategories = useCallback(async () => {
+    const seq = loadSeqRef.current;
     try {
       const { listCategories } = await import("@/services/adminAPI");
       const res = await listCategories(siteId);
+      if (seq !== loadSeqRef.current) return;
       setCategoryList(res.items || []);
     } catch {
       // Silently fail - category dropdown will just show empty
@@ -499,7 +505,7 @@ export default function AdminProductsPage() {
     </div>
     <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div className="flex flex-wrap items-center gap-3">
-          <div className="relative w-[270px]">
+          <div className="relative w-full sm:w-[270px]">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9CA3AF]" />
             <input
               value={query}
@@ -508,11 +514,11 @@ export default function AdminProductsPage() {
               className="h-11 w-full rounded-xl border border-[#E2E5EA] bg-white pl-10 pr-3 text-sm outline-none focus:ring-2 focus:ring-[#1A2332]/15"
             />
           </div>
-          <div className="relative">
+          <div className="relative w-full sm:w-auto">
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="h-11 min-w-[170px] appearance-none rounded-xl border border-[#E2E5EA] bg-white px-4 pr-9 text-sm outline-none focus:ring-2 focus:ring-[#1A2332]/15"
+              className="h-11 w-full sm:w-auto sm:min-w-[170px] appearance-none rounded-xl border border-[#E2E5EA] bg-white px-4 pr-9 text-sm outline-none focus:ring-2 focus:ring-[#1A2332]/15"
             >
               {categories.map((c) => (
                 <option key={c} value={c}>
@@ -526,7 +532,7 @@ export default function AdminProductsPage() {
         <button
           type="button"
           onClick={openCreate}
-          className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#1A2332] text-white text-sm font-semibold px-4"
+          className="inline-flex h-11 w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-[#1A2332] text-white text-sm font-semibold px-4"
         >
           <Plus className="w-4 h-4" />
           Create Product
@@ -622,11 +628,11 @@ export default function AdminProductsPage() {
       )}
 
       {modal && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+        <div className="tk-overlay">
           <div
-            className="w-full max-w-5xl bg-white rounded-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto"
+            className="tk-sheet w-full max-w-5xl bg-white p-4 sm:p-6 space-y-4"
           >
-            <div className="flex justify-between items-center mb-2 gap-3">
+            <div className="flex flex-wrap justify-between items-start mb-2 gap-3">
               <div>
                 <h3 className="font-bold text-lg">
                   {modal === "create" ? "Add Product" : "Edit Product"}
@@ -642,7 +648,7 @@ export default function AdminProductsPage() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="grid grid-cols-3 gap-2 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
               {[
                 ["1. Product Identity", "Basic details & main gallery"],
                 ["2. Overview Section", "Overview header & description"],
