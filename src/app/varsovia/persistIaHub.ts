@@ -90,7 +90,7 @@ export async function persistIaHubPatch(
         children,
       },
     },
-  });
+  }, { persistPages: true });
   const saved = await getVarsoviaSite();
   // Trust MongoDB data AS-IS - do NOT merge with defaults
   return (saved.pages && typeof saved.pages === "object" && !Array.isArray(saved.pages))
