@@ -10,6 +10,7 @@ import { SITE_ORIGIN, ogImageUrl } from "../lib/siteUrl";
 import { pickCmsText } from "../lib/cmsText";
 import { fetchHomeSections } from "../services/cmsPublic";
 import JsonLd from "../components/seo/JsonLd";
+import { getServerLocale } from "../lib/serverLocale";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -19,14 +20,20 @@ const manrope = Manrope({
 
 const localeBootScript = `
 try {
-  var l = localStorage.getItem('tk-locale');
+  // Priority: cookie (server-side source of truth) → localStorage → default
+  var m = document.cookie.match(/(?:^|; )tk-locale=([^;]+)/);
+  var l = m ? decodeURIComponent(m[1]) : null;
+  
   if (l !== 'EN' && l !== 'TH' && l !== 'PL') {
-    var m = document.cookie.match(/(?:^|; )tk-locale=([^;]+)/);
-    l = m ? decodeURIComponent(m[1]) : null;
+    l = localStorage.getItem('tk-locale');
   }
+  
   if (l === 'EN' || l === 'TH' || l === 'PL') {
     document.documentElement.dataset.locale = l;
     document.documentElement.lang = l === 'TH' ? 'th' : l === 'PL' ? 'pl' : 'en';
+    // Sync back to cookie and localStorage
+    document.cookie = 'tk-locale=' + l + '; path=/; max-age=31536000; SameSite=Lax';
+    localStorage.setItem('tk-locale', l);
   }
 } catch (e) {}
 `;
@@ -47,8 +54,9 @@ export async function generateMetadata(): Promise<Metadata> {
   const seo = (home as { seo?: Record<string, unknown> })?.seo || {};
   const hero = (home as { hero?: Record<string, unknown> })?.hero || {};
 
-  const title = pickCmsText(seo.title, FALLBACK_TITLE, "EN");
-  const description = pickCmsText(seo.description, FALLBACK_DESCRIPTION, "EN");
+  const locale = await getServerLocale();
+  const title = pickCmsText(seo.title, FALLBACK_TITLE, locale);
+  const description = pickCmsText(seo.description, FALLBACK_DESCRIPTION, locale);
   const image = ogImageUrl(
     (seo.ogImage as string) || (hero.image as string) || ""
   );
@@ -77,12 +85,13 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const ga4Id = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID?.trim() || "";
+  const serverLocale = await getServerLocale();
 
   return (
     <html
@@ -107,9 +116,11 @@ export default function RootLayout({
             url: SITE_ORIGIN,
           }}
         />
-        <Script id="tk-locale-boot" strategy="beforeInteractive">
-          {localeBootScript}
-        </Script>
+        <Script
+          id="tk-locale-boot"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{ __html: localeBootScript }}
+        />
         {ga4Id ? (
           <>
             <Script
@@ -126,7 +137,7 @@ gtag('config', '${ga4Id}');
             </Script>
           </>
         ) : null}
-        <Providers initialLocale="EN">
+        <Providers initialLocale={serverLocale}>
           <Navbar />
           {children}
           <Footer />

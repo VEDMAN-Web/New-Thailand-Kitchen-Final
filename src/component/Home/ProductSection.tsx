@@ -17,8 +17,17 @@ function toProductHref(slug: string) {
   return clean ? `/products/${encodeURIComponent(clean)}` : "/products";
 }
 
+const HOME_PRODUCT_LIMIT = 3;
+
+/** Homepage band is Best Sellers only (max 3). The rest live on /products. */
+function pickHomeProducts(list: ProductItem[]): ProductItem[] {
+  const featured = list.filter((p) => p.bestSeller);
+  const source = featured.length > 0 ? featured : list;
+  return source.slice(0, HOME_PRODUCT_LIMIT);
+}
+
 function toCards(list: ProductItem[], locale: Locale) {
-  return list.slice(0, 3).map((p) => ({
+  return pickHomeProducts(list).map((p) => ({
     key: p.slug || String(p.id),
     title: pickCmsText(p.name, "", locale),
     image: p.image,

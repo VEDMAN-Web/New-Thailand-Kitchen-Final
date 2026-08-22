@@ -8,6 +8,7 @@ import { fetchBlogBySlug } from "../../../services/cmsPublic";
 import { pickCmsText } from "../../../lib/cmsText";
 import { absoluteUrl, ogImageUrl } from "../../../lib/siteUrl";
 import { pickBlogCoverImage } from "../../../lib/cmsMedia";
+import { getServerLocale } from "../../../lib/serverLocale";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -32,11 +33,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: "Guide Not Found" };
   }
 
+  const locale = await getServerLocale();
   const title =
     (post as any).metaTitle ||
-    `${pickCmsText(post.title, "", "EN")} | Thailand Kitchen Guides`;
+    `${pickCmsText(post.title, "", locale)} | Thailand Kitchen Guides`;
   const description =
-    (post as any).metaDescription || pickCmsText(post.excerpt, "", "EN");
+    (post as any).metaDescription || pickCmsText(post.excerpt, "", locale);
 
   const canonical = absoluteUrl(`/guides/${post.slug}`);
   const image = ogImageUrl(pickBlogCoverImage(post));
@@ -74,8 +76,9 @@ export default async function GuideDetailPage({ params }: Props) {
 
   if (!post) notFound();
 
-  const postTitle = pickCmsText(post.title, "", "EN");
-  const postExcerpt = pickCmsText(post.excerpt, "", "EN");
+  const locale = await getServerLocale();
+  const postTitle = pickCmsText(post.title, "", locale);
+  const postExcerpt = pickCmsText(post.excerpt, "", locale);
   const postContent = Array.isArray(post.content)
     ? post.content.join(" ")
     : "";

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { pickCmsText } from "../../lib/cmsText";
+import type { Locale } from "../../i18n/translations";
 
 export type RelatedProjectItem = {
   id: string;
@@ -72,10 +73,13 @@ export default function RelatedProjects({
   );
 }
 
-export function projectTitleFromCms(item: {
-  projectTitle?: string;
-  title?: unknown;
-}): string {
+export function projectTitleFromCms(
+  item: {
+    projectTitle?: string;
+    title?: unknown;
+  },
+  locale: Locale = "EN"
+): string {
   if (item.projectTitle?.trim()) return item.projectTitle.trim();
-  return pickCmsText(item.title, "Project", "EN");
+  return pickCmsText(item.title, "Project", locale);
 }
