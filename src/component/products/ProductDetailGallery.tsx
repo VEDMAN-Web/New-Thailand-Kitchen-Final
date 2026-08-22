@@ -19,8 +19,8 @@ export default function ProductDetailGallery({ product }: Props) {
   const goNext = () => setActive((i) => (i + 1) % total);
 
   return (
-    <section className="pt-12 sm:pt-14 lg:pt-16">
-      <div className="group relative w-full h-[280px] sm:h-[380px] md:h-[440px] lg:h-[480px] rounded-[1.75rem] sm:rounded-[2rem] overflow-hidden">
+    <section className="pt-8 sm:pt-14 lg:pt-16">
+      <div className="group relative w-full h-44 sm:h-[380px] md:h-[440px] lg:h-[480px] rounded-[1.75rem] sm:rounded-[2rem] overflow-hidden">
         {slides.map((slide, index) => {
           const isRemote =
             slide.image.startsWith("http") ||
@@ -47,7 +47,7 @@ export default function ProductDetailGallery({ product }: Props) {
       </div>
 
       {/* Carousel controls */}
-      <div className="mt-8 flex items-center justify-center gap-6">
+      <div className="mt-5 sm:mt-8 flex items-center justify-center gap-3 sm:gap-6">
         <button
           type="button"
           onClick={goPrev}

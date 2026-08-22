@@ -22,7 +22,7 @@ export default function TestimonialCard({ testimonial }: Props) {
   return (
     <article className="grid grid-cols-1 sm:grid-cols-[0.9fr_1.1fr] bg-white rounded-[28px] overflow-hidden shadow-[0_18px_50px_rgba(0,0,0,0.08)] h-full">
       {/* Kitchen image */}
-      <div className="relative w-full h-full min-h-[220px] sm:min-h-[380px] lg:min-h-[420px]">
+      <div className="relative w-full h-full min-h-[140px] sm:min-h-[380px] lg:min-h-[420px]">
         <Image
           src={testimonial.image}
           alt="Kitchen project"
@@ -34,28 +34,28 @@ export default function TestimonialCard({ testimonial }: Props) {
       </div>
 
       {/* Review panel */}
-      <div className="p-6 sm:p-8 lg:p-10 flex flex-col">
-        <div className="flex items-center gap-1 mb-5">
+      <div className="p-4 sm:p-8 lg:p-10 flex flex-col">
+        <div className="flex items-center gap-1 mb-2 sm:mb-5">
           {[...Array(testimonial.rating)].map((_, index) => (
-            <span key={index} className="text-[#E0905A] text-lg md:text-xl">
+            <span key={index} className="text-[#E0905A] text-sm sm:text-lg md:text-xl">
               ★
             </span>
           ))}
         </div>
 
-        <p className="italic text-justify text-[#6B6B6B] text-sm md:text-[15px] leading-7 md:leading-8 flex-1">
+        <p className="italic text-justify text-[#6B6B6B] text-xs sm:text-sm md:text-[15px] leading-5 sm:leading-7 md:leading-8 flex-1 line-clamp-4 sm:line-clamp-none">
           &ldquo;{testimonial.review}&rdquo;
         </p>
 
-        <div className="mt-6 flex items-center gap-3">
-          <span className="w-11 h-11 md:w-12 md:h-12 rounded-full bg-[#E0905A]/15 text-[#B06A34] text-sm font-bold flex items-center justify-center shrink-0">
+        <div className="mt-2 sm:mt-6 flex items-center gap-2 sm:gap-3">
+          <span className="w-8 h-8 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full bg-[#E0905A]/15 text-[#B06A34] text-xs sm:text-sm font-bold flex items-center justify-center shrink-0">
             {getInitials(testimonial.name)}
           </span>
           <div>
-            <h3 className="text-[15px] md:text-base font-bold text-[#1A1A1A]">
+            <h3 className="text-xs sm:text-[15px] md:text-base font-bold text-[#1A1A1A]">
               {testimonial.name}
             </h3>
-            <p className="text-[11px] md:text-xs tracking-[0.12em] uppercase text-[#9A9A9A]">
+            <p className="text-[10px] sm:text-[11px] md:text-xs tracking-[0.12em] uppercase text-[#9A9A9A]">
               {testimonial.role}
             </p>
           </div>

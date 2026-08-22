@@ -205,7 +205,7 @@ export default function ProductsListSection({
   );
 
   return (
-    <section id="best-seller" className="pb-16 lg:pb-24 pt-10 lg:pt-12 scroll-mt-28">
+    <section id="best-seller" className="pb-8 sm:pb-16 lg:pb-24 pt-6 sm:pt-10 lg:pt-12 scroll-mt-28">
       <div className="flex flex-wrap justify-center gap-2.5 sm:gap-3">
         {filterTabs.map((item) => {
           const isActive = layout === item;
@@ -237,24 +237,24 @@ export default function ProductsListSection({
         })}
       </div>
 
-      <div className="mt-8">
+      <div className="mt-5 sm:mt-8">
         <p className="text-sm text-[#1A1A1A] font-medium">
           {t("products.count", { count: filtered.length })}
         </p>
       </div>
 
       {pageItems.length > 0 ? (
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 items-start">
+        <div className="mt-5 sm:mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 items-start">
           {pageItems.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
       ) : (
-        <p className="mt-12 text-[#6B6B6B]">{t("products.empty")}</p>
+        <p className="mt-8 sm:mt-12 text-[#6B6B6B]">{t("products.empty")}</p>
       )}
 
       {totalPages > 1 ? (
-        <div className="mt-12 flex items-center justify-center gap-3">
+        <div className="mt-8 sm:mt-12 flex items-center justify-center gap-3">
           <button
             type="button"
             aria-label="Previous page"

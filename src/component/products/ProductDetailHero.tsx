@@ -21,7 +21,7 @@ export default function ProductDetailHero({ product }: Props) {
 
   return (
     <section className="pt-[80px] sm:pt-[84px]">
-      <p className="text-sm font-bold text-[#1A1A1A] mb-6 sm:mb-8">
+      <p className="text-sm font-bold text-[#1A1A1A] mb-4 sm:mb-8">
         <Link
           href="/products"
           className="inline-flex items-center gap-1.5 hover:opacity-70 transition"
@@ -36,7 +36,7 @@ export default function ProductDetailHero({ product }: Props) {
       </p>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5">
-        <div className="group relative lg:col-span-2 h-[280px] sm:h-[380px] md:h-[460px] lg:h-[540px] rounded-[1.75rem] sm:rounded-[2rem] overflow-hidden">
+        <div className="group relative lg:col-span-2 h-44 sm:h-[380px] md:h-[460px] lg:h-[540px] rounded-[1.75rem] sm:rounded-[2rem] overflow-hidden">
           <Image
             src={main}
             alt={name}
@@ -51,14 +51,14 @@ export default function ProductDetailHero({ product }: Props) {
             <p className="text-white/80 text-xs sm:text-sm tracking-wide mb-1.5">
               TK / {name}
             </p>
-            <h1 className="text-white text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight">
+            <h1 className="text-white text-2xl min-[425px]:text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight break-words">
               {name}
             </h1>
           </div>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-1 gap-3 sm:gap-4 lg:gap-5 lg:h-[540px]">
-          <div className="group relative h-[160px] sm:h-[200px] lg:h-full rounded-[1.5rem] sm:rounded-[1.75rem] overflow-hidden">
+          <div className="group relative h-28 sm:h-[200px] lg:h-full rounded-[1.5rem] sm:rounded-[1.75rem] overflow-hidden">
             <Image
               src={sideTop}
               alt={`${name} angle`}
@@ -68,7 +68,7 @@ export default function ProductDetailHero({ product }: Props) {
               unoptimized={isRemote(sideTop)}
             />
           </div>
-          <div className="group relative h-[160px] sm:h-[200px] lg:h-full rounded-[1.5rem] sm:rounded-[1.75rem] overflow-hidden">
+          <div className="group relative h-28 sm:h-[200px] lg:h-full rounded-[1.5rem] sm:rounded-[1.75rem] overflow-hidden">
             <Image
               src={sideBottom}
               alt={`${name} detail`}

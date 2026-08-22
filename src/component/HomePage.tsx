@@ -158,7 +158,7 @@ function HomePage({
     <div className="w-full relative bg-[#F5F3EF]">
       <div className="relative overflow-hidden">
         <section className="bg-[#F5F3EF] px-3 pb-3 pt-[80px] sm:px-4 sm:pb-4 sm:pt-[84px]">
-          <div className="relative w-full h-[calc(100vh-1.5rem)] sm:h-[calc(100vh-2rem)] overflow-hidden rounded-[1.5rem] sm:rounded-[2rem]">
+          <div className="relative w-full h-[80vh] sm:h-[calc(100vh-2rem)] overflow-hidden rounded-[1.5rem] sm:rounded-[2rem]">
             {isEmbed ? (
               <iframe
                 title="Hero video"
@@ -192,7 +192,7 @@ function HomePage({
                     {heroSubtitle}
                   </p>
 
-                  <h1 className="text-white font-extrabold leading-tight text-xl sm:text-2xl md:text-3xl lg:text-4xl tracking-wide uppercase whitespace-nowrap">
+                  <h1 className="text-white font-extrabold leading-tight text-lg min-[375px]:text-xl min-[425px]:text-2xl sm:text-2xl md:text-3xl lg:text-4xl tracking-wide uppercase break-words">
                     {heroTitle}
                   </h1>
 
@@ -226,7 +226,7 @@ function HomePage({
               <p className="text-[#E0905A] text-xs tracking-[0.28em] uppercase font-medium mb-3">
                 {productsEyebrow}
               </p>
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-[#1A1A1A]">
+              <h2 className="text-2xl min-[425px]:text-3xl md:text-4xl lg:text-5xl font-extrabold text-[#1A1A1A]">
                 {productsTitle}
               </h2>
             </div>
@@ -246,7 +246,7 @@ function HomePage({
             <p className="text-[#E0905A] text-xs tracking-[0.28em] uppercase font-medium mb-3">
               {testimonialsEyebrow}
             </p>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-[#1A1A1A]">
+            <h2 className="text-2xl min-[425px]:text-3xl md:text-4xl lg:text-5xl font-extrabold text-[#1A1A1A]">
               {testimonialsTitle}
             </h2>
           </div>
@@ -260,7 +260,7 @@ function HomePage({
             <p className="text-[#E0905A] text-xs tracking-[0.28em] uppercase font-medium mb-3">
               {featuresEyebrow}
             </p>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-[#1A1A1A]">
+            <h2 className="text-2xl min-[425px]:text-3xl md:text-4xl lg:text-5xl font-extrabold text-[#1A1A1A]">
               {featuresTitle}
             </h2>
           </div>
@@ -272,7 +272,7 @@ function HomePage({
             <p className="text-[#E0905A] text-xs tracking-[0.28em] uppercase font-medium mb-3">
               {catalogEyebrow}
             </p>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-[#1A1A1A]">
+            <h2 className="text-2xl min-[425px]:text-3xl md:text-4xl lg:text-5xl font-extrabold text-[#1A1A1A]">
               {catalogTitle}
             </h2>
           </div>

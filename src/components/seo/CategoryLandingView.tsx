@@ -75,7 +75,7 @@ export default function CategoryLandingView({
       />
 
       {sections.length > 0 ? (
-        <div className="max-w-7xl mx-auto px-5 sm:px-6 py-12 sm:py-16 lg:py-20 space-y-14 lg:space-y-24">
+        <div className="max-w-7xl mx-auto px-5 sm:px-6 py-8 sm:py-16 lg:py-20 space-y-8 sm:space-y-14 lg:space-y-24">
           {sections.map((block, index) => (
             <HubContentBlock key={index} block={block} index={index} />
           ))}
@@ -85,9 +85,9 @@ export default function CategoryLandingView({
       <RelatedProjects items={related} />
 
       <section className="bg-[#1A2332] text-white">
-        <div className="max-w-7xl mx-auto px-5 sm:px-6 py-12 sm:py-14 lg:py-16 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+        <div className="max-w-7xl mx-auto px-5 sm:px-6 py-8 sm:py-14 lg:py-16 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6">
           <div>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold">
+            <h2 className="text-2xl min-[425px]:text-3xl md:text-4xl lg:text-5xl font-extrabold break-words">
               {footerHeading}
             </h2>
             <p className="mt-2 text-white/70 max-w-lg text-sm sm:text-base">

@@ -156,7 +156,7 @@ export default async function SeoHubLandingPage({
       />
 
       {data.sections.length > 0 ? (
-        <div className="max-w-7xl mx-auto px-5 sm:px-6 py-12 sm:py-16 lg:py-20 space-y-14 lg:space-y-24">
+        <div className="max-w-7xl mx-auto px-5 sm:px-6 py-8 sm:py-16 lg:py-20 space-y-8 sm:space-y-14 lg:space-y-24">
           {data.sections.map((block, index) => (
             <HubContentBlock
               key={index}

@@ -27,14 +27,14 @@ function AccordionRow({
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="w-full flex items-start justify-between gap-6 py-6 text-left"
+        className="w-full flex items-start justify-between gap-3 sm:gap-6 py-3 sm:py-6 text-left"
         aria-expanded={open}
       >
-        <span className="text-base sm:text-lg font-semibold text-[#1A1A1A] leading-7">
+        <span className="text-sm sm:text-lg font-semibold text-[#1A1A1A] leading-5 sm:leading-7">
           {question}
         </span>
         <span
-          className={`shrink-0 w-9 h-9 rounded-full border border-[#D8CFC3] flex items-center justify-center text-[#1A1A1A] text-xl leading-none transition-transform duration-300 ease-out ${
+          className={`shrink-0 w-7 h-7 sm:w-9 sm:h-9 rounded-full border border-[#D8CFC3] flex items-center justify-center text-[#1A1A1A] text-sm sm:text-xl leading-none transition-transform duration-300 ease-out ${
             open ? "rotate-45 bg-[#E0905A] border-[#E0905A] text-white" : ""
           }`}
         >
@@ -47,7 +47,7 @@ function AccordionRow({
         }`}
       >
         <div className="overflow-hidden">
-          <p className="text-[#6B6B6B] text-sm sm:text-[15px] leading-7 max-w-3xl pr-12 pb-6">
+          <p className="text-[#6B6B6B] text-xs sm:text-[15px] leading-5 sm:leading-7 max-w-3xl pr-6 sm:pr-12 pb-3 sm:pb-6">
             {answer}
           </p>
         </div>
@@ -114,18 +114,18 @@ export default function HomeFaqSection() {
   }, [dedicatedFaqs, faqCms, locale]);
 
   return (
-    <section id="home-faq" className="bg-[#F5F3EF] pt-10 lg:pt-12 pb-16 lg:pb-20 scroll-mt-28">
+    <section id="home-faq" className="bg-[#F5F3EF] pt-6 sm:pt-10 lg:pt-12 pb-8 sm:pb-16 lg:pb-20 scroll-mt-28">
       <div className="max-w-7xl mx-auto px-6">
-        <p className="text-[#E0905A] text-xs tracking-[0.28em] uppercase font-medium mb-3">
+        <p className="text-[#E0905A] text-[10px] sm:text-xs tracking-[0.28em] uppercase font-medium mb-1.5 sm:mb-3">
           {eyebrow}
         </p>
-                        <div className="max-w-4xl flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8 lg:mb-10">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-[#1A1A1A]">
+        <div className="max-w-4xl flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 sm:gap-4 mb-4 sm:mb-8 lg:mb-10">
+          <h2 className="text-2xl min-[425px]:text-3xl md:text-4xl lg:text-5xl font-extrabold text-[#1A1A1A]">
             {title}
           </h2>
           <Link
             href="/faq"
-            className="shrink-0 inline-flex items-center gap-2 text-sm font-medium text-[#1A1A1A] hover:text-[#E0905A] transition-colors"
+            className="shrink-0 inline-flex items-center gap-2 text-xs sm:text-sm font-medium text-[#1A1A1A] hover:text-[#E0905A] transition-colors"
           >
             {t("home.faq.viewAll")}
             <span aria-hidden>→</span>

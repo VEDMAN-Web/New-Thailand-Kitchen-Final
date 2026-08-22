@@ -35,7 +35,7 @@ export default function ProductsHero() {
 
   return (
     <section className="bg-[#F5F3EF] px-3 pt-[80px] sm:px-4 sm:pt-[84px]">
-      <div className="relative w-full h-[300px] sm:h-[360px] md:h-[420px] lg:h-[460px] rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden">
+      <div className="relative w-full h-48 sm:h-[360px] md:h-[420px] lg:h-[460px] rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden">
         <video
           ref={videoRef}
           key={videoSrc}
@@ -57,7 +57,7 @@ export default function ProductsHero() {
           <p className="text-white/80 text-xs tracking-[0.28em] uppercase font-medium mb-3">
             {label}
           </p>
-          <h1 className="text-white text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight">
+          <h1 className="text-white text-2xl min-[425px]:text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight break-words">
             {title}
           </h1>
         </div>

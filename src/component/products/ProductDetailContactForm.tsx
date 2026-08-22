@@ -12,7 +12,7 @@ export default function ProductDetailContactForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-7"
+      className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 sm:gap-y-7"
     >
       <HomeContactInput
         label={t("form.fullName")}

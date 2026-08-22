@@ -171,19 +171,22 @@ export default function StatsSection() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="bg-[#1A1A1A] py-10 lg:py-12">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="flex flex-col sm:flex-row items-stretch">
+    <section
+      ref={sectionRef}
+      className="bg-[#1A1A1A] min-h-[50vh] sm:min-h-0 flex items-center sm:block py-6 sm:py-10 lg:py-12"
+    >
+      <div className="max-w-7xl mx-auto px-6 w-full">
+        <div className="flex flex-col sm:flex-row items-stretch gap-3 sm:gap-0">
           {stats.map((item, index) => (
             <div
               key={`${item.label || item.titleKey}-${index}`}
-              className={`flex-1 text-center py-5 sm:py-0 px-4 sm:px-8 ${
+              className={`flex-1 text-center py-1.5 sm:py-0 px-4 sm:px-8 ${
                 index < stats.length - 1
-                  ? "border-b sm:border-b-0 sm:border-r border-white/15"
+                  ? "border-b sm:border-b-0 sm:border-r border-white/15 pb-3 sm:pb-0"
                   : ""
               }`}
             >
-              <p className="text-3xl md:text-4xl lg:text-5xl font-semibold text-white tracking-tight tabular-nums">
+              <p className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold text-white tracking-tight tabular-nums">
                 <CountValue
                   from={item.from}
                   to={item.to}
@@ -191,7 +194,7 @@ export default function StatsSection() {
                   active={active}
                 />
               </p>
-              <p className="mt-2 text-sm md:text-base text-white/55">
+              <p className="mt-1 sm:mt-2 text-xs sm:text-sm md:text-base text-white/55">
                 {item.label ? item.label : t(item.titleKey)}
               </p>
             </div>

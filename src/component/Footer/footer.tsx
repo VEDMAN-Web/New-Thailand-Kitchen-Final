@@ -279,7 +279,7 @@ export default function Footer() {
               ))}
             </div>
 
-            <p className="mt-6 mb-0 text-white text-sm leading-6 whitespace-nowrap">
+            <p className="mt-6 mb-0 text-white text-xs sm:text-sm leading-6 break-words">
               {t("footer.copartnered")}{" "}
               <a
                 href="https://www.oppoliahome.com/"
