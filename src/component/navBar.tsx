@@ -255,8 +255,23 @@ const Navbar = () => {
   };
 
   const selectLanguage = (code: Locale) => {
+    // Immediately set cookie and document locale (synchronous, no delays)
+    try {
+      document.cookie = `tk-locale=${code}; path=/; max-age=31536000; SameSite=Lax`;
+      localStorage.setItem("tk-locale", code);
+      document.documentElement.dataset.locale = code;
+      document.documentElement.lang = code === "TH" ? "th" : code === "PL" ? "pl" : "en";
+    } catch (e) {
+      console.warn("Failed to persist locale:", e);
+    }
+    
+    // Update React state (will trigger LanguageProvider's fade animation)
     setLocale(code);
     setIsOpen(false);
+    
+    // Force server to re-render with new locale
+    // Cookie is guaranteed to be set before this executes
+    router.refresh();
   };
 
   const goToResult = (href: string) => {

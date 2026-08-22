@@ -22,7 +22,7 @@ export default function ProductDetailNarrative({ product }: Props) {
   const description = pickCmsText(product.description, "", locale);
 
   return (
-    <section className="pt-14 sm:pt-16 lg:pt-20 max-w-4xl">
+    <section className="pt-8 sm:pt-16 lg:pt-20 max-w-4xl">
       <div className="flex items-center gap-3 mb-4">
         {icon ? (
           <span className="relative h-8 w-8 shrink-0">
@@ -40,7 +40,7 @@ export default function ProductDetailNarrative({ product }: Props) {
           {tag}
         </p>
       </div>
-      <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-[#1A1A1A] leading-tight">
+      <h2 className="text-2xl min-[425px]:text-3xl md:text-4xl lg:text-5xl font-extrabold text-[#1A1A1A] leading-tight break-words">
         {headline}
       </h2>
       <p className="mt-5 sm:mt-6 text-[#5A5A5A] text-sm sm:text-base leading-7 sm:leading-8 max-w-3xl">
@@ -52,7 +52,7 @@ export default function ProductDetailNarrative({ product }: Props) {
           target="_blank"
           rel="noopener noreferrer"
           download
-          className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#1A1A1A] text-white px-5 py-2.5 text-sm font-semibold hover:bg-black transition"
+          className="mt-4 sm:mt-6 inline-flex items-center gap-2 rounded-full bg-[#1A1A1A] text-white px-5 py-2.5 text-sm font-semibold hover:bg-black transition"
         >
           <Download size={16} />
           {t("productDetail.narrative.download")}

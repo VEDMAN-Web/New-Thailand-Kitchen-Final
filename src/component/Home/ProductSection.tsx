@@ -17,8 +17,17 @@ function toProductHref(slug: string) {
   return clean ? `/products/${encodeURIComponent(clean)}` : "/products";
 }
 
+const HOME_PRODUCT_LIMIT = 3;
+
+/** Homepage band is Best Sellers only (max 3). The rest live on /products. */
+function pickHomeProducts(list: ProductItem[]): ProductItem[] {
+  const featured = list.filter((p) => p.bestSeller);
+  const source = featured.length > 0 ? featured : list;
+  return source.slice(0, HOME_PRODUCT_LIMIT);
+}
+
 function toCards(list: ProductItem[], locale: Locale) {
-  return list.slice(0, 3).map((p) => ({
+  return pickHomeProducts(list).map((p) => ({
     key: p.slug || String(p.id),
     title: pickCmsText(p.name, "", locale),
     image: p.image,
@@ -47,7 +56,7 @@ const ProductSection = ({
     <section className="pb-6 lg:pb-8">
       <div className="max-w-7xl mx-auto px-6">
         <div
-          className="flex flex-col sm:flex-row gap-3 sm:gap-4 h-auto sm:h-[520px] lg:h-[600px]"
+          className="flex flex-col sm:flex-row gap-2 sm:gap-4 h-auto sm:h-[520px] lg:h-[600px]"
           onMouseLeave={() => setActive(null)}
         >
           {showSkeleton
@@ -56,8 +65,8 @@ const ProductSection = ({
                   key={`skeleton-${index}`}
                   className="sm:flex-1 min-w-0"
                 >
-                  <div className="relative w-full h-[320px] sm:h-full overflow-hidden rounded-2xl bg-[#E8E4DC]" />
-                  <div className="mt-4 h-4 w-2/3 rounded bg-[#E8E4DC]" />
+                  <div className="relative w-full h-50 sm:h-full overflow-hidden rounded-2xl bg-[#E8E4DC]" />
+                  <div className="mt-2 sm:mt-4 h-4 w-2/3 rounded bg-[#E8E4DC]" />
                 </div>
               ))
             : items.map((product, index) => {
@@ -81,7 +90,7 @@ const ProductSection = ({
                       : "sm:flex-[0.8]"
                 }`}
               >
-                <div className="relative w-full h-[320px] sm:h-full overflow-hidden rounded-2xl">
+                <div className="relative w-full h-50 sm:h-full overflow-hidden rounded-2xl">
                   <Image
                     src={product.image}
                     alt={product.title}
@@ -95,7 +104,7 @@ const ProductSection = ({
                 </div>
 
                 <p
-                  className={`mt-4 text-sm sm:text-base font-bold uppercase tracking-[0.08em] text-[#1A1A1A] transition-opacity duration-500 ${
+                  className={`mt-2 sm:mt-4 text-xs sm:text-base font-bold uppercase tracking-[0.08em] text-[#1A1A1A] transition-opacity duration-500 ${
                     isIdle || isActive ? "opacity-100" : "opacity-70"
                   }`}
                 >

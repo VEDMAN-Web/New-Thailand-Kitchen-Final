@@ -17,6 +17,7 @@ import {
 } from "../../../services/cmsPublic";
 import { pickCmsText } from "../../../lib/cmsText";
 import { absoluteUrl, ogImageUrl } from "../../../lib/siteUrl";
+import { getServerLocale } from "../../../lib/serverLocale";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -36,10 +37,11 @@ async function buildKnownCategoryTabs(items: ProductItem[]): Promise<string[]> {
   const extras: string[] = [];
 
   try {
+    const locale = await getServerLocale();
     const cats = await fetchMergedCategories();
     for (const cat of cats) {
       if (String(cat.categoryType || "") !== "layout") continue;
-      const id = pickCmsText(cat.title, "", "EN");
+      const id = pickCmsText(cat.title, "", locale);
       if (id) extras.push(id);
     }
   } catch {
@@ -95,12 +97,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: 'Product Not Found' };
   }
 
+  const locale = await getServerLocale();
   const title =
     product.metaTitle ||
-    `${pickCmsText((product as any).title || product.name, "", "EN")} | Thailand Kitchens`;
+    `${pickCmsText((product as any).title || product.name, "", locale)} | Thailand Kitchens`;
   const description =
     product.metaDescription ||
-    pickCmsText((product as any).description || "", "", "EN");
+    pickCmsText((product as any).description || "", "", locale);
   const canonical = absoluteUrl(`/products/${product.slug}`);
   const image = ogImageUrl(product.image);
 
@@ -139,12 +142,14 @@ export default async function ProductDetailPage({ params }: Props) {
     .replace(/^\/+|\/+$/g, "")
     .toLowerCase();
 
+  const locale = await getServerLocale();
+
   // STEP 1: Check if this is a real product in the database (highest priority)
   const product = await fetchProductBySlug(normalized);
   
   if (product) {
-    const productTitle = pickCmsText((product as any).title || product.name, '', 'EN');
-    const productDesc = pickCmsText((product as any).description || product.description, '', 'EN');
+    const productTitle = pickCmsText((product as any).title || product.name, '', locale);
+    const productDesc = pickCmsText((product as any).description || product.description, '', locale);
 
     return (
       <main className="w-full">
@@ -194,8 +199,8 @@ export default async function ProductDetailPage({ params }: Props) {
   );
   if (!fromStatic) notFound();
   
-  const productName = pickCmsText((fromStatic as any).title || fromStatic.name, '', 'EN');
-  const productDesc = pickCmsText((fromStatic as any).description || fromStatic.description, '', 'EN');
+  const productName = pickCmsText((fromStatic as any).title || fromStatic.name, '', locale);
+  const productDesc = pickCmsText((fromStatic as any).description || fromStatic.description, '', locale);
   
   return (
     <main className="w-full">

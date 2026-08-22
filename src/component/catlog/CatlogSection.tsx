@@ -291,10 +291,10 @@ export default function CatlogSection() {
 
   return (
     <>
-      <section className="pb-16 lg:pb-20">
+      <section className="pb-8 sm:pb-16 lg:pb-20">
         <div className="max-w-7xl mx-auto px-6">
           <div
-            className="flex flex-col sm:flex-row gap-3 sm:gap-4 h-auto sm:h-[520px] lg:h-[600px]"
+            className="flex flex-col sm:flex-row gap-2 sm:gap-4 h-auto sm:h-[520px] lg:h-[600px]"
             onMouseLeave={() => setActive(null)}
           >
             {items.length === 0 ? (
@@ -324,7 +324,7 @@ export default function CatlogSection() {
                         : "sm:flex-[0.8]"
                   }`}
                 >
-                  <div className="relative w-full h-[320px] sm:h-full overflow-hidden rounded-2xl">
+                  <div className="relative w-full h-50 sm:h-full overflow-hidden rounded-2xl">
                     {imageSrc ? (
                       <CmsResolvedImage
                         src={imageSrc}
@@ -370,14 +370,14 @@ export default function CatlogSection() {
                   </div>
 
                   <div
-                    className={`mt-4 transition-opacity duration-500 ${
+                    className={`mt-2 sm:mt-4 transition-opacity duration-500 ${
                       isIdle || isActive ? "opacity-100" : "opacity-70"
                     }`}
                   >
-                    <p className="text-[11px] tracking-[0.18em] uppercase text-[#E0905A] font-semibold mb-1">
+                    <p className="text-[10px] sm:text-[11px] tracking-[0.18em] uppercase text-[#E0905A] font-semibold mb-0.5 sm:mb-1">
                       {category}
                     </p>
-                    <p className="text-sm sm:text-base font-bold uppercase tracking-[0.08em] text-[#1A1A1A]">
+                    <p className="text-xs sm:text-base font-bold uppercase tracking-[0.08em] text-[#1A1A1A]">
                       {title}
                     </p>
                   </div>

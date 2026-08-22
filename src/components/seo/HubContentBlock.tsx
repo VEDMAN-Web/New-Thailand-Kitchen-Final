@@ -91,18 +91,18 @@ export default function HubContentBlock({
 
   if (layout === "band") {
     return (
-      <section className="rounded-2xl sm:rounded-3xl bg-[#1A2332] text-white px-6 sm:px-10 py-10 sm:py-14">
+      <section className="rounded-2xl sm:rounded-3xl bg-[#1A2332] text-white px-5 sm:px-10 py-6 sm:py-14">
         <div className="max-w-3xl">
           <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[#B38B6D] mb-3">
             Next step
           </p>
           {heading ? (
-            <h2 className="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl leading-tight">
+            <h2 className="font-sans font-extrabold text-2xl min-[425px]:text-3xl md:text-4xl lg:text-5xl leading-tight break-words">
               {heading}
             </h2>
           ) : null}
           {body ? (
-            <p className="mt-4 text-white/75 text-sm sm:text-base leading-7 whitespace-pre-line">
+            <p className="mt-3 sm:mt-4 text-white/75 text-sm sm:text-base leading-7 whitespace-pre-line">
               {body}
             </p>
           ) : null}
@@ -113,11 +113,11 @@ export default function HubContentBlock({
 
   if (layout === "quote") {
     return (
-      <section className="rounded-2xl border border-[#E8E4DC] bg-white px-6 sm:px-12 py-10 sm:py-14 text-center">
+      <section className="rounded-2xl border border-[#E8E4DC] bg-white px-5 sm:px-12 py-6 sm:py-14 text-center">
         <p className="text-[#B38B6D] text-3xl mb-4" aria-hidden>
           “
         </p>
-        <blockquote className="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl text-[#1A2332] leading-snug max-w-3xl mx-auto">
+        <blockquote className="font-sans font-extrabold text-2xl min-[425px]:text-3xl md:text-4xl lg:text-5xl text-[#1A2332] leading-snug max-w-3xl mx-auto break-words">
           {heading}
         </blockquote>
         {body ? (
@@ -137,7 +137,7 @@ export default function HubContentBlock({
       <section>
         <SectionEyebrow index={index} label="Highlights" />
         {heading ? (
-          <h2 className="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-8 max-w-2xl leading-tight">
+          <h2 className="font-sans font-extrabold text-2xl min-[425px]:text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-5 sm:mb-8 max-w-2xl leading-tight break-words">
             {heading}
           </h2>
         ) : null}
@@ -166,7 +166,7 @@ export default function HubContentBlock({
               </>
             );
             const cardClassName =
-              "rounded-2xl bg-white border border-[#E8E4DC] p-5 sm:p-6" +
+              "rounded-2xl bg-white border border-[#E8E4DC] p-4 sm:p-6" +
               (href
                 ? " transition-all hover:border-[#B38B6D] hover:shadow-[0_8px_24px_rgba(26,35,50,0.08)] hover:-translate-y-0.5"
                 : "");
@@ -186,7 +186,7 @@ export default function HubContentBlock({
           })}
         </div>
         {image ? (
-          <div className="relative mt-8 aspect-[21/9] rounded-2xl overflow-hidden bg-[#E8E4DC]">
+          <div className="relative mt-5 sm:mt-8 aspect-[21/9] rounded-2xl overflow-hidden bg-[#E8E4DC]">
             <Image
               src={image}
               alt={heading || "Highlights"}
@@ -204,11 +204,11 @@ export default function HubContentBlock({
   if (layout === "steps") {
     const steps = items.length ? items : [];
     return (
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-8 lg:gap-12 items-center">
         <div>
           <SectionEyebrow index={index} label="Process" />
           {heading ? (
-            <h2 className="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-8 leading-tight">
+            <h2 className="font-sans font-extrabold text-2xl min-[425px]:text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-5 sm:mb-8 leading-tight break-words">
               {heading}
             </h2>
           ) : null}
@@ -252,9 +252,9 @@ export default function HubContentBlock({
   if (layout === "stats") {
     const stats = items.length ? items : [];
     return (
-      <section className="rounded-2xl sm:rounded-3xl bg-[#FAF8F5] border border-[#E8E4DC] px-5 sm:px-8 py-8 sm:py-10">
+      <section className="rounded-2xl sm:rounded-3xl bg-[#FAF8F5] border border-[#E8E4DC] px-5 sm:px-8 py-5 sm:py-10">
         {heading ? (
-          <h2 className="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-6 text-center">
+          <h2 className="font-sans font-extrabold text-2xl min-[425px]:text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-4 sm:mb-6 text-center break-words">
             {heading}
           </h2>
         ) : null}
@@ -280,7 +280,7 @@ export default function HubContentBlock({
   if (layout === "checklist") {
     const checks = items.length ? items : [];
     return (
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-8 lg:gap-12 items-center">
         {image ? (
           <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-[#E8E4DC] lg:order-2">
             <Image
@@ -296,7 +296,7 @@ export default function HubContentBlock({
         <div className={image ? "lg:order-1" : ""}>
           <SectionEyebrow index={index} label="What matters" />
           {heading ? (
-            <h2 className="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-6 leading-tight">
+            <h2 className="font-sans font-extrabold text-2xl min-[425px]:text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-4 sm:mb-6 leading-tight break-words">
               {heading}
             </h2>
           ) : null}
@@ -326,22 +326,22 @@ export default function HubContentBlock({
   if (layout === "split-dark") {
     return (
       <section className="grid grid-cols-1 lg:grid-cols-2 rounded-2xl sm:rounded-3xl overflow-hidden border border-[#E8E4DC]">
-        <div className="bg-[#1A2332] text-white px-6 sm:px-10 py-10 sm:py-14 flex flex-col justify-center">
+        <div className="bg-[#1A2332] text-white px-5 sm:px-10 py-6 sm:py-14 flex flex-col justify-center">
           <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[#B38B6D] mb-3">
             Spotlight
           </p>
           {heading ? (
-            <h2 className="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl leading-tight">
+            <h2 className="font-sans font-extrabold text-2xl min-[425px]:text-3xl md:text-4xl lg:text-5xl leading-tight break-words">
               {heading}
             </h2>
           ) : null}
           {body ? (
-            <p className="mt-4 text-white/75 text-sm sm:text-base leading-7 whitespace-pre-line">
+            <p className="mt-3 sm:mt-4 text-white/75 text-sm sm:text-base leading-7 whitespace-pre-line">
               {body}
             </p>
           ) : null}
         </div>
-        <div className="relative min-h-[240px] sm:min-h-[320px] bg-[#E8E4DC]">
+        <div className="relative min-h-45 sm:min-h-[320px] bg-[#E8E4DC]">
           {image ? (
             <Image
               src={image}
@@ -361,7 +361,7 @@ export default function HubContentBlock({
     return (
       <section>
         {image ? (
-          <div className="relative aspect-[16/9] sm:aspect-[21/9] rounded-2xl sm:rounded-3xl overflow-hidden bg-[#E8E4DC] mb-6 sm:mb-8">
+          <div className="relative h-50 sm:h-auto sm:aspect-[21/9] rounded-2xl sm:rounded-3xl overflow-hidden bg-[#E8E4DC] mb-4 sm:mb-8">
             <Image
               src={image}
               alt={heading || "Feature"}
@@ -375,7 +375,7 @@ export default function HubContentBlock({
         <div className="max-w-3xl">
           <SectionEyebrow index={index} label="Feature" />
           {heading ? (
-            <h2 className="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-4 leading-tight">
+            <h2 className="font-sans font-extrabold text-2xl min-[425px]:text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-4 leading-tight break-words">
               {heading}
             </h2>
           ) : null}
@@ -394,7 +394,7 @@ export default function HubContentBlock({
       <section className="max-w-3xl">
         <SectionEyebrow index={index} />
         {heading ? (
-          <h2 className="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-4">
+          <h2 className="font-sans font-extrabold text-2xl min-[425px]:text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-4 break-words">
             {heading}
           </h2>
         ) : null}
@@ -410,7 +410,7 @@ export default function HubContentBlock({
   const imageLeft = layout !== "image-right";
 
   return (
-    <section className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-14 items-center">
+    <section className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-8 lg:gap-14 items-center">
       <div
         className={`relative aspect-[4/3] sm:aspect-[5/4] rounded-2xl overflow-hidden bg-[#E8E4DC] shadow-[0_12px_40px_rgba(26,35,50,0.08)] ${
           imageLeft ? "lg:order-1" : "lg:order-2"
@@ -432,7 +432,7 @@ export default function HubContentBlock({
       <div className={imageLeft ? "lg:order-2" : "lg:order-1"}>
         <SectionEyebrow index={index} />
         {heading ? (
-          <h2 className="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-4 leading-tight">
+          <h2 className="font-sans font-extrabold text-2xl min-[425px]:text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-4 leading-tight break-words">
             {heading}
           </h2>
         ) : null}

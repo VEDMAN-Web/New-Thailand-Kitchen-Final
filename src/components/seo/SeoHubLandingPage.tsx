@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import { fetchHomeSections } from "../../services/cmsPublic";
 import { pickCmsText } from "../../lib/cmsText";
 import { absoluteUrl, ogImageUrl } from "../../lib/siteUrl";
+import { getServerLocale } from "../../lib/serverLocale";
 import Breadcrumbs from "./Breadcrumbs";
 import OverlayHeroBanner from "./OverlayHeroBanner";
 import HubContentBlock from "./HubContentBlock";
+import type { Locale } from "../../i18n/translations";
 import {
   hubNavByKey,
   type HubNavKey,
@@ -27,7 +29,8 @@ type Props = {
 function resolveHubData(
   hubPages: Record<string, HubPageCms> | undefined,
   hubKey: HubNavKey,
-  kitchensSubKey?: KitchensSectionKey
+  kitchensSubKey?: KitchensSectionKey,
+  locale: Locale = "EN"
 ) {
   const config = hubNavByKey(hubKey);
   const root = hubPages?.[hubKey] || {};
@@ -54,19 +57,19 @@ function resolveHubData(
     title: pickCmsText(
       sub?.title || root.title,
       sectionMeta?.label || config.fallbackTitle,
-      "EN"
+      locale
     ),
     description: pickCmsText(
       sub?.description || root.description,
       sectionMeta?.description || config.fallbackDescription,
-      "EN"
+      locale
     ),
     eyebrow: pickCmsText(
       sub?.eyebrow || root.eyebrow,
       kitchensSubKey
         ? `Kitchens · ${sectionMeta?.label || ""}`
         : config.fallbackTitle,
-      "EN"
+      locale
     ),
     heroImage: String(
       sub?.heroImage || root.heroImage || "/products/Kitchen1.png"
@@ -74,7 +77,7 @@ function resolveHubData(
     ctaLabel: pickCmsText(
       sub?.ctaLabel || root.ctaLabel,
       "Book a free consultation",
-      "EN"
+      locale
     ),
     ctaHref: String(sub?.ctaHref || root.ctaHref || "/contact").trim(),
     sections,
@@ -89,10 +92,11 @@ export async function generateHubMetadata(
   hubKey: HubNavKey,
   kitchensSubKey?: KitchensSectionKey
 ): Promise<Metadata> {
+  const locale = await getServerLocale();
   const home = await fetchHomeSections().catch(() => ({}));
   const hubPages = (home as { hubPages?: Record<string, HubPageCms> })
     ?.hubPages;
-  const data = resolveHubData(hubPages, hubKey, kitchensSubKey);
+  const data = resolveHubData(hubPages, hubKey, kitchensSubKey, locale);
 
   const title = `${data.title} | Thailand Kitchens`;
   const description = data.description;
@@ -124,10 +128,11 @@ export default async function SeoHubLandingPage({
   kitchensSubKey,
   breadcrumbTrail,
 }: Props) {
+  const locale = await getServerLocale();
   const home = await fetchHomeSections().catch(() => ({}));
   const hubPages = (home as { hubPages?: Record<string, HubPageCms> })
     ?.hubPages;
-  const data = resolveHubData(hubPages, hubKey, kitchensSubKey);
+  const data = resolveHubData(hubPages, hubKey, kitchensSubKey, locale);
 
   const trail =
     breadcrumbTrail ||
@@ -156,13 +161,14 @@ export default async function SeoHubLandingPage({
       />
 
       {data.sections.length > 0 ? (
-        <div className="max-w-7xl mx-auto px-5 sm:px-6 py-12 sm:py-16 lg:py-20 space-y-14 lg:space-y-24">
+        <div className="max-w-7xl mx-auto px-5 sm:px-6 py-8 sm:py-16 lg:py-20 space-y-8 sm:space-y-14 lg:space-y-24">
           {data.sections.map((block, index) => (
             <HubContentBlock
               key={index}
               block={block}
               index={index}
               hubHref={kitchensSubKey ? undefined : data.config.href}
+              locale={locale}
             />
           ))}
         </div>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { pickCmsText } from "../../lib/cmsText";
+import type { Locale } from "../../i18n/translations";
 
 export type RelatedProjectItem = {
   id: string;
@@ -21,11 +22,11 @@ export default function RelatedProjects({
 
   return (
     <section className="w-full bg-[#F5F3EF] border-t border-[#E8E4DC]">
-      <div className="max-w-7xl mx-auto px-6 py-12 lg:py-16">
-        <h2 className="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-8">
+      <div className="max-w-7xl mx-auto px-6 py-8 sm:py-12 lg:py-16">
+        <h2 className="font-sans font-extrabold text-2xl min-[425px]:text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-5 sm:mb-8 break-words">
           {heading}
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {items.map((item) => {
             const inner = (
               <>
@@ -59,7 +60,7 @@ export default function RelatedProjects({
             );
           })}
         </div>
-        <p className="mt-8">
+        <p className="mt-5 sm:mt-8">
           <Link
             href="/gallery"
             className="text-sm font-semibold text-[#1A2332] underline underline-offset-4"
@@ -72,10 +73,13 @@ export default function RelatedProjects({
   );
 }
 
-export function projectTitleFromCms(item: {
-  projectTitle?: string;
-  title?: unknown;
-}): string {
+export function projectTitleFromCms(
+  item: {
+    projectTitle?: string;
+    title?: unknown;
+  },
+  locale: Locale = "EN"
+): string {
   if (item.projectTitle?.trim()) return item.projectTitle.trim();
-  return pickCmsText(item.title, "Project", "EN");
+  return pickCmsText(item.title, "Project", locale);
 }

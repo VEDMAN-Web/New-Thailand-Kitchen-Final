@@ -46,6 +46,8 @@ function readStoredLocale(): Locale | null {
 function persistLocale(locale: Locale) {
   try {
     localStorage.setItem(STORAGE_KEY, locale);
+    // Also set cookie for server-side rendering
+    document.cookie = `${STORAGE_KEY}=${locale}; path=/; max-age=31536000; SameSite=Lax`;
   } catch {
     /* ignore */
   }
@@ -84,9 +86,10 @@ export function LanguageProvider({
   children: React.ReactNode;
   initialLocale?: Locale;
 }) {
-  // Cookie (SSR) → boot script dataset → EN. Avoids EN→TH hydration flash.
+  // Use initialLocale from server first (prevents hydration mismatch),
+  // then sync with client-side storage after mount
   const [locale, setLocaleState] = useState<Locale>(
-    () => readDomLocale() || (isLocale(initialLocale) ? initialLocale : "EN")
+    isLocale(initialLocale) ? initialLocale : "EN"
   );
   const [, startTransition] = useTransition();
   const fadeRef = useRef<HTMLDivElement>(null);
@@ -94,11 +97,13 @@ export function LanguageProvider({
   localeRef.current = locale;
 
   useEffect(() => {
-    const saved = readDomLocale() || readStoredLocale() || initialLocale || "EN";
-    if (saved !== localeRef.current) {
-      setLocaleState(saved);
+    // After mount, sync with client-side cookie/localStorage
+    // Boot script has already set dataset.locale from cookie
+    const clientLocale = readDomLocale() || readStoredLocale() || initialLocale || "EN";
+    if (clientLocale !== localeRef.current) {
+      setLocaleState(clientLocale);
     }
-    applyDocumentLocale(saved);
+    applyDocumentLocale(clientLocale);
   }, [initialLocale]);
 
   useEffect(() => {

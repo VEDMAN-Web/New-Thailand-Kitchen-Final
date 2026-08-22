@@ -15,6 +15,7 @@ import {
   type CmsCategory,
 } from "../../services/cmsPublic";
 import { pickCmsText } from "../../lib/cmsText";
+import type { Locale } from "../../i18n/translations";
 import {
   categoryBreadcrumbTrail,
   categoryPublicPath,
@@ -22,6 +23,7 @@ import {
   type CategoryType,
 } from "../../lib/categoryRoutes";
 import { absoluteUrl, ogImageUrl, SITE_ORIGIN } from "../../lib/siteUrl";
+import { getServerLocale } from "../../lib/serverLocale";
 
 function normalizeSlug(slug: string) {
   return String(slug || "")
@@ -38,10 +40,10 @@ function parentSlugOf(category: CmsCategory): string {
   return "";
 }
 
-function parentTitleOf(category: CmsCategory): string {
+function parentTitleOf(category: CmsCategory, locale: Locale = "EN"): string {
   const parent = category.parentId;
   if (parent && typeof parent === "object" && "title" in parent) {
-    return pickCmsText((parent as { title?: unknown }).title, "", "EN");
+    return pickCmsText((parent as { title?: unknown }).title, "", locale);
   }
   return "";
 }
@@ -64,11 +66,12 @@ export async function generateCategoryMetadata(
     return { title: `${fallbackLabel} Not Found` };
   }
 
+  const locale = await getServerLocale();
   const title =
     category.metaTitle ||
-    `${pickCmsText(category.title, "", "EN")} | Thailand Kitchens`;
+    `${pickCmsText(category.title, "", locale)} | Thailand Kitchens`;
   const description =
-    category.metaDescription || pickCmsText(category.description, "", "EN");
+    category.metaDescription || pickCmsText(category.description, "", locale);
 
   const path = categoryPublicPath(category);
   const canonical = category.canonicalUrl || absoluteUrl(path);
@@ -131,12 +134,15 @@ export async function CategoryCommercialPage({
     if (parentSlugOf(category) !== locationSlug) notFound();
   }
 
+  // Get user's locale preference from server
+  const locale = await getServerLocale();
+
   const categoryTitle = pickCmsText(
     category.title,
     categorySectionLabel(categoryType),
-    "EN"
+    locale
   );
-  const description = pickCmsText(category.description, "", "EN");
+  const description = pickCmsText(category.description, "", locale);
   const relatedRaw = await getRelatedGalleryProjects(categoryType, {
     slug: normalized,
     title: categoryTitle,
@@ -145,13 +151,13 @@ export async function CategoryCommercialPage({
   const related: RelatedProjectItem[] = relatedRaw.map((g) => ({
     id: String(g.id),
     image: g.image,
-    title: projectTitleFromCms(g),
+    title: projectTitleFromCms(g, locale),
     description: g.projectDesc || undefined,
     href: "/gallery",
   }));
 
   const locSlug = locationSlug || parentSlugOf(category);
-  const locTitle = parentTitleOf(category) || locSlug;
+  const locTitle = parentTitleOf(category, locale) || locSlug;
   const trail = categoryBreadcrumbTrail(categoryType, {
     locationSlug: categoryType === "service" ? locSlug || undefined : undefined,
     locationTitle: locTitle || undefined,
@@ -194,6 +200,7 @@ export async function CategoryCommercialPage({
         category={category}
         related={related}
         sectionLabel={categorySectionLabel(categoryType)}
+        locale={locale}
       />
     </main>
   );

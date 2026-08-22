@@ -26,9 +26,9 @@ export default function ProductDetailFeatures({ product }: Props) {
   const goNext = () => setActive((i) => (i + 1) % total);
 
   return (
-    <section className="pt-16 sm:pt-20 lg:pt-24 pb-4">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center">
-        <ul className="space-y-8 sm:space-y-10">
+    <section className="pt-8 sm:pt-20 lg:pt-24 pb-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-10 lg:gap-14 items-center">
+        <ul className="space-y-5 sm:space-y-10">
           {product.features.map((feature, index) => {
             const title = pickCmsText(feature.title as any, "", locale);
             const description = pickCmsText(
@@ -37,7 +37,7 @@ export default function ProductDetailFeatures({ product }: Props) {
               locale
             );
             return (
-              <li key={`${title}-${index}`} className="flex gap-4 sm:gap-5">
+              <li key={`${title}-${index}`} className="flex gap-3 sm:gap-5">
                 <span
                   className="mt-1 shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-[#E0905A] flex items-center justify-center"
                   aria-hidden
@@ -85,7 +85,7 @@ export default function ProductDetailFeatures({ product }: Props) {
             </div>
 
             {total > 2 ? (
-              <div className="mt-5 flex items-center justify-center gap-4">
+              <div className="mt-3 sm:mt-5 flex items-center justify-center gap-3 sm:gap-4">
                 <button
                   type="button"
                   onClick={goPrev}
