@@ -55,21 +55,23 @@ function buildDefaultCategorySections({
   if (type === "layout") {
     return [
       {
-        heading: L(`${titleText} planning principles`),
-        body: L("Work triangle|Storage depth|Appliance zones|Traffic clearance"),
+        heading: L(`${titleText} planning principles`, `หลักการวางแผน${titleText}`, `Zasady planowania ${titleText}`),
+        body: L("Work triangle|Storage depth|Appliance zones|Traffic clearance", "สามเหลี่ยมการทำงาน|ความลึกพื้นที่จัดเก็บ|โซนเครื่องใช้|พื้นที่สัญจร", "Trójkąt roboczy|Głębokość przechowywania|Strefy AGD|Przestrzeń komunikacji"),
         layout: "cards",
         image: imageA,
       },
       {
-        heading: L(`Is ${titleText} right for your room?`),
+        heading: L(`Is ${titleText} right for your room?`, `${titleText}เหมาะกับห้องของคุณหรือไม่?`, `Czy ${titleText} pasuje do Twojego pokoju?`),
         body: L(lead),
         image: imageB,
         layout: "image-right",
       },
       {
-        heading: L(`We refine ${titleText} to your walls`),
+        heading: L(`We refine ${titleText} to your walls`, `เราปรับแต่ง${titleText}ให้เข้ากับผนังของคุณ`, `Dopasowujemy ${titleText} do Twoich ścian`),
         body: L(
-          "Every run is measured on site — corners, columns, and window reveals decide the final module sizes."
+          "Every run is measured on site — corners, columns, and window reveals decide the final module sizes.",
+          "ทุกครั้งวัดหน้างาน — มุม เสา และช่องหน้าต่างเป็นตัวกำหนดขนาดโมดูลสุดท้าย",
+          "Każdy wymiar mierzony na miejscu — narożniki, słupy i ościeżnice okienne decydują o ostatecznych rozmiarach modułów."
         ),
         layout: "band",
         image: "",
