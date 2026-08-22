@@ -4,8 +4,6 @@ type Dict = Record<string, unknown>;
 
 const SKIP_KEYS = new Set([
   "localeFlags",
-  "heroImage",
-  "statsImage",
   "key",
   "id",
   "slug",
@@ -54,7 +52,35 @@ function looksLikeLocaleMap(value: unknown): boolean {
 function shouldSkipKey(key: string): boolean {
   if (!key) return false;
   if (SKIP_KEYS.has(key)) return true;
-  return /(href|url|images?|icon|logo|pdf|video|embed|src|path|slug)$/i.test(key);
+  return /(href|url|pdf|video|embed|slug)$/i.test(key);
+}
+
+function isMediaKey(key: string): boolean {
+  if (!key) return false;
+  if (key === "localeFlags") return true;
+  if (
+    key === "heroImage" ||
+    key === "statsImage" ||
+    key === "image" ||
+    key === "coverImage" ||
+    key === "avatar" ||
+    key === "logo" ||
+    key === "downloadUrl" ||
+    key === "pdfUrl"
+  ) {
+    return true;
+  }
+  return /(images?|icon|logo|avatar|cover|src)$/i.test(key);
+}
+
+function liveMediaString(overlay: unknown): string {
+  if (typeof overlay === "string") return overlay.trim();
+  if (typeof overlay === "number" && Number.isFinite(overlay)) return String(overlay);
+  if (looksLikeLocaleMap(overlay)) {
+    const map = overlay as Dict;
+    return asString(map.en) || asString(map.th) || asString(map.pl);
+  }
+  return "";
 }
 
 function isLocalizableKey(key: string): boolean {
@@ -153,6 +179,20 @@ function hydrateNode(
   fillFromEnglish: boolean,
   key = ""
 ): unknown {
+  if (isMediaKey(key)) {
+    if (typeof cms === "string") {
+      if (cms.trim()) return cms;
+      return liveMediaString(overlay) || cms;
+    }
+    if (Array.isArray(cms)) {
+      const hasMedia = cms.some((item) => asString(item));
+      if (hasMedia) return cms;
+      if (Array.isArray(overlay) && overlay.length) return structuredClone(overlay);
+      return cms;
+    }
+    if (isMediaLocaleMap(cms, key)) return cms;
+  }
+
   if (shouldSkipKey(key) || isMediaLocaleMap(cms, key)) {
     return cms;
   }

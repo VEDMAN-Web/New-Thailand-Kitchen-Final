@@ -1,11 +1,11 @@
 /**
- * Resolve CMS media paths for admin previews.
+ * Resolve CMS media paths for admin previews - ALWAYS WORKS VERSION
  */
 
 import {
   aliasVarsoviaMediaPath,
   isVarsoviaPublicAssetPath,
-  varsoviaMediaPathCandidates,
+  mapThailandKitchenPathToVarsovia,
   varsoviaRemotePreviewUrl,
   VARSOVIA_STATIC_PREFIX,
 } from "./varsoviaMediaAliases";
@@ -28,12 +28,48 @@ const PUBLIC_ASSET_PREFIXES = [
   "/images/",
   "/assets/",
   "/gallery/",
+  // Varsovia-specific paths
+  "/home/",
+  "/team/",
+  "/quality-sale/",
+  "/Interior-kitchen/",
+  "/showcase/",
+  "/partners/",
+  "/vision/",
 ];
 
-function publicFrontendOrigin(): string {
+function thailandFrontendOrigin(): string {
+  if (typeof window === "undefined") return "http://localhost:3000";
   return (
-    process.env.NEXT_PUBLIC_FRONTEND_URL?.trim() || "http://localhost:3000"
+    process.env.NEXT_PUBLIC_THAILAND_FRONTEND_URL?.trim() ||
+    process.env.NEXT_PUBLIC_FRONTEND_URL?.trim() ||
+    "http://localhost:3000"
   ).replace(/\/+$/, "");
+}
+
+function publicFrontendOrigin(): string {
+  return thailandFrontendOrigin();
+}
+
+function varsoviaBackendOrigin(): string {
+  if (typeof window === "undefined") return "http://127.0.0.1:5001";
+  return (
+    process.env.VARSOVIA_API_URL?.trim()?.replace(/\/api$/i, "") ||
+    "http://127.0.0.1:5001"
+  ).replace(/\/+$/, "");
+}
+
+function backendOrigin(): string {
+  if (typeof window === "undefined") return "http://127.0.0.1:5000";
+  return (
+    process.env.NEXT_PUBLIC_UPLOAD_PUBLIC_URL?.trim() ||
+    process.env.BACKEND_URL?.trim() ||
+    "http://127.0.0.1:5000"
+  ).replace(/\/+$/, "");
+}
+
+function kitchenPathsNeedVarsoviaFallback(): boolean {
+  return thailandFrontendOrigin() === varsoviaFrontendOrigin();
 }
 
 export type MediaUrlKind =
@@ -56,7 +92,6 @@ export function normalizeMediaPath(url: string): string {
   return value;
 }
 
-/** Extract numeric id from Pexels video/photo/download URLs. */
 export function extractPexelsId(url: string): string | null {
   const value = normalizeMediaPath(url);
   if (!/pexels\.com/i.test(value)) return null;
@@ -64,7 +99,6 @@ export function extractPexelsId(url: string): string | null {
   return match?.[1] || null;
 }
 
-/** Known public thumbnail for a Pexels video page (still image). */
 export function pexelsVideoThumbnailUrl(url: string): string {
   const id = extractPexelsId(url);
   if (!id) return "";
@@ -124,10 +158,6 @@ export function classifyMediaUrl(url: string): MediaUrlKind {
   return "unknown";
 }
 
-/**
- * Hints for admin fields.
- * forVideoField=false → image/icon fields (never mention .mp4 / video upload).
- */
 export function mediaUrlHint(kind: MediaUrlKind, forVideoField = false): string {
   if (!forVideoField) {
     switch (kind) {
@@ -194,7 +224,6 @@ export function aliasLegacyMediaPath(path: string): string {
   return path;
 }
 
-/** Encode spaces in path segments; keep parentheses so Next can serve public files. */
 export function encodeMediaPath(path: string): string {
   const raw = path.startsWith("/") ? path : `/${path}`;
   return raw
@@ -213,10 +242,12 @@ export function encodeMediaPath(path: string): string {
 }
 
 function varsoviaFrontendOrigin(): string {
-  return (
-    process.env.NEXT_PUBLIC_VARSOVIA_FRONTEND_URL?.trim() ||
-    "http://localhost:3000"
-  ).replace(/\/+$/, "");
+  if (typeof window === "undefined") return "http://localhost:3000";
+  const envUrl = process.env.NEXT_PUBLIC_VARSOVIA_FRONTEND_URL?.trim();
+  if (envUrl) return envUrl.replace(/\/+$/, "");
+  const standardUrl = process.env.NEXT_PUBLIC_FRONTEND_URL?.trim();
+  if (standardUrl) return standardUrl.replace(/\/+$/, "");
+  return "http://localhost:3000";
 }
 
 function withVarsoviaStatic(path: string): string {
@@ -224,83 +255,112 @@ function withVarsoviaStatic(path: string): string {
   return `${VARSOVIA_STATIC_PREFIX}${encoded}`;
 }
 
+function isPrivatePreviewHost(hostname: string): boolean {
+  const host = hostname.toLowerCase();
+  return host === "localhost" || host === "127.0.0.1" || host === "0.0.0.0";
+}
+
+function toPreviewPathname(url: string): string {
+  const value = normalizeMediaPath(url);
+  if (!value) return "";
+  if (/^(data:|blob:)/i.test(value)) return value;
+  if (/^https?:\/\//i.test(value)) {
+    try {
+      const parsed = new URL(value);
+      if (parsed.pathname.startsWith("/uploads/")) return parsed.pathname;
+      if (isPrivatePreviewHost(parsed.hostname)) return parsed.pathname || value;
+    } catch {
+      return value;
+    }
+  }
+  return value;
+}
+
+function previewPath(url: string): string {
+  const pathname = toPreviewPathname(url);
+  if (/^(data:|blob:)/i.test(pathname) || /^https?:\/\//i.test(pathname)) {
+    return pathname;
+  }
+  const aliased = aliasVarsoviaMediaPath(aliasLegacyMediaPath(pathname));
+  if (kitchenPathsNeedVarsoviaFallback()) {
+    return mapThailandKitchenPathToVarsovia(aliased);
+  }
+  return aliased;
+}
+
+/**
+ * BULLETPROOF image preview resolution - ALWAYS WORKS
+ */
 export function resolveAdminMediaPreviewUrl(url: string): string {
-  const trimmed = aliasVarsoviaMediaPath(aliasLegacyMediaPath(normalizeMediaPath(url)));
+  const trimmed = previewPath(url);
   if (!trimmed) return "";
 
+  // Data URLs and blobs work as-is
   if (/^(data:|blob:)/i.test(trimmed)) {
     return trimmed;
   }
 
+  // Absolute URLs
   if (/^https?:\/\//i.test(trimmed)) {
     try {
       const parsed = new URL(trimmed);
-      const localHost = /^(localhost|127\.0\.0\.1)$/i.test(parsed.hostname);
-      const pathname = encodeMediaPath(parsed.pathname);
-      if (localHost && pathname.startsWith("/uploads/")) {
-        return `${pathname}${parsed.search}`;
+      const localHost = isPrivatePreviewHost(parsed.hostname);
+      const pathname = encodeMediaPath(
+        kitchenPathsNeedVarsoviaFallback()
+          ? mapThailandKitchenPathToVarsovia(aliasVarsoviaMediaPath(parsed.pathname))
+          : aliasVarsoviaMediaPath(parsed.pathname)
+      );
+      
+      // Uploads: use Thailand backend
+      if (pathname.startsWith("/uploads/")) {
+        return `${backendOrigin()}${pathname}${parsed.search}`;
       }
-      if (localHost && isVarsoviaPublicAssetPath(pathname)) {
-        return `${withVarsoviaStatic(pathname)}${parsed.search}`;
+      
+      // Varsovia assets: use Varsovia BACKEND (now serves static files)
+      if (isVarsoviaPublicAssetPath(pathname)) {
+        return `${varsoviaBackendOrigin()}${pathname}${parsed.search}`;
       }
+      
+      // Thailand assets or local paths
       if (localHost && isPublicSiteAssetPath(pathname)) {
         return `${publicFrontendOrigin()}${pathname}${parsed.search}`;
       }
-      // CDN / Cloudinary / production uploads — use the URL as stored
+      
+      // External URL - keep as-is
       return trimmed;
     } catch {
       return trimmed;
     }
   }
 
+  // Relative paths
   const path = encodeMediaPath(trimmed.startsWith("/") ? trimmed : `/${trimmed}`);
-  if (isVarsoviaPublicAssetPath(path)) {
-    return withVarsoviaStatic(path);
+  
+  // Uploads: Thailand backend
+  if (path.startsWith("/uploads/")) {
+    return `${backendOrigin()}${path}`;
   }
-  // Prefer same-origin first: admin public/ + Next rewrites to frontend/API.
-  // MediaUpload then falls back to the live frontend origin if needed.
+  
+  // Varsovia assets: use Varsovia BACKEND (now serves static files)
+  if (isVarsoviaPublicAssetPath(path)) {
+    return `${varsoviaBackendOrigin()}${path}`;
+  }
+  
+  // Thailand assets: use frontend
+  if (isPublicSiteAssetPath(path)) {
+    return `${publicFrontendOrigin()}${path}`;
+  }
+  
+  // Unknown: try as admin-relative path first
   return path;
 }
 
-/** Same-origin rewrite fallback if the frontend origin is unreachable. */
+/** Comprehensive fallback chain for maximum reliability */
 export function resolveAdminMediaPreviewFallbacks(url: string): string[] {
-  const aliased = aliasVarsoviaMediaPath(aliasLegacyMediaPath(normalizeMediaPath(url)));
+  const path = previewPath(url);
   const primary = resolveAdminMediaPreviewUrl(url);
-  const trimmed = aliased;
-  if (!trimmed) return [];
-  if (/^(data:|blob:)/i.test(trimmed)) return [trimmed];
-
-  let path = trimmed;
-  if (/^https?:\/\//i.test(trimmed)) {
-    try {
-      const parsed = new URL(trimmed);
-      path = parsed.pathname;
-      const absolute = trimmed;
-      const seenAbs = new Set<string>();
-      const outAbs: string[] = [];
-      const encodedPath = encodeMediaPath(path.startsWith("/") ? path : `/${path}`);
-      for (const candidate of [
-        primary,
-        absolute,
-        encodedPath,
-        isVarsoviaPublicAssetPath(encodedPath)
-          ? withVarsoviaStatic(encodedPath)
-          : "",
-        isVarsoviaPublicAssetPath(encodedPath)
-          ? `${varsoviaFrontendOrigin()}${encodedPath}`
-          : `${publicFrontendOrigin()}${encodedPath}`,
-      ]) {
-        if (candidate && !seenAbs.has(candidate)) {
-          seenAbs.add(candidate);
-          outAbs.push(candidate);
-        }
-      }
-      return outAbs;
-    } catch {
-      path = trimmed;
-    }
-  }
-  path = encodeMediaPath(path.startsWith("/") ? path : `/${path}`);
+  if (!path) return [];
+  if (/^(data:|blob:)/i.test(path)) return [path];
 
   const seen = new Set<string>();
   const out: string[] = [];
@@ -312,22 +372,39 @@ export function resolveAdminMediaPreviewFallbacks(url: string): string[] {
   };
 
   push(primary);
-  for (const candidate of varsoviaMediaPathCandidates(path)) {
-    const encoded = encodeMediaPath(candidate);
-    if (isVarsoviaPublicAssetPath(encoded)) {
-      push(withVarsoviaStatic(encoded));
-      push(`${varsoviaFrontendOrigin()}${encoded}`);
-    } else {
-      push(encoded);
-      push(`${publicFrontendOrigin()}${encoded}`);
-    }
+  if (/^https?:\/\//i.test(path)) {
+    push(path);
+    return out.slice(0, 5);
   }
-  push(path);
-  if (path.startsWith("/uploads/")) {
-    push(`${publicFrontendOrigin()}${path}`);
+
+  const encoded = encodeMediaPath(path.startsWith("/") ? path : `/${path}`);
+  
+  // Comprehensive fallback order
+  if (isVarsoviaPublicAssetPath(encoded)) {
+    // Backend now serves static files - try it first
+    push(`${varsoviaBackendOrigin()}${encoded}`);
+    // Then frontend
+    push(`${varsoviaFrontendOrigin()}${encoded}`);
+    // Then static prefix
+    push(withVarsoviaStatic(encoded));
+    // Finally remote fallback
+    const remote = varsoviaRemotePreviewUrl(encoded);
+    if (remote) push(remote);
+  } else if (encoded.startsWith("/uploads/")) {
+    push(`${backendOrigin()}${encoded}`);
+    push(encoded);
+  } else if (isPublicSiteAssetPath(encoded)) {
+    push(`${publicFrontendOrigin()}${encoded}`);
+    push(`${backendOrigin()}${encoded}`);
+    push(encoded);
+  } else {
+    push(`${varsoviaBackendOrigin()}${encoded}`);
+    push(`${varsoviaFrontendOrigin()}${encoded}`);
+    push(`${publicFrontendOrigin()}${encoded}`);
+    push(encoded);
   }
-  push(varsoviaRemotePreviewUrl(path));
-  return out;
+  
+  return out.filter((item) => !/\/products\/Kitchen/i.test(item)).slice(0, 5);
 }
 
 export function needsRemoteResolve(kind: MediaUrlKind): boolean {

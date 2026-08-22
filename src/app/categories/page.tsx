@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { FolderOpen, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
@@ -150,6 +150,7 @@ export default function AdminCategoriesPage() {
   const [modal, setModal] = useState<"create" | "edit" | null>(null);
   const [editing, setEditing] = useState<CategoryItem | null>(null);
   const [locale, setLocale] = useState<LocaleCode>("en");
+  const loadSeqRef = useRef(0);
   const [form, setForm] = useState<CategoryForm>({
     title: emptyLocalized(),
     description: emptyLocalized(),
@@ -176,14 +177,17 @@ export default function AdminCategoriesPage() {
   }, [hub?.hubParam]);
 
   const load = useCallback(async () => {
+    const seq = ++loadSeqRef.current;
     setLoading(true);
     try {
       const res = await listCategories(siteId);
+      if (seq !== loadSeqRef.current) return;
       setItems(res.items || []);
     } catch {
+      if (seq !== loadSeqRef.current) return;
       toast.error("Failed to load categories");
     } finally {
-      setLoading(false);
+      if (seq === loadSeqRef.current) setLoading(false);
     }
   }, [siteId]);
 
@@ -427,7 +431,7 @@ export default function AdminCategoriesPage() {
           <button
             type="button"
             onClick={openCreate}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#1A2332] text-white px-4 py-2.5 text-sm font-semibold"
+            className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-[#1A2332] text-white px-4 py-2.5 text-sm font-semibold"
           >
             <Plus className="w-4 h-4" />
             Add {hub ? `${hub.label} page` : "Category"}
@@ -467,7 +471,7 @@ export default function AdminCategoriesPage() {
         {loading ? (
           <p className="text-sm text-[#6B7280]">Loading…</p>
         ) : filtered.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-[#E2E5EA] bg-white p-12 text-center">
+          <div className="rounded-2xl border border-dashed border-[#E2E5EA] bg-white p-8 sm:p-12 text-center">
             <FolderOpen className="w-8 h-8 text-[#9CA3AF] mx-auto mb-3" />
             <p className="text-sm text-[#6B7280]">
               {hub ? `No ${hub.label.toLowerCase()} pages yet` : "No categories yet"}
@@ -524,13 +528,13 @@ export default function AdminCategoriesPage() {
       </div>
 
       {modal ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 overflow-y-auto">
+        <div className="tk-overlay">
           <form
             onSubmit={onSubmit}
-            className="w-full max-w-2xl rounded-2xl bg-white p-6 space-y-4 shadow-xl my-8 max-h-[90vh] overflow-y-auto"
+            className="tk-sheet w-full max-w-2xl bg-white p-4 sm:p-6 space-y-4 shadow-xl my-0 sm:my-8"
           >
             <div className="flex items-center justify-between gap-3">
-              <h2 className="text-lg font-semibold text-[#1A2332]">
+              <h2 className="min-w-0 truncate text-lg font-semibold text-[#1A2332]">
                 {modal === "create" ? "Add Category" : "Edit Category"}
               </h2>
               <button type="button" onClick={() => setModal(null)}>

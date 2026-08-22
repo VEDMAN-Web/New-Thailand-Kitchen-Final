@@ -66,7 +66,7 @@
   },
   "cataloguePage": {
     "heroTitle": "Darmowy katalog",
-    "heroSubtitle": "Przeglądaj nasze najnowsze kolekcje",
+    "heroSubtitle": "Odkryj nasz katalog projektowania wnętrz",
     "exploreKitchen": "ODKRYJ PROJEKT KUCHNI",
     "downloadCatalogue": "Pobierz katalog"
   },
@@ -177,16 +177,21 @@
     "aboutDescription": "Poznaj Varsovia Design — wizję, misję i podejście do premium wnętrz.",
     "contactTitle": "Kontakt",
     "contactDescription": "Skontaktuj się w sprawie bezpłatnej konsultacji projektu.",
-    "catalogueTitle": "Darmowy katalog",
-    "catalogueDescription": "Pobierz katalogi Varsovia i inspiracje kuchenne.",
+    "catalogueTitle": "Darmowy katalog | Varsovia Design",
+    "catalogueDescription": "Pobierz katalogi Varsovia Design z inspiracjami kuchennymi i wnętrzarskimi — układy, wykończenia i kolekcje dla domów w Tajlandii.",
     "showcaseTitle": "Realizacje",
     "showcaseDescription": "Odkryj projekty mieszkaniowe i komercyjne Varsovia Design.",
     "interiorTitle": "Wnętrza",
     "interiorDescription": "Przeglądaj kuchnie, sypialnie, łazienki i projekty całego domu."
   },
   "contactPage": {
-    "heroTitle": "Kontakt",
-    "heroSubtitle": "Zaprojektujmy razem coś pięknego"
+    "heroTitle": "Skontaktuj się",
+    "heroSubtitle": "Zaprojektujmy razem coś pięknego",
+    "locationTitle": "Nasza lokalizacja",
+    "locationSubtitle": "Odwiedź salon lub skontaktuj się online — jesteśmy tu, by pomóc",
+    "mapAriaLabel": "Mapa biura Varsovia Design",
+    "showroomsTitle": "Odwiedź salon",
+    "showroomsSubtitle": "Zobacz materiały, układy i wykończenia na żywo w naszych lokalizacjach."
   },
   "siteFallback": {
     "aboutText": "Varsovia powstała w wynajętym studiu na warszawskiej Pradze z prostą wiarą: piękne wnętrze zasługuje na to miano dopiero wtedy, gdy ktoś w nim mieszka rok i nadal je kocha. Tak pracujemy do dziś — mierzymy dwa razy, najpierw rysujemy ręcznie, a materiały wybieramy tak, by pięknie się starzały.\n\nKażdy projekt zaczynamy od tego, jak poruszasz się po przestrzeni, a nie od zdjęcia. Efekt to wnętrza, które wydają się nieuniknione.",

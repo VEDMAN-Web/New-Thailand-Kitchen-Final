@@ -22,9 +22,11 @@ export default function VarsoviaInteriorDesignPage() {
         <h2 className="text-sm font-semibold text-[#1A2332] mb-1">
           Explore — interior projects
         </h2>
-        <p className="text-xs text-[#6B7280] mb-3">
+            <p className="text-xs text-[#6B7280] mb-3">
           Each card is a listing on /interior-design and a detail page at
-          /interior-design/[slug]. Field order matches the live pages.
+          /interior-design/[slug]. Save the card sheet (or the page Save while
+          the sheet is open) so live uses these fields — Card description is the
+          overlay sentence on the photo.
         </p>
         <ResourceManager resource="projects" embedded />
       </div>

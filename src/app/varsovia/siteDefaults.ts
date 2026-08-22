@@ -5,6 +5,11 @@ import pageCmsDefaults from "./pageCmsDefaults.json";
 type SiteRecord = Record<string, unknown>;
 
 const en = (value: string) => ({ en: value, th: "", pl: "" });
+const loc = (english: string, th = "", pl = "") => ({
+  en: english,
+  th: th || english,
+  pl: pl || english,
+});
 
 export const VARSOVIA_SITE_DEFAULTS: SiteRecord = {
   heroEyebrow: en("VARSOVIA DESIGN"),
@@ -467,8 +472,10 @@ export const VARSOVIA_SITE_DEFAULTS: SiteRecord = {
     contact: true,
   },
 
-  footerBio: en(
-    "Varsovia Kitchen designs and builds premium modular kitchens with precision, warmth, and lasting quality."
+  footerBio: loc(
+    "Transforming homes with thoughtfully designed interiors tailored to your lifestyle and vision.",
+    "เปลี่ยนบ้านของคุณด้วยอินทีเรียที่ออกแบบอย่างพิถีพิถันให้เข้ากับไลฟ์สไตล์และวิสัยทัศน์ของคุณ",
+    "Przekształcamy domy dzięki przemyślanym wnętrzom dopasowanym do Twojego stylu życia i wizji."
   ),
   socialLinks: {
     whatsapp: "",
@@ -479,9 +486,15 @@ export const VARSOVIA_SITE_DEFAULTS: SiteRecord = {
 
   teamPage: {
     indexable: false,
-    metaTitle: en("Our Team | Varsovia Design"),
-    metaDescription: en(
-      "Meet the designers, architects, and craftspeople behind Varsovia Design."
+    metaTitle: loc(
+      "Our Team | Varsovia Design",
+      "ทีมของเรา | Varsovia Design",
+      "Nasz zespół | Varsovia Design"
+    ),
+    metaDescription: loc(
+      "Meet the designers, architects, and craftspeople behind Varsovia Design — Italian design collaboration and technical teams for homes across Thailand.",
+      "พบนักออกแบบ สถาปนิก และช่างฝีมือเบื้องหลัง Varsovia Design — ทีมออกแบบอิตาลีและทีมเทคนิคสำหรับบ้านทั่วไทย",
+      "Poznaj projektantów, architektów i rzemieślników Varsovia Design — współpraca z Włochami i zespoły techniczne dla domów w Tajlandii."
     ),
     heroTitle: en("Our Team"),
     heroSubtitle: en("THE CREATIVE MINDS BEHIND EVERY BEAUTIFUL SPACE"),
@@ -513,9 +526,15 @@ export const VARSOVIA_SITE_DEFAULTS: SiteRecord = {
 
   qualitySale: {
     indexable: false,
-    metaTitle: en("Quality After Sales | Varsovia Design"),
-    metaDescription: en(
-      "Warranty, maintenance, and after-sales care for Varsovia kitchens and interiors — from first contact to resolution."
+    metaTitle: loc(
+      "Quality After Sales | Varsovia Design",
+      "บริการหลังการขาย | Varsovia Design",
+      "Serwis posprzedażowy | Varsovia Design"
+    ),
+    metaDescription: loc(
+      "Warranty, maintenance, and after-sales care for Varsovia kitchens and interiors — from first contact through assessment, scheduling, and resolution.",
+      "การรับประกัน การดูแลรักษา และบริการหลังการขายสำหรับครัวและอินทีเรีย Varsovia — ตั้งแต่ติดต่อครั้งแรกถึงประเมิน นัดหมาย และแก้ไข",
+      "Gwarancja, konserwacja i opieka posprzedażowa kuchni i wnętrz Varsovia — od pierwszego kontaktu przez ocenę, umówienie wizyty i rozwiązanie."
     ),
     heroTitle: en("Quality After Sales"),
     heroSubtitle: en(
@@ -654,15 +673,15 @@ export const VARSOVIA_SITE_DEFAULTS: SiteRecord = {
   facebookUrl: "https://www.facebook.com/ThailandKitchens/",
   footerOffices: [
     {
-      label: en("Samui Office"),
+      label: loc("Samui Office", "สำนักงานสมุย", "Biuro Samui"),
       address: "Route 4169, Mae Nam, Amphoe Ko Samui, Surat Thani 84330",
     },
     {
-      label: en("Phuket Office"),
+      label: loc("Phuket Office", "สำนักงานภูเก็ต", "Biuro Phuket"),
       address: "Royal Phuket Marina, Building MS2, Ko Kaeo, Mueang, Phuket 83000",
     },
     {
-      label: en("Pattaya Office"),
+      label: loc("Pattaya Office", "สำนักงานพัทยา", "Biuro Pattaya"),
       address:
         "82, 48-49 Chaiyaphruek 2 Rd, Pattaya City, Bang Lamung District, Chon Buri 20150",
     },
@@ -671,18 +690,18 @@ export const VARSOVIA_SITE_DEFAULTS: SiteRecord = {
   interiorCatalogMode: "hybrid",
 
   footerNavigation: {
-    version: 1,
+    version: 3,
     linkColumns: [
       {
         id: "primary",
         order: 1,
         enabled: true,
         links: [
-          { label: en("Journal"), href: "/journal", enabled: true },
-          { label: en("About Us"), href: "/about", enabled: true },
-          { label: en("Contact Us"), href: "/contact", enabled: true },
-          { label: en("FAQ"), href: "/faq", enabled: true },
-          { label: en("Catalogue"), href: "/catalogue", enabled: true },
+          { label: loc("Journal", "วารสาร", "Journal"), href: "/journal", enabled: true },
+          { label: loc("About Us", "เกี่ยวกับเรา", "O nas"), href: "/about", enabled: true },
+          { label: loc("Contact Us", "ติดต่อเรา", "Kontakt"), href: "/contact", enabled: true },
+          { label: loc("FAQ", "คำถามที่พบบ่อย", "Najczęstsze pytania"), href: "/faq", enabled: true },
+          { label: loc("Catalogue", "แคตตาล็อก", "Katalog"), href: "/catalogue", enabled: true },
         ],
       },
       {
@@ -690,17 +709,17 @@ export const VARSOVIA_SITE_DEFAULTS: SiteRecord = {
         order: 2,
         enabled: true,
         links: [
-          { label: en("Kitchen"), href: "/interior-design?category=Kitchen", enabled: true },
-          { label: en("Bedroom"), href: "/interior-design?category=Bedroom", enabled: true },
-          { label: en("Bathroom"), href: "/interior-design?category=Bathroom", enabled: true },
-          { label: en("Furniture"), href: "/interior-design?category=Furniture", enabled: true },
+          { label: loc("Kitchen", "ครัว", "Kuchnia"), href: "/interior-design?category=Kitchen", enabled: true },
+          { label: loc("Bedroom", "ห้องนอน", "Sypialnia"), href: "/interior-design?category=Bedroom", enabled: true },
+          { label: loc("Bathroom", "ห้องน้ำ", "Łazienka"), href: "/interior-design?category=Bathroom", enabled: true },
+          { label: loc("Furniture", "เฟอร์นิเจอร์", "Meble"), href: "/furniture", enabled: true },
           {
-            label: en("Door & Windows"),
+            label: loc("Door & Windows", "ประตูและหน้าต่าง", "Drzwi i okna"),
             href: "/interior-design?category=Door%20%26%20Windows",
             enabled: true,
           },
           {
-            label: en("Whole House Solutions"),
+            label: loc("Whole House Solutions", "โซลูชันทั้งบ้าน", "Rozwiązania dla całego domu"),
             href: "/interior-design?category=Whole%20House%20Solutions",
             enabled: true,
           },
@@ -708,23 +727,23 @@ export const VARSOVIA_SITE_DEFAULTS: SiteRecord = {
       },
     ],
     legalLinks: [
-      { label: en("Privacy"), href: "/privacy", enabled: true },
-      { label: en("Terms"), href: "/terms", enabled: true },
-      { label: en("Sitemap"), href: "/sitemap.xml", enabled: true },
+      { label: loc("Privacy", "ความเป็นส่วนตัว", "Prywatność"), href: "/privacy", enabled: true },
+      { label: loc("Terms", "ข้อกำหนด", "Regulamin"), href: "/terms", enabled: true },
+      { label: loc("Sitemap", "แผนผังเว็บไซต์", "Mapa witryny"), href: "/sitemap.xml", enabled: true },
     ],
-    contactHeading: en("Contact Us"),
+    contactHeading: loc("Contact Us", "ติดต่อเรา", "Kontakt"),
     contactLabels: {
-      email: en("Email"),
-      mobileWhatsapp: en("Mobile / WhatsApp"),
-      contactNumber: en("Contact Number"),
+      email: loc("Email", "อีเมล", "E-mail"),
+      mobileWhatsapp: loc("Mobile / WhatsApp", "มือถือ / WhatsApp", "Telefon / WhatsApp"),
+      contactNumber: loc("Contact Number", "เบอร์ติดต่อ", "Numer kontaktowy"),
     },
     socialLabels: {
-      whatsapp: en("WhatsApp"),
-      facebook: en("Facebook"),
-      instagram: en("Instagram"),
-      x: en("X"),
+      whatsapp: loc("WhatsApp"),
+      facebook: loc("Facebook"),
+      instagram: loc("Instagram"),
+      x: loc("X"),
     },
-    copyright: en("©{year} Varsovia Design"),
+    copyright: loc("©{year} Varsovia Design"),
   },
 
   pages: DEFAULT_IA_PAGES as unknown as SiteRecord,
@@ -764,8 +783,19 @@ export function mergeVarsoviaSiteDefaults(
     "pages",
   ]);
 
+  const imageListKeys = new Set(["aboutImages", "aboutStoryImages", "contactImages"]);
+
   for (const [key, defaultValue] of Object.entries(defaults)) {
     const currentValue = merged[key];
+
+    if (imageListKeys.has(key) && Array.isArray(defaultValue)) {
+      const currentList = Array.isArray(currentValue) ? currentValue : [];
+      merged[key] = defaultValue.map((live, index) => {
+        const cur = currentList[index];
+        return typeof cur === "string" && cur.trim() ? cur.trim() : structuredClone(live);
+      });
+      continue;
+    }
 
     if (isBlank(currentValue)) {
       merged[key] = structuredClone(defaultValue);
@@ -817,6 +847,155 @@ export function replaceShowcaseFromLiveSeed(site: SiteRecord): SiteRecord {
     ...site,
     showcaseMeta: structuredClone(VARSOVIA_SITE_DEFAULTS.showcaseMeta),
     projectsPage: {
+      ...structuredClone(defaults),
+      indexable: current.indexable === true,
+    },
+  };
+}
+
+/**
+ * Overwrite Free Catalogue banner + Google copy from the live seed.
+ * Keeps the editor’s indexable flag so Sync does not silently un-index /catalogue.
+ */
+export function replaceCatalogueFromLiveSeed(site: SiteRecord): SiteRecord {
+  const current =
+    site.cataloguePage && typeof site.cataloguePage === "object" && !Array.isArray(site.cataloguePage)
+      ? (site.cataloguePage as SiteRecord)
+      : {};
+  const defaults = VARSOVIA_SITE_DEFAULTS.cataloguePage as SiteRecord;
+  return {
+    ...site,
+    cataloguePage: {
+      ...structuredClone(defaults),
+      indexable: current.indexable === true,
+    },
+  };
+}
+
+/**
+ * Overwrite Our Team banner, grids, tools, and Google copy from the live seed.
+ * Keeps the editor’s indexable flag so Sync does not silently un-index /team.
+ */
+export function replaceTeamFromLiveSeed(site: SiteRecord): SiteRecord {
+  const current =
+    site.teamPage && typeof site.teamPage === "object" && !Array.isArray(site.teamPage)
+      ? (site.teamPage as SiteRecord)
+      : {};
+  const defaults = VARSOVIA_SITE_DEFAULTS.teamPage as SiteRecord;
+  return {
+    ...site,
+    designTools: structuredClone(VARSOVIA_SITE_DEFAULTS.designTools),
+    teamPage: {
+      ...structuredClone(defaults),
+      indexable: current.indexable === true,
+    },
+  };
+}
+
+const QUALITY_IMAGE_KEYS = [
+  "feature1Image",
+  "feature2Image",
+  "feature3Image",
+  "feature4Image",
+  "support1Image",
+  "support2Image",
+  "support3Image",
+  "support4Image",
+] as const;
+
+function keepUploadedImages(current: SiteRecord, keys: readonly string[]): SiteRecord {
+  const kept: SiteRecord = {};
+  for (const key of keys) {
+    const value = current[key];
+    if (typeof value === "string" && value.trim()) kept[key] = value;
+  }
+  return kept;
+}
+
+/**
+ * Overwrite Quality After Sales copy + Google from the live seed.
+ * Keeps uploaded feature/support images and the editor’s indexable flag.
+ */
+export function replaceQualityFromLiveSeed(site: SiteRecord): SiteRecord {
+  const current =
+    site.qualitySale && typeof site.qualitySale === "object" && !Array.isArray(site.qualitySale)
+      ? (site.qualitySale as SiteRecord)
+      : {};
+  const defaults = VARSOVIA_SITE_DEFAULTS.qualitySale as SiteRecord;
+  return {
+    ...site,
+    qualitySale: {
+      ...structuredClone(defaults),
+      ...keepUploadedImages(current, QUALITY_IMAGE_KEYS),
+      indexable: current.indexable === true,
+    },
+  };
+}
+
+/**
+ * Overwrite Contact banner, map, showroom headings, form fields, and Google from the live seed.
+ * Keeps collage photos and the editor’s indexable flag.
+ */
+export function replaceContactFromLiveSeed(site: SiteRecord): SiteRecord {
+  const current =
+    site.contactPage && typeof site.contactPage === "object" && !Array.isArray(site.contactPage)
+      ? (site.contactPage as SiteRecord)
+      : {};
+  const defaults = VARSOVIA_SITE_DEFAULTS.contactPage as SiteRecord;
+  const currentImages = Array.isArray(site.contactImages)
+    ? (site.contactImages as unknown[]).filter((item) => typeof item === "string" && item.trim())
+    : [];
+  return {
+    ...site,
+    contactImages:
+      currentImages.length > 0
+        ? currentImages
+        : structuredClone(VARSOVIA_SITE_DEFAULTS.contactImages),
+    inquiryForm: structuredClone(VARSOVIA_SITE_DEFAULTS.inquiryForm),
+    contactPage: {
+      ...structuredClone(defaults),
+      indexable: current.indexable === true,
+    },
+  };
+}
+
+/**
+ * Overwrite footer bio, offices, contact details, and nav from the live seed.
+ * Keeps Instagram / X URLs if the editor already set them.
+ */
+export function replaceFooterFromLiveSeed(site: SiteRecord): SiteRecord {
+  const keepUrl = (key: string) => {
+    const value = site[key];
+    return typeof value === "string" && value.trim() ? value.trim() : "";
+  };
+  return {
+    ...site,
+    footerBio: structuredClone(VARSOVIA_SITE_DEFAULTS.footerBio),
+    email: VARSOVIA_SITE_DEFAULTS.email,
+    contactPhone: VARSOVIA_SITE_DEFAULTS.contactPhone,
+    mobileWhatsapp: VARSOVIA_SITE_DEFAULTS.mobileWhatsapp,
+    whatsappUrl: VARSOVIA_SITE_DEFAULTS.whatsappUrl,
+    facebookUrl: VARSOVIA_SITE_DEFAULTS.facebookUrl,
+    instagramUrl: keepUrl("instagramUrl") || VARSOVIA_SITE_DEFAULTS.instagramUrl || "",
+    xUrl: keepUrl("xUrl") || VARSOVIA_SITE_DEFAULTS.xUrl || "",
+    footerOffices: structuredClone(VARSOVIA_SITE_DEFAULTS.footerOffices),
+    footerNavigation: structuredClone(VARSOVIA_SITE_DEFAULTS.footerNavigation),
+  };
+}
+
+/**
+ * Overwrite FAQ banner + Google from the live seed.
+ * Does not recreate deleted Q&A. Keeps the editor’s indexable flag.
+ */
+export function replaceFaqFromLiveSeed(site: SiteRecord): SiteRecord {
+  const current =
+    site.faqPage && typeof site.faqPage === "object" && !Array.isArray(site.faqPage)
+      ? (site.faqPage as SiteRecord)
+      : {};
+  const defaults = VARSOVIA_SITE_DEFAULTS.faqPage as SiteRecord;
+  return {
+    ...site,
+    faqPage: {
       ...structuredClone(defaults),
       indexable: current.indexable === true,
     },

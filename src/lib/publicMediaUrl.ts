@@ -48,22 +48,24 @@ export function toPublicMediaUrl(url: string): string {
     return uploadsPath;
   }
 
-  if (/^(https?:)/i.test(value)) return value;
+  if (/^(https?:)/i.test(value)) {
+    try {
+      const parsed = new URL(value);
+      if (
+        isPrivateHostname(parsed.hostname) &&
+        !parsed.pathname.startsWith("/uploads/")
+      ) {
+        return parsed.pathname || value;
+      }
+    } catch {
+      /* keep absolute */
+    }
+    return value;
+  }
   if (!value.startsWith("/")) return value;
 
-  if (configured) return `${configured}${value}`;
-
-  const api = (process.env.NEXT_PUBLIC_API_URL || "").trim();
-  if (/^https?:\/\//i.test(api)) {
-    try {
-      return `${new URL(api).origin}${value}`;
-    } catch {
-      /* ignore */
-    }
-  }
-
-  // Do NOT use window.location.origin — that becomes http://…:3001/uploads and
-  // the live Varsovia site cannot load admin-origin media.
+  // Only /uploads need the Thailand API origin. /home, /team, /products stay
+  // site-relative so Varsovia Next can serve them (and Google can crawl them).
   return value;
 }
 

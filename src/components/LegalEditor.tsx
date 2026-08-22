@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { Plus, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import LocaleTabs from "@/components/LocaleTabs";
@@ -42,11 +42,14 @@ export default function LegalEditor({
   ]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const loadSeqRef = useRef(0);
 
   const load = useCallback(async () => {
+    const seq = ++loadSeqRef.current;
     setLoading(true);
     try {
       const res = await getLegal(siteId, type);
+      if (seq !== loadSeqRef.current) return;
       const page = res.page;
       setPageTitle(asLocalizedForm(page.title, defaultTitle));
       setSubtitle(asLocalizedForm(page.subtitle, defaultSubtitle));
@@ -67,9 +70,10 @@ export default function LegalEditor({
         ]);
       }
     } catch {
+      if (seq !== loadSeqRef.current) return;
       toast.error(`Failed to load ${type}`);
     } finally {
-      setLoading(false);
+      if (seq === loadSeqRef.current) setLoading(false);
     }
   }, [siteId, type, defaultTitle, defaultSubtitle]);
 
@@ -177,7 +181,7 @@ export default function LegalEditor({
       </div>
 
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between">
           <p className="text-xs font-bold uppercase tracking-wide text-[#334155]">
             Sections
           </p>

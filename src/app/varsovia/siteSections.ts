@@ -406,7 +406,7 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
   {
     id: "teamPage",
     title: "Our Team",
-    description: "/team · banner → intro & stats → team grids → tools → Google",
+    description: "/team · 1 banner → 2 intro & stats → 3 team grids → 4 tools → 5 Google. Sync from DB fills EN / TH / PL.",
     group: "pages",
     icon: BriefcaseBusiness,
     stackFields: true,
@@ -458,7 +458,8 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
         key: "teamPage.__div_seo",
         label: "5 · Google / SEO",
         type: "section-divider",
-        helpText: "Browser tab title and Google listing for /team.",
+        helpText:
+          "Browser tab, Google snippet, and share preview. Title ≤60, description ≤160. Indexable stays ON if already enabled. Sync from DB fills EN / TH / PL.",
       },
       { key: "teamPage.indexable", label: "Indexable", type: "boolean", helpText: "OFF = noindex, omitted from sitemap. ON = Google can list this URL." },
       { key: "teamPage.metaTitle", label: "Google title (browser tab)", localized: true, maxLength: 60 },
@@ -474,7 +475,8 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
   {
     id: "qualitySale",
     title: "Quality After Sales",
-    description: "/quality-sale · banner → features → support → FAQ → Google",
+    description:
+      "/quality-sale · 1 banner → 2 features → 3 support → 4 FAQ → 5 Google. Sync from DB fills all of these in EN / TH / PL.",
     group: "pages",
     icon: Wrench,
     stackFields: true,
@@ -484,7 +486,7 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
         key: "qualitySale.__div_hero",
         label: "1 · Banner",
         type: "section-divider",
-        helpText: "Live /quality-sale top: heading, tagline, intro.",
+        helpText: "Live /quality-sale top: heading, tagline, intro. Same copy as the public page.",
       },
       { key: "qualitySale.heroTitle", label: "Heading", localized: true },
       { key: "qualitySale.heroSubtitle", label: "Description", localized: true },
@@ -545,7 +547,8 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
         key: "qualitySale.__div_seo",
         label: "5 · Google / SEO",
         type: "section-divider",
-        helpText: "Browser tab title and Google listing for /quality-sale.",
+        helpText:
+          "Browser tab, Google snippet, and share preview. Title ≤60, description ≤160. Feature 1 image is the Open Graph image. Indexable stays ON if already enabled. Sync from DB fills EN / TH / PL.",
       },
       { key: "qualitySale.indexable", label: "Indexable", type: "boolean", helpText: "OFF = noindex, omitted from sitemap. ON = Google can list this URL." },
       { key: "qualitySale.metaTitle", label: "Google title (browser tab)", localized: true, maxLength: 60 },
@@ -629,7 +632,8 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
   {
     id: "faqPage",
     title: "FAQ",
-    description: "/faq · banner → topics & Q&A → Google",
+    description:
+      "/faq · 1 banner → 2 topics & Q&A → 3 Google. Add or delete questions here — they show on live /faq. Sync fills Google EN / TH / PL and does not restore deleted Q&A.",
     group: "pages",
     icon: MessageSquareQuote,
     stackFields: true,
@@ -648,7 +652,7 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
         label: "2 · Topics & questions",
         type: "section-divider",
         helpText:
-          "Left: topic list. Right: questions and answers. Same layout as live /faq.",
+          "Left: topic list. Right: questions and answers. Same layout as live /faq. Add, edit, or delete here — live /faq updates immediately. Sync fills translations only.",
       },
       {
         key: "faqPage.__embed_faqs",
@@ -660,6 +664,8 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
         key: "faqPage.__div_seo",
         label: "3 · Google / SEO",
         type: "section-divider",
+        helpText:
+          "Browser tab, Google snippet, and share preview. Title ≤60, description ≤160. Indexable stays ON if already enabled. Sync from DB fills EN / TH / PL.",
       },
       ...pageSeoFields("faqPage"),
     ],
@@ -667,7 +673,7 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
   {
     id: "cataloguePage",
     title: "Free Catalogue",
-    description: "/catalogue · banner → brochure cards → Google",
+    description: "/catalogue · 1 banner → 2 brochure cards → 3 Google. Sync from DB fills all of these in EN / TH / PL.",
     group: "pages",
     icon: FileDown,
     stackFields: true,
@@ -677,7 +683,7 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
         key: "cataloguePage.__div_hero",
         label: "1 · Banner",
         type: "section-divider",
-        helpText: "Live /catalogue top: heading and tagline.",
+        helpText: "Live /catalogue top: heading and tagline. Same copy as the public page.",
       },
       { key: "cataloguePage.heroTitle", label: "Heading", localized: true },
       { key: "cataloguePage.heroSubtitle", label: "Description", localized: true },
@@ -698,7 +704,8 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
         key: "cataloguePage.__div_seo",
         label: "3 · Google / SEO",
         type: "section-divider",
-        helpText: "Browser tab, Google snippet, and share preview. First brochure cover is the Open Graph image.",
+        helpText:
+          "Browser tab, Google snippet, and share preview. Title ≤60, description ≤160. First brochure cover is the Open Graph image. Indexable stays ON if already enabled. Sync from DB fills EN / TH / PL.",
       },
       ...pageSeoFields("cataloguePage"),
     ],
@@ -706,7 +713,8 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
   {
     id: "contactPage",
     title: "Contact",
-    description: "/contact · banner → form photos → map → showrooms → Google",
+    description:
+      "/contact · 1 banner → 2 form photos → 3 map → 4 showrooms → 5 Google. Sync from DB fills all of these in EN / TH / PL.",
     group: "pages",
     icon: MapPin,
     stackFields: true,
@@ -716,7 +724,7 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
         key: "contactPage.__div_hero",
         label: "1 · Banner",
         type: "section-divider",
-        helpText: "Live /contact top: heading and tagline.",
+        helpText: "Live /contact top: heading and tagline. Same copy as the public page.",
       },
       { key: "contactPage.heroTitle", label: "Heading", localized: true },
       {
@@ -776,7 +784,8 @@ const SITE_SECTIONS_CORE: SiteSection[] = [
         key: "contactPage.__div_seo",
         label: "5 · Google / SEO",
         type: "section-divider",
-        helpText: "Browser tab, Google snippet, and share preview. First form photo is the Open Graph image.",
+        helpText:
+          "Browser tab, Google snippet, and share preview. Title ≤60, description ≤160. First form photo is the Open Graph image. Indexable stays ON if already enabled. Sync from DB fills EN / TH / PL.",
       },
       ...pageSeoFields("contactPage"),
     ],
@@ -814,7 +823,8 @@ const SITE_SECTIONS_CHROME: SiteSection[] = [
   {
     id: "footer",
     title: "Footer",
-    description: "Footer bio, offices & social links",
+    description:
+      "Site-wide footer · 1 bio → 2 contact details → 3 offices → 4 nav links. Sync from DB matches live footer in EN / TH / PL.",
     group: "chrome",
     icon: Share2,
     fields: [

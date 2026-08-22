@@ -73,7 +73,7 @@ export default function AdminUsersPage() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="inline-flex items-center gap-2 rounded-lg bg-[#1A2332] text-white text-sm font-semibold px-4 py-2.5"
+          className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-lg bg-[#1A2332] text-white text-sm font-semibold px-4 py-2.5"
         >
           <Plus className="w-4 h-4" />
           Add User
@@ -83,8 +83,8 @@ export default function AdminUsersPage() {
       {loading ? (
         <p className="text-sm text-[#6B7280]">Loading…</p>
       ) : (
-        <div className="bg-white rounded-xl border border-[#E8EAED] overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto bg-white rounded-xl border border-[#E8EAED]">
+          <table className="w-full min-w-[640px] text-sm">
             <thead className="bg-[#F9FAFB] text-left text-xs uppercase tracking-wide text-[#6B7280]">
               <tr>
                 <th className="px-4 py-3 font-semibold">User</th>
@@ -123,10 +123,10 @@ export default function AdminUsersPage() {
       )}
 
       {open && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+        <div className="tk-overlay">
           <form
             onSubmit={onSubmit}
-            className="w-full max-w-md bg-white rounded-2xl p-6 space-y-3"
+            className="tk-sheet w-full max-w-md bg-white p-4 sm:p-6 space-y-3"
           >
             <div className="flex justify-between items-center">
               <h3 className="font-bold text-lg">Add User</h3>

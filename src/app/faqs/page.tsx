@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { HelpCircle, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import LocaleTabs from "@/components/LocaleTabs";
@@ -52,6 +52,7 @@ export default function AdminFaqsPage() {
   const [modal, setModal] = useState<"create" | "edit" | null>(null);
   const [editing, setEditing] = useState<FaqCmsItem | null>(null);
   const [locale, setLocale] = useState<LocaleCode>("en");
+  const loadSeqRef = useRef(0);
   const [form, setForm] = useState<FaqForm>({
     question: emptyLocalized(),
     answer: emptyLocalized(),
@@ -59,12 +60,14 @@ export default function AdminFaqsPage() {
   });
 
   const load = useCallback(async () => {
+    const seq = ++loadSeqRef.current;
     setLoading(true);
     try {
       const [faqRes, homeRes] = await Promise.all([
         listFaqs(siteId),
         getHome(siteId),
       ]);
+      if (seq !== loadSeqRef.current) return;
       setItems(faqRes.items || []);
       const nextSections = homeRes.home?.sections || {};
       setSections(nextSections);
@@ -79,9 +82,10 @@ export default function AdminFaqsPage() {
         videoUrl: String(fp.videoUrl || ""),
       });
     } catch {
+      if (seq !== loadSeqRef.current) return;
       toast.error("Failed to load FAQs");
     } finally {
-      setLoading(false);
+      if (seq === loadSeqRef.current) setLoading(false);
     }
   }, [siteId]);
 
@@ -191,8 +195,8 @@ export default function AdminFaqsPage() {
     <>
       <div className="space-y-6">
         <div className="rounded-xl border border-[#E8EAED] bg-white p-4 space-y-3">
-          <div className="flex items-center justify-between gap-3">
-            <div>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="min-w-0">
               <p className="text-sm font-semibold text-[#1A2332]">
                 FAQ page hero{" "}
                 <span className="font-mono text-xs font-normal text-[#6B7280]">
@@ -207,7 +211,7 @@ export default function AdminFaqsPage() {
               type="button"
               onClick={saveHero}
               disabled={savingHero}
-              className="rounded-lg bg-[#1A2332] text-white px-3 py-2 text-xs font-semibold disabled:opacity-60"
+              className="shrink-0 rounded-lg bg-[#1A2332] text-white px-3 py-2 text-xs font-semibold disabled:opacity-60"
             >
               {savingHero ? "Saving…" : "Save"}
             </button>
@@ -265,7 +269,7 @@ export default function AdminFaqsPage() {
           <button
             type="button"
             onClick={openCreate}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#1A2332] text-white px-4 py-2.5 text-sm font-semibold"
+            className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-[#1A2332] text-white px-4 py-2.5 text-sm font-semibold"
           >
             <Plus className="w-4 h-4" />
             Add FAQ
@@ -280,7 +284,7 @@ export default function AdminFaqsPage() {
         {loading ? (
           <p className="text-sm text-[#6B7280]">Loading…</p>
         ) : filtered.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-[#E2E5EA] bg-white p-12 text-center">
+          <div className="rounded-2xl border border-dashed border-[#E2E5EA] bg-white p-8 sm:p-12 text-center">
             <HelpCircle className="w-8 h-8 text-[#9CA3AF] mx-auto mb-3" />
             <p className="text-sm text-[#6B7280]">No FAQs yet</p>
           </div>
@@ -322,10 +326,10 @@ export default function AdminFaqsPage() {
       </div>
 
       {modal ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+        <div className="tk-overlay">
           <form
             onSubmit={onSubmit}
-            className="w-full max-w-lg rounded-2xl bg-white p-6 space-y-4 shadow-xl"
+            className="tk-sheet w-full max-w-lg bg-white p-4 sm:p-6 space-y-4 shadow-xl"
           >
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-lg font-semibold text-[#1A2332]">

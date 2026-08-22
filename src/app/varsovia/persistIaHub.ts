@@ -1,6 +1,6 @@
 import { asLocalizedForm, localizedValue, type LocaleCode } from "@/lib/localized";
 import { getVarsoviaSite, updateVarsoviaSite } from "@/services/varsoviaAPI";
-import { liveChildDefault, mergeIaPagesFromLiveSite } from "@/app/varsovia/mergeIaPages";
+import { liveChildDefault } from "@/app/varsovia/mergeIaPages";
 
 function slugify(value: string) {
   return String(value || "")
@@ -43,16 +43,20 @@ function syncCardTitleIntoHero(
 
 /**
  * Save one IA hub without replacing the rest of `site.pages`.
- * Always re-reads Mongo first so a stale furniture/locations snapshot cannot
- * wipe sibling hubs or drop children on Save.
+ * Patches onto the Mongo hub as stored (not a seed-filled snapshot), so a
+ * stale furniture/locations view cannot wipe sibling hubs or custom copy.
  */
 export async function persistIaHubPatch(
   hubKey: string,
   patchHub: Record<string, unknown>
 ) {
   const site = await getVarsoviaSite();
-  const allPages = mergeIaPagesFromLiveSite(site.pages);
-  const existing = (allPages[hubKey] || {}) as Record<string, unknown>;
+  const storedPages =
+    site.pages && typeof site.pages === "object" && !Array.isArray(site.pages)
+      ? (site.pages as Record<string, unknown>)
+      : {};
+  const existing = (storedPages[hubKey] || {}) as Record<string, unknown>;
+  
   let children = Array.isArray(patchHub.children)
     ? patchHub.children
     : Array.isArray(existing.children)
@@ -78,18 +82,36 @@ export async function persistIaHubPatch(
       });
     }
   }
-  await updateVarsoviaSite({
+  
+  const existingHero =
+    existing.hero && typeof existing.hero === "object" && !Array.isArray(existing.hero)
+      ? (existing.hero as Record<string, unknown>)
+      : {};
+  const patchHero =
+    patchHub.hero && typeof patchHub.hero === "object" && !Array.isArray(patchHub.hero)
+      ? (patchHub.hero as Record<string, unknown>)
+      : {};
+
+  const updatePayload = {
     pages: {
       [hubKey]: {
         ...existing,
         ...patchHub,
         slug: String(patchHub.slug || existing.slug || hubKey),
+        hero: { ...existingHero, ...patchHero },
         children,
       },
     },
-  });
+  };
+
+  await updateVarsoviaSite(updatePayload, { persistPages: true });
   const saved = await getVarsoviaSite();
-  return mergeIaPagesFromLiveSite(saved.pages);
+  // Trust MongoDB data AS-IS - do NOT merge with defaults
+  const resultPages = (saved.pages && typeof saved.pages === "object" && !Array.isArray(saved.pages))
+    ? (saved.pages as Record<string, unknown>)
+    : {};
+
+  return resultPages;
 }
 
 export async function persistIaHubChildren(

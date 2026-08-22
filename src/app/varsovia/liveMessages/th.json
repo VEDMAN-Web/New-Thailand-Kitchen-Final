@@ -211,8 +211,8 @@
       "messageMax": "ข้อความต้องไม่เกิน 2000 ตัวอักษร"
     },
     "ourLocationTitle": "ที่ตั้งของเรา",
-    "ourLocationSubtitle": "ตั้งอยู่ในทำเลที่สะดวกเพื่อตอบโจทย์ความต้องการด้านออกแบบภายใน",
-    "mapAriaLabel": "แผนที่แสดงที่ตั้งสำนักงาน Varsovia Design",
+    "ourLocationSubtitle": "เยี่ยมชมโชว์รูมหรือติดต่อเราออนไลน์ — เรายินดีช่วยเหลือ",
+    "mapAriaLabel": "แผนที่สำนักงาน Varsovia Design",
     "openInMaps": "เปิดใน Google Maps"
   },
   "blogListing": {

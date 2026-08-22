@@ -118,25 +118,37 @@ export function aliasVarsoviaMediaPath(path: string): string {
   return ALIASES[key] || path;
 }
 
+const KITCHEN_ASSET = /^\/products\/Kitchen(\d)\.(png|jpe?g|webp)$/i;
+
+const VARSOVIA_PRODUCT_PHOTOS = [
+  "/home/product/product-1.jpg",
+  "/home/product/product-2.jpg",
+  "/home/product/product-3.jpg",
+];
+
+/**
+ * Thailand Kitchen stock paths (`/products/Kitchen2.jpg`) do not exist on
+ * Varsovia. Map them to Varsovia public photos so admin previews work.
+ */
+export function mapThailandKitchenPathToVarsovia(path: string): string {
+  const key = normalizeKey(path);
+  const match = key.match(KITCHEN_ASSET);
+  if (!match) return key;
+  const index = Number(match[1]) - 1;
+  if (index >= 0 && index < VARSOVIA_PRODUCT_PHOTOS.length) {
+    return VARSOVIA_PRODUCT_PHOTOS[index];
+  }
+  const featured = ((index % 8) + 8) % 8;
+  return `/home/featured/feature-${featured + 1}.jpg`;
+}
+
+export function canonicalizeVarsoviaPreviewPath(path: string): string {
+  return mapThailandKitchenPathToVarsovia(aliasVarsoviaMediaPath(path));
+}
+
 export function isVarsoviaPublicAssetPath(path: string): boolean {
   const p = normalizeKey(path);
   return VARSOVIA_PUBLIC_PREFIXES.some((prefix) => p.startsWith(prefix));
-}
-
-function withSwappedExt(path: string): string[] {
-  const out: string[] = [];
-  if (/\.png$/i.test(path)) {
-    out.push(path.replace(/\.png$/i, ".jpg"));
-    out.push(path.replace(/\.png$/i, ".webp"));
-    out.push(path.replace(/\.png$/i, ".jpeg"));
-  } else if (/\.jpe?g$/i.test(path)) {
-    out.push(path.replace(/\.jpe?g$/i, ".png"));
-    out.push(path.replace(/\.jpe?g$/i, ".webp"));
-  } else if (/\.webp$/i.test(path)) {
-    out.push(path.replace(/\.webp$/i, ".jpg"));
-    out.push(path.replace(/\.webp$/i, ".png"));
-  }
-  return out;
 }
 
 function partnerLogoCandidates(path: string): string[] {
@@ -161,20 +173,13 @@ function partnerLogoCandidates(path: string): string[] {
   return out;
 }
 
-/** Local + aliased + extension variants for an existing CMS media path. */
+/** Local + aliased variants. Prefer the canonical file path; skip extension spray. */
 export function varsoviaMediaPathCandidates(path: string): string[] {
   const key = normalizeKey(path);
   const aliased = aliasVarsoviaMediaPath(key);
   const seen = new Set<string>();
   const out: string[] = [];
-  for (const candidate of [
-    key,
-    aliased,
-    ...withSwappedExt(key),
-    ...withSwappedExt(aliased),
-    ...partnerLogoCandidates(key),
-    ...partnerLogoCandidates(aliased),
-  ]) {
+  for (const candidate of [aliased, key, ...partnerLogoCandidates(key), ...partnerLogoCandidates(aliased)]) {
     if (candidate && !seen.has(candidate)) {
       seen.add(candidate);
       out.push(candidate);

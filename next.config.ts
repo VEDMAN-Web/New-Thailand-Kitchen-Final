@@ -9,7 +9,14 @@ const apiTarget = (
 
 // Frontend URL for proxying public static assets (brand logos, product images, etc.)
 const frontendTarget = (
-  process.env.NEXT_PUBLIC_FRONTEND_URL?.trim() || "http://localhost:3000"
+  process.env.NEXT_PUBLIC_THAILAND_FRONTEND_URL?.trim() ||
+  process.env.NEXT_PUBLIC_FRONTEND_URL?.trim() ||
+  "http://localhost:3000"
+).replace(/\/+$/, "");
+
+const varsoviaTarget = (
+  process.env.NEXT_PUBLIC_VARSOVIA_FRONTEND_URL?.trim() ||
+  "http://localhost:3000"
 ).replace(/\/+$/, "");
 
 // Extra dev hosts (e.g. a rotating ngrok URL), comma-separated in .env.local
@@ -54,7 +61,7 @@ const nextConfig: NextConfig = {
         destination: `${apiTarget}/uploads/:path*`,
       },
     ];
-    const siteAssetRewrites = [
+    const thailandPrefixes = [
       "/brandLogo",
       "/products",
       "/blog",
@@ -69,13 +76,39 @@ const nextConfig: NextConfig = {
       "/images",
       "/contactUs",
       "/gallery",
-    ].map((prefix) => ({
+    ].filter((prefix) => {
+      // Varsovia has no /products/Kitchen*.png — don't proxy those to :3000.
+      if (frontendTarget === varsoviaTarget && (prefix === "/products" || prefix === "/product")) {
+        return false;
+      }
+      return true;
+    });
+    const siteAssetRewrites = thailandPrefixes.map((prefix) => ({
       source: `${prefix}/:path+`,
       destination: `${frontendTarget}${prefix}/:path*`,
     }));
 
+    const varsoviaAssetRewrites = [
+      {
+        source: "/varsovia-static/:path*",
+        destination: `${varsoviaTarget}/:path*`,
+      },
+      {
+        source: "/home/:path*",
+        destination: `${varsoviaTarget}/home/:path*`,
+      },
+      {
+        source: "/Interior-kitchen/:path*",
+        destination: `${varsoviaTarget}/Interior-kitchen/:path*`,
+      },
+      {
+        source: "/quality-sale/:path*",
+        destination: `${varsoviaTarget}/quality-sale/:path*`,
+      },
+    ];
+
     return {
-      beforeFiles: [...apiRewrites, ...siteAssetRewrites],
+      beforeFiles: [...apiRewrites, ...varsoviaAssetRewrites, ...siteAssetRewrites],
     };
   },
 };

@@ -68,6 +68,7 @@ import {
   writeVarsoviaNav,
   type VarsoviaNavDetail,
 } from "@/lib/adminSectionNav";
+import { useCmsFlushSaves } from "@/lib/cmsFlushSaves";
 import {
   localeFieldPlaceholder,
 } from "@/lib/localized";
@@ -824,6 +825,7 @@ function SiteSettings() {
   const contentRef = useRef<Record<string, unknown>>({});
   const loadSeqRef = useRef(0);
   const sectionSavesRef = useRef(new Map<string, SectionSaveHandler>());
+  const flushSaves = useCmsFlushSaves();
 
   const registerSectionSave = useCallback(
     (id: string, handler: SectionSaveHandler | null) => {
@@ -872,10 +874,11 @@ function SiteSettings() {
       const loaded = normalizeRecord(
         (await getVarsoviaSite()) as VarsoviaRecord
       );
-      const { site: hydrated } = await hydrateVarsoviaSiteDocument(loaded);
+      // DO NOT hydrate/merge with defaults - trust MongoDB data as-is
+      // The backend already returns properly merged data
       if (seq !== loadSeqRef.current) return;
-      contentRef.current = hydrated;
-      setContent(hydrated);
+      contentRef.current = loaded;
+      setContent(loaded);
       savedPayloadRef.current = JSON.stringify(pickVarsoviaSiteUpdate(loaded));
     } catch (error) {
       toast.error(errorMessage(error));
@@ -939,16 +942,28 @@ function SiteSettings() {
         return;
       }
 
-      await updateVarsoviaSite(current);
-      savedPayloadRef.current = nextSerialized;
-      contentRef.current = current;
-      setContent(current);
+      await flushSaves?.flushAll();
+      
+      // Save to backend (with persistPages to save furniture hub data)
+      const savedData = await updateVarsoviaSite(current, { persistPages: true });
+      
+      // Trust the backend response AS-IS without re-merging with defaults
+      // The backend already has the correct merged data
+      savedPayloadRef.current = JSON.stringify(pickVarsoviaSiteUpdate(savedData));
+      contentRef.current = savedData;
+      setContent(savedData);
+      
+      // Save embedded sections
       for (const handler of embeddedHandlers) {
         await handler({ quiet: true });
       }
+      
       if (!opts?.quiet) {
         toast.success(siteDirty ? "Saved — live site updated" : "Saved");
       }
+      
+      // NO reload, NO hydration - backend response is the source of truth
+      
     } catch (error) {
       const msg = error instanceof Error ? error.message : "";
       if (!/validation failed/i.test(msg)) {
@@ -1015,7 +1030,7 @@ function SiteSettings() {
     <VarsoviaSectionSaveContext.Provider value={sectionSaveApi}>
     <section className="flex h-full min-h-0 flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
           {showHomeRail ? (
             <>
               <span className="text-xs font-bold uppercase tracking-[0.1em] text-[#5C6370]">
@@ -1023,7 +1038,12 @@ function SiteSettings() {
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-[#DCFCE7] px-2.5 py-1 text-xs font-semibold text-[#166534]">
                 <Check className="h-3.5 w-3.5" />
-                {homeDoneCount} of {homeSections.length} Sections Ready
+                <span className="sm:hidden">
+                  {homeDoneCount}/{homeSections.length}
+                </span>
+                <span className="hidden sm:inline">
+                  {homeDoneCount} of {homeSections.length} Sections Ready
+                </span>
               </span>
             </>
           ) : (
@@ -1032,7 +1052,7 @@ function SiteSettings() {
             </span>
           )}
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <button
             type="button"
             onClick={() => void saveContent()}
@@ -1062,12 +1082,38 @@ function SiteSettings() {
           className={clsx(
             "grid min-h-0 flex-1 items-stretch gap-5",
             showHomeRail
-              ? "grid-cols-1 xl:grid-cols-[340px_1fr]"
+              ? "grid-cols-1 lg:grid-cols-[340px_1fr]"
               : "grid-cols-1"
           )}
         >
           {showHomeRail ? (
-          <div className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-[#E8EAED] bg-white">
+          <div className="flex lg:hidden -mx-1 px-1 tk-chip-scroll">
+            {homeSections.map((section) => {
+                const selected = active === section.id;
+                const ok = isVarsoviaSectionComplete(section, content, locale);
+                const Icon = section.icon;
+                return (
+                  <button
+                    key={section.id}
+                    type="button"
+                    onClick={() => selectSection(section.id)}
+                    className={clsx(
+                      "inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-3 py-2 text-xs font-semibold",
+                      selected
+                        ? "border-[#1A2332] bg-[#1A2332] text-white"
+                        : "border-[#E2E5EA] bg-white text-[#1A2332]"
+                    )}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    {section.title}
+                    {ok ? <Check className="h-3 w-3" strokeWidth={3} /> : null}
+                  </button>
+                );
+              })}
+          </div>
+          ) : null}
+          {showHomeRail ? (
+          <div className="hidden lg:flex min-h-0 flex-col overflow-hidden rounded-xl border border-[#E8EAED] bg-white">
             <div className="flex items-center justify-between border-b border-[#E8EAED] px-4 py-3">
               <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#5C6370]">
                 Same order as website
@@ -1124,7 +1170,7 @@ function SiteSettings() {
 
           <div
             className={clsx(
-              "flex min-h-0 flex-col overflow-hidden rounded-xl border border-[#E8EAED] bg-white",
+              "flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-[#E8EAED] bg-white",
               activeSection?.group === "chrome" ? "w-full max-w-3xl" : ""
             )}
           >
@@ -1465,7 +1511,7 @@ function CataloguesInlineEditor({ embedded = false }: { embedded?: boolean }) {
         }
       }
       if (!opts?.quiet) toast.success("Catalogues saved");
-      await load();
+      // Don't reload - data already saved successfully
     } catch (error) {
       toast.error(errorMessage(error));
       throw error;
@@ -1487,7 +1533,7 @@ function CataloguesInlineEditor({ embedded = false }: { embedded?: boolean }) {
           <div>
             <h2 className="text-lg font-bold text-[#1A2332]">Free Catalogue</h2>
             <p className="mt-0.5 text-sm text-[#6B7280]">
-              3 downloadable PDF catalogs
+              Same 6 downloadable brochure cards as live /catalogue
             </p>
           </div>
           {complete ? (
@@ -1815,7 +1861,7 @@ function TeamInlineEditor({ embedded = false }: { embedded?: boolean }) {
         }
       }
       if (!opts?.quiet) toast.success("Team saved");
-      await load();
+      // Don't reload - data already saved successfully
     } catch (error) {
       toast.error(errorMessage(error));
       throw error;
@@ -2212,7 +2258,7 @@ function PartnersInlineEditor({ embedded = false }: { embedded?: boolean }) {
         }
       }
       if (!opts?.quiet) toast.success("Partners saved");
-      await load();
+      // Don't reload - data already saved successfully
     } catch (error) {
       toast.error(errorMessage(error));
       throw error;
@@ -2532,7 +2578,7 @@ function ShowcasesInlineEditor({ embedded = false }: { embedded?: boolean }) {
         }
       }
       if (!opts?.quiet) toast.success("Showcases saved");
-      await load();
+      // Don't reload - data already saved successfully
     } catch (error) {
       toast.error(errorMessage(error));
       throw error;
@@ -3066,7 +3112,7 @@ function FaqsInlineEditor({ embedded = false }: { embedded?: boolean }) {
         const payload = {
           question: ensureEnglishCopy(draft.question),
           answer: ensureEnglishCopy(draft.answer),
-          category: activeTopic,
+          category: emptyLocalized(activeTopic),
           visible: draft.visible !== false,
           order,
         };
@@ -3091,7 +3137,7 @@ function FaqsInlineEditor({ embedded = false }: { embedded?: boolean }) {
       );
 
       if (!opts?.quiet) toast.success(`${activeTopic} FAQs saved`);
-      await load();
+      // Don't reload - data already saved successfully
     } catch (error) {
       toast.error(errorMessage(error));
       throw error;
@@ -3487,7 +3533,7 @@ function TestimonialsInlineEditor({ embedded = false }: { embedded?: boolean }) 
         }
       }
       if (!opts?.quiet) toast.success("Testimonials saved");
-      await load();
+      // Don't reload - data already saved successfully
     } catch (error) {
       toast.error(errorMessage(error));
       throw error;
@@ -3726,6 +3772,8 @@ export function ResourceManager({
   const [query, setQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All categories");
   const card = config.card;
+  const flushSaves = useCmsFlushSaves();
+  const saveRef = useRef<() => Promise<boolean>>(async () => true);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -3861,7 +3909,7 @@ export function ResourceManager({
     setForm(setAtPath(form, field.key, value));
   };
 
-  const save = async () => {
+  const save = async (): Promise<boolean> => {
     const requiredMissing = fields.some(
       (field) =>
         field.required &&
@@ -3870,7 +3918,7 @@ export function ResourceManager({
     if (requiredMissing) {
       toast.error("Complete all required English fields");
       setLocale("en");
-      return;
+      return false;
     }
 
     const payload = sanitizeRecordMediaUrls(form);
@@ -3883,21 +3931,58 @@ export function ResourceManager({
 
     try {
       setSaving(true);
+      let savedRecord: VarsoviaRecord;
+      
       if (editing?._id) {
-        await updateVarsoviaRecord(resource, editing._id, payload);
-        toast.success(`${config.singular} updated`);
+        // Update existing record
+        savedRecord = await updateVarsoviaRecord(resource, editing._id, payload);
+        
+        // Optimistic update: immediately update local state with saved data
+        setItems((prev) => 
+          prev.map((item) => 
+            item._id === editing._id ? { ...savedRecord, _id: editing._id } : item
+          )
+        );
+        
+        toast.success(
+          resource === "projects"
+            ? "Project saved — live /interior-design card uses these fields"
+            : `${config.singular} updated`
+        );
       } else {
-        await createVarsoviaRecord(resource, payload);
+        // Create new record
+        savedRecord = await createVarsoviaRecord(resource, payload);
+        
+        // Optimistic update: immediately add to local state
+        setItems((prev) => [...prev, savedRecord]);
+        
         toast.success(`${config.singular} created`);
       }
+      
       setEditing(undefined);
-      await load();
+      
+      // Don't reload - optimistic updates already applied
+      
+      return true;
     } catch (error) {
       toast.error(errorMessage(error));
+      return false;
     } finally {
       setSaving(false);
     }
   };
+
+  saveRef.current = save;
+
+  useEffect(() => {
+    if (!flushSaves) return;
+    if (editing === undefined) {
+      flushSaves.register(`resource:${resource}`, null);
+      return;
+    }
+    flushSaves.register(`resource:${resource}`, () => saveRef.current());
+    return () => flushSaves.register(`resource:${resource}`, null);
+  }, [flushSaves, resource, editing]);
 
   const remove = async (item: VarsoviaRecord) => {
     const title = localizedValue(getAtPath(item, config.titleKey));
@@ -3905,7 +3990,8 @@ export function ResourceManager({
     try {
       await deleteVarsoviaRecord(resource, item._id);
       toast.success(`${config.singular} deleted`);
-      await load();
+      // Remove item from local state instead of reloading
+      setItems((prev) => prev.filter((i) => i._id !== item._id));
     } catch (error) {
       toast.error(errorMessage(error));
     }
@@ -4024,7 +4110,7 @@ export function ResourceManager({
           ) : null}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-3">
-              <div className="relative w-[270px]">
+              <div className="relative w-full sm:w-[270px]">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9CA3AF]" />
                 <input
                   value={query}
@@ -4033,11 +4119,11 @@ export function ResourceManager({
                   className="h-11 w-full rounded-xl border border-[#E2E5EA] bg-white pl-10 pr-3 text-sm outline-none focus:ring-2 focus:ring-[#1A2332]/15"
                 />
               </div>
-              <div className="relative">
+              <div className="relative w-full sm:w-auto">
                 <select
                   value={categoryFilter}
                   onChange={(event) => setCategoryFilter(event.target.value)}
-                  className="h-11 min-w-[170px] appearance-none rounded-xl border border-[#E2E5EA] bg-white px-4 pr-9 text-sm outline-none focus:ring-2 focus:ring-[#1A2332]/15"
+                  className="h-11 w-full sm:w-auto sm:min-w-[170px] appearance-none rounded-xl border border-[#E2E5EA] bg-white px-4 pr-9 text-sm outline-none focus:ring-2 focus:ring-[#1A2332]/15"
                 >
                   {cardCategories.map((category) => (
                     <option key={category} value={category}>
@@ -4109,14 +4195,14 @@ export function ResourceManager({
                       <div className="relative h-40 w-full bg-[#F3F4F6]">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                          src={resolveAdminMediaPreviewUrl(image || "/products/Kitchen1.png")}
+                          src={resolveAdminMediaPreviewUrl(image || "/home/product/product-1.jpg")}
                           alt={title}
                           referrerPolicy="no-referrer"
                           className="h-full w-full object-cover"
                           onError={(event) => {
                             const el = event.currentTarget;
                             const fallbacks = resolveAdminMediaPreviewFallbacks(
-                              image || "/products/Kitchen1.png"
+                              image || "/home/product/product-1.jpg"
                             );
                             const idx = Number(el.dataset.fb || "0");
                             const next = fallbacks[idx + 1];
@@ -4127,7 +4213,7 @@ export function ResourceManager({
                             }
                             if (el.dataset.fallback === "1") return;
                             el.dataset.fallback = "1";
-                            el.src = "/products/Kitchen1.png";
+                            el.src = resolveAdminMediaPreviewUrl("/home/product/product-1.jpg");
                           }}
                         />
                         <span className="absolute left-2 top-2 rounded-md bg-white px-2 py-1 text-[10px] font-semibold text-[#475569]">
@@ -4203,14 +4289,14 @@ export function ResourceManager({
         </>
       ) : (
         <>
-          <div className="flex items-center justify-between gap-4">
-            <div>
+          <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
+            <div className="min-w-0">
               <h2 className="text-xl font-bold">{config.label}</h2>
               <p className="mt-1 text-sm text-[#6B7280]">
                 Manage English, Thai and Polish content in Varsovia API.
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {resource === "blogs" ? (
                 <button
                   type="button"
@@ -4292,10 +4378,10 @@ export function ResourceManager({
       )}
 
       {editing !== undefined && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4">
-          <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#E8EAED] bg-white px-6 py-4">
-              <h3 className="font-bold">
+        <div className="tk-overlay">
+          <div className="tk-sheet max-h-[92vh] w-full max-w-3xl bg-white shadow-2xl">
+            <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-[#E8EAED] bg-white px-4 sm:px-6 py-4">
+              <h3 className="min-w-0 truncate font-bold">
                 {editing ? `Edit ${config.singular}` : `Add ${config.singular}`}
               </h3>
               <button
@@ -4427,8 +4513,8 @@ export function ResourceManager({
       )}
 
       {resource === "blogs" && aiOpen ? (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-lg max-h-[90vh] space-y-4 overflow-y-auto rounded-2xl bg-white p-6">
+        <div className="tk-overlay z-[60]">
+          <div className="tk-sheet w-full max-w-lg space-y-4 bg-white p-4 sm:p-6">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h3 className="text-lg font-bold text-[#1A2332]">

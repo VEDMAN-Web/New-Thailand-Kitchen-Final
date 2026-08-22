@@ -59,6 +59,8 @@ const PHRASES: Record<"th" | "pl", Record<string, string>> = {
     "Our Team": "ทีมของเรา",
     "Quality After Sales": "บริการหลังการขาย",
     "Contact": "ติดต่อ",
+    "Get In Touch": "ติดต่อเรา",
+    "Get in Touch": "ติดต่อเรา",
     "Contact Us": "ติดต่อเรา",
     "Get Offers": "รับข้อเสนอ",
     "CONTACT VARSOVIA": "ติดต่อ VARSOVIA",
@@ -127,6 +129,20 @@ const PHRASES: Record<"th" | "pl", Record<string, string>> = {
     "Articles in this topic": "บทความในหัวข้อนี้",
     "Complete Interiors | Varsovia Design": "อินทีเรียครบวงจร | Varsovia Design",
     "For Developers | Varsovia Design": "สำหรับนักพัฒนา | Varsovia Design",
+    "Partner with Varsovia Design for developer interior packages, show units, and scalable FF&E across Thailand.":
+      "ร่วมงานกับ Varsovia Design สำหรับแพ็กเกจอินทีเรียนักพัฒนา ยูนิตตัวอย่าง และ FF&E ที่ขยายได้ทั่วไทย",
+    "Partner with Varsovia Design for developer interior packages, show units, and scalable FF&E across Thailand. Specs, timelines, and installation in every phase.":
+      "ร่วมงานกับ Varsovia Design สำหรับแพ็กเกจอินทีเรียนักพัฒนา ยูนิตตัวอย่าง และ FF&E ที่ขยายได้ทั่วไทย พร้อมสเปก ไทม์ไลน์ และการติดตั้งในทุกเฟส",
+    "Interior partners for show units, standard packages, and amenity spaces.":
+      "พาร์ทเนอร์อินทีเรียสำหรับยูนิตตัวอย่าง แพ็กเกจมาตรฐาน และพื้นที่ส่วนกลาง",
+    "Developers need interiors that sell and scale. We deliver show-unit storytelling, repeatable apartment packages, and amenity design with clear specs, timelines, and installation support — so every phase stays on brand and on schedule.":
+      "นักพัฒนาต้องการอินทีเรียที่ขายได้และขยายได้ เราส่งมอบเรื่องราวยูนิตตัวอย่าง แพ็กเกจอพาร์ตเมนต์ที่ทำซ้ำได้ และการออกแบบพื้นที่ส่วนกลาง พร้อมสเปก ไทม์ไลน์ และการติดตั้งที่ชัดเจน ให้ทุกเฟสคงแบรนด์และตรงเวลา",
+    "Show units that sell the vision": "ยูนิตตัวอย่างที่ขายวิสัยทัศน์",
+    "Launch interiors with storytelling that buyers remember — then convert to packages that roll out cleanly across phases.":
+      "เปิดตัวอินทีเรียด้วยเรื่องราวที่ผู้ซื้อจำได้ แล้วแปลงเป็นแพ็กเกจที่ขยายได้ทุกเฟสอย่างเรียบร้อย",
+    "Packages, amenities, installation": "แพ็กเกจ พื้นที่ส่วนกลาง และการติดตั้ง",
+    "Standard apartment packages and amenity spaces with clear specs, timelines, and installation support so every phase stays on brand.":
+      "แพ็กเกจอพาร์ตเมนต์มาตรฐานและพื้นที่ส่วนกลาง พร้อมสเปก ไทม์ไลน์ และการติดตั้งที่ชัดเจน ให้ทุกเฟสคงแบรนด์",
     "Journal | Varsovia Design": "วารสาร | Varsovia Design",
     "Villas | Varsovia Design": "วิลล่า | Varsovia Design",
     "Condos | Varsovia Design": "คอนโด | Varsovia Design",
@@ -136,11 +152,46 @@ const PHRASES: Record<"th" | "pl", Record<string, string>> = {
     "Villa Guides | Varsovia Design": "คู่มือวิลล่า | Varsovia Design",
     "Thailand Living | Varsovia Design": "การใช้ชีวิตในไทย | Varsovia Design",
     "Free Catalogue | Varsovia Design": "แคตตาล็อกฟรี | Varsovia Design",
+    "Explore Our Interior Design Catalogue": "สำรวจแคตตาล็อกออกแบบอินทีเรียของเรา",
+    "Download Varsovia Design catalogues for kitchen and interior inspiration.":
+      "ดาวน์โหลดแคตตาล็อก Varsovia Design สำหรับแรงบันดาลใจครัวและอินทีเรีย",
+    "Download Varsovia design catalogues and kitchen inspiration.":
+      "ดาวน์โหลดแคตตาล็อกและแรงบันดาลใจครัวจาก Varsovia",
+    "Download Varsovia kitchen and interior catalogues — layouts, finishes, and collections for homes in Thailand.":
+      "ดาวน์โหลดแคตตาล็อกครัวและอินทีเรีย Varsovia — เลย์เอาต์ ผิวงาน และคอลเลกชันสำหรับบ้านในไทย",
+    "Download Varsovia Design catalogues for kitchen and interior inspiration — layouts, finishes, and collections for homes across Thailand.":
+      "ดาวน์โหลดแคตตาล็อก Varsovia Design สำหรับแรงบันดาลใจครัวและอินทีเรีย — เลย์เอาต์ ผิวงาน และคอลเลกชันสำหรับบ้านทั่วไทย",
+    "Classic Collection 2026": "คอลเลกชันคลาสสิก 2026",
+    "Modern Living": "โมเดิร์นลิฟวิ่ง",
+    "Explore Modern Design": "สำรวจดีไซน์โมเดิร์น",
+    "Warm Neutrals": "โทนกลางอุ่น",
+    "Urban Kitchens": "ครัวเมือง",
+    "Coastal Living": "ชีวิตชายฝั่ง",
     "Our Team | Varsovia Design": "ทีมของเรา | Varsovia Design",
+    "Meet the designers, architects, and craftspeople behind Varsovia Design.":
+      "พบนักออกแบบ สถาปนิก และช่างฝีมือเบื้องหลัง Varsovia Design",
+    "Meet the Varsovia design team": "พบทีมออกแบบ Varsovia",
+    "Meet the designers, architects, and craftspeople behind Varsovia Design — Italian design collaboration and technical teams for homes across Thailand.":
+      "พบนักออกแบบ สถาปนิก และช่างฝีมือเบื้องหลัง Varsovia Design — ทีมออกแบบอิตาลีและทีมเทคนิคสำหรับบ้านทั่วไทย",
     "Quality After Sales | Varsovia Design": "บริการหลังการขาย | Varsovia Design",
     "Quality & After-Sales | Varsovia Design": "คุณภาพและบริการหลังการขาย | Varsovia Design",
+    "Warranty, maintenance, and after-sales care for Varsovia kitchens and interiors — from first contact through assessment, scheduling, and resolution.":
+      "การรับประกัน การดูแลรักษา และบริการหลังการขายสำหรับครัวและอินทีเรีย Varsovia — ตั้งแต่ติดต่อครั้งแรกถึงประเมิน นัดหมาย และแก้ไข",
+    "Warranty, maintenance, and after-sales care for Varsovia kitchens and interiors — from first contact to resolution.":
+      "การรับประกัน การดูแลรักษา และบริการหลังการขายสำหรับครัวและอินทีเรีย Varsovia — จากติดต่อครั้งแรกถึงการแก้ไข",
     "Contact Us | Varsovia Design": "ติดต่อเรา | Varsovia Design",
+    "Visit Varsovia Design in Koh Samui, Phuket, and Pattaya — book a free consultation for modular kitchens and complete interiors.":
+      "เยี่ยม Varsovia Design ที่เกาะสมุย ภูเก็ต และพัทยา — นัดปรึกษาฟรีสำหรับครัวโมดูลาร์และอินทีเรียครบวงจร",
+    "Get in touch with Varsovia Design — Koh Samui, Phuket, and Pattaya showrooms, or book a free kitchen and interior consultation.":
+      "ติดต่อ Varsovia Design — โชว์รูมเกาะสมุย ภูเก็ต และพัทยา หรือนัดปรึกษาครัวและอินทีเรียฟรี",
+    "Let's create something beautiful together": "มาออกแบบสิ่งสวยงามร่วมกัน",
     "FAQ | Varsovia Design": "คำถามที่พบบ่อย | Varsovia Design",
+    "Answers to common questions on Varsovia kitchens, interiors, materials, timelines, and after-sales — from planning through installation.":
+      "คำตอบคำถามที่พบบ่อยเรื่องครัว อินทีเรีย วัสดุ ไทม์ไลน์ และบริการหลังการขายของ Varsovia — ตั้งแต่วางแผนถึงติดตั้ง",
+    "Answers on Varsovia kitchens, interiors, materials, timelines, and after-sales — from planning through installation.":
+      "คำตอบเรื่องครัว อินทีเรีย วัสดุ ไทม์ไลน์ และบริการหลังการขายของ Varsovia — ตั้งแต่วางแผนถึงติดตั้ง",
+    "Clear answers to help you make informed design decisions":
+      "คำตอบที่ชัดเจนเพื่อช่วยคุณตัดสินใจด้านการออกแบบอย่างมีข้อมูล",
     "Villas": "วิลล่า",
     "Condos": "คอนโด",
     "Hotels & Resorts": "โรงแรมและรีสอร์ต",
@@ -176,6 +227,8 @@ const PHRASES: Record<"th" | "pl", Record<string, string>> = {
     "Our Team": "Nasz zespół",
     "Quality After Sales": "Serwis posprzedażowy",
     "Contact": "Kontakt",
+    "Get In Touch": "Skontaktuj się",
+    "Get in Touch": "Skontaktuj się",
     "Contact Us": "Kontakt",
     "Get Offers": "Sprawdź oferty",
     "CONTACT VARSOVIA": "KONTAKT Z VARSOVIA",
@@ -245,6 +298,20 @@ const PHRASES: Record<"th" | "pl", Record<string, string>> = {
     "Articles in this topic": "Artykuły w tym temacie",
     "Complete Interiors | Varsovia Design": "Kompleksowe wnętrza | Varsovia Design",
     "For Developers | Varsovia Design": "Dla deweloperów | Varsovia Design",
+    "Partner with Varsovia Design for developer interior packages, show units, and scalable FF&E across Thailand.":
+      "Współpracuj z Varsovia Design przy pakietach wnętrz deweloperskich, show unitach i FF&E w Tajlandii.",
+    "Partner with Varsovia Design for developer interior packages, show units, and scalable FF&E across Thailand. Specs, timelines, and installation in every phase.":
+      "Współpracuj z Varsovia Design przy pakietach wnętrz deweloperskich, show unitach i FF&E w Tajlandii. Specyfikacje, harmonogram i montaż na każdym etapie.",
+    "Interior partners for show units, standard packages, and amenity spaces.":
+      "Partnerzy wnętrzarscy do mieszkań show, pakietów standardowych i przestrzeni wspólnych.",
+    "Developers need interiors that sell and scale. We deliver show-unit storytelling, repeatable apartment packages, and amenity design with clear specs, timelines, and installation support — so every phase stays on brand and on schedule.":
+      "Deweloperzy potrzebują wnętrz, które sprzedają i skalują się. Dostarczamy storytelling mieszkań show, powtarzalne pakiety apartamentów i projekt przestrzeni wspólnych z jasnymi specyfikacjami, harmonogramem i wsparciem montażu — żeby każdy etap zostawał w zgodzie z marką i terminem.",
+    "Show units that sell the vision": "Mieszkania show, które sprzedają wizję",
+    "Launch interiors with storytelling that buyers remember — then convert to packages that roll out cleanly across phases.":
+      "Wprowadzaj wnętrza z opowieścią, którą kupujący zapamiętają — a potem zamieniaj je w pakiety wdrażane czysto w kolejnych etapach.",
+    "Packages, amenities, installation": "Pakiety, udogodnienia, montaż",
+    "Standard apartment packages and amenity spaces with clear specs, timelines, and installation support so every phase stays on brand.":
+      "Standardowe pakiety mieszkań i przestrzenie wspólne z jasnymi specyfikacjami, harmonogramem i wsparciem montażu, żeby każdy etap zostawał w zgodzie z marką.",
     "Journal | Varsovia Design": "Dziennik | Varsovia Design",
     "Villas | Varsovia Design": "Wille | Varsovia Design",
     "Condos | Varsovia Design": "Apartamenty | Varsovia Design",
@@ -254,11 +321,46 @@ const PHRASES: Record<"th" | "pl", Record<string, string>> = {
     "Villa Guides | Varsovia Design": "Przewodniki willi | Varsovia Design",
     "Thailand Living | Varsovia Design": "Życie w Tajlandii | Varsovia Design",
     "Free Catalogue | Varsovia Design": "Darmowy katalog | Varsovia Design",
+    "Explore Our Interior Design Catalogue": "Odkryj nasz katalog projektowania wnętrz",
+    "Download Varsovia Design catalogues for kitchen and interior inspiration.":
+      "Pobierz katalogi Varsovia Design z inspiracjami kuchennymi i wnętrzarskimi.",
+    "Download Varsovia design catalogues and kitchen inspiration.":
+      "Pobierz katalogi Varsovia i inspiracje kuchenne.",
+    "Download Varsovia kitchen and interior catalogues — layouts, finishes, and collections for homes in Thailand.":
+      "Pobierz katalogi kuchni i wnętrz Varsovia — układy, wykończenia i kolekcje dla domów w Tajlandii.",
+    "Download Varsovia Design catalogues for kitchen and interior inspiration — layouts, finishes, and collections for homes across Thailand.":
+      "Pobierz katalogi Varsovia Design z inspiracjami kuchennymi i wnętrzarskimi — układy, wykończenia i kolekcje dla domów w Tajlandii.",
+    "Classic Collection 2026": "Kolekcja Classic 2026",
+    "Modern Living": "Nowoczesne życie",
+    "Explore Modern Design": "Odkryj nowoczesny design",
+    "Warm Neutrals": "Ciepłe neutrale",
+    "Urban Kitchens": "Kuchnie miejskie",
+    "Coastal Living": "Życie nad morzem",
     "Our Team | Varsovia Design": "Nasz zespół | Varsovia Design",
+    "Meet the designers, architects, and craftspeople behind Varsovia Design.":
+      "Poznaj projektantów, architektów i rzemieślników Varsovia Design.",
+    "Meet the Varsovia design team": "Poznaj zespół projektowy Varsovia",
+    "Meet the designers, architects, and craftspeople behind Varsovia Design — Italian design collaboration and technical teams for homes across Thailand.":
+      "Poznaj projektantów, architektów i rzemieślników Varsovia Design — współpraca z Włochami i zespoły techniczne dla domów w Tajlandii.",
     "Quality After Sales | Varsovia Design": "Serwis posprzedażowy | Varsovia Design",
     "Quality & After-Sales | Varsovia Design": "Jakość i serwis | Varsovia Design",
+    "Warranty, maintenance, and after-sales care for Varsovia kitchens and interiors — from first contact through assessment, scheduling, and resolution.":
+      "Gwarancja, konserwacja i opieka posprzedażowa kuchni i wnętrz Varsovia — od pierwszego kontaktu przez ocenę, umówienie wizyty i rozwiązanie.",
+    "Warranty, maintenance, and after-sales care for Varsovia kitchens and interiors — from first contact to resolution.":
+      "Gwarancja, konserwacja i opieka posprzedażowa kuchni i wnętrz Varsovia — od pierwszego kontaktu do rozwiązania.",
     "Contact Us | Varsovia Design": "Kontakt | Varsovia Design",
+    "Visit Varsovia Design in Koh Samui, Phuket, and Pattaya — book a free consultation for modular kitchens and complete interiors.":
+      "Odwiedź Varsovia Design w Koh Samui, Phuket i Pattayi — umów bezpłatną konsultację kuchni modułowych i wnętrz.",
+    "Get in touch with Varsovia Design — Koh Samui, Phuket, and Pattaya showrooms, or book a free kitchen and interior consultation.":
+      "Skontaktuj się z Varsovia Design — salony Koh Samui, Phuket i Pattaya, lub umów bezpłatną konsultację kuchni i wnętrz.",
+    "Let's create something beautiful together": "Zaprojektujmy razem coś pięknego",
     "FAQ | Varsovia Design": "FAQ | Varsovia Design",
+    "Answers to common questions on Varsovia kitchens, interiors, materials, timelines, and after-sales — from planning through installation.":
+      "Odpowiedzi na częste pytania o kuchnie, wnętrza, materiały, terminy i serwis Varsovia — od planowania po montaż.",
+    "Answers on Varsovia kitchens, interiors, materials, timelines, and after-sales — from planning through installation.":
+      "Odpowiedzi o kuchnie, wnętrza, materiały, terminy i serwis Varsovia — od planowania po montaż.",
+    "Clear answers to help you make informed design decisions":
+      "Jasne odpowiedzi, które pomogą Ci podjąć świadome decyzje projektowe",
     "Villas": "Wille",
     "Condos": "Apartamenty",
     "Hotels & Resorts": "Hotele i kurorty",
@@ -296,7 +398,7 @@ function iaOverlayFromSeed(seed: unknown, locale: "th" | "pl"): unknown {
   if (isPlainObject(seed)) {
     const out: Dict = {};
     for (const [key, value] of Object.entries(seed)) {
-      if (key === "image" || key === "ctaHref" || key === "href") continue;
+      if (key === "image" || key === "ctaHref" || key === "href" || key === "indexable") continue;
       out[key] = iaOverlayFromSeed(value, locale);
     }
     return out;
@@ -449,11 +551,11 @@ function navOverlay(m: Msg, locale: "th" | "pl"): Dict {
         href: "/contact",
         label: nav.contact || phrase(locale, "Contact"),
         menu: {
-          featuredLabel: nav.getInTouch || phrase(locale, "Contact Us"),
+          featuredLabel: nav.getInTouch || phrase(locale, "Get In Touch"),
           featuredSubtitle: drop["/contact"] || "",
           sectionLabel: extraNav.supportSection || "",
           links: [
-            link("/contact", nav.getInTouch || phrase(locale, "Contact Us"), drop["/contact"]),
+            link("/contact", nav.getInTouch || phrase(locale, "Get In Touch"), drop["/contact"]),
             link("/faq", nav.faq || phrase(locale, "FAQ"), drop["/faq"]),
           ],
         },
@@ -466,38 +568,40 @@ function footerOverlay(m: Msg, locale: "th" | "pl"): Dict {
   const footer = m.footer || {};
   const nav = m.nav || {};
   const cat = m.categories || {};
-  const label = (href: string, text: string) => ({ href, label: text });
+  const label = (href: string, text: string) => ({ href, label: text, enabled: true });
   return {
+    version: 3,
     linkColumns: [
       {
         id: "primary",
+        order: 1,
+        enabled: true,
         links: [
           label("/journal", footer.blog || phrase(locale, "Journal")),
           label("/about", footer.aboutUs || phrase(locale, "About Us")),
-          label("/locations", phrase(locale, "Locations")),
-          label("/services", phrase(locale, "Services")),
           label("/contact", footer.contactUs || phrase(locale, "Contact Us")),
           label("/faq", nav.faq || phrase(locale, "FAQ")),
-          label("/catalogue", footer.catalogue || phrase(locale, "Free Catalogue")),
+          label("/catalogue", footer.catalogue || phrase(locale, "Catalogue")),
         ],
       },
       {
         id: "products",
+        order: 2,
+        enabled: true,
         links: [
-          label("/furniture", footer.products || nav.furniture || phrase(locale, "Furniture")),
           label("/interior-design?category=Kitchen", cat.kitchen || phrase(locale, "Kitchen")),
           label("/interior-design?category=Bedroom", cat.bedroom || phrase(locale, "Bedroom")),
           label("/interior-design?category=Bathroom", cat.bathroom || phrase(locale, "Bathroom")),
-          label("/interior-design?category=Door%20%26%20Windows", cat.doorWindows || phrase(locale, "Doors & Windows")),
-          label("/interior-design?category=Whole%20House%20Solutions", cat.wholeHouse || phrase(locale, "Whole House")),
-          label("/projects", phrase(locale, "Projects")),
+          label("/furniture", footer.products || cat.furniture || phrase(locale, "Furniture")),
+          label("/interior-design?category=Door%20%26%20Windows", cat.doorWindows || phrase(locale, "Door & Windows")),
+          label("/interior-design?category=Whole%20House%20Solutions", cat.wholeHouse || phrase(locale, "Whole House Solutions")),
         ],
       },
     ],
     legalLinks: [
       label("/privacy", footer.privacy || phrase(locale, "Privacy")),
       label("/terms", footer.terms || phrase(locale, "Terms")),
-      label("/sitemap.xml", footer.sitemap || "Sitemap"),
+      label("/sitemap.xml", footer.sitemap || phrase(locale, "Sitemap")),
     ],
     contactHeading: footer.contactUs || phrase(locale, "Contact Us"),
     contactLabels: {
@@ -620,8 +724,12 @@ function siteOverlayFromMessages(m: Msg, locale: "th" | "pl"): Dict {
       architectBody: team.architectBody,
       toolsTitle: team.toolsTitle,
       toolsBody: team.toolsBody,
-      metaTitle: pageMeta.teamTitle || search.teamTitle,
-      metaDescription: search.teamDesc,
+      metaTitle: phrase(locale, "Our Team | Varsovia Design") || search.teamTitle,
+      metaDescription:
+        phrase(
+          locale,
+          "Meet the designers, architects, and craftspeople behind Varsovia Design — Italian design collaboration and technical teams for homes across Thailand."
+        ) || search.teamDesc,
       stats: [
         { value: team.statProjectsValue, label: team.statProjectsLabel },
         { value: team.statYearsValue, label: team.statYearsLabel },
@@ -631,8 +739,12 @@ function siteOverlayFromMessages(m: Msg, locale: "th" | "pl"): Dict {
       heroTitle: quality.heroTitle,
       heroSubtitle: quality.heroSubtitle,
       heroBody: quality.heroBody,
-      metaTitle: pageMeta.qualityTitle || search.qualityTitle,
-      metaDescription: search.qualityDesc,
+      metaTitle: phrase(locale, "Quality After Sales | Varsovia Design") || search.qualityTitle,
+      metaDescription:
+        phrase(
+          locale,
+          "Warranty, maintenance, and after-sales care for Varsovia kitchens and interiors — from first contact through assessment, scheduling, and resolution."
+        ) || search.qualityDesc,
       feature1Title: quality.feature1Title,
       feature2Title: quality.feature2Title,
       feature3Title: quality.feature3Title,
@@ -671,25 +783,47 @@ function siteOverlayFromMessages(m: Msg, locale: "th" | "pl"): Dict {
       heroTitle: about.heroTitle,
     },
     faqPage: {
-      metaTitle: search.faqTitle || faq.heroTitle,
-      metaDescription: search.faqDesc,
-      heroTitle: faq.heroTitle,
-      heroSubtitle: faq.heroSubtitle,
+      metaTitle: phrase(locale, "FAQ | Varsovia Design") || search.faqTitle,
+      metaDescription:
+        phrase(
+          locale,
+          "Answers to common questions on Varsovia kitchens, interiors, materials, timelines, and after-sales — from planning through installation."
+        ) || search.faqDesc,
+      heroTitle: faq.heroTitle || phrase(locale, "FAQ"),
+      heroSubtitle:
+        phrase(locale, "Clear answers to help you make informed design decisions") || faq.heroSubtitle,
     },
     cataloguePage: {
-      metaTitle: pageMeta.catalogueTitle,
-      metaDescription: pageMeta.catalogueDescription,
-      heroTitle: catalogue.heroTitle,
-      heroSubtitle: catalogue.heroSubtitle,
+      metaTitle: phrase(locale, "Free Catalogue | Varsovia Design") || pageMeta.catalogueTitle,
+      metaDescription:
+        phrase(
+          locale,
+          "Download Varsovia Design catalogues for kitchen and interior inspiration — layouts, finishes, and collections for homes across Thailand."
+        ) || pageMeta.catalogueDescription,
+      heroTitle: catalogue.heroTitle || phrase(locale, "Free Catalogue"),
+      heroSubtitle:
+        phrase(locale, "Explore Our Interior Design Catalogue") || catalogue.heroSubtitle,
     },
     contactPage: {
-      metaTitle: pageMeta.contactTitle,
-      metaDescription: pageMeta.contactDescription,
-      heroTitle: contactPage.heroTitle,
-      heroSubtitle: contactPage.heroSubtitle,
-      locationTitle: contact.ourLocationTitle,
-      locationSubtitle: contact.ourLocationSubtitle,
-      mapAriaLabel: contact.mapAriaLabel,
+      metaTitle: phrase(locale, "Contact Us | Varsovia Design") || pageMeta.contactTitle,
+      metaDescription:
+        phrase(
+          locale,
+          "Visit Varsovia Design in Koh Samui, Phuket, and Pattaya — book a free consultation for modular kitchens and complete interiors."
+        ) || pageMeta.contactDescription,
+      heroTitle: contactPage.heroTitle || phrase(locale, "Get In Touch") || phrase(locale, "Contact Us"),
+      heroSubtitle:
+        contactPage.heroSubtitle || phrase(locale, "Let's create something beautiful together"),
+      locationTitle: contactPage.locationTitle || contact.ourLocationTitle || phrase(locale, "Our Location"),
+      locationSubtitle:
+        contactPage.locationSubtitle ||
+        phrase(locale, "Visit our showroom or reach us online — we are here to help"),
+      mapAriaLabel:
+        contactPage.mapAriaLabel || phrase(locale, "Varsovia Design office location map"),
+      showroomsTitle: contactPage.showroomsTitle || phrase(locale, "Visit a showroom"),
+      showroomsSubtitle:
+        contactPage.showroomsSubtitle ||
+        phrase(locale, "Experience materials, layouts, and finishes in person at our locations."),
     },
     legalPages: legalOverlay(legal),
     mainNavigation: navOverlay(m, locale),

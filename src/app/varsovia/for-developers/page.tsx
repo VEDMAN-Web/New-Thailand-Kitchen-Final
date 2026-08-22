@@ -8,7 +8,7 @@ export default function VarsoviaForDevelopersPage() {
       hubKey="forDevelopers"
       label="For Developers"
       pathLabel="/for-developers"
-      helpText="Matches live /for-developers: banner, intro, story blocks, then Google. This is a standalone page — no sub-page cards on the live site."
+      helpText="1:1 with live /for-developers: 1 banner → 2 intro → 3 photo+copy blocks → 4 Google (title ≤60, description ≤160, indexable). Sync from DB fills all of these in EN / TH / PL. Indexable stays ON if already enabled. No sub-page cards on the live site."
       itemNoun="page"
       addLabel="Add page"
       searchPlaceholder=""

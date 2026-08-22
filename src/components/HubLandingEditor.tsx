@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CloudUpload } from "lucide-react";
 import { toast } from "sonner";
 import LocaleTabs from "@/components/LocaleTabs";
@@ -211,19 +211,23 @@ export default function HubLandingEditor({ hub }: { hub: AdminHubMeta }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [kitchenTab, setKitchenTab] = useState<"overview" | string>("overview");
+  const loadSeqRef = useRef(0);
 
   const load = useCallback(async () => {
+    const seq = ++loadSeqRef.current;
     setLoading(true);
     try {
       const res = await getHome(siteId);
+      if (seq !== loadSeqRef.current) return;
       const sections = (res.home?.sections || {}) as Record<string, unknown>;
       setHomeSections(sections);
       const hubs = (sections.hubPages || {}) as Record<string, Record<string, unknown>>;
       setDraft(fromApi(hubs[hub.key], hub.key === "kitchens"));
     } catch {
+      if (seq !== loadSeqRef.current) return;
       toast.error("Failed to load page hero");
     } finally {
-      setLoading(false);
+      if (seq === loadSeqRef.current) setLoading(false);
     }
   }, [siteId, hub.key]);
 
@@ -262,7 +266,7 @@ export default function HubLandingEditor({ hub }: { hub: AdminHubMeta }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <span className="min-w-0 truncate text-xs font-bold uppercase tracking-[0.1em] text-[#5C6370]">
           {hub.label}
         </span>

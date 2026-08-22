@@ -18,8 +18,8 @@ import {
   varsoviaErrorMessage,
 } from "@/services/varsoviaAPI";
 import { IA_HUB_PATHS } from "@/app/varsovia/iaPagesDefaults";
-import { mergeIaPagesFromLiveSite } from "@/app/varsovia/mergeIaPages";
 import { persistIaHubChildren } from "@/app/varsovia/persistIaHub";
+import { useRegisterCmsFlush } from "@/lib/cmsFlushSaves";
 import { resolveAdminMediaPreviewUrl } from "@/lib/adminMediaPreview";
 
 const HUB_KEY = "locations";
@@ -148,12 +148,19 @@ export default function VarsoviaLocationsPage() {
   const [draftChild, setDraftChild] = useState<IaChildRow>(emptyChild(0));
   const [locale, setLocale] = useState<LocaleCode>("en");
   const hasLoadedRef = useRef(false);
+  const loadSeqRef = useRef(0);
 
   const load = useCallback(async () => {
+    const seq = ++loadSeqRef.current;
     if (!hasLoadedRef.current) setLoading(true);
     try {
       const site = await getVarsoviaSite();
-      const allPages = mergeIaPagesFromLiveSite(site.pages);
+      if (seq !== loadSeqRef.current) return;
+      // Trust MongoDB data AS-IS - do NOT merge with defaults
+      const allPages = (site.pages && typeof site.pages === "object" && !Array.isArray(site.pages))
+        ? (site.pages as Record<string, unknown>)
+        : {};
+      if (seq !== loadSeqRef.current) return;
       const hub = (allPages[HUB_KEY] || {}) as Record<string, unknown>;
       const list = Array.isArray(hub.children) ? (hub.children as IaChildRow[]) : [];
       setChildren(
@@ -163,9 +170,10 @@ export default function VarsoviaLocationsPage() {
       );
       hasLoadedRef.current = true;
     } catch (err) {
+      if (seq !== loadSeqRef.current) return;
       toast.error(varsoviaErrorMessage(err, "Failed to load locations pages"));
     } finally {
-      setLoading(false);
+      if (seq === loadSeqRef.current) setLoading(false);
     }
   }, []);
 
@@ -228,18 +236,18 @@ export default function VarsoviaLocationsPage() {
     setModal("edit");
   };
 
-  const onSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (e?: FormEvent): Promise<boolean> => {
+    e?.preventDefault();
     const slug =
       slugifyPreview(draftSlug) ||
       slugifyPreview(localizedValue(draftChild.title, "en"));
     if (!slug) {
       toast.error("Slug or English title is required");
-      return;
+      return false;
     }
     if (!localizedValue(draftChild.title, "en").trim()) {
       toast.error("English title is required");
-      return;
+      return false;
     }
 
     const nextChild: IaChildRow = fillChildLocaleTabs({ ...draftChild, slug });
@@ -269,7 +277,7 @@ export default function VarsoviaLocationsPage() {
     );
     if (duplicate) {
       toast.error("Another sub-page already uses this slug");
-      return;
+      return false;
     }
 
     try {
@@ -281,14 +289,18 @@ export default function VarsoviaLocationsPage() {
           index === editIndex ? nextChild : item
         );
       } else {
-        return;
+        return false;
       }
       await persistChildren(next);
       setModal(null);
+      return true;
     } catch {
       /* toast handled in persistChildren */
+      return false;
     }
   };
+
+  useRegisterCmsFlush("ia-child:locations", modal !== null, () => onSubmit());
 
   const onDelete = async (index: number) => {
     const item = children[index];
@@ -324,7 +336,7 @@ export default function VarsoviaLocationsPage() {
           <button
             type="button"
             onClick={openCreate}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#1A2332] text-white px-4 py-2.5 text-sm font-semibold"
+            className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-[#1A2332] text-white px-4 py-2.5 text-sm font-semibold"
           >
             <Plus className="w-4 h-4" />
             Add city page
@@ -334,7 +346,7 @@ export default function VarsoviaLocationsPage() {
         {loading ? (
           <p className="text-sm text-[#6B7280]">Loading…</p>
         ) : filtered.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-[#E2E5EA] bg-white p-12 text-center">
+          <div className="rounded-2xl border border-dashed border-[#E2E5EA] bg-white p-8 sm:p-12 text-center">
             <FolderOpen className="w-8 h-8 text-[#9CA3AF] mx-auto mb-3" />
             <p className="text-sm text-[#6B7280]">No city pages yet</p>
           </div>
@@ -404,10 +416,10 @@ export default function VarsoviaLocationsPage() {
       </div>
 
       {modal ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 overflow-y-auto">
+        <div className="tk-overlay">
           <form
             onSubmit={(e) => void onSubmit(e)}
-            className="w-full max-w-3xl rounded-2xl bg-white p-6 space-y-4 shadow-xl my-8 max-h-[90vh] overflow-y-auto"
+            className="tk-sheet w-full max-w-3xl bg-white p-4 sm:p-6 space-y-4 shadow-xl my-0 sm:my-8"
           >
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-lg font-semibold text-[#1A2332]">
