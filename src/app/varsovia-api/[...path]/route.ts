@@ -207,8 +207,8 @@ async function proxy(
   request.nextUrl.searchParams.forEach((value, key) => {
     target.searchParams.append(key, value);
   });
-  // Full multilingual CMS payloads
-  if (isRead && !target.searchParams.has("cms")) {
+  // Full multilingual CMS payloads - ADD FOR ALL REQUESTS (not just reads)
+  if (!target.searchParams.has("cms")) {
     target.searchParams.set("cms", "1");
   }
 
