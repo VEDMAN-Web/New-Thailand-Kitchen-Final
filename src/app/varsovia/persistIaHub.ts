@@ -50,12 +50,29 @@ export async function persistIaHubPatch(
   hubKey: string,
   patchHub: Record<string, unknown>
 ) {
+  console.log(`[persistIaHub] ===== START =====`, {
+    hubKey,
+    patchHubKeys: Object.keys(patchHub),
+    hasChildren: Boolean(patchHub.children),
+    childrenCount: Array.isArray(patchHub.children) ? patchHub.children.length : 0,
+  });
+  
+  if (patchHub.hero && typeof patchHub.hero === 'object') {
+    console.log(`[persistIaHub] Hub hero image:`, (patchHub.hero as any).image);
+  }
+  
   const site = await getVarsoviaSite();
   const storedPages =
     site.pages && typeof site.pages === "object" && !Array.isArray(site.pages)
       ? (site.pages as Record<string, unknown>)
       : {};
   const existing = (storedPages[hubKey] || {}) as Record<string, unknown>;
+  
+  console.log(`[persistIaHub] Existing hub data:`, {
+    existingKeys: Object.keys(existing),
+    existingChildrenCount: Array.isArray(existing.children) ? existing.children.length : 0,
+  });
+  
   let children = Array.isArray(patchHub.children)
     ? patchHub.children
     : Array.isArray(existing.children)
@@ -81,7 +98,8 @@ export async function persistIaHubPatch(
       });
     }
   }
-  await updateVarsoviaSite({
+  
+  const updatePayload = {
     pages: {
       [hubKey]: {
         ...existing,
@@ -90,12 +108,40 @@ export async function persistIaHubPatch(
         children,
       },
     },
-  }, { persistPages: true });
+  };
+  
+  console.log(`[persistIaHub] Calling updateVarsoviaSite with:`, {
+    hasPages: true,
+    hubKey,
+    childrenCount: children.length,
+    persistPages: true,
+  });
+  
+  await updateVarsoviaSite(updatePayload, { persistPages: true });
+  
+  console.log(`[persistIaHub] Reading back from server...`);
   const saved = await getVarsoviaSite();
   // Trust MongoDB data AS-IS - do NOT merge with defaults
-  return (saved.pages && typeof saved.pages === "object" && !Array.isArray(saved.pages))
+  const resultPages = (saved.pages && typeof saved.pages === "object" && !Array.isArray(saved.pages))
     ? (saved.pages as Record<string, unknown>)
     : {};
+    
+  console.log(`[persistIaHub] ===== RESULT =====`, {
+    hasSavedPages: Boolean(saved.pages),
+    resultPagesKeys: Object.keys(resultPages),
+    hasHubKey: Boolean(resultPages[hubKey]),
+  });
+  
+  if (resultPages[hubKey]) {
+    const resultHub = resultPages[hubKey] as Record<string, unknown>;
+    console.log(`[persistIaHub] Result hub:`, {
+      resultHubKeys: Object.keys(resultHub),
+      resultChildrenCount: Array.isArray(resultHub.children) ? resultHub.children.length : 0,
+      heroImage: resultHub.hero && typeof resultHub.hero === 'object' ? (resultHub.hero as any).image : 'no hero',
+    });
+  }
+  
+  return resultPages;
 }
 
 export async function persistIaHubChildren(

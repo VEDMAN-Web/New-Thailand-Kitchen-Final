@@ -119,13 +119,35 @@ function unwrapApiList<T>(body: unknown): T[] {
 
 export async function getVarsoviaSite() {
   // Add timestamp to force fresh data and prevent any caching
+  const cacheBuster = `_t=${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+  console.log(`[varsoviaAPI] GET /site with cache buster: ${cacheBuster}`);
   const { data } = await varsoviaApi.get("/site", { 
     params: { 
       cms: 1,
-      _t: Date.now() // Cache buster
+      _t: cacheBuster
     } 
   });
-  return unwrapApiData<Record<string, unknown>>(data);
+  const result = unwrapApiData<Record<string, unknown>>(data);
+  console.log(`[varsoviaAPI] GET /site response:`, {
+    resultKeys: Object.keys(result),
+    hasPages: Boolean(result.pages),
+  });
+  if (result.pages) {
+    const pages = result.pages as Record<string, unknown>;
+    console.log(`[varsoviaAPI] GET pages:`, {
+      pagesKeys: Object.keys(pages),
+      hasFurniture: Boolean(pages.furniture),
+    });
+    if (pages.furniture) {
+      const furniture = pages.furniture as Record<string, unknown>;
+      console.log(`[varsoviaAPI] GET furniture:`, {
+        hasChildren: Boolean(furniture.children),
+        childrenCount: Array.isArray(furniture.children) ? furniture.children.length : 0,
+        heroImage: furniture.hero && typeof furniture.hero === 'object' ? (furniture.hero as any).image : 'no hero',
+      });
+    }
+  }
+  return result;
 }
 
 /** Only keys accepted by Varsovia `siteUpdate` schema — drops dead admin-only fields. */
@@ -257,21 +279,75 @@ export async function updateVarsoviaSite(
   );
   const pagesOnlyPatch = explicitKeys.length === 1 && explicitKeys[0] === "pages";
   if (!opts?.persistPages && !pagesOnlyPatch) {
+    console.warn(`[varsoviaAPI] 🔴 PAGES STRIPPED - persistPages=${opts?.persistPages}, pagesOnlyPatch=${pagesOnlyPatch}`);
     delete picked.pages;
   }
   
-  console.log(`[varsoviaAPI] Updating site content`, {
+  console.log(`[varsoviaAPI] ===== UPDATE SITE START =====`, {
     timestamp: new Date().toISOString(),
     fieldCount: Object.keys(picked).length,
     hasPages: Boolean(picked.pages),
+    persistPagesOpt: opts?.persistPages,
+    pagesOnlyPatch,
+    pickedKeys: Object.keys(picked),
   });
+  
+  if (picked.pages) {
+    const pages = picked.pages as Record<string, unknown>;
+    console.log(`[varsoviaAPI] Pages structure:`, {
+      pagesKeys: Object.keys(pages),
+      hasFurniture: Boolean(pages.furniture),
+    });
+    if (pages.furniture) {
+      const furniture = pages.furniture as Record<string, unknown>;
+      console.log(`[varsoviaAPI] Furniture data:`, {
+        furnitureKeys: Object.keys(furniture),
+        hasChildren: Boolean(furniture.children),
+        childrenCount: Array.isArray(furniture.children) ? furniture.children.length : 0,
+      });
+      if (Array.isArray(furniture.children) && furniture.children.length > 0) {
+        const firstChild = furniture.children[0] as Record<string, unknown>;
+        console.log(`[varsoviaAPI] First child:`, {
+          slug: firstChild.slug,
+          heroImage: firstChild.hero && typeof firstChild.hero === 'object' ? (firstChild.hero as any).image : 'no hero',
+        });
+      }
+    }
+  }
   
   const { data } = await varsoviaApi.put("/site", picked);
   const result = unwrapApiData<Record<string, unknown>>(data);
   
-  console.log(`[varsoviaAPI] Site update successful`, {
+  console.log(`[varsoviaAPI] ===== UPDATE SITE RESPONSE =====`, {
     timestamp: new Date().toISOString(),
+    resultKeys: Object.keys(result),
+    hasPages: Boolean(result.pages),
   });
+  
+  if (result.pages) {
+    const pages = result.pages as Record<string, unknown>;
+    console.log(`[varsoviaAPI] Response pages structure:`, {
+      pagesKeys: Object.keys(pages),
+      hasFurniture: Boolean(pages.furniture),
+    });
+    if (pages.furniture) {
+      const furniture = pages.furniture as Record<string, unknown>;
+      console.log(`[varsoviaAPI] Response furniture data:`, {
+        furnitureKeys: Object.keys(furniture),
+        hasChildren: Boolean(furniture.children),
+        childrenCount: Array.isArray(furniture.children) ? furniture.children.length : 0,
+      });
+      if (Array.isArray(furniture.children) && furniture.children.length > 0) {
+        const firstChild = furniture.children[0] as Record<string, unknown>;
+        console.log(`[varsoviaAPI] Response first child:`, {
+          slug: firstChild.slug,
+          heroImage: firstChild.hero && typeof firstChild.hero === 'object' ? (firstChild.hero as any).image : 'no hero',
+        });
+      }
+    }
+  } else {
+    console.error(`[varsoviaAPI] 🔴 RESPONSE HAS NO PAGES FIELD!`);
+  }
   
   return result;
 }
