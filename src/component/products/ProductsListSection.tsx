@@ -109,6 +109,42 @@ function tabFromQuery(
   return match ?? null;
 }
 
+/**
+ * Build the page items shown in the mobile pagination strip.
+ * Always shows: first, last, current, one neighbour on each side.
+ * Gaps of 2+ are replaced with a single "..." token.
+ *
+ * Examples (current=6, total=11):  1 ... 5 6 7 ... 11
+ * Examples (current=2, total=11):  1 2 3 ... 11
+ * Examples (current=11, total=11): 1 ... 9 10 11
+ */
+function buildMobilePages(current: number, total: number): (number | "...")[] {
+  if (total <= 5) {
+    // Few enough pages — show all, no ellipsis needed
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+
+  const visible = new Set<number>();
+  visible.add(1);
+  visible.add(total);
+  // Current page ± 1 neighbour
+  for (let i = Math.max(1, current - 1); i <= Math.min(total, current + 1); i++) {
+    visible.add(i);
+  }
+
+  const pages = Array.from(visible).sort((a, b) => a - b);
+
+  // Insert "..." between non-consecutive numbers
+  const result: (number | "...")[] = [];
+  for (let i = 0; i < pages.length; i++) {
+    if (i > 0 && pages[i] - pages[i - 1] > 1) {
+      result.push("...");
+    }
+    result.push(pages[i]);
+  }
+  return result;
+}
+
 export default function ProductsListSection({
   initialItems,
   initialCategory,
@@ -197,6 +233,14 @@ export default function ProductsListSection({
     return list;
   }, [layout, items]);
 
+  const activeTabLabel =
+    layout in tabLabelKeys ? t(tabLabelKeys[layout as ProductFilterTab]) : layout;
+
+  const countText =
+    layout === "All"
+      ? t("products.count", { count: filtered.length })
+      : t("products.countByTab", { label: activeTabLabel, count: filtered.length });
+
   const totalPages = Math.max(1, Math.ceil(filtered.length / PRODUCTS_PER_PAGE));
   const currentPage = Math.min(page, totalPages);
   const pageItems = filtered.slice(
@@ -239,7 +283,7 @@ export default function ProductsListSection({
 
       <div className="mt-5 sm:mt-8">
         <p className="text-sm text-[#1A1A1A] font-medium">
-          {t("products.count", { count: filtered.length })}
+          {countText}
         </p>
       </div>
 
@@ -254,36 +298,75 @@ export default function ProductsListSection({
       )}
 
       {totalPages > 1 ? (
-        <div className="mt-8 sm:mt-12 flex items-center justify-center gap-3">
+        <div className="mt-8 sm:mt-12 flex items-center justify-center gap-1 sm:gap-3">
+          {/* Previous button */}
           <button
             type="button"
             aria-label="Previous page"
             disabled={currentPage <= 1}
             onClick={() => setPage((p) => Math.max(1, p - 1))}
-            className="w-10 h-10 rounded-full text-[#1A1A1A] disabled:opacity-30 hover:bg-[#EDE8E1] transition"
+            className="flex items-center justify-center w-10 h-10 rounded-full text-[#1A1A1A] disabled:opacity-30 hover:bg-[#EDE8E1] transition text-lg leading-none"
           >
             ‹
           </button>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
-            <button
-              key={n}
-              type="button"
-              onClick={() => setPage(n)}
-              className={`w-10 h-10 rounded-full text-sm font-medium transition ${
-                n === currentPage
-                  ? "bg-[#1A1A1A] text-white"
-                  : "text-[#1A1A1A] hover:bg-[#EDE8E1]"
-              }`}
-            >
-              {n}
-            </button>
-          ))}
+
+          {/* Desktop: show all pages */}
+          <span className="hidden sm:contents">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+              <button
+                key={n}
+                type="button"
+                aria-label={`Page ${n}`}
+                aria-current={n === currentPage ? "page" : undefined}
+                onClick={() => setPage(n)}
+                className={`w-10 h-10 rounded-full text-sm font-medium transition ${
+                  n === currentPage
+                    ? "bg-[#1A1A1A] text-white"
+                    : "text-[#1A1A1A] hover:bg-[#EDE8E1]"
+                }`}
+              >
+                {n}
+              </button>
+            ))}
+          </span>
+
+          {/* Mobile: smart windowed pagination with ellipses */}
+          <span className="contents sm:hidden">
+            {buildMobilePages(currentPage, totalPages).map((item, idx) =>
+              item === "..." ? (
+                <span
+                  key={`ellipsis-${idx}`}
+                  className="flex items-center justify-center w-8 h-10 text-[#6B6B6B] text-sm select-none"
+                  aria-hidden="true"
+                >
+                  …
+                </span>
+              ) : (
+                <button
+                  key={item}
+                  type="button"
+                  aria-label={`Page ${item}`}
+                  aria-current={item === currentPage ? "page" : undefined}
+                  onClick={() => setPage(item as number)}
+                  className={`w-10 h-10 rounded-full text-sm font-medium transition flex-shrink-0 ${
+                    item === currentPage
+                      ? "bg-[#1A1A1A] text-white"
+                      : "text-[#1A1A1A] hover:bg-[#EDE8E1]"
+                  }`}
+                >
+                  {item}
+                </button>
+              )
+            )}
+          </span>
+
+          {/* Next button */}
           <button
             type="button"
             aria-label="Next page"
             disabled={currentPage >= totalPages}
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            className="w-10 h-10 rounded-full text-[#1A1A1A] disabled:opacity-30 hover:bg-[#EDE8E1] transition"
+            className="flex items-center justify-center w-10 h-10 rounded-full text-[#1A1A1A] disabled:opacity-30 hover:bg-[#EDE8E1] transition text-lg leading-none"
           >
             ›
           </button>
