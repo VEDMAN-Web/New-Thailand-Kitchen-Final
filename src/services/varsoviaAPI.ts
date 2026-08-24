@@ -119,13 +119,35 @@ function unwrapApiList<T>(body: unknown): T[] {
 
 export async function getVarsoviaSite() {
   const cacheBuster = `_t=${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+  
+  console.group('[varsoviaAPI] getVarsoviaSite');
+  console.log('🔍 Cache buster:', cacheBuster);
+  console.time('⏱️ GET /site network request');
+  
   const { data } = await varsoviaApi.get("/site", {
     params: {
       cms: 1,
       _t: cacheBuster,
     },
   });
-  return unwrapApiData<Record<string, unknown>>(data);
+  
+  console.timeEnd('⏱️ GET /site network request');
+  console.log('📥 Raw response from server:', {
+    hasData: !!data,
+    dataKeys: data && typeof data === 'object' ? Object.keys(data) : [],
+  });
+  
+  const unwrapped = unwrapApiData<Record<string, unknown>>(data);
+  
+  console.log('📦 After unwrapApiData:', {
+    hasPagesField: !!unwrapped.pages,
+    pagesType: typeof unwrapped.pages,
+    pagesKeys: unwrapped.pages && typeof unwrapped.pages === 'object' ? Object.keys(unwrapped.pages) : [],
+  });
+  console.log('✅ getVarsoviaSite completed');
+  console.groupEnd();
+  
+  return unwrapped;
 }
 
 /** Only keys accepted by Varsovia `siteUpdate` schema — drops dead admin-only fields. */
