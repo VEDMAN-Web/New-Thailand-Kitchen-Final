@@ -21,6 +21,7 @@ import {
   varsoviaErrorMessage,
 } from "@/services/varsoviaAPI";
 import { IA_HUB_PATHS } from "@/app/varsovia/iaPagesDefaults";
+import { toPublicMediaUrl } from "@/lib/publicMediaUrl";
 import { persistIaHubPatch } from "@/app/varsovia/persistIaHub";
 import { useCmsFlushSaves } from "@/lib/cmsFlushSaves";
 
@@ -128,7 +129,7 @@ function hubToApi(draft: HubDraft): Record<string, unknown> {
       eyebrow: asLocalizedForm(draft.hero.eyebrow),
       title: asLocalizedForm(draft.hero.title),
       subtitle: asLocalizedForm(draft.hero.subtitle),
-      image: draft.hero.image.trim(),
+      image: toPublicMediaUrl(draft.hero.image.trim()),
       ctaLabel: asLocalizedForm(draft.hero.ctaLabel),
       ctaHref: draft.hero.ctaHref.trim() || "/contact",
     },
@@ -136,7 +137,7 @@ function hubToApi(draft: HubDraft): Record<string, unknown> {
     sections: draft.sections.map((sec) => ({
       heading: asLocalizedForm(sec.heading),
       text: asLocalizedForm(sec.text),
-      image: sec.image || "",
+      image: toPublicMediaUrl(sec.image || ""),
       imagePosition: sec.imagePosition === "right" ? "right" : "left",
       layout: sec.layout || "band",
     })),
