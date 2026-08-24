@@ -318,7 +318,6 @@ export default function VarsoviaAboutBrandPage() {
           label="About"
           pathLabel="/about"
           helpText="Matches live /about from top to bottom: banner, intro, story blocks, then brand cards (Livo, Oppolia). Each brand below is /about/[brand]. /about/varsovia redirects here."
-          onSaved={() => void load()}
         />
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">

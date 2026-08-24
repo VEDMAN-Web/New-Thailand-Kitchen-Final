@@ -298,7 +298,6 @@ export default function VarsoviaServicesPage() {
         <VarsoviaHubLandingEditor
           hubKey={HUB_KEY}
           label="Services"
-          onSaved={() => void load()}
         />
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
