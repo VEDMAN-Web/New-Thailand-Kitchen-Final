@@ -496,26 +496,15 @@ export default function VarsoviaHubLandingEditor({
       console.log('📤 Final payload to persistIaHubPatch:', JSON.parse(JSON.stringify(nextHub)));
       console.time('⏱️ persistIaHubPatch duration');
       
-      const merged = await persistIaHubPatch(hubKey, nextHub);
+      // Save to backend
+      await persistIaHubPatch(hubKey, nextHub);
       
       console.timeEnd('⏱️ persistIaHubPatch duration');
-      console.log('📥 Raw response (merged pages):', JSON.parse(JSON.stringify(merged)));
-      console.log('📥 Our hub in response:', JSON.parse(JSON.stringify(merged[hubKey])));
       
-      const newDraft = hubFromApi(merged[hubKey]);
-      console.log('🔄 After hubFromApi transform:', JSON.parse(JSON.stringify(newDraft)));
-      console.log('📊 Field comparison (old vs new):');
-      console.table({
-        'Hero Title EN (old)': typeof draft.hero.title === 'object' ? draft.hero.title.en : draft.hero.title,
-        'Hero Title EN (new)': typeof newDraft.hero.title === 'object' ? newDraft.hero.title.en : newDraft.hero.title,
-        'Explore Title EN (old)': typeof draft.exploreTitle === 'object' ? draft.exploreTitle.en : draft.exploreTitle,
-        'Explore Title EN (new)': typeof newDraft.exploreTitle === 'object' ? newDraft.exploreTitle.en : newDraft.exploreTitle,
-        'Services Title EN (old)': typeof draft.servicesTitle === 'object' ? draft.servicesTitle.en : draft.servicesTitle,
-        'Services Title EN (new)': typeof newDraft.servicesTitle === 'object' ? newDraft.servicesTitle.en : newDraft.servicesTitle,
-      });
-      
-      setDraft(newDraft);
-      console.log('✅ Draft state updated in React');
+      // MIRROR THAILAND KITCHEN PATTERN: Trust what we sent, don't re-fetch
+      // draft already has the correct data that the user edited
+      // No need to: const merged = await persistIaHubPatch(); const newDraft = hubFromApi(merged[hubKey]); setDraft(newDraft);
+      console.log('✅ Draft state kept as-is (user has correct data)');
       
       toast.success(`${label} page saved — live ${sitePath} uses these fields`);
       onSaved?.();
