@@ -173,7 +173,7 @@ export default function StatsSection() {
   return (
     <section
       ref={sectionRef}
-      className="bg-[#1A1A1A] py-8 sm:py-10 lg:py-12"
+      className="bg-[#1A1A1A] min-h-[50vh] sm:min-h-0 flex items-center sm:block py-6 sm:py-10 lg:py-12"
     >
       <div className="max-w-7xl mx-auto px-6 w-full">
         <div className="flex flex-col sm:flex-row items-stretch gap-3 sm:gap-0">
