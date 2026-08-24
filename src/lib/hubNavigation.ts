@@ -107,6 +107,8 @@ export type HubPageCms = {
   heroImage?: string;
   ctaLabel?: unknown;
   ctaHref?: string;
+  metaTitle?: string;
+  metaDescription?: string;
   sections?: HubSectionBlock[];
   subsections?: Partial<
     Record<
@@ -119,6 +121,8 @@ export type HubPageCms = {
         sections?: HubSectionBlock[];
         ctaLabel?: unknown;
         ctaHref?: string;
+        metaTitle?: string;
+        metaDescription?: string;
       }
     >
   >;
