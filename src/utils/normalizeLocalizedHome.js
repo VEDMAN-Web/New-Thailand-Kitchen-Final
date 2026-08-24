@@ -548,6 +548,12 @@ function normalizeLocalizedHomeSections(raw = {}) {
       heroImage: String(src.heroImage || def.heroImage || "").trim(),
       ctaLabel: mergeLocalizedFillEmpty(src.ctaLabel, def.ctaLabel || ""),
       ctaHref: String(src.ctaHref || def.ctaHref || "/contact").trim(),
+      metaTitle: String(
+        src.metaTitle || def.metaTitle || ""
+      ).trim(),
+      metaDescription: String(
+        src.metaDescription || def.metaDescription || ""
+      ).trim(),
       sections: mergeContentSections(src.sections, def.sections),
     };
   }
