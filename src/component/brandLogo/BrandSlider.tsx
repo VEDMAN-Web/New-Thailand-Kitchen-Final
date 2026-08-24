@@ -25,7 +25,7 @@ function BrandLogo({ src }: { src: string }) {
       alt="brand"
       width={150}
       height={60}
-      className="object-contain h-14 w-auto grayscale opacity-50"
+      className="object-contain h-9 sm:h-12 lg:h-14 w-auto grayscale opacity-50"
       unoptimized
     />
   );
@@ -41,17 +41,24 @@ export default function BrandSlider() {
     .filter(isUsableLogo);
 
   const logos = cmsLogos.length > 0 ? cmsLogos : brands;
-  const loop = [...logos, ...logos];
+
+  const renderSet = (setId: string) =>
+    logos.map((logo, index) => (
+      <div key={`${logo}-${setId}-${index}`} className="flex-shrink-0">
+        <BrandLogo src={logo} />
+      </div>
+    ));
 
   return (
-    <section id="brands" className="py-12 overflow-hidden ">
+    <section id="brands" className="py-12 overflow-hidden">
       <div className="relative">
-        <div className="flex animate-marquee whitespace-nowrap">
-          {loop.map((logo, index) => (
-            <div key={`${logo}-${index}`} className="flex-shrink-0 mx-10 lg:mx-16">
-              <BrandLogo src={logo} />
-            </div>
-          ))}
+        <div className="flex w-max animate-marquee items-center gap-6 sm:gap-10 lg:gap-16 whitespace-nowrap">
+          {renderSet("a")}
+          {renderSet("b")}
+          {/* Desktop-only 3rd set (>=769px): wide viewports need more than 2
+              sets in the track to stay fully covered with no empty gap.
+              display:none on mobile keeps mobile's DOM/width unchanged. */}
+          <div className="hidden min-[769px]:contents">{renderSet("c")}</div>
         </div>
       </div>
     </section>

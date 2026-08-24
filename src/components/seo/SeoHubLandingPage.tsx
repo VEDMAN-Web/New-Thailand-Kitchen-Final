@@ -80,6 +80,10 @@ function resolveHubData(
       locale
     ),
     ctaHref: String(sub?.ctaHref || root.ctaHref || "/contact").trim(),
+    metaTitle: String(sub?.metaTitle || root.metaTitle || "").trim(),
+    metaDescription: String(
+      sub?.metaDescription || root.metaDescription || ""
+    ).trim(),
     sections,
     currentHref: kitchensSubKey
       ? kitchensSectionByKey(kitchensSubKey)?.href || config.href
@@ -98,8 +102,8 @@ export async function generateHubMetadata(
     ?.hubPages;
   const data = resolveHubData(hubPages, hubKey, kitchensSubKey, locale);
 
-  const title = `${data.title} | Thailand Kitchens`;
-  const description = data.description;
+  const title = data.metaTitle || `${data.title} | Thailand Kitchens`;
+  const description = data.metaDescription || data.description;
   const canonical = absoluteUrl(data.currentHref);
   const image = ogImageUrl(data.heroImage);
 

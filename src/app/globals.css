@@ -72,10 +72,10 @@ body {
 
 @keyframes marquee {
   0% {
-    transform: translateX(0%);
+    transform: translate3d(0, 0, 0);
   }
   100% {
-    transform: translateX(-50%);
+    transform: translate3d(-50%, 0, 0);
   }
 }
 
@@ -84,10 +84,42 @@ body {
   will-change: transform;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
 }
 
 .animate-marquee:hover {
   animation-play-state: paused;
+}
+
+/* Mobile: force a much faster, continuous logo marquee (~40-50px/sec) */
+@media (max-width: 768px) {
+  .animate-marquee {
+    animation-name: marquee !important;
+    animation-duration: 5s !important;
+    animation-timing-function: linear !important;
+    animation-iteration-count: infinite !important;
+    animation-play-state: running !important;
+    transition: none !important;
+  }
+}
+
+/* Desktop only: the track renders a 3rd duplicate logo set at this breakpoint
+   (see BrandSlider.tsx), so the seamless loop point is -33.3333% (1 of 3 sets),
+   not -50% — translating by half the track would land mid-set and stutter. */
+@keyframes desktopMarquee {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-33.3333%, 0, 0);
+  }
+}
+
+@media (min-width: 769px) {
+  .animate-marquee {
+    animation: desktopMarquee 30s linear infinite;
+    will-change: transform;
+  }
 }
 
 @keyframes gallery-scroll-up {
