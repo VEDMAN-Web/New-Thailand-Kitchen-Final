@@ -408,7 +408,6 @@ export default function VarsoviaIaChildrenHubPage({
           pathLabel={pathLabel}
           helpText={helpText}
           showExplore={showExplore}
-          onSaved={() => void load()}
         />
 
         {showChildren ? (

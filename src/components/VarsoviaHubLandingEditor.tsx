@@ -21,6 +21,7 @@ import {
   varsoviaErrorMessage,
 } from "@/services/varsoviaAPI";
 import { IA_HUB_PATHS } from "@/app/varsovia/iaPagesDefaults";
+import { toPublicMediaUrl } from "@/lib/publicMediaUrl";
 import { persistIaHubPatch } from "@/app/varsovia/persistIaHub";
 import { useCmsFlushSaves } from "@/lib/cmsFlushSaves";
 
@@ -128,7 +129,7 @@ function hubToApi(draft: HubDraft): Record<string, unknown> {
       eyebrow: asLocalizedForm(draft.hero.eyebrow),
       title: asLocalizedForm(draft.hero.title),
       subtitle: asLocalizedForm(draft.hero.subtitle),
-      image: draft.hero.image.trim(),
+      image: toPublicMediaUrl(draft.hero.image.trim()),
       ctaLabel: asLocalizedForm(draft.hero.ctaLabel),
       ctaHref: draft.hero.ctaHref.trim() || "/contact",
     },
@@ -136,7 +137,7 @@ function hubToApi(draft: HubDraft): Record<string, unknown> {
     sections: draft.sections.map((sec) => ({
       heading: asLocalizedForm(sec.heading),
       text: asLocalizedForm(sec.text),
-      image: sec.image || "",
+      image: toPublicMediaUrl(sec.image || ""),
       imagePosition: sec.imagePosition === "right" ? "right" : "left",
       layout: sec.layout || "band",
     })),
@@ -399,22 +400,71 @@ export default function VarsoviaHubLandingEditor({
   const load = useCallback(async () => {
     const seq = ++loadSeqRef.current;
     setLoading(true);
+    
+    console.group(`[VarsoviaHubLandingEditor] Load ${hubKey} - ${label} (seq: ${seq})`);
+    console.time(`⏱️ Load duration (seq: ${seq})`);
+    
     try {
       const site = await getVarsoviaSite();
-      if (seq !== loadSeqRef.current) return;
+      
+      console.log('📥 Raw site data from getVarsoviaSite:', {
+        hasPagesField: !!site.pages,
+        pagesKeys: site.pages && typeof site.pages === 'object' ? Object.keys(site.pages) : [],
+      });
+      
+      if (seq !== loadSeqRef.current) {
+        console.warn('⚠️ Load cancelled - newer request in flight');
+        console.groupEnd();
+        return;
+      }
+      
       // Trust MongoDB data AS-IS - do NOT merge with defaults
       const allPages = (site.pages && typeof site.pages === "object" && !Array.isArray(site.pages))
         ? (site.pages as Record<string, unknown>)
         : {};
-      if (seq !== loadSeqRef.current) return;
-      setDraft(hubFromApi(allPages[hubKey]));
+      
+      const rawHub = allPages[hubKey];
+      
+      console.log(`📄 Raw ${hubKey} data from DB:`, JSON.parse(JSON.stringify(rawHub || {})));
+      
+      if (seq !== loadSeqRef.current) {
+        console.warn('⚠️ Load cancelled - newer request in flight (before setDraft)');
+        console.groupEnd();
+        return;
+      }
+      
+      const draft = hubFromApi(rawHub);
+      
+      console.log('🔄 After hubFromApi transform:', JSON.parse(JSON.stringify(draft)));
+      console.log('📊 Key fields loaded:');
+      console.table({
+        'Hero Title EN': typeof draft.hero.title === 'object' ? draft.hero.title.en : draft.hero.title,
+        'Body EN': typeof draft.body === 'object' ? draft.body.en : draft.body,
+        'Explore Title EN': typeof draft.exploreTitle === 'object' ? draft.exploreTitle.en : draft.exploreTitle,
+        'Explore Subtitle EN': typeof draft.exploreSubtitle === 'object' ? draft.exploreSubtitle.en : draft.exploreSubtitle,
+        'Services Title EN': typeof draft.servicesTitle === 'object' ? draft.servicesTitle.en : draft.servicesTitle,
+        'Services Subtitle EN': typeof draft.servicesSubtitle === 'object' ? draft.servicesSubtitle.en : draft.servicesSubtitle,
+        'Meta Title EN': typeof draft.metaTitle === 'object' ? draft.metaTitle.en : draft.metaTitle,
+        'Sections count': draft.sections.length,
+      });
+      
+      setDraft(draft);
+      console.log('✅ Draft state set in React');
     } catch (err) {
-      if (seq !== loadSeqRef.current) return;
+      if (seq !== loadSeqRef.current) {
+        console.warn('⚠️ Load error but newer request in flight');
+        console.groupEnd();
+        return;
+      }
+      console.error('❌ Load failed:', err);
       toast.error(varsoviaErrorMessage(err, "Failed to load hub page"));
     } finally {
       if (seq === loadSeqRef.current) setLoading(false);
+      console.timeEnd(`⏱️ Load duration (seq: ${seq})`);
+      console.log('✅ Load completed');
+      console.groupEnd();
     }
-  }, [hubKey]);
+  }, [hubKey, label]);
 
   useEffect(() => {
     void load();
@@ -428,20 +478,44 @@ export default function VarsoviaHubLandingEditor({
 
   const save = async () => {
     setSaving(true);
+    
+    console.group(`[VarsoviaHubLandingEditor] Save ${hubKey} - ${label}`);
+    console.log('📝 Draft state before save:', JSON.parse(JSON.stringify(draft)));
+    
     try {
       await flushSaves?.flushAll();
+      
+      const apiPayload = hubToApi(draft);
+      console.log('🔄 After hubToApi transform:', JSON.parse(JSON.stringify(apiPayload)));
+      
       const nextHub = {
-        ...hubToApi(draft),
+        ...apiPayload,
         slug: (IA_HUB_PATHS[hubKey] || `/${hubKey}`).replace(/^\//, ""),
       };
-      const merged = await persistIaHubPatch(hubKey, nextHub);
-      setDraft(hubFromApi(merged[hubKey]));
+      
+      console.log('📤 Final payload to persistIaHubPatch:', JSON.parse(JSON.stringify(nextHub)));
+      console.time('⏱️ persistIaHubPatch duration');
+      
+      // Save to backend
+      await persistIaHubPatch(hubKey, nextHub);
+      
+      console.timeEnd('⏱️ persistIaHubPatch duration');
+      
+      // MIRROR THAILAND KITCHEN PATTERN: Trust what we sent, don't re-fetch
+      // draft already has the correct data that the user edited
+      // No need to: const merged = await persistIaHubPatch(); const newDraft = hubFromApi(merged[hubKey]); setDraft(newDraft);
+      console.log('✅ Draft state kept as-is (user has correct data)');
+      
       toast.success(`${label} page saved — live ${sitePath} uses these fields`);
       onSaved?.();
+      
+      console.log('✅ Save completed successfully');
     } catch (err) {
+      console.error('❌ Save failed with error:', err);
       toast.error(varsoviaErrorMessage(err, "Failed to save page"));
     } finally {
       setSaving(false);
+      console.groupEnd();
     }
   };
 

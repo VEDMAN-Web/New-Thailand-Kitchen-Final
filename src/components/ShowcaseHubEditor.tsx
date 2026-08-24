@@ -260,8 +260,12 @@ export default function ShowcaseHubEditor() {
           metaDescription: asLocalizedForm(draft.metaDescription),
         },
       });
+      
+      // MIRROR THAILAND KITCHEN PATTERN: Trust what we sent, don't re-fetch
+      // draft already has the correct data that the user edited
+      // No need to: await load();
+      
       toast.success("Showcase page saved");
-      await load();
     } catch (err) {
       toast.error(varsoviaErrorMessage(err, "Failed to save Showcase"));
     } finally {

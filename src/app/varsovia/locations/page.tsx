@@ -320,7 +320,6 @@ export default function VarsoviaLocationsPage() {
           hubKey={HUB_KEY}
           label="Locations"
           helpText="Matches live /locations from top to bottom: banner, intro, content blocks, then city cards. Each city below is /locations/[city] — services list + related projects + Google."
-          onSaved={() => void load()}
         />
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">

@@ -237,7 +237,6 @@ export default function VarsoviaFurniturePage() {
           hubKey={HUB_KEY}
           label="Furniture"
           helpText="Matches live /furniture from top to bottom: banner, intro, content blocks, then Explore cards below."
-          onSaved={() => void load()}
         />
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">

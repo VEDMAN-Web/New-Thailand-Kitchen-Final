@@ -45,17 +45,27 @@ function syncCardTitleIntoHero(
  * Save one IA hub without replacing the rest of `site.pages`.
  * Patches onto the Mongo hub as stored (not a seed-filled snapshot), so a
  * stale furniture/locations view cannot wipe sibling hubs or custom copy.
+ * 
+ * CRITICAL: Returns the SAVED RESPONSE from backend, NOT a fresh fetch.
+ * This ensures the frontend sees exactly what was written to MongoDB.
  */
 export async function persistIaHubPatch(
   hubKey: string,
   patchHub: Record<string, unknown>
 ) {
+  console.group(`[persistIaHubPatch] ${hubKey}`);
+  console.log('📥 Received patch:', JSON.parse(JSON.stringify(patchHub)));
+  
   const site = await getVarsoviaSite();
+  console.log('📚 Current site.pages from DB:', JSON.parse(JSON.stringify(site.pages)));
+  
   const storedPages =
     site.pages && typeof site.pages === "object" && !Array.isArray(site.pages)
       ? (site.pages as Record<string, unknown>)
       : {};
   const existing = (storedPages[hubKey] || {}) as Record<string, unknown>;
+  
+  console.log(`📄 Existing ${hubKey} data in DB:`, JSON.parse(JSON.stringify(existing)));
   
   let children = Array.isArray(patchHub.children)
     ? patchHub.children
@@ -104,12 +114,24 @@ export async function persistIaHubPatch(
     },
   };
 
-  await updateVarsoviaSite(updatePayload, { persistPages: true });
-  const saved = await getVarsoviaSite();
-  // Trust MongoDB data AS-IS - do NOT merge with defaults
-  const resultPages = (saved.pages && typeof saved.pages === "object" && !Array.isArray(saved.pages))
-    ? (saved.pages as Record<string, unknown>)
+  console.log('📤 Payload to updateVarsoviaSite:', JSON.parse(JSON.stringify(updatePayload)));
+  console.time('⏱️ updateVarsoviaSite API call');
+  
+  // CRITICAL FIX: Trust the backend response - it returns FRESH data from MongoDB
+  // Backend uses findOneAndUpdate with { new: true } + .lean() which returns the ACTUAL saved document
+  const savedSite = await updateVarsoviaSite(updatePayload, { persistPages: true });
+  
+  console.timeEnd('⏱️ updateVarsoviaSite API call');
+  console.log('✅ Received FRESH data from updateVarsoviaSite:', JSON.parse(JSON.stringify(savedSite.pages)));
+  
+  // Trust MongoDB data AS-IS from the save response - do NOT re-fetch
+  const resultPages = (savedSite.pages && typeof savedSite.pages === "object" && !Array.isArray(savedSite.pages))
+    ? (savedSite.pages as Record<string, unknown>)
     : {};
+
+  console.log(`📄 Final ${hubKey} data returned:`, JSON.parse(JSON.stringify(resultPages[hubKey])));
+  console.log('✅ persistIaHubPatch completed - NO FETCH, TRUST SAVE RESPONSE');
+  console.groupEnd();
 
   return resultPages;
 }
