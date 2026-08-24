@@ -45,6 +45,9 @@ function syncCardTitleIntoHero(
  * Save one IA hub without replacing the rest of `site.pages`.
  * Patches onto the Mongo hub as stored (not a seed-filled snapshot), so a
  * stale furniture/locations view cannot wipe sibling hubs or custom copy.
+ * 
+ * CRITICAL: Returns the SAVED RESPONSE from backend, NOT a fresh fetch.
+ * This ensures the frontend sees exactly what was written to MongoDB.
  */
 export async function persistIaHubPatch(
   hubKey: string,
@@ -114,24 +117,20 @@ export async function persistIaHubPatch(
   console.log('📤 Payload to updateVarsoviaSite:', JSON.parse(JSON.stringify(updatePayload)));
   console.time('⏱️ updateVarsoviaSite API call');
   
-  await updateVarsoviaSite(updatePayload, { persistPages: true });
+  // CRITICAL FIX: Trust the backend response - it returns FRESH data from MongoDB
+  // Backend uses findOneAndUpdate with { new: true } + .lean() which returns the ACTUAL saved document
+  const savedSite = await updateVarsoviaSite(updatePayload, { persistPages: true });
   
   console.timeEnd('⏱️ updateVarsoviaSite API call');
-  console.log('🔄 Fetching fresh site data from getVarsoviaSite...');
-  console.time('⏱️ getVarsoviaSite API call');
+  console.log('✅ Received FRESH data from updateVarsoviaSite:', JSON.parse(JSON.stringify(savedSite.pages)));
   
-  const saved = await getVarsoviaSite();
-  
-  console.timeEnd('⏱️ getVarsoviaSite API call');
-  console.log('📥 Fresh site.pages from DB:', JSON.parse(JSON.stringify(saved.pages)));
-  
-  // Trust MongoDB data AS-IS - do NOT merge with defaults
-  const resultPages = (saved.pages && typeof saved.pages === "object" && !Array.isArray(saved.pages))
-    ? (saved.pages as Record<string, unknown>)
+  // Trust MongoDB data AS-IS from the save response - do NOT re-fetch
+  const resultPages = (savedSite.pages && typeof savedSite.pages === "object" && !Array.isArray(savedSite.pages))
+    ? (savedSite.pages as Record<string, unknown>)
     : {};
 
   console.log(`📄 Final ${hubKey} data returned:`, JSON.parse(JSON.stringify(resultPages[hubKey])));
-  console.log('✅ persistIaHubPatch completed');
+  console.log('✅ persistIaHubPatch completed - NO FETCH, TRUST SAVE RESPONSE');
   console.groupEnd();
 
   return resultPages;

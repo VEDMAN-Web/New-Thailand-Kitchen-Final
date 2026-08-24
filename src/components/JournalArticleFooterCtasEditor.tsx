@@ -200,7 +200,8 @@ export default function JournalArticleFooterCtasEditor() {
   const save = async (opts?: { quiet?: boolean }): Promise<boolean> => {
     setSaving(true);
     try {
-      const merged = await persistIaHubPatch("journal", {
+      // Save to backend
+      await persistIaHubPatch("journal", {
         articleContact: {
           title: asLocalizedForm(contact.title),
           subtitle: asLocalizedForm(contact.subtitle),
@@ -218,9 +219,11 @@ export default function JournalArticleFooterCtasEditor() {
           imageAlt: asLocalizedForm(offer.imageAlt),
         },
       });
-      const hub = (merged.journal || {}) as Record<string, unknown>;
-      setContact(contactFromApi(hub.articleContact));
-      setOffer(offerFromApi(hub.articleOffer));
+      
+      // MIRROR THAILAND KITCHEN PATTERN: Trust what we sent, don't re-fetch
+      // contact and offer already have the correct data that the user edited
+      // No need to: const merged = await persistIaHubPatch(); setContact(contactFromApi(hub.articleContact)); setOffer(offerFromApi(hub.articleOffer));
+      
       if (!opts?.quiet) toast.success("Article footer bands saved");
       return true;
     } catch (err) {
