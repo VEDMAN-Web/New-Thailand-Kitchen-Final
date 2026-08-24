@@ -41,6 +41,8 @@ type HubDraft = {
   heroImage: string;
   ctaLabel: LocalizedText;
   ctaHref: string;
+  metaTitle: string;
+  metaDescription: string;
   sections: unknown;
   subsections?: Record<string, HubDraft>;
 };
@@ -53,6 +55,8 @@ function emptyHub(): HubDraft {
     heroImage: "",
     ctaLabel: emptyLocalized(),
     ctaHref: "",
+    metaTitle: "",
+    metaDescription: "",
     sections: [],
     subsections: {},
   };
@@ -74,6 +78,8 @@ function fromApi(raw: Record<string, unknown> | undefined, withSubs = false): Hu
     heroImage: String(src.heroImage || ""),
     ctaLabel: asLocalizedForm(src.ctaLabel),
     ctaHref: String(src.ctaHref || "/contact"),
+    metaTitle: String(src.metaTitle || ""),
+    metaDescription: String(src.metaDescription || ""),
     sections: src.sections || [],
     subsections,
   };
@@ -87,6 +93,8 @@ function toApi(draft: HubDraft, includeSubs: boolean): Record<string, unknown> {
     heroImage: draft.heroImage.trim(),
     ctaLabel: asLocalizedForm(draft.ctaLabel),
     ctaHref: draft.ctaHref.trim() || "/contact",
+    metaTitle: draft.metaTitle.trim(),
+    metaDescription: draft.metaDescription.trim(),
     sections: sectionsToApiPayload(sectionsFromApi(draft.sections)),
   };
   if (includeSubs) {
@@ -188,6 +196,38 @@ function HubFields({
             onChange={(e) => onChange({ ...draft, ctaHref: e.target.value })}
             placeholder="/contact"
             className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3.5 py-2.5 text-sm"
+          />
+        </label>
+      </div>
+      <div className="rounded-lg border border-[#E8EDF2] bg-[#F8FAFC] p-3 space-y-3">
+        <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#5C6370]">
+          SEO
+        </p>
+        <label className="block text-xs font-semibold text-[#5C6370]">
+          Meta Title ({draft.metaTitle.length}/60)
+          <input
+            value={draft.metaTitle}
+            onChange={(e) =>
+              onChange({ ...draft, metaTitle: e.target.value.slice(0, 60) })
+            }
+            maxLength={60}
+            placeholder={`${prefix} — Thailand Kitchen`}
+            className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3.5 py-2.5 text-sm"
+          />
+        </label>
+        <label className="block text-xs font-semibold text-[#5C6370]">
+          Meta Description ({draft.metaDescription.length}/160)
+          <textarea
+            rows={2}
+            value={draft.metaDescription}
+            onChange={(e) =>
+              onChange({
+                ...draft,
+                metaDescription: e.target.value.slice(0, 160),
+              })
+            }
+            maxLength={160}
+            className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3.5 py-2.5 text-sm resize-y"
           />
         </label>
       </div>
