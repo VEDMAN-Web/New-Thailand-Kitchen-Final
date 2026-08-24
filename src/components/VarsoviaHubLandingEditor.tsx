@@ -428,20 +428,55 @@ export default function VarsoviaHubLandingEditor({
 
   const save = async () => {
     setSaving(true);
+    
+    console.group(`[VarsoviaHubLandingEditor] Save ${hubKey} - ${label}`);
+    console.log('📝 Draft state before save:', JSON.parse(JSON.stringify(draft)));
+    
     try {
       await flushSaves?.flushAll();
+      
+      const apiPayload = hubToApi(draft);
+      console.log('🔄 After hubToApi transform:', JSON.parse(JSON.stringify(apiPayload)));
+      
       const nextHub = {
-        ...hubToApi(draft),
+        ...apiPayload,
         slug: (IA_HUB_PATHS[hubKey] || `/${hubKey}`).replace(/^\//, ""),
       };
+      
+      console.log('📤 Final payload to persistIaHubPatch:', JSON.parse(JSON.stringify(nextHub)));
+      console.time('⏱️ persistIaHubPatch duration');
+      
       const merged = await persistIaHubPatch(hubKey, nextHub);
-      setDraft(hubFromApi(merged[hubKey]));
+      
+      console.timeEnd('⏱️ persistIaHubPatch duration');
+      console.log('📥 Raw response (merged pages):', JSON.parse(JSON.stringify(merged)));
+      console.log('📥 Our hub in response:', JSON.parse(JSON.stringify(merged[hubKey])));
+      
+      const newDraft = hubFromApi(merged[hubKey]);
+      console.log('🔄 After hubFromApi transform:', JSON.parse(JSON.stringify(newDraft)));
+      console.log('📊 Field comparison (old vs new):');
+      console.table({
+        'Hero Title EN (old)': typeof draft.hero.title === 'object' ? draft.hero.title.en : draft.hero.title,
+        'Hero Title EN (new)': typeof newDraft.hero.title === 'object' ? newDraft.hero.title.en : newDraft.hero.title,
+        'Explore Title EN (old)': typeof draft.exploreTitle === 'object' ? draft.exploreTitle.en : draft.exploreTitle,
+        'Explore Title EN (new)': typeof newDraft.exploreTitle === 'object' ? newDraft.exploreTitle.en : newDraft.exploreTitle,
+        'Services Title EN (old)': typeof draft.servicesTitle === 'object' ? draft.servicesTitle.en : draft.servicesTitle,
+        'Services Title EN (new)': typeof newDraft.servicesTitle === 'object' ? newDraft.servicesTitle.en : newDraft.servicesTitle,
+      });
+      
+      setDraft(newDraft);
+      console.log('✅ Draft state updated in React');
+      
       toast.success(`${label} page saved — live ${sitePath} uses these fields`);
       onSaved?.();
+      
+      console.log('✅ Save completed successfully');
     } catch (err) {
+      console.error('❌ Save failed with error:', err);
       toast.error(varsoviaErrorMessage(err, "Failed to save page"));
     } finally {
       setSaving(false);
+      console.groupEnd();
     }
   };
 
