@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { CloudUpload } from "lucide-react";
 import { toast } from "sonner";
+import AdminSkeleton from "@/components/AdminSkeleton";
 import LocaleTabs from "@/components/LocaleTabs";
 import { CMS_SYNCED_EVENT } from "@/lib/adminSectionNav";
 import {
@@ -303,7 +304,7 @@ export default function ShowcaseHubEditor() {
         </div>
 
         {loading ? (
-          <p className="text-sm text-[#6B7280]">Loading page fields…</p>
+          <AdminSkeleton variant="panel" />
         ) : (
           <div className="space-y-4">
             <FieldGroup

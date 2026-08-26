@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import MediaUpload from "@/components/MediaUpload";
+import AdminSkeleton from "@/components/AdminSkeleton";
 import HeroVideoUpload from "@/components/HeroVideoUpload";
 import SectionBlocksEditor, {
   sectionsFromApi,
@@ -495,7 +496,7 @@ export default function AdminHomePage() {
         </div>
 
         {showInitialLoader ? (
-          <p className="text-sm text-[#6B7280]">Loading sections…</p>
+          <AdminSkeleton variant="panel" />
         ) : (
           <div
             className={

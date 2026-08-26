@@ -88,22 +88,20 @@ const nextConfig: NextConfig = {
       destination: `${frontendTarget}${prefix}/:path*`,
     }));
 
+    // Serve Varsovia media via the local route handler (public/, remote fallbacks)
+    // instead of proxying to :3000 — avoids ECONNREFUSED when the client app is offline.
     const varsoviaAssetRewrites = [
       {
-        source: "/varsovia-static/:path*",
-        destination: `${varsoviaTarget}/:path*`,
-      },
-      {
         source: "/home/:path*",
-        destination: `${varsoviaTarget}/home/:path*`,
+        destination: "/varsovia-static/home/:path*",
       },
       {
         source: "/Interior-kitchen/:path*",
-        destination: `${varsoviaTarget}/Interior-kitchen/:path*`,
+        destination: "/varsovia-static/Interior-kitchen/:path*",
       },
       {
         source: "/quality-sale/:path*",
-        destination: `${varsoviaTarget}/quality-sale/:path*`,
+        destination: "/varsovia-static/quality-sale/:path*",
       },
     ];
 

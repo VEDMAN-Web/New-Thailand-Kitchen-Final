@@ -3,6 +3,7 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { Plus, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import AdminSkeleton from "@/components/AdminSkeleton";
 import LocaleTabs from "@/components/LocaleTabs";
 import { useAdminAuth } from "@/lib/AdminAuthContext";
 import {
@@ -120,7 +121,7 @@ export default function LegalEditor({
   };
 
   if (loading) {
-    return <p className="text-sm text-[#6B7280]">Loading…</p>;
+    return <AdminSkeleton variant="panel" />;
   }
 
   return (

@@ -6,6 +6,7 @@ import { FolderOpen, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import LocaleTabs from "@/components/LocaleTabs";
 import MediaUpload from "@/components/MediaUpload";
+import AdminSkeleton from "@/components/AdminSkeleton";
 import SectionBlocksEditor, {
   sectionsFromApi,
   sectionsToApiPayload,
@@ -95,6 +96,29 @@ function slugifyPreview(value: string) {
     .replace(/^-+|-+$/g, "");
 }
 
+function isSupportedHeroImageUrl(value: string) {
+  const image = value.trim();
+  if (!image || /\.(mp4|webm|ogg|ogv|mov)(\?|#|$)/i.test(image)) {
+    return false;
+  }
+  if (
+    /^\/(uploads|brandLogo|products|product|features|blog|catlog|slider|testimonial|contactUs|footer|icon|gallery)\//i.test(image) ||
+    /\.(png|jpe?g|gif|webp|svg|avif)(\?|#|$)/i.test(image)
+  ) {
+    return true;
+  }
+  if (!/^https?:\/\//i.test(image)) return false;
+  try {
+    const url = new URL(image);
+    return (
+      /\.(png|jpe?g|gif|webp|svg|avif)(\?|#|$)/i.test(url.pathname + url.search + url.hash) ||
+      /(^|\.)res\.cloudinary\.com$|(^|\.)images\.(pexels|unsplash)\.com$/i.test(url.hostname)
+    );
+  } catch {
+    return false;
+  }
+}
+
 /** Same rule as site HubMegaMenu — only root pages appear in Services/Materials nav. */
 function isTopLevelCategory(item: {
   parentId?: string | { _id?: string; slug?: string } | null;
@@ -150,6 +174,10 @@ export default function AdminCategoriesPage() {
   const [modal, setModal] = useState<"create" | "edit" | null>(null);
   const [editing, setEditing] = useState<CategoryItem | null>(null);
   const [locale, setLocale] = useState<LocaleCode>("en");
+  const [saving, setSaving] = useState(false);
+  const [heroUploading, setHeroUploading] = useState(false);
+  const [heroImageError, setHeroImageError] = useState("");
+  const heroImageRef = useRef<HTMLDivElement>(null);
   const loadSeqRef = useRef(0);
   const [form, setForm] = useState<CategoryForm>({
     title: emptyLocalized(),
@@ -209,8 +237,8 @@ export default function AdminCategoriesPage() {
       const type = String((i as any).categoryType || "");
       if (hub) {
         if (hub.key === "services") {
-          // Match site Services mega-menu: top-level services only
-          if (type !== "service" || !isTopLevelCategory(i)) return false;
+          // The admin must show both standalone and location-specific services.
+          if (type !== "service") return false;
         } else if (hub.key === "materials") {
           if (type !== "material" || !isTopLevelCategory(i)) return false;
         } else if (hub.key === "locations") {
@@ -287,17 +315,16 @@ export default function AdminCategoriesPage() {
       sections: [],
     });
     setEditing(null);
+    setHeroImageError("");
     setLocale("en");
     setModal("create");
   };
 
   const openEdit = (item: CategoryItem) => {
     setEditing(item);
+    setHeroImageError("");
     const indexableValue = (item as any).indexable;
     const type = (item as any).categoryType || "service";
-    const footerFallback = defaultFooterCtaFields(
-      localizedValue(asLocalizedForm(item.title), "en") || "kitchen"
-    );
     const eyebrowForm = asLocalizedForm((item as any).eyebrow);
     const footerHeadingForm = asLocalizedForm((item as any).footerCtaHeading);
     const footerBodyForm = asLocalizedForm((item as any).footerCtaBody);
@@ -313,32 +340,12 @@ export default function AdminCategoriesPage() {
       metaDescription: (item as any).metaDescription || "",
       canonicalUrl: (item as any).canonicalUrl || "",
       indexable: indexableValue === true,
-      eyebrow: localizedValue(eyebrowForm, "en")
-        ? eyebrowForm
-        : defaultEyebrowForType(type),
+      eyebrow: eyebrowForm,
       ctaLabel: asLocalizedForm((item as any).ctaLabel),
       ctaHref: String((item as any).ctaHref || "/contact"),
-      footerCtaHeading: localizedValue(footerHeadingForm, "en")
-        ? footerHeadingForm
-        : footerFallback.footerCtaHeading,
-      footerCtaBody: localizedValue(footerBodyForm, "en")
-        ? footerBodyForm
-        : footerFallback.footerCtaBody,
-      sections: (() => {
-        const fromApi = sectionsFromApi((item as any).sections);
-        if (fromApi.length) return fromApi;
-        return buildDefaultCategorySections({
-          title:
-            localizedValue(asLocalizedForm(item.title), "en") || "Kitchen",
-          description: localizedValue(
-            asLocalizedForm(item.description),
-            "en"
-          ),
-          image: item.image,
-          categoryType: type,
-          slug: (item as any).slug,
-        });
-      })(),
+      footerCtaHeading: footerHeadingForm,
+      footerCtaBody: footerBodyForm,
+      sections: sectionsFromApi((item as any).sections),
     });
     setLocale("en");
     setModal("edit");
@@ -346,23 +353,40 @@ export default function AdminCategoriesPage() {
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (saving || heroUploading) return;
+    if (!isSupportedHeroImageUrl(form.image)) {
+      const message = form.image.trim()
+        ? "Enter a valid image URL or upload an image"
+        : "Hero image is required before saving";
+      setHeroImageError(message);
+      toast.error(message);
+      requestAnimationFrame(() => {
+        heroImageRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+      return;
+    }
+    setHeroImageError("");
+    setSaving(true);
     if (!localizedValue(form.title, "en").trim()) {
       toast.error("English title is required");
+      setSaving(false);
       return;
     }
     if (form.metaTitle && form.metaTitle.length > 60) {
       toast.error("Meta Title must be 60 characters or less");
+      setSaving(false);
       return;
     }
     if (form.metaDescription && form.metaDescription.length > 160) {
       toast.error("Meta Description must be 160 characters or less");
+      setSaving(false);
       return;
     }
     try {
       const payload: any = {
         title: asLocalizedForm(form.title),
         description: asLocalizedForm(form.description),
-        image: form.image,
+        image: form.image.trim(),
         icon: form.icon,
         slug: form.slug,
         categoryType: form.categoryType,
@@ -387,8 +411,10 @@ export default function AdminCategoriesPage() {
       }
       setModal(null);
       await load();
-    } catch {
-      toast.error("Save failed");
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Save failed");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -469,7 +495,7 @@ export default function AdminCategoriesPage() {
         ) : null}
 
         {loading ? (
-          <p className="text-sm text-[#6B7280]">Loading…</p>
+          <AdminSkeleton variant="cards" count={4} />
         ) : filtered.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-[#E2E5EA] bg-white p-8 sm:p-12 text-center">
             <FolderOpen className="w-8 h-8 text-[#9CA3AF] mx-auto mb-3" />
@@ -741,12 +767,23 @@ export default function AdminCategoriesPage() {
                   and pill button.
                 </p>
               </div>
-              <MediaUpload
-                label="Hero image"
-                kind="image"
-                value={form.image}
-                onChange={(v) => setForm((f) => ({ ...f, image: v }))}
-              />
+              <div ref={heroImageRef}>
+                <MediaUpload
+                  label="Hero image"
+                  kind="image"
+                  value={form.image}
+                  onChange={(v) => {
+                    setForm((f) => ({ ...f, image: v }));
+                    setHeroImageError("");
+                  }}
+                  onUploadingChange={setHeroUploading}
+                />
+                {heroImageError ? (
+                  <p className="mt-2 text-xs font-medium text-red-600" role="alert">
+                    {heroImageError}
+                  </p>
+                ) : null}
+              </div>
               <p className="text-[11px] text-[#6B7280] -mt-1">
                 Full-width background photo behind the heading
               </p>
@@ -882,9 +919,10 @@ export default function AdminCategoriesPage() {
               </button>
               <button
                 type="submit"
-                className="rounded-lg bg-[#1A2332] text-white px-4 py-2 text-sm font-semibold"
+                disabled={saving || heroUploading}
+                className="rounded-lg bg-[#1A2332] text-white px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Save
+                {saving ? "Saving…" : "Save"}
               </button>
             </div>
           </form>

@@ -23,6 +23,7 @@ import {
   type ProductItem,
 } from "@/services/adminAPI";
 import MediaUpload from "@/components/MediaUpload";
+import AdminSkeleton from "@/components/AdminSkeleton";
 import { resolveAdminMediaPreviewUrl } from "@/lib/adminMediaPreview";
 import LocaleTabs from "@/components/LocaleTabs";
 import {
@@ -540,7 +541,7 @@ export default function AdminProductsPage() {
       </div>
 
       {loading ? (
-        <p className="text-sm text-[#6B7280]">Loading…</p>
+        <AdminSkeleton variant="cards" count={6} />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
           {filteredItems.length === 0 ? (

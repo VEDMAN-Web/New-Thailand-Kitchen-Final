@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import AdminSkeleton from "@/components/AdminSkeleton";
 import {
   Home,
   Package,
@@ -334,8 +335,8 @@ export default function AdminShell(props: AdminShellProps) {
   return (
     <Suspense
       fallback={
-            <div className="min-h-dvh bg-[#F4F5F7] p-4 sm:p-8 text-sm text-[#6B7280]">
-          Loading admin…
+            <div className="min-h-dvh bg-[#F4F5F7] p-4 sm:p-8">
+              <AdminSkeleton variant="panel" />
         </div>
       }
     >

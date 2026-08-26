@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAdminAuth } from "@/lib/AdminAuthContext";
+import AdminSkeleton from "@/components/AdminSkeleton";
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAdminAuth();
@@ -18,8 +19,10 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="min-h-dvh bg-[#F4F5F7] flex items-center justify-center text-sm text-[#6B7280]">
-        Loading admin…
+      <div className="min-h-dvh bg-[#F4F5F7] p-4 sm:p-8 flex items-center justify-center">
+        <div className="w-full max-w-md">
+          <AdminSkeleton variant="panel" />
+        </div>
       </div>
     );
   }

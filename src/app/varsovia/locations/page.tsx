@@ -1,4 +1,5 @@
 "use client";
+import AdminSkeleton from "@/components/AdminSkeleton";
 
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FolderOpen, Pencil, Plus, Search, Trash2, X } from "lucide-react";
@@ -343,7 +344,7 @@ export default function VarsoviaLocationsPage() {
         </div>
 
         {loading ? (
-          <p className="text-sm text-[#6B7280]">Loading…</p>
+          <AdminSkeleton variant="cards" count={6} />
         ) : filtered.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-[#E2E5EA] bg-white p-8 sm:p-12 text-center">
             <FolderOpen className="w-8 h-8 text-[#9CA3AF] mx-auto mb-3" />

@@ -1,4 +1,5 @@
 "use client";
+import AdminSkeleton from "@/components/AdminSkeleton";
 
 import {
   Suspense,
@@ -1076,7 +1077,7 @@ function SiteSettings() {
       </div>
 
       {loadingContent ? (
-        <p className="text-sm text-[#6B7280]">Loading sections…</p>
+        <AdminSkeleton variant="panel" />
       ) : (
         <div
           className={clsx(
@@ -1565,7 +1566,7 @@ function CataloguesInlineEditor({ embedded = false }: { embedded?: boolean }) {
         </div>
 
         {loading ? (
-          <p className="text-sm text-[#6B7280]">Loading…</p>
+          <AdminSkeleton variant="rows" count={4} />
         ) : (
           <div className="space-y-4">
             {drafts.map((draft, index) => (
@@ -1969,7 +1970,7 @@ function TeamInlineEditor({ embedded = false }: { embedded?: boolean }) {
           </div>
 
           {loading ? (
-            <p className="text-sm text-[#6B7280]">Loading…</p>
+            <AdminSkeleton variant="rows" count={4} />
           ) : (
             <div className="space-y-4">
               {drafts.map((draft, index) => (
@@ -2366,7 +2367,7 @@ function PartnersInlineEditor({ embedded = false }: { embedded?: boolean }) {
           </div>
 
           {loading ? (
-            <p className="text-sm text-[#6B7280]">Loading…</p>
+            <AdminSkeleton variant="rows" count={4} />
           ) : (
             <div className="space-y-4">
               {drafts.map((draft, index) => (
@@ -2672,7 +2673,7 @@ function ShowcasesInlineEditor({ embedded = false }: { embedded?: boolean }) {
           </div>
 
           {loading ? (
-            <p className="text-sm text-[#6B7280]">Loading…</p>
+            <AdminSkeleton variant="rows" count={4} />
           ) : (
             <div className="space-y-4">
               {drafts.map((draft, index) => (
@@ -3193,7 +3194,7 @@ function FaqsInlineEditor({ embedded = false }: { embedded?: boolean }) {
         </div>
 
         {loading ? (
-          <p className="text-sm text-[#6B7280]">Loading…</p>
+          <AdminSkeleton variant="panel" />
         ) : (
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-[260px_1fr]">
             <div className="overflow-hidden rounded-xl border border-[#E8EAED]">
@@ -3587,7 +3588,7 @@ function TestimonialsInlineEditor({ embedded = false }: { embedded?: boolean }) 
         </div>
 
         {loading ? (
-          <p className="text-sm text-[#6B7280]">Loading…</p>
+          <AdminSkeleton variant="rows" count={4} />
         ) : (
           <div className="space-y-4">
             {drafts.map((draft) => (
@@ -4160,7 +4161,7 @@ export function ResourceManager({
           </div>
 
           {loading ? (
-            <p className="text-sm text-[#6B7280]">Loading…</p>
+            <AdminSkeleton variant="cards" count={4} />
           ) : (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
               {cardItems.length === 0 ? (
@@ -4321,7 +4322,7 @@ export function ResourceManager({
 
           <div className="overflow-hidden rounded-xl border border-[#E2E5EA] bg-white">
             {loading ? (
-              <p className="p-8 text-sm text-[#6B7280]">Loading…</p>
+              <AdminSkeleton variant="rows" count={5} />
             ) : items.length === 0 ? (
               <p className="p-8 text-sm text-[#6B7280]">
                 No {config.label.toLowerCase()} found.

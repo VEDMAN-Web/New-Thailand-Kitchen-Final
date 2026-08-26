@@ -5,6 +5,7 @@ import { HelpCircle, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import LocaleTabs from "@/components/LocaleTabs";
 import HeroVideoUpload from "@/components/HeroVideoUpload";
+import AdminSkeleton from "@/components/AdminSkeleton";
 import { useAdminAuth } from "@/lib/AdminAuthContext";
 import {
   asLocalizedForm,
@@ -282,7 +283,7 @@ export default function AdminFaqsPage() {
         </p>
 
         {loading ? (
-          <p className="text-sm text-[#6B7280]">Loading…</p>
+          <AdminSkeleton variant="rows" count={5} />
         ) : filtered.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-[#E2E5EA] bg-white p-8 sm:p-12 text-center">
             <HelpCircle className="w-8 h-8 text-[#9CA3AF] mx-auto mb-3" />

@@ -3,6 +3,7 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
+import AdminSkeleton from "@/components/AdminSkeleton";
 import { useAdminAuth } from "@/lib/AdminAuthContext";
 import {
   createUser,
@@ -81,7 +82,7 @@ export default function AdminUsersPage() {
       </div>
 
       {loading ? (
-        <p className="text-sm text-[#6B7280]">Loading…</p>
+        <AdminSkeleton variant="rows" count={4} />
       ) : (
         <div className="overflow-x-auto bg-white rounded-xl border border-[#E8EAED]">
           <table className="w-full min-w-[640px] text-sm">

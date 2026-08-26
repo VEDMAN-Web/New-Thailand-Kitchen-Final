@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CloudUpload } from "lucide-react";
 import { toast } from "sonner";
+import AdminSkeleton from "@/components/AdminSkeleton";
 import LocaleTabs from "@/components/LocaleTabs";
 import MediaUpload from "@/components/MediaUpload";
 import SectionBlocksEditor, {
@@ -334,7 +335,7 @@ export default function HubLandingEditor({ hub }: { hub: AdminHubMeta }) {
       </div>
 
       {loading ? (
-        <p className="text-sm text-[#6B7280]">Loading page fields…</p>
+        <AdminSkeleton variant="panel" />
       ) : hub.key === "kitchens" ? (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">

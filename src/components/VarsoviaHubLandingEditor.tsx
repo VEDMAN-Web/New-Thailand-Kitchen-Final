@@ -5,6 +5,7 @@ import { CloudUpload } from "lucide-react";
 import { toast } from "sonner";
 import LocaleTabs from "@/components/LocaleTabs";
 import MediaUpload from "@/components/MediaUpload";
+import AdminSkeleton from "@/components/AdminSkeleton";
 import { CMS_SYNCED_EVENT } from "@/lib/adminSectionNav";
 import {
   asLocalizedForm,
@@ -549,7 +550,7 @@ export default function VarsoviaHubLandingEditor({
       </div>
 
       {loading ? (
-        <p className="text-sm text-[#6B7280]">Loading page fields…</p>
+        <AdminSkeleton variant="panel" />
       ) : (
         <div className="space-y-4">
           {showHero ? (

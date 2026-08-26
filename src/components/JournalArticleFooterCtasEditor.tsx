@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { CloudUpload } from "lucide-react";
 import { toast } from "sonner";
+import AdminSkeleton from "@/components/AdminSkeleton";
 import LocaleTabs from "@/components/LocaleTabs";
 import MediaUpload from "@/components/MediaUpload";
 import { CMS_SYNCED_EVENT } from "@/lib/adminSectionNav";
@@ -262,7 +263,7 @@ export default function JournalArticleFooterCtasEditor() {
       <LocaleTabs locale={locale} onChange={setLocale} />
 
       {loading ? (
-        <p className="text-sm text-[#6B7280]">Loading article footer fields…</p>
+        <AdminSkeleton variant="panel" />
       ) : (
         <div className="space-y-4">
           <FieldGroup

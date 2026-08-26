@@ -30,6 +30,7 @@ export default function MediaUpload({
   uploadFile,
   previewSize = "md",
   clearable = false,
+  onUploadingChange,
 }: {
   label: string;
   value: string;
@@ -40,6 +41,7 @@ export default function MediaUpload({
   uploadFile?: (file: File, kind: Kind) => Promise<UploadResult>;
   previewSize?: "sm" | "md" | "lg";
   clearable?: boolean;
+  onUploadingChange?: (uploading: boolean) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const uploadingRef = useRef(false);
@@ -140,6 +142,7 @@ export default function MediaUpload({
     }
     uploadingRef.current = true;
     setUploading(true);
+    onUploadingChange?.(true);
     try {
       const res = uploadFile
         ? await uploadFile(file, kind)
@@ -152,6 +155,7 @@ export default function MediaUpload({
     } finally {
       uploadingRef.current = false;
       setUploading(false);
+      onUploadingChange?.(false);
       if (inputRef.current) inputRef.current.value = "";
     }
   };

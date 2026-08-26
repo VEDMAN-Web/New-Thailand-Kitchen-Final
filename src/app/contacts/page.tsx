@@ -25,6 +25,7 @@ import {
   listVarsoviaContacts,
   type VarsoviaRecord,
 } from "@/services/varsoviaAPI";
+import AdminSkeleton from "@/components/AdminSkeleton";
 
 function mapVarsoviaLead(row: VarsoviaRecord): ContactLead {
   return {
@@ -183,7 +184,7 @@ export default function AdminContactsPage() {
           </div>
 
           {loading ? (
-            <p className="p-8 text-sm text-[#6B7280]">Loading contacts…</p>
+            <AdminSkeleton variant="rows" count={5} />
           ) : filtered.length === 0 ? (
             <div className="p-10 text-center">
               <Inbox className="w-10 h-10 mx-auto text-[#D1D5DB] mb-3" />

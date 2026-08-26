@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import MediaUpload from "@/components/MediaUpload";
+import AdminSkeleton from "@/components/AdminSkeleton";
 import HeroVideoUpload from "@/components/HeroVideoUpload";
 import LocaleTabs from "@/components/LocaleTabs";
 import { useAdminAuth } from "@/lib/AdminAuthContext";
@@ -975,7 +976,7 @@ export default function AdminBlogsPage() {
         </div>
 
         {loading ? (
-          <p className="text-sm text-[#6B7280]">Loading…</p>
+          <AdminSkeleton variant="cards" count={6} />
         ) : filtered.length === 0 ? (
           <div className="rounded-xl border border-dashed bg-white p-10 text-center text-sm text-[#6B7280]">
             No blog posts found.

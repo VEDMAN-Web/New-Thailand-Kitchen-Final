@@ -5,6 +5,7 @@ import { Images, Pencil, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import LocaleTabs from "@/components/LocaleTabs";
 import MediaUpload from "@/components/MediaUpload";
+import AdminSkeleton from "@/components/AdminSkeleton";
 import { useAdminAuth } from "@/lib/AdminAuthContext";
 import { CMS_SYNCED_EVENT } from "@/lib/adminSectionNav";
 import { resolveAdminMediaPreviewUrl } from "@/lib/adminMediaPreview";
@@ -550,7 +551,7 @@ export default function AdminGalleryPage() {
         </div>
 
         {loading ? (
-          <p className="text-sm text-[#6B7280]">Loading…</p>
+          <AdminSkeleton variant="cards" count={6} />
         ) : visibleItems.length === 0 ? (
           <div className="bg-white rounded-xl border border-[#E8EAED] p-10 text-center text-[#6B7280]">
             <Images className="w-8 h-8 mx-auto mb-3 opacity-40" />
