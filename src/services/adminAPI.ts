@@ -194,7 +194,16 @@ export async function updateCategory(
 
 export async function deleteCategory(siteId: SiteId, id: string) {
   const { data } = await adminApi.delete(`/cms/${siteId}/categories/${id}`);
-  return data;
+  if (!data?.success || data.deleted !== true || data.deletedCount !== 1) {
+    throw new Error(data?.message || "Category deletion was not confirmed by the database");
+  }
+  return data as {
+    success: true;
+    deleted: true;
+    deletedCount: 1;
+    deletedId: string;
+    message: string;
+  };
 }
 
 export type LocalizedCmsText = string | Partial<Record<"en" | "th" | "pl", string>>;
@@ -244,7 +253,16 @@ export async function updateProduct(
 
 export async function deleteProduct(siteId: SiteId, id: string) {
   const { data } = await adminApi.delete(`/cms/${siteId}/products/${id}`);
-  return data;
+  if (!data?.success || data.deleted !== true || data.deletedCount !== 1) {
+    throw new Error(data?.message || "Product deletion was not confirmed by the database");
+  }
+  return data as {
+    success: true;
+    deleted: true;
+    deletedCount: 1;
+    deletedId: string;
+    message: string;
+  };
 }
 
 export type BlogBodySection = {

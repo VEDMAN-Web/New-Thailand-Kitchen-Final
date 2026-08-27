@@ -7,6 +7,7 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  Loader2,
   Pencil,
   Plus,
   Search,
@@ -23,6 +24,7 @@ import {
   type ProductItem,
 } from "@/services/adminAPI";
 import MediaUpload from "@/components/MediaUpload";
+import AdminImage from "@/components/AdminImage";
 import AdminSkeleton from "@/components/AdminSkeleton";
 import { resolveAdminMediaPreviewUrl } from "@/lib/adminMediaPreview";
 import LocaleTabs from "@/components/LocaleTabs";
@@ -154,11 +156,14 @@ export default function AdminProductsPage() {
   const [items, setItems] = useState<ProductItem[]>([]);
   const [categoryList, setCategoryList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [modal, setModal] = useState<"create" | "edit" | null>(null);
   const [editing, setEditing] = useState<ProductItem | null>(null);
   const [form, setForm] = useState(empty);
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [saveArmed, setSaveArmed] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All categories");
   const [locale, setLocale] = useState<LocaleCode>("en");
@@ -171,8 +176,10 @@ export default function AdminProductsPage() {
       const res = await listProducts(siteId);
       if (seq !== loadSeqRef.current) return;
       setItems(res.items || []);
+      setLoadError(false);
     } catch {
       if (seq !== loadSeqRef.current) return;
+      setLoadError(true);
       toast.error("Failed to load products");
     } finally {
       if (seq === loadSeqRef.current) setLoading(false);
@@ -332,7 +339,7 @@ export default function AdminProductsPage() {
   // Navigation is all type="button" — no form submit needed
 
   const saveProduct = async () => {
-    if (step !== 3 || !saveArmed) return;
+    if (step !== 3 || !saveArmed || saving) return;
     if (!validateStep(2) || !validateStep(3)) return;
 
     if (form.metaTitle && form.metaTitle.length > 60) {
@@ -381,29 +388,41 @@ export default function AdminProductsPage() {
       metaDescription: form.metaDescription,
       indexable: form.indexable,
     };
+    setSaving(true);
     try {
       if (modal === "create") {
-        await createProduct(siteId, payload);
+        const res = await createProduct(siteId, payload);
+        if (res?.item) setItems((current) => [res.item, ...current]);
         toast.success("Product created");
       } else if (editing) {
-        await updateProduct(siteId, editing._id, payload);
+        const res = await updateProduct(siteId, editing._id, payload);
+        if (res?.item) {
+          setItems((current) =>
+            current.map((item) => (item._id === res.item._id ? res.item : item))
+          );
+        }
         toast.success("Product updated");
       }
       closeModal();
-      await load();
     } catch {
       toast.error("Save failed");
+    } finally {
+      setSaving(false);
     }
   };
 
   const onDelete = async (item: ProductItem) => {
+    if (deletingId) return;
     if (!confirm(`Delete "${localizedValue(item.title, "en")}"?`)) return;
+    setDeletingId(item._id);
     try {
       await deleteProduct(siteId, item._id);
+      setItems((current) => current.filter((entry) => entry._id !== item._id));
       toast.success("Deleted");
-      await load();
     } catch {
       toast.error("Delete failed");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -542,6 +561,18 @@ export default function AdminProductsPage() {
 
       {loading ? (
         <AdminSkeleton variant="cards" count={6} />
+      ) : loadError ? (
+        <div className="col-span-full rounded-xl border border-red-200 bg-red-50 p-10 text-center">
+          <p className="text-sm font-semibold text-red-900">Products could not be loaded.</p>
+          <p className="mt-1 text-sm text-red-700">Check the connection and try again.</p>
+          <button
+            type="button"
+            onClick={() => void load()}
+            className="mt-4 inline-flex h-10 items-center justify-center rounded-lg bg-[#1A2332] px-4 text-sm font-semibold text-white"
+          >
+            Retry
+          </button>
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
           {filteredItems.length === 0 ? (
@@ -555,17 +586,11 @@ export default function AdminProductsPage() {
                 className="overflow-hidden rounded-2xl border border-[#E8EAED] bg-white"
               >
                 <div className="relative h-40 w-full bg-[#F3F4F6]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <AdminImage
                     src={resolveAdminMediaPreviewUrl(item.image || "/products/Kitchen1.png")}
                     alt={localizedValue(item.title, "en")}
                     className="h-full w-full object-cover"
-                    onError={(e) => {
-                      const el = e.currentTarget;
-                      if (el.dataset.fallback === "1") return;
-                      el.dataset.fallback = "1";
-                      el.src = "/products/Kitchen1.png";
-                    }}
+                    fallbackSrcs={[resolveAdminMediaPreviewUrl("/products/Kitchen1.png")]}
                   />
                   <span className="absolute left-2 top-2 rounded-md bg-white px-2 py-1 text-[10px] font-semibold text-[#475569]">
                     {localizedValue(item.category, "en") || "Kitchen Layouts"}
@@ -615,7 +640,8 @@ export default function AdminProductsPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => onDelete(item)}
+                      onClick={() => void onDelete(item)}
+                      disabled={Boolean(deletingId)}
                       className="inline-flex rounded-lg p-2 text-[#DC2626] hover:bg-red-50"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -1222,11 +1248,16 @@ export default function AdminProductsPage() {
               ) : (
                 <button
                   type="button"
-                  onClick={saveProduct}
-                  disabled={!saveArmed}
+                  onClick={() => void saveProduct()}
+                  disabled={!saveArmed || saving}
                   className="rounded-lg bg-[#1A2332] text-white px-4 py-2 text-sm font-semibold disabled:opacity-60"
                 >
-                  {modal === "create" ? "Create Product" : "Edit Product"}
+                  {saving ? (
+                    <span className="inline-flex items-center gap-1.5">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Saving...
+                    </span>
+                  ) : modal === "create" ? "Create Product" : "Edit Product"}
                 </button>
               )}
             </div>

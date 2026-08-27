@@ -1,5 +1,6 @@
 "use client";
 import AdminSkeleton from "@/components/AdminSkeleton";
+import AdminImage from "@/components/AdminImage";
 
 import {
   Suspense,
@@ -4194,28 +4195,14 @@ export function ResourceManager({
                       className="overflow-hidden rounded-2xl border border-[#E8EAED] bg-white"
                     >
                       <div className="relative h-40 w-full bg-[#F3F4F6]">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
+                        <AdminImage
                           src={resolveAdminMediaPreviewUrl(image || "/home/product/product-1.jpg")}
                           alt={title}
                           referrerPolicy="no-referrer"
                           className="h-full w-full object-cover"
-                          onError={(event) => {
-                            const el = event.currentTarget;
-                            const fallbacks = resolveAdminMediaPreviewFallbacks(
-                              image || "/home/product/product-1.jpg"
-                            );
-                            const idx = Number(el.dataset.fb || "0");
-                            const next = fallbacks[idx + 1];
-                            if (next) {
-                              el.dataset.fb = String(idx + 1);
-                              el.src = next;
-                              return;
-                            }
-                            if (el.dataset.fallback === "1") return;
-                            el.dataset.fallback = "1";
-                            el.src = resolveAdminMediaPreviewUrl("/home/product/product-1.jpg");
-                          }}
+                          fallbackSrcs={resolveAdminMediaPreviewFallbacks(
+                            image || "/home/product/product-1.jpg"
+                          ).slice(1)}
                         />
                         <span className="absolute left-2 top-2 rounded-md bg-white px-2 py-1 text-[10px] font-semibold text-[#475569]">
                           {category || card.fallbackBadge}
@@ -4574,8 +4561,7 @@ export function ResourceManager({
                 {aiImageLoading ? "Generating image…" : "Generate Image"}
               </button>
               {aiCoverImage ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <AdminImage
                   src={aiCoverImage}
                   alt="AI cover preview"
                   className="h-36 w-full rounded-lg border border-[#E8EAED] object-cover bg-white"

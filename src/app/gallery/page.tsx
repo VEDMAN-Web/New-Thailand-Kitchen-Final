@@ -5,6 +5,7 @@ import { Images, Pencil, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import LocaleTabs from "@/components/LocaleTabs";
 import MediaUpload from "@/components/MediaUpload";
+import AdminImage from "@/components/AdminImage";
 import AdminSkeleton from "@/components/AdminSkeleton";
 import { useAdminAuth } from "@/lib/AdminAuthContext";
 import { CMS_SYNCED_EVENT } from "@/lib/adminSectionNav";
@@ -567,11 +568,11 @@ export default function AdminGalleryPage() {
                   className="bg-white rounded-xl border border-[#E8EAED] overflow-hidden flex flex-col"
                 >
                   <div className="relative h-44 bg-[#F3F4F6]">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <AdminImage
                       src={preview || "/products/Kitchen1.png"}
                       alt={localizedValue(item.title, "en")}
                       className="h-full w-full object-cover"
+                      fallbackSrcs={["/products/Kitchen1.png"]}
                     />
                     <span className="absolute left-2 top-2 rounded-md bg-black/70 px-2 py-0.5 text-[10px] font-semibold text-white">
                       #{index + 1}

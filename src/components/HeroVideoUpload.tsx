@@ -23,6 +23,7 @@ import {
   toEmbedVideoSrc,
 } from "@/lib/adminMediaPreview";
 import { clsx } from "clsx";
+import AdminImage from "@/components/AdminImage";
 
 type Mode = "upload" | "url";
 
@@ -315,8 +316,7 @@ export default function HeroVideoUpload({
             />
           ) : urlKind === "pexels-video-page" && remotePreviewUrl ? (
             <div className="relative aspect-video w-full">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <AdminImage
                 src={remotePreviewUrl}
                 alt="Pexels thumbnail preview"
                 className="h-full w-full object-cover opacity-80"

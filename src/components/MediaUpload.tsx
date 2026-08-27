@@ -12,6 +12,7 @@ import {
   resolveAdminMediaPreviewFallbacks,
 } from "@/lib/adminMediaPreview";
 import { clsx } from "clsx";
+import AdminImage from "@/components/AdminImage";
 
 type Kind = "image" | "icon" | "pdf" | "any";
 
@@ -46,7 +47,6 @@ export default function MediaUpload({
   const inputRef = useRef<HTMLInputElement>(null);
   const uploadingRef = useRef(false);
   const [uploading, setUploading] = useState(false);
-  const [previewFailed, setPreviewFailed] = useState(false);
   const [previewIndex, setPreviewIndex] = useState(0);
   const [remotePreviewUrl, setRemotePreviewUrl] = useState("");
   const [resolving, setResolving] = useState(false);
@@ -78,7 +78,6 @@ export default function MediaUpload({
       urlKind === "embed-video");
 
   useEffect(() => {
-    setPreviewFailed(false);
     setPreviewIndex(0);
     setRemotePreviewUrl("");
     setResolving(false);
@@ -245,7 +244,7 @@ export default function MediaUpload({
               <Loader2 className="h-4 w-4 animate-spin" />
               Loading preview…
             </div>
-          ) : previewFailed || (!previewUrl && wrongMediaForImageField) ? (
+          ) : (!previewUrl && wrongMediaForImageField) ? (
             <div className="flex flex-col items-center justify-center gap-1.5 px-3 text-center">
               <ImageOff className="h-5 w-5 text-[#9CA3AF]" />
               <p className="text-[11px] font-medium text-[#6B7280]">
@@ -255,31 +254,14 @@ export default function MediaUpload({
               </p>
             </div>
           ) : previewUrl ? (
-            <>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                key={previewUrl}
-                src={previewUrl}
-                alt=""
-                referrerPolicy="no-referrer"
-                className={imgClass}
-                onLoad={() => {
-                  setPreviewFailed(false);
-                }}
-                onError={() => {
-                  if (previewIndex + 1 < fallbacks.length) {
-                    setPreviewIndex((i) => i + 1);
-                    return;
-                  }
-                  setPreviewFailed(true);
-                }}
-                ref={(el) => {
-                  if (el?.complete && el.naturalWidth > 0) {
-                    setPreviewFailed(false);
-                  }
-                }}
-              />
-            </>
+            <AdminImage
+              src={previewUrl}
+              alt=""
+              referrerPolicy="no-referrer"
+              className="absolute inset-0"
+              imageClassName={imgClass}
+              fallbackSrcs={fallbacks.slice(previewIndex + 1)}
+            />
           ) : (
             <div className="flex flex-col items-center justify-center gap-1.5 px-3 text-center">
               <ImageOff className="h-5 w-5 text-[#9CA3AF]" />

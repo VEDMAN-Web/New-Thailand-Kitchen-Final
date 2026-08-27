@@ -1,5 +1,6 @@
 "use client";
 import AdminSkeleton from "@/components/AdminSkeleton";
+import AdminImage from "@/components/AdminImage";
 
 import { FormEvent, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FolderOpen, Pencil, Plus, Search, Trash2, X } from "lucide-react";
@@ -450,13 +451,13 @@ export default function VarsoviaIaChildrenHubPage({
                       className="overflow-hidden rounded-2xl border border-[#E8EAED] bg-white"
                     >
                       <div className="relative h-36 w-full bg-[#F3F4F6]">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
+                        <AdminImage
                           src={resolveAdminMediaPreviewUrl(
                             String(item.hero?.image || "") || cardFallbackImage,
                           )}
                           alt=""
                           className="h-full w-full object-cover"
+                          fallbackSrcs={[resolveAdminMediaPreviewUrl(cardFallbackImage)]}
                         />
                         <span
                           className={`absolute left-2 top-2 rounded-full px-2 py-0.5 text-[11px] font-semibold ${

@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import MediaUpload from "@/components/MediaUpload";
+import AdminImage from "@/components/AdminImage";
 import AdminSkeleton from "@/components/AdminSkeleton";
 import HeroVideoUpload from "@/components/HeroVideoUpload";
 import LocaleTabs from "@/components/LocaleTabs";
@@ -991,17 +992,11 @@ export default function AdminBlogsPage() {
                 className="overflow-hidden rounded-2xl border border-[#E8EAED] bg-white"
               >
                 <div className="relative h-44 bg-[#F3F4F6]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <AdminImage
                     src={cover || "/products/Kitchen1.png"}
                     alt={item.title}
                     className="h-full w-full object-cover"
-                    onError={(e) => {
-                      const el = e.currentTarget;
-                      if (el.dataset.fallback === "1") return;
-                      el.dataset.fallback = "1";
-                      el.src = "/products/Kitchen1.png";
-                    }}
+                    fallbackSrcs={["/products/Kitchen1.png"]}
                   />
                   <div className="absolute right-2 top-2 flex gap-1">
                     <button
@@ -1067,11 +1062,11 @@ export default function AdminBlogsPage() {
                 key={item._id}
                 className="flex gap-4 rounded-xl border border-[#E8EAED] bg-white p-3"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <AdminImage
                   src={resolveAdminMediaPreviewUrl(item.image) || "/products/Kitchen1.png"}
                   alt={item.title}
                   className="h-20 w-28 rounded-lg object-cover bg-[#F3F4F6]"
+                  fallbackSrcs={["/products/Kitchen1.png"]}
                 />
                 <div className="min-w-0 flex-1">
                   <h3 className="font-bold text-[#1A2332] line-clamp-1">
@@ -1732,8 +1727,7 @@ export default function AdminBlogsPage() {
                 {aiImageLoading ? "Generating image…" : "Generate Image"}
               </button>
               {aiCoverImage ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <AdminImage
                   src={aiCoverImage}
                   alt="AI cover preview"
                   className="h-36 w-full rounded-lg border border-[#E8EAED] object-cover bg-white"
