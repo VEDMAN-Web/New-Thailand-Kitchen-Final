@@ -11,6 +11,7 @@
     "build": "node --check src/server.js",
     "start": "node src/server.js",
     "seed:admin": "node src/scripts/seedAdmin.js",
+    "seed:cwaa": "node src/scripts/seedCwaaService.js",
     "sync:cms": "node src/scripts/syncThailandCms.js"
   },
   "dependencies": {

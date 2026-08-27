@@ -1,4 +1,5 @@
-﻿const asyncHandler = require("../utils/asyncHandler");
+﻿const mongoose = require("mongoose");
+const asyncHandler = require("../utils/asyncHandler");
 const {
   SITE_IDS,
   HomePage,
@@ -374,10 +375,7 @@ const taxonomyRepaired = new Set();
 const localesRepaired = new Set();
 
 async function ensureDefaultCategories(siteId) {
-  const {
-    repairThailandTaxonomy,
-    seedEmptyCategoryLandingSections,
-  } = require("../scripts/repairThailandTaxonomyLib");
+  const { repairThailandTaxonomy } = require("../scripts/repairThailandTaxonomyLib");
   const count = await Category.countDocuments({ siteId });
   if (count === 0) {
     await repairThailandTaxonomy(siteId);
@@ -385,7 +383,6 @@ async function ensureDefaultCategories(siteId) {
   } else if (!taxonomyRepaired.has(siteId)) {
     taxonomyRepaired.add(siteId);
   }
-  await seedEmptyCategoryLandingSections(siteId).catch(() => {});
 }
 
 /**
@@ -538,6 +535,7 @@ const {
 } = require("../utils/normalizeLocalizedHome");
 const {
   findProbePath,
+  isSupportedImageUrl,
   repairHubPages,
   sanitizeMediaUrl,
   sanitizeMediaUrlsDeep,
@@ -584,6 +582,18 @@ function normalizeContentSections(sections) {
     image: sanitizeMediaUrl(block?.image),
     layout: String(block?.layout || "image-left").trim(),
   }));
+}
+
+function validateHeroImage(value) {
+  const image = sanitizeMediaUrl(value);
+  if (!isSupportedImageUrl(image)) {
+    const err = new Error(
+      "Hero image is required and must be a supported image URL or uploaded image path"
+    );
+    err.statusCode = 400;
+    throw err;
+  }
+  return image;
 }
 
 function rejectProbePayload(payload, label = "content") {
@@ -799,6 +809,12 @@ const getCategoryBySlug = asyncHandler(async (req, res) => {
   if (!item) {
     return res.status(404).json({ success: false, message: "Category not found" });
   }
+  if (item.indexable === true && !isSupportedImageUrl(item.image)) {
+    return res.status(404).json({
+      success: false,
+      message: "Published page is unavailable because its hero image is invalid",
+    });
+  }
   
   // Keep `item` (existing clients) and `category` (SEO pages / cmsPublic)
   return res.json({ success: true, item, category: item });
@@ -823,6 +839,12 @@ const createCategory = asyncHandler(async (req, res) => {
       .status(err.statusCode || 400)
       .json({ success: false, message: err.message });
   }
+
+  const parentId = req.body.parentId ? String(req.body.parentId).trim() : null;
+  if (parentId && !mongoose.isValidObjectId(parentId)) {
+    return res.status(400).json({ success: false, message: "Invalid parent category" });
+  }
+  const image = validateHeroImage(req.body.image);
   
   // Auto-generate slug from title if not provided
   const slug = req.body.slug ? slugify(req.body.slug) : slugify(titleEn);
@@ -830,7 +852,6 @@ const createCategory = asyncHandler(async (req, res) => {
   // Validate slug uniqueness per categoryType + parent (location × service)
   if (slug) {
     const categoryType = String(req.body.categoryType || "");
-    const parentId = req.body.parentId || null;
     const existing = await Category.findOne({
       siteId,
       slug,
@@ -846,8 +867,8 @@ const createCategory = asyncHandler(async (req, res) => {
   }
   
   // Validate parent category exists if parentId provided
-  if (req.body.parentId) {
-    const parent = await Category.findOne({ _id: req.body.parentId, siteId });
+  if (parentId) {
+    const parent = await Category.findOne({ _id: parentId, siteId });
     if (!parent) {
       return res.status(400).json({ success: false, message: "Parent category not found" });
     }
@@ -857,11 +878,11 @@ const createCategory = asyncHandler(async (req, res) => {
     siteId,
     title,
     description: asLocalized(req.body.description),
-    image: sanitizeMediaUrl(req.body.image),
+    image,
     icon: String(req.body.icon || ""),
     slug,
     categoryType: String(req.body.categoryType || ""),
-    parentId: req.body.parentId || null,
+    parentId,
     metaTitle: String(req.body.metaTitle || "").substring(0, 60),
     metaDescription: String(req.body.metaDescription || "").substring(0, 160),
     canonicalUrl: String(req.body.canonicalUrl || ""),
@@ -899,11 +920,31 @@ const updateCategory = asyncHandler(async (req, res) => {
       .status(err.statusCode || 400)
       .json({ success: false, message: err.message });
   }
+
+  const requestedParentId =
+    req.body.parentId !== undefined
+      ? req.body.parentId
+        ? String(req.body.parentId).trim()
+        : null
+      : undefined;
+  if (requestedParentId && !mongoose.isValidObjectId(requestedParentId)) {
+    return res.status(400).json({ success: false, message: "Invalid parent category" });
+  }
+  const image =
+    req.body.image !== undefined
+      ? validateHeroImage(req.body.image)
+      : sanitizeMediaUrl(existing.image);
+  if (req.body.indexable === true && !isSupportedImageUrl(image)) {
+    return res.status(400).json({
+      success: false,
+      message: "A published page must have a supported hero image",
+    });
+  }
   
   const updateData = {
     title,
     description: asLocalized(req.body.description),
-    image: sanitizeMediaUrl(req.body.image),
+    image,
     icon: String(req.body.icon || ""),
   };
   
@@ -916,8 +957,8 @@ const updateCategory = asyncHandler(async (req, res) => {
           ? String(req.body.categoryType || "")
           : String(existing.categoryType || "");
       const nextParent =
-        req.body.parentId !== undefined
-          ? req.body.parentId || null
+        requestedParentId !== undefined
+          ? requestedParentId
           : existing.parentId || null;
       const existingSlug = await Category.findOne({
         siteId,
@@ -937,18 +978,18 @@ const updateCategory = asyncHandler(async (req, res) => {
   }
   
   // Validate parent category if being updated
-  if (req.body.parentId !== undefined) {
-    if (req.body.parentId) {
-      const parent = await Category.findOne({ _id: req.body.parentId, siteId });
+  if (requestedParentId !== undefined) {
+    if (requestedParentId) {
+      const parent = await Category.findOne({ _id: requestedParentId, siteId });
       if (!parent) {
         return res.status(400).json({ success: false, message: "Parent category not found" });
       }
       // Prevent circular references
-      if (req.body.parentId === id) {
+      if (requestedParentId === id) {
         return res.status(400).json({ success: false, message: "Category cannot be its own parent" });
       }
     }
-    updateData.parentId = req.body.parentId || null;
+    updateData.parentId = requestedParentId;
   }
   
   // Update optional SEO fields if provided

@@ -51,6 +51,29 @@ function sanitizeMediaUrl(url) {
   return s;
 }
 
+function isSupportedImageUrl(url) {
+  const value = sanitizeMediaUrl(url);
+  if (!value || /\.(mp4|webm|ogg|ogv|mov)(\?|#|$)/i.test(value)) {
+    return false;
+  }
+  if (
+    /^\/(uploads|brandLogo|products|product|features|blog|catlog|slider|testimonial|contactUs|footer|icon|gallery)\//i.test(value) ||
+    /\.(png|jpe?g|gif|webp|svg|avif)(\?|#|$)/i.test(value)
+  ) {
+    return true;
+  }
+  if (!/^https?:\/\//i.test(value)) return false;
+  try {
+    const parsed = new URL(value);
+    return (
+      /\.(png|jpe?g|gif|webp|svg|avif)(\?|#|$)/i.test(parsed.pathname + parsed.search + parsed.hash) ||
+      /(^|\.)res\.cloudinary\.com$|(^|\.)images\.(pexels|unsplash)\.com$/i.test(parsed.hostname)
+    );
+  } catch {
+    return false;
+  }
+}
+
 function looksLikeMediaString(value) {
   const s = String(value || "");
   if (!s) return false;
@@ -184,6 +207,7 @@ module.exports = {
   sectionContainsProbe,
   sectionsContainProbe,
   sanitizeMediaUrl,
+  isSupportedImageUrl,
   sanitizeMediaUrlsDeep,
   findProbePath,
   mergeContentSectionsSafe,
