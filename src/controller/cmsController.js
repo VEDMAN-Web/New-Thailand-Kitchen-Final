@@ -10,6 +10,7 @@ const {
   GalleryItem,
   CatalogueItem,
   FaqItem,
+  CmsDeletion,
 } = require("../model/cmsModels");
 
 const SITES = [
@@ -26,6 +27,12 @@ const {
 
 function assertSite(siteId) {
   return SITE_IDS.includes(siteId);
+}
+
+function categoryDeletionKey(categoryType, slug, parentId = null) {
+  return `${String(categoryType || "").trim().toLowerCase()}:${String(slug || "")
+    .trim()
+    .toLowerCase()}:${parentId || "root"}`;
 }
 
 function slugify(value) {
@@ -517,6 +524,20 @@ async function ensureAllSiteDefaults(siteId) {
   }
 }
 
+const siteDefaultsReady = new Map();
+
+async function ensureAllSiteDefaultsOnce(siteId) {
+  const existing = siteDefaultsReady.get(siteId);
+  if (existing) return existing;
+
+  const pending = ensureAllSiteDefaults(siteId).catch((error) => {
+    siteDefaultsReady.delete(siteId);
+    throw error;
+  });
+  siteDefaultsReady.set(siteId, pending);
+  return pending;
+}
+
 function asStringArray(value) {
   if (Array.isArray(value)) {
     return value.map((v) => String(v || "").trim()).filter(Boolean);
@@ -894,6 +915,12 @@ const createCategory = asyncHandler(async (req, res) => {
     footerCtaHeading: asLocalized(req.body.footerCtaHeading),
     footerCtaBody: asLocalized(req.body.footerCtaBody),
   });
+
+  await CmsDeletion.deleteOne({
+    siteId,
+    resource: "categories",
+    key: categoryDeletionKey(item.categoryType, item.slug, item.parentId),
+  });
   
   return res.status(201).json({ success: true, item });
 });
@@ -1049,9 +1076,50 @@ const updateCategory = asyncHandler(async (req, res) => {
 
 const deleteCategory = asyncHandler(async (req, res) => {
   const { siteId, id } = req.params;
-  const item = await Category.findOneAndDelete({ _id: id, siteId });
+  if (!assertSite(siteId) || !mongoose.isValidObjectId(id)) {
+    return res.status(400).json({ success: false, message: "Invalid category ID or site" });
+  }
+  const item = await Category.findOne({ _id: id, siteId }).select("_id title categoryType slug parentId").lean();
   if (!item) {
     return res.status(404).json({ success: false, message: "Category not found" });
+  }
+  if (process.env.NODE_ENV !== "production") {
+    console.info("[cms.deleteCategory] request", {
+      siteId,
+      id: String(id),
+      model: Category.modelName,
+      collection: Category.collection.name,
+    });
+  }
+  const deletionResult = await Category.deleteOne({ _id: id, siteId });
+  if (process.env.NODE_ENV !== "production") {
+    console.info("[cms.deleteCategory] database result", {
+      id: String(id),
+      deletedCount: deletionResult.deletedCount,
+      deletedId: deletionResult.deletedCount === 1 ? String(item._id) : null,
+    });
+  }
+  if (deletionResult.deletedCount !== 1) {
+    return res.status(500).json({ success: false, message: "Category deletion was not confirmed by the database" });
+  }
+
+  const deletion = await CmsDeletion.updateOne(
+    {
+      siteId,
+      resource: "categories",
+      key: categoryDeletionKey(item.categoryType, item.slug, item.parentId),
+    },
+    {
+      $setOnInsert: {
+        siteId,
+        resource: "categories",
+        key: categoryDeletionKey(item.categoryType, item.slug, item.parentId),
+      },
+    },
+    { upsert: true }
+  );
+  if (deletion.acknowledged !== true) {
+    return res.status(500).json({ success: false, message: "Category deletion marker was not saved" });
   }
 
   const titleEn = localizedTitleEn(item.title);
@@ -1065,7 +1133,13 @@ const deleteCategory = asyncHandler(async (req, res) => {
     { $set: { parentId: null } }
   );
 
-  return res.json({ success: true, message: "Deleted" });
+  return res.json({
+    success: true,
+    deleted: true,
+    deletedCount: deletionResult.deletedCount,
+    deletedId: String(item._id),
+    message: "Deleted",
+  });
 });
 
 const listProducts = asyncHandler(async (req, res) => {
@@ -1073,18 +1147,17 @@ const listProducts = asyncHandler(async (req, res) => {
   if (!assertSite(siteId)) {
     return res.status(400).json({ success: false, message: "Invalid site" });
   }
-  // Seed website catalogue products into CMS so admin + site share one list
-  await ensureAllSiteDefaults(siteId).catch(() => {});
-  let items = await Product.find({ siteId }).sort({ createdAt: -1 });
+  // Only bootstrap an empty catalogue; normal reads must not run CMS repairs.
+  const hasProducts = await Product.exists({ siteId });
+  if (!hasProducts) await ensureAllSiteDefaultsOnce(siteId).catch(() => {});
+  const items = await Product.find({ siteId })
+    .sort({ createdAt: -1 })
+    .lean();
   
   // Fix: Ensure indexable field exists on all items
-  items = items.map(item => {
-    const obj = item.toObject();
-    if (obj.indexable === undefined) {
-      obj.indexable = false;
-    }
-    return obj;
-  });
+  for (const item of items) {
+    if (item.indexable === undefined) item.indexable = false;
+  }
   
   return res.json({ success: true, items });
 });
@@ -1136,6 +1209,8 @@ const createProduct = asyncHandler(async (req, res) => {
     metaDescription: String(req.body.metaDescription || "").substring(0, 160),
     indexable: Boolean(req.body.indexable),
   });
+
+  await CmsDeletion.deleteOne({ siteId, resource: "products", key: slug });
 
   return res.status(201).json({ success: true, item });
 });
@@ -1197,11 +1272,55 @@ const updateProduct = asyncHandler(async (req, res) => {
 
 const deleteProduct = asyncHandler(async (req, res) => {
   const { siteId, id } = req.params;
-  const item = await Product.findOneAndDelete({ _id: id, siteId });
+  if (!assertSite(siteId) || !mongoose.isValidObjectId(id)) {
+    return res.status(400).json({ success: false, message: "Invalid product ID or site" });
+  }
+
+  const item = await Product.findOne({ _id: id, siteId }).select("_id slug").lean();
   if (!item) {
     return res.status(404).json({ success: false, message: "Product not found" });
   }
-  return res.json({ success: true, message: "Deleted" });
+  if (process.env.NODE_ENV !== "production") {
+    console.info("[cms.deleteProduct] request", {
+      siteId,
+      id: String(id),
+      model: Product.modelName,
+      collection: Product.collection.name,
+    });
+  }
+  const deletion = await Product.deleteOne({ _id: id, siteId });
+  if (process.env.NODE_ENV !== "production") {
+    console.info("[cms.deleteProduct] database result", {
+      id: String(id),
+      deletedCount: deletion.deletedCount,
+      deletedId: deletion.deletedCount === 1 ? String(item._id) : null,
+    });
+  }
+  if (deletion.deletedCount !== 1) {
+    return res.status(500).json({
+      success: false,
+      message: "Product deletion was not confirmed by the database",
+    });
+  }
+  await CmsDeletion.updateOne(
+    { siteId, resource: "products", key: String(item.slug || "").trim().toLowerCase() },
+    { $setOnInsert: { siteId, resource: "products", key: String(item.slug || "").trim().toLowerCase() } },
+    { upsert: true }
+  );
+  const stillExists = await Product.exists({ _id: item._id, siteId });
+  if (stillExists) {
+    return res.status(500).json({
+      success: false,
+      message: "Product deletion was not confirmed by the database",
+    });
+  }
+  return res.json({
+    success: true,
+    deleted: true,
+    deletedCount: deletion.deletedCount,
+    deletedId: String(item._id),
+    message: "Deleted",
+  });
 });
 
 function asBodySections(value) {

@@ -2,7 +2,7 @@
  * Safe product sync — creates missing seed products only (by slug).
  * Never overwrites existing product rows.
  */
-const { Product } = require("../model/cmsModels");
+const { Product, CmsDeletion } = require("../model/cmsModels");
 const { asLocalized } = require("../utils/localized");
 const { categoryLabelFallback } = require("./repairThailandLocales");
 
@@ -28,10 +28,32 @@ async function syncProductsMissingOnly(siteId, defaults = [], featureHighlights 
   const existingSlugs = new Set(
     rows.map((p) => String(p.slug || "").trim().toLowerCase())
   );
+  const deletedRows = await CmsDeletion.find({ siteId, resource: "products" })
+    .select("key")
+    .lean();
+  const deletedSlugs = new Set(
+    deletedRows.map((row) => String(row.key || "").trim().toLowerCase())
+  );
+  if (process.env.NODE_ENV !== "production") {
+    console.info("[cms.syncProducts] source query", {
+      siteId,
+      model: Product.modelName,
+      collection: Product.collection.name,
+      existingCount: existingSlugs.size,
+      deletedTombstoneCount: deletedSlugs.size,
+    });
+  }
 
   for (const p of defaults) {
     const slug = String(p.slug || "").trim().toLowerCase();
     if (!slug) continue;
+
+    if (deletedSlugs.has(slug)) {
+      if (process.env.NODE_ENV !== "production") {
+        console.info("[cms.syncProducts] skipped deleted default", { siteId, slug });
+      }
+      continue;
+    }
 
     if (existingSlugs.has(slug)) {
       existing += 1;

@@ -56,8 +56,9 @@ async function ensureCmsIndexes() {
       }
     }
 
-    const { Category } = require("./model/cmsModels");
+    const { Category, CmsDeletion } = require("./model/cmsModels");
     await Category.createIndexes();
+    await CmsDeletion.createIndexes();
     console.log("Category indexes ready");
   } catch (err) {
     console.log(

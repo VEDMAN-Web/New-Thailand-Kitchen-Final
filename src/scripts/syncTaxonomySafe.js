@@ -2,13 +2,25 @@
  * Safe taxonomy sync — creates missing category rows only.
  * Never overwrites titles/descriptions/sections of existing categories.
  */
-const { Category } = require("../model/cmsModels");
+const { Category, CmsDeletion } = require("../model/cmsModels");
 const { THAILAND_TAXONOMY } = require("../seed/thailandTaxonomy");
 
 async function syncTaxonomyMissingOnly(siteId = "thailand-kitchen") {
   const locationIds = {};
   let created = 0;
   let existing = 0;
+  const deletedRows = await CmsDeletion.find({ siteId, resource: "categories" })
+    .select("key")
+    .lean();
+  const deletedKeys = new Set(deletedRows.map((row) => String(row.key || "")));
+  const categoryKey = (categoryType, slug, parentId = null) =>
+    `${categoryType}:${String(slug || "").trim().toLowerCase()}:${parentId || "root"}`;
+  if (process.env.NODE_ENV !== "production") {
+    console.info("[cms.syncTaxonomy] deletion markers", {
+      siteId,
+      deletedCount: deletedKeys.size,
+    });
+  }
 
   for (const row of THAILAND_TAXONOMY.filter((r) => !r.parentSlug)) {
     const found = await Category.findOne({
@@ -25,6 +37,7 @@ async function syncTaxonomyMissingOnly(siteId = "thailand-kitchen") {
       }
       continue;
     }
+    if (deletedKeys.has(categoryKey(row.categoryType, row.slug))) continue;
 
     const doc = await Category.create({
       siteId,
@@ -75,6 +88,7 @@ async function syncTaxonomyMissingOnly(siteId = "thailand-kitchen") {
       existing += 1;
       continue;
     }
+    if (deletedKeys.has(categoryKey(row.categoryType, row.slug, parentId))) continue;
 
     await Category.create({
       siteId,
