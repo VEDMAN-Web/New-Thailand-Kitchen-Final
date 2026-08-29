@@ -559,7 +559,7 @@ export default function AdminGalleryPage() {
             No photos in this filter. Add one or switch tab.
           </div>
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start auto-rows-auto">
             {visibleItems.map((item, index) => {
               const preview = resolveAdminMediaPreviewUrl(item.image);
               return (

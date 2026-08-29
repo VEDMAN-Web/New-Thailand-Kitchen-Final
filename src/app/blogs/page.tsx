@@ -983,7 +983,7 @@ export default function AdminBlogsPage() {
             No blog posts found.
           </div>
         ) : view === "grid" ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 items-start auto-rows-auto">
             {filtered.map((item) => {
               const cover = resolveAdminMediaPreviewUrl(item.image);
               return (

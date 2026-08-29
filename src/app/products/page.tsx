@@ -559,9 +559,9 @@ export default function AdminProductsPage() {
         </button>
       </div>
 
-      {loading ? (
-        <AdminSkeleton variant="cards" count={6} />
-      ) : loadError ? (
+      {loading && items.length === 0 && !loadError ? (
+        <AdminSkeleton variant="products" count={8} />
+      ) : loadError && items.length === 0 ? (
         <div className="col-span-full rounded-xl border border-red-200 bg-red-50 p-10 text-center">
           <p className="text-sm font-semibold text-red-900">Products could not be loaded.</p>
           <p className="mt-1 text-sm text-red-700">Check the connection and try again.</p>
@@ -574,13 +574,29 @@ export default function AdminProductsPage() {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-          {filteredItems.length === 0 ? (
+        <>
+          {loadError ? (
+            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+              Products could not be refreshed. Showing the last loaded data.
+              <button
+                type="button"
+                onClick={() => void load()}
+                className="ml-2 font-semibold underline"
+              >
+                Retry
+              </button>
+            </div>
+          ) : null}
+          <div
+            className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 items-start auto-rows-auto"
+            aria-busy={loading}
+          >
+            {filteredItems.length === 0 ? (
             <div className="col-span-full rounded-xl border border-[#E8EAED] bg-white p-10 text-center text-[#6B7280]">
               No products found.
             </div>
-          ) : (
-            filteredItems.map((item) => (
+            ) : (
+              filteredItems.map((item) => (
               <article
                 key={item._id}
                 className="overflow-hidden rounded-2xl border border-[#E8EAED] bg-white"
@@ -649,9 +665,10 @@ export default function AdminProductsPage() {
                   </div>
                 </div>
               </article>
-            ))
-          )}
-        </div>
+              ))
+            )}
+          </div>
+        </>
       )}
 
       {modal && (

@@ -1,6 +1,6 @@
 "use client";
 
-type SkeletonVariant = "cards" | "rows" | "panel";
+type SkeletonVariant = "cards" | "products" | "rows" | "panel";
 
 function Bar({ className = "" }: { className?: string }) {
   return <div className={`animate-pulse rounded-md bg-[#E5E7EB] ${className}`} />;
@@ -38,6 +38,35 @@ export default function AdminSkeleton({
             </div>
             <Bar className="h-4 w-4/5" />
             <Bar className="h-4 w-3/5" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (variant === "products") {
+    return (
+      <div
+        className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4"
+        aria-busy="true"
+        aria-label="Loading products"
+      >
+        {Array.from({ length: count }, (_, index) => (
+          <div
+            key={index}
+            className="overflow-hidden rounded-2xl border border-[#E8EAED] bg-white"
+          >
+            <Bar className="h-40 w-full rounded-none" />
+            <div className="space-y-2 p-4">
+              <Bar className="h-5 w-3/5" />
+              <Bar className="h-4 w-4/5" />
+              <div className="flex gap-2">
+                <Bar className="h-5 w-20" />
+                <Bar className="h-5 w-28" />
+              </div>
+              <Bar className="h-8 w-full" />
+              <Bar className="h-8 w-16 ml-auto" />
+            </div>
           </div>
         ))}
       </div>

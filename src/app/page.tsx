@@ -191,6 +191,7 @@ function Field({
   shared,
   hint,
   numeric,
+  error,
 }: {
   label: string;
   value: string | LocalizedText;
@@ -200,6 +201,7 @@ function Field({
   shared?: boolean;
   hint?: string;
   numeric?: boolean;
+  error?: string;
 }) {
   const [numericError, setNumericError] = useState("");
   const useLocale = Boolean(locale) && !shared;
@@ -225,6 +227,7 @@ function Field({
   };
   const cls =
     "w-full rounded-lg border border-[#E2E5EA] bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A2332]/15 focus:border-[#1A2332]";
+  const hasError = Boolean(error || numericError);
   return (
     <div>
       <label className="block text-xs font-semibold text-[#5C6370] mb-1.5">
@@ -236,7 +239,12 @@ function Field({
           value={display}
           placeholder={useLocale ? localeFieldPlaceholder(locale!) : undefined}
           onChange={(e) => handle(e.target.value)}
-          className={cls + " resize-y"}
+          className={
+            hasError
+              ? cls.replace("border-[#E2E5EA]", "border-red-400") +
+                " focus:ring-red-200 focus:border-red-500 resize-y"
+              : cls + " resize-y"
+          }
         />
       ) : (
         <input
@@ -248,16 +256,16 @@ function Field({
           placeholder={useLocale ? localeFieldPlaceholder(locale!) : undefined}
           onChange={(e) => handle(e.target.value)}
           className={
-            numericError
+            hasError
               ? cls.replace("border-[#E2E5EA]", "border-red-400") +
                 " focus:ring-red-200 focus:border-red-500"
               : cls
           }
         />
       )}
-      {numericError ? (
+      {hasError ? (
         <p className="mt-1 text-[11px] font-medium leading-4 text-red-600">
-          {numericError}
+          {error || numericError}
         </p>
       ) : hint ? (
         <p className="mt-1 text-[11px] leading-4 text-[#9CA3AF]">{hint}</p>
@@ -418,6 +426,20 @@ export default function AdminHomePage() {
           ),
         };
       }
+      
+      if (Array.isArray(payload.advantages?.items)) {
+        const invalid = payload.advantages.items.some((item: any) => {
+          const t = String(localizedValue(item.title, "en") || "").trim();
+          const d = String(localizedValue(item.description, "en") || "").trim();
+          return !t || !d || t.length > 100 || d.length > 300;
+        });
+        if (invalid) {
+          toast.error("Please fix the errors in Premium Features before saving.");
+          setSaving(false);
+          return;
+        }
+      }
+
       await updateHome(siteId, payload);
       setSections(payload);
       toast.success("Home page updated");
@@ -942,7 +964,24 @@ function SectionEditor({
             />
           </div>
         </div>
-        {items.map((item: any, i: number) => (
+        {items.map((item: any, i: number) => {
+          const getVal = (v: any) => String(localizedValue(v, locale || "en") || "").trim();
+          const titleVal = getVal(item.title);
+          const descVal = getVal(item.description);
+
+          const titleError = !titleVal
+            ? "Advantage title is required"
+            : titleVal.length > 100
+              ? "Max 100 characters"
+              : undefined;
+
+          const descError = !descVal
+            ? "Advantage description is required"
+            : descVal.length > 300
+              ? "Max 300 characters"
+              : undefined;
+
+          return (
           <div key={i} className="rounded-xl border border-[#E8EAED] p-4 space-y-3">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
@@ -970,6 +1009,7 @@ function SectionEditor({
               locale={locale}
               label="Title"
               value={item.title || ""}
+              error={titleError}
               onChange={(v) => {
                 const next = [...items];
                 next[i] = { ...item, title: v };
@@ -981,6 +1021,7 @@ function SectionEditor({
               label="Description"
               multiline
               value={item.description || ""}
+              error={descError}
               onChange={(v) => {
                 const next = [...items];
                 next[i] = { ...item, description: v };
@@ -998,7 +1039,7 @@ function SectionEditor({
               }}
             />
           </div>
-        ))}
+        )})}
         <AddItemButton
           label="Add advantage"
           onClick={() =>

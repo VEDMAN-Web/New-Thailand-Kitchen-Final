@@ -1059,7 +1059,7 @@ function AdminShellContent({
           </div>
         </header>
 
-        <main className="flex-1 p-3 sm:p-5 lg:p-6 bg-[#F4F5F7] overflow-y-auto overflow-x-hidden min-w-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <main className="min-h-0 flex-1 p-3 sm:p-5 lg:p-6 bg-[#F4F5F7] overflow-y-auto overflow-x-hidden min-w-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <div key={pathname} className="tk-admin-panel-swap">
             {children}
           </div>
