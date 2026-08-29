@@ -63,76 +63,73 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .replace(/^\/+|\/+$/g, "")
     .toLowerCase();
 
-  const items = await fetchMergedProducts().catch(() => productItems);
-  const knownTabs = await buildKnownCategoryTabs(items);
-  const categoryTab = tabFromSlugValue(normalized, knownTabs);
+  // Resolve real products first so product pages do not wait for category
+  // discovery before their content and metadata can stream.
+  const product = await fetchProductBySlug(normalized);
+  if (product) {
+    const locale = await getServerLocale();
+    const title =
+      product.metaTitle ||
+      `${pickCmsText((product as any).title || product.name, "", locale)} | Thailand Kitchens`;
+    const description =
+      product.metaDescription ||
+      pickCmsText((product as any).description || "", "", locale);
+    const canonical = absoluteUrl(`/products/${product.slug}`);
+    const image = ogImageUrl(product.image);
 
-  if (categoryTab) {
-    const tabTitle = `${categoryTab} Kitchens | Thailand Kitchens`;
-    const tabDescription = `Browse our ${categoryTab} kitchen collection.`;
-    const tabImage = ogImageUrl(items.find((p) => p.image)?.image);
-    const tabUrl = absoluteUrl(`/products/${normalized}`);
-    return {
-      title: tabTitle,
-      description: tabDescription,
+    const metadata: Metadata = {
+      title,
+      description,
+      alternates: { canonical },
       openGraph: {
         type: "website",
-        title: tabTitle,
-        description: tabDescription,
-        url: tabUrl,
-        images: [{ url: tabImage, width: 1200, height: 630, alt: tabTitle }],
+        title,
+        description,
+        url: canonical,
+        images: [{ url: image, width: 1200, height: 630, alt: title }],
       },
       twitter: {
         card: "summary_large_image",
-        title: tabTitle,
-        description: tabDescription,
-        images: [tabImage],
+        title,
+        description,
+        images: [image],
       },
     };
+
+    if (product.indexable === false) {
+      metadata.robots = { index: false, follow: true };
+    }
+
+    return metadata;
   }
 
-  // Individual product metadata with SEO fields
-  const product = await fetchProductBySlug(normalized);
-  if (!product) {
-    return { title: 'Product Not Found' };
-  }
+  // Category metadata is only needed when the slug is not a product.
+  const items = await fetchMergedProducts().catch(() => productItems);
+  const knownTabs = await buildKnownCategoryTabs(items);
+  const categoryTab = tabFromSlugValue(normalized, knownTabs);
+  if (!categoryTab) return { title: "Product Not Found" };
 
-  const locale = await getServerLocale();
-  const title =
-    product.metaTitle ||
-    `${pickCmsText((product as any).title || product.name, "", locale)} | Thailand Kitchens`;
-  const description =
-    product.metaDescription ||
-    pickCmsText((product as any).description || "", "", locale);
-  const canonical = absoluteUrl(`/products/${product.slug}`);
-  const image = ogImageUrl(product.image);
-
-  const metadata: Metadata = {
-    title,
-    description,
-    alternates: {
-      canonical,
-    },
+  const tabTitle = `${categoryTab} Kitchens | Thailand Kitchens`;
+  const tabDescription = `Browse our ${categoryTab} kitchen collection.`;
+  const tabImage = ogImageUrl(items.find((p) => p.image)?.image);
+  const tabUrl = absoluteUrl(`/products/${normalized}`);
+  return {
+    title: tabTitle,
+    description: tabDescription,
     openGraph: {
       type: "website",
-      title,
-      description,
-      url: canonical,
-      images: [{ url: image, width: 1200, height: 630, alt: title }],
+      title: tabTitle,
+      description: tabDescription,
+      url: tabUrl,
+      images: [{ url: tabImage, width: 1200, height: 630, alt: tabTitle }],
     },
     twitter: {
       card: "summary_large_image",
-      title,
-      description,
-      images: [image],
+      title: tabTitle,
+      description: tabDescription,
+      images: [tabImage],
     },
   };
-
-  if (product.indexable === false) {
-    metadata.robots = { index: false, follow: true };
-  }
-
-  return metadata;
 }
 
 export default async function ProductDetailPage({ params }: Props) {
