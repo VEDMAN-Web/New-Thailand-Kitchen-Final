@@ -1,5 +1,6 @@
-﻿const mongoose = require("mongoose");
+const mongoose = require("mongoose");
 const asyncHandler = require("../utils/asyncHandler");
+const { triggerFrontendRevalidation } = require("../utils/revalidateFrontend");
 const {
   SITE_IDS,
   HomePage,
@@ -740,6 +741,12 @@ const updateHome = asyncHandler(async (req, res) => {
     { upsert: true, new: true }
   );
 
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-home", "cms-site-settings", "cms-faqs"],
+    paths: ["/"],
+  });
+
   return res.json({ success: true, home: { sections: home.sections || {} } });
 });
 
@@ -754,6 +761,12 @@ const resetHome = asyncHandler(async (req, res) => {
     { $set: { sections: structuredClone(DEFAULT_HOME_SECTIONS) } },
     { upsert: true, new: true }
   );
+
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-home", "cms-site-settings", "cms-faqs"],
+    paths: ["/"],
+  });
 
   return res.json({ success: true, home: { sections: home.sections || {} } });
 });
@@ -922,6 +935,12 @@ const createCategory = asyncHandler(async (req, res) => {
     key: categoryDeletionKey(item.categoryType, item.slug, item.parentId),
   });
   
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-categories", "cms-home"],
+    paths: ["/categories", "/services", "/materials", "/locations", "/kitchens", "/built-in-furniture", "/"],
+  });
+
   return res.status(201).json({ success: true, item });
 });
 
@@ -1071,6 +1090,12 @@ const updateCategory = asyncHandler(async (req, res) => {
     await syncProductCategoryLabel(siteId, oldTitleEn, item.title);
   }
   
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-categories", "cms-home"],
+    paths: ["/categories", "/services", "/materials", "/locations", "/kitchens", "/built-in-furniture", "/"],
+  });
+
   return res.json({ success: true, item });
 });
 
@@ -1132,6 +1157,12 @@ const deleteCategory = asyncHandler(async (req, res) => {
     { siteId, parentId: id },
     { $set: { parentId: null } }
   );
+
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-categories", "cms-home"],
+    paths: ["/categories", "/services", "/materials", "/locations", "/kitchens", "/built-in-furniture", "/"],
+  });
 
   return res.json({
     success: true,
@@ -1212,6 +1243,12 @@ const createProduct = asyncHandler(async (req, res) => {
 
   await CmsDeletion.deleteOne({ siteId, resource: "products", key: slug });
 
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-products", "cms-home"],
+    paths: ["/products", `/products/${slug}`, "/"],
+  });
+
   return res.status(201).json({ success: true, item });
 });
 
@@ -1267,6 +1304,13 @@ const updateProduct = asyncHandler(async (req, res) => {
   if (!item) {
     return res.status(404).json({ success: false, message: "Product not found" });
   }
+
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-products", "cms-home"],
+    paths: ["/products", `/products/${slug}`, "/"],
+  });
+
   return res.json({ success: true, item });
 });
 
@@ -1314,6 +1358,13 @@ const deleteProduct = asyncHandler(async (req, res) => {
       message: "Product deletion was not confirmed by the database",
     });
   }
+
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-products", "cms-home"],
+    paths: ["/products", "/"],
+  });
+
   return res.json({
     success: true,
     deleted: true,
@@ -1706,6 +1757,12 @@ const createBlog = asyncHandler(async (req, res) => {
     ...seo,
   });
 
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-blogs", "cms-home"],
+    paths: ["/blog", "/guides", `/blog/${slug}`, `/guides/${slug}`, "/"],
+  });
+
   return res.status(201).json({ success: true, item });
 });
 
@@ -1851,6 +1908,12 @@ const updateBlog = asyncHandler(async (req, res) => {
     { new: true }
   );
 
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-blogs", "cms-home"],
+    paths: ["/blog", "/guides", `/blog/${slug}`, `/guides/${slug}`, "/"],
+  });
+
   return res.json({ success: true, item });
 });
 
@@ -1860,6 +1923,13 @@ const deleteBlog = asyncHandler(async (req, res) => {
   if (!item) {
     return res.status(404).json({ success: false, message: "Blog not found" });
   }
+
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-blogs", "cms-home"],
+    paths: ["/blog", "/guides", "/"],
+  });
+
   return res.json({ success: true, message: "Deleted" });
 });
 
@@ -2138,6 +2208,12 @@ const updateLegal = asyncHandler(async (req, res) => {
     { upsert: true, new: true }
   );
 
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-legal"],
+    paths: [`/${type}`, "/privacy", "/terms"],
+  });
+
   return res.json({ success: true, page });
 });
 
@@ -2193,6 +2269,13 @@ const createGalleryItem = asyncHandler(async (req, res) => {
     sortOrder: Number(req.body.sortOrder) || 0,
     ...project,
   });
+
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-gallery", "cms-home"],
+    paths: ["/gallery", "/"],
+  });
+
   return res.status(201).json({ success: true, item });
 });
 
@@ -2218,6 +2301,13 @@ const updateGalleryItem = asyncHandler(async (req, res) => {
   if (!item) {
     return res.status(404).json({ success: false, message: "Not found" });
   }
+
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-gallery", "cms-home"],
+    paths: ["/gallery", "/"],
+  });
+
   return res.json({ success: true, item });
 });
 
@@ -2227,6 +2317,13 @@ const deleteGalleryItem = asyncHandler(async (req, res) => {
   if (!item) {
     return res.status(404).json({ success: false, message: "Not found" });
   }
+
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-gallery", "cms-home"],
+    paths: ["/gallery", "/"],
+  });
+
   return res.json({ success: true, message: "Deleted" });
 });
 
@@ -2257,6 +2354,13 @@ const createCatalogue = asyncHandler(async (req, res) => {
     downloadName: String(req.body.downloadName || ""),
     sortOrder: Number(req.body.sortOrder) || 0,
   });
+
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-home"],
+    paths: ["/catalogue", "/"],
+  });
+
   return res.status(201).json({ success: true, item });
 });
 
@@ -2280,6 +2384,13 @@ const updateCatalogue = asyncHandler(async (req, res) => {
   if (!item) {
     return res.status(404).json({ success: false, message: "Not found" });
   }
+
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-home"],
+    paths: ["/catalogue", "/"],
+  });
+
   return res.json({ success: true, item });
 });
 
@@ -2289,6 +2400,13 @@ const deleteCatalogue = asyncHandler(async (req, res) => {
   if (!item) {
     return res.status(404).json({ success: false, message: "Not found" });
   }
+
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-home"],
+    paths: ["/catalogue", "/"],
+  });
+
   return res.json({ success: true, message: "Deleted" });
 });
 
@@ -2320,6 +2438,13 @@ const createFaq = asyncHandler(async (req, res) => {
     answer: asLocalized(req.body.answer),
     sortOrder: Number(req.body.sortOrder) || 0,
   });
+
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-faqs", "cms-home"],
+    paths: ["/faq", "/"],
+  });
+
   return res.status(201).json({ success: true, item });
 });
 
@@ -2343,6 +2468,13 @@ const updateFaq = asyncHandler(async (req, res) => {
   if (!item) {
     return res.status(404).json({ success: false, message: "Not found" });
   }
+
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-faqs", "cms-home"],
+    paths: ["/faq", "/"],
+  });
+
   return res.json({ success: true, item });
 });
 
@@ -2352,6 +2484,13 @@ const deleteFaq = asyncHandler(async (req, res) => {
   if (!item) {
     return res.status(404).json({ success: false, message: "Not found" });
   }
+
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-faqs", "cms-home"],
+    paths: ["/faq", "/"],
+  });
+
   return res.json({ success: true, message: "Deleted" });
 });
 
@@ -2534,6 +2673,21 @@ const syncSite = asyncHandler(async (req, res) => {
     mongoose.connection.name ||
     mongoose.connection.db?.databaseName ||
     "connected";
+
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: [
+      "cms-home",
+      "cms-products",
+      "cms-categories",
+      "cms-blogs",
+      "cms-gallery",
+      "cms-faqs",
+      "cms-legal",
+      "cms-site-settings",
+    ],
+    paths: ["/"],
+  });
 
   return res.json({
     success: true,
