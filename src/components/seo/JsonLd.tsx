@@ -58,6 +58,15 @@ type LocalBusinessJsonLd = {
   areaServed?: string;
 };
 
+type FaqItemJsonLd = {
+    question: string;
+    answer: string;
+};
+
+type FaqPageJsonLd = {
+    items: FaqItemJsonLd[];
+};
+
 type JsonLdProps =
   | { type: 'Product'; data: ProductJsonLd }
   | { type: 'Article'; data: ArticleJsonLd }
@@ -65,7 +74,8 @@ type JsonLdProps =
   | { type: 'Organization'; data: OrganizationJsonLd }
   | { type: 'WebSite'; data: WebSiteJsonLd }
   | { type: 'Service'; data: ServiceJsonLd }
-  | { type: 'LocalBusiness'; data: LocalBusinessJsonLd };
+  | { type: 'LocalBusiness'; data: LocalBusinessJsonLd }
+| { type: 'FAQPage'; data: FaqPageJsonLd };
 
 function generateProductSchema(data: ProductJsonLd) {
   return {
@@ -191,6 +201,21 @@ function generateLocalBusinessSchema(data: LocalBusinessJsonLd) {
   };
 }
 
+function generateFaqPageSchema(data: FaqPageJsonLd) {
+    return {
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: data.items.map((item) => ({
+                  '@type': 'Question',
+                  name: item.question,
+                  acceptedAnswer: {
+                            '@type': 'Answer',
+                            text: item.answer,
+                  },
+          })),
+    };
+}
+
 function generateSchema(type: JsonLdProps['type'], data: any) {
   switch (type) {
     case 'Product':
@@ -207,6 +232,8 @@ function generateSchema(type: JsonLdProps['type'], data: any) {
       return generateServiceSchema(data);
     case 'LocalBusiness':
       return generateLocalBusinessSchema(data);
+    case 'FAQPage':
+      return generateFaqPageSchema(data);
     default:
       return {};
   }
@@ -231,5 +258,7 @@ export type {
   WebSiteJsonLd,
   ServiceJsonLd,
   LocalBusinessJsonLd,
+  FaqPageJsonLd,
+  FaqItemJsonLd,
   BreadcrumbItem,
 };
