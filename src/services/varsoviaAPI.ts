@@ -107,7 +107,22 @@ function unwrapApiData<T>(body: unknown): T {
     if (!body.success) {
       throw new Error(readEnvelopeError(body));
     }
-    return body.data as T;
+    // Accept the normal `{ success, data }` response and the legacy proxy
+    // shape `{ data: { success, data } }` without changing validation.
+    const nested = body.data;
+    if (isEnvelope(nested)) {
+      if (!nested.success) throw new Error(readEnvelopeError(nested));
+      return nested.data as T;
+    }
+    return nested as T;
+  }
+  if (
+    body &&
+    typeof body === "object" &&
+    "data" in body &&
+    isEnvelope((body as Record<string, unknown>).data)
+  ) {
+    return unwrapApiData<T>((body as Record<string, unknown>).data);
   }
   return body as T;
 }
@@ -120,10 +135,6 @@ function unwrapApiList<T>(body: unknown): T[] {
 export async function getVarsoviaSite() {
   const cacheBuster = `_t=${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
   
-  console.group('[varsoviaAPI] getVarsoviaSite');
-  console.log('🔍 Cache buster:', cacheBuster);
-  console.time('⏱️ GET /site network request');
-  
   const { data } = await varsoviaApi.get("/site", {
     params: {
       cms: 1,
@@ -131,22 +142,7 @@ export async function getVarsoviaSite() {
     },
   });
   
-  console.timeEnd('⏱️ GET /site network request');
-  console.log('📥 Raw response from server:', {
-    hasData: !!data,
-    dataKeys: data && typeof data === 'object' ? Object.keys(data) : [],
-  });
-  
   const unwrapped = unwrapApiData<Record<string, unknown>>(data);
-  
-  console.log('📦 After unwrapApiData:', {
-    hasPagesField: !!unwrapped.pages,
-    pagesType: typeof unwrapped.pages,
-    pagesKeys: unwrapped.pages && typeof unwrapped.pages === 'object' ? Object.keys(unwrapped.pages) : [],
-  });
-  console.log('✅ getVarsoviaSite completed');
-  console.groupEnd();
-  
   return unwrapped;
 }
 
@@ -273,42 +269,22 @@ export async function updateVarsoviaSite(
   body: Record<string, unknown>,
   opts?: { persistPages?: boolean }
 ) {
-  console.group('[varsoviaAPI] updateVarsoviaSite');
-  console.log('📥 Raw body received:', JSON.parse(JSON.stringify(body)));
-  console.log('⚙️ Options:', opts);
-  
   const picked = pickVarsoviaSiteUpdate(body);
-  console.log('🔍 After pickVarsoviaSiteUpdate (whitelist filter):', JSON.parse(JSON.stringify(picked)));
   
   const explicitKeys = Object.keys(body).filter(
     (key) => key !== "_id" && key !== "key" && key !== "__v"
   );
   const pagesOnlyPatch = explicitKeys.length === 1 && explicitKeys[0] === "pages";
   
-  console.log('📋 Explicit keys in body:', explicitKeys);
-  console.log('🔖 Is pages-only patch?', pagesOnlyPatch);
-  console.log('🔖 persistPages option?', opts?.persistPages);
-  
   if (!opts?.persistPages && !pagesOnlyPatch) {
-    console.warn('⚠️ Removing pages from payload (persistPages=false and not pages-only)');
     delete picked.pages;
   }
 
-  console.log('📤 Final payload to PUT /site:', JSON.parse(JSON.stringify(picked)));
-  console.time('⏱️ PUT /site network request');
-  
   const { data } = await varsoviaApi.put("/site", picked, {
     params: { cms: 1 },
   });
   
-  console.timeEnd('⏱️ PUT /site network request');
-  console.log('📥 Raw response from server:', JSON.parse(JSON.stringify(data)));
-  
   const unwrapped = unwrapApiData<Record<string, unknown>>(data);
-  console.log('📦 After unwrapApiData:', JSON.parse(JSON.stringify(unwrapped)));
-  console.log('✅ updateVarsoviaSite completed');
-  console.groupEnd();
-  
   return unwrapped;
 }
 

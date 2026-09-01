@@ -152,6 +152,26 @@ function hubToApi(draft: HubDraft): Record<string, unknown> {
   };
 }
 
+function patchMatchesRecord(patch: unknown, record: unknown): boolean {
+  if (patch === undefined) return true;
+  if (typeof patch === "string") {
+    return typeof record === "string" && patch.trim() === record.trim();
+  }
+  // Arrays: compare element-by-element (Object.is would compare references, not values)
+  if (Array.isArray(patch)) {
+    if (!Array.isArray(record)) return false;
+    if (patch.length !== record.length) return false;
+    return patch.every((item, i) => patchMatchesRecord(item, record[i]));
+  }
+  if (!patch || typeof patch !== "object") {
+    return Object.is(patch, record);
+  }
+  if (!record || typeof record !== "object" || Array.isArray(record)) return false;
+  return Object.entries(patch as Record<string, unknown>).every(([key, value]) =>
+    patchMatchesRecord(value, (record as Record<string, unknown>)[key]),
+  );
+}
+
 function TextField({
   label,
   value,
@@ -396,26 +416,18 @@ export default function VarsoviaHubLandingEditor({
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const loadSeqRef = useRef(0);
+  const savingRef = useRef(false);
   const flushSaves = useCmsFlushSaves();
 
   const load = useCallback(async () => {
+    if (savingRef.current) return;
     const seq = ++loadSeqRef.current;
     setLoading(true);
-    
-    console.group(`[VarsoviaHubLandingEditor] Load ${hubKey} - ${label} (seq: ${seq})`);
-    console.time(`⏱️ Load duration (seq: ${seq})`);
     
     try {
       const site = await getVarsoviaSite();
       
-      console.log('📥 Raw site data from getVarsoviaSite:', {
-        hasPagesField: !!site.pages,
-        pagesKeys: site.pages && typeof site.pages === 'object' ? Object.keys(site.pages) : [],
-      });
-      
       if (seq !== loadSeqRef.current) {
-        console.warn('⚠️ Load cancelled - newer request in flight');
-        console.groupEnd();
         return;
       }
       
@@ -426,44 +438,20 @@ export default function VarsoviaHubLandingEditor({
       
       const rawHub = allPages[hubKey];
       
-      console.log(`📄 Raw ${hubKey} data from DB:`, JSON.parse(JSON.stringify(rawHub || {})));
-      
       if (seq !== loadSeqRef.current) {
-        console.warn('⚠️ Load cancelled - newer request in flight (before setDraft)');
-        console.groupEnd();
         return;
       }
       
       const draft = hubFromApi(rawHub);
       
-      console.log('🔄 After hubFromApi transform:', JSON.parse(JSON.stringify(draft)));
-      console.log('📊 Key fields loaded:');
-      console.table({
-        'Hero Title EN': typeof draft.hero.title === 'object' ? draft.hero.title.en : draft.hero.title,
-        'Body EN': typeof draft.body === 'object' ? draft.body.en : draft.body,
-        'Explore Title EN': typeof draft.exploreTitle === 'object' ? draft.exploreTitle.en : draft.exploreTitle,
-        'Explore Subtitle EN': typeof draft.exploreSubtitle === 'object' ? draft.exploreSubtitle.en : draft.exploreSubtitle,
-        'Services Title EN': typeof draft.servicesTitle === 'object' ? draft.servicesTitle.en : draft.servicesTitle,
-        'Services Subtitle EN': typeof draft.servicesSubtitle === 'object' ? draft.servicesSubtitle.en : draft.servicesSubtitle,
-        'Meta Title EN': typeof draft.metaTitle === 'object' ? draft.metaTitle.en : draft.metaTitle,
-        'Sections count': draft.sections.length,
-      });
-      
       setDraft(draft);
-      console.log('✅ Draft state set in React');
     } catch (err) {
       if (seq !== loadSeqRef.current) {
-        console.warn('⚠️ Load error but newer request in flight');
-        console.groupEnd();
         return;
       }
-      console.error('❌ Load failed:', err);
       toast.error(varsoviaErrorMessage(err, "Failed to load hub page"));
     } finally {
       if (seq === loadSeqRef.current) setLoading(false);
-      console.timeEnd(`⏱️ Load duration (seq: ${seq})`);
-      console.log('✅ Load completed');
-      console.groupEnd();
     }
   }, [hubKey, label]);
 
@@ -478,45 +466,44 @@ export default function VarsoviaHubLandingEditor({
   }, [load]);
 
   const save = async () => {
+    // Invalidate any GET that started before this mutation. Its response must
+    // never be allowed to replace the user's current draft after Save.
+    loadSeqRef.current += 1;
+    savingRef.current = true;
     setSaving(true);
-    
-    console.group(`[VarsoviaHubLandingEditor] Save ${hubKey} - ${label}`);
-    console.log('📝 Draft state before save:', JSON.parse(JSON.stringify(draft)));
     
     try {
       await flushSaves?.flushAll();
       
       const apiPayload = hubToApi(draft);
-      console.log('🔄 After hubToApi transform:', JSON.parse(JSON.stringify(apiPayload)));
       
       const nextHub = {
         ...apiPayload,
         slug: (IA_HUB_PATHS[hubKey] || `/${hubKey}`).replace(/^\//, ""),
       };
       
-      console.log('📤 Final payload to persistIaHubPatch:', JSON.parse(JSON.stringify(nextHub)));
-      console.time('⏱️ persistIaHubPatch duration');
+      const savedPages = await persistIaHubPatch(hubKey, nextHub);
       
-      // Save to backend
-      await persistIaHubPatch(hubKey, nextHub);
-      
-      console.timeEnd('⏱️ persistIaHubPatch duration');
-      
-      // MIRROR THAILAND KITCHEN PATTERN: Trust what we sent, don't re-fetch
-      // draft already has the correct data that the user edited
-      // No need to: const merged = await persistIaHubPatch(); const newDraft = hubFromApi(merged[hubKey]); setDraft(newDraft);
-      console.log('✅ Draft state kept as-is (user has correct data)');
+      // Use the verified server value so the visible form matches what a
+      // subsequent refresh will load.
+      const savedHub = savedPages[hubKey];
+      const savedDraft =
+        savedHub && typeof savedHub === "object" ? hubFromApi(savedHub) : null;
+      const submittedForm = hubToApi(hubFromApi(nextHub));
+      const returnedForm = savedDraft ? hubToApi(savedDraft) : null;
+      if (!savedDraft || !returnedForm || !patchMatchesRecord(submittedForm, returnedForm)) {
+        throw new Error("The server did not return the submitted page data. Nothing was marked as saved.");
+      }
+      setDraft(savedDraft);
       
       toast.success(`${label} page saved — live ${sitePath} uses these fields`);
       onSaved?.();
       
-      console.log('✅ Save completed successfully');
     } catch (err) {
-      console.error('❌ Save failed with error:', err);
       toast.error(varsoviaErrorMessage(err, "Failed to save page"));
     } finally {
+      savingRef.current = false;
       setSaving(false);
-      console.groupEnd();
     }
   };
 

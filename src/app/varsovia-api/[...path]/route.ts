@@ -21,10 +21,15 @@ const ALLOWED_RESOURCES = new Set([
 ]);
 
 function apiBase() {
-  return (
+  const configured = (
     process.env.VARSOVIA_API_URL?.trim() ||
     "https://varsovia-design.onrender.com/api"
   ).replace(/\/+$/, "");
+
+  // Accept either the API origin (`https://host/api`) or the service origin
+  // (`https://host`). The latter previously produced `/site` and `/faqs`
+  // requests, which the backend correctly returned as 404.
+  return /\/api$/i.test(configured) ? configured : `${configured}/api`;
 }
 
 function thailandBase() {
@@ -190,11 +195,9 @@ async function proxy(
 
   const adminKey = process.env.VARSOVIA_ADMIN_KEY?.trim() || "";
   if (!adminKey) {
+    console.error("[varsovia-api] VARSOVIA_ADMIN_KEY is not set in the server environment");
     return Response.json(
-      {
-        message:
-          "VARSOVIA_ADMIN_KEY is not configured. Add it to admin/.env.local — must match Varsovia backend ADMIN_KEY.",
-      },
+      { message: "Admin configuration is unavailable. Contact the administrator." },
       { status: 503 }
     );
   }

@@ -891,12 +891,7 @@ function SiteSettings() {
 
   useEffect(() => {
     void loadContent();
-  }, [loadContent]);
-
-  useEffect(() => {
-    const onSynced = () => {
-      void loadContent();
-    };
+    const onSynced = () => { void loadContent(); };
     window.addEventListener(CMS_SYNCED_EVENT, onSynced);
     return () => window.removeEventListener(CMS_SYNCED_EVENT, onSynced);
   }, [loadContent]);
