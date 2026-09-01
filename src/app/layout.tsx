@@ -100,6 +100,10 @@ export default async function RootLayout({
     fetchMergedCategories().catch(() => []),
   ]);
 
+    const footerSection = (sections as { footer?: Record<string, unknown> })?.footer || {};
+  const seoSection = (sections as { seo?: Record<string, unknown> })?.seo || {};
+  const localBusinessDescription = pickCmsText(seoSection.description, FALLBACK_DESCRIPTION, serverLocale);
+
   const initialCmsData = {
     sections,
     products,
@@ -129,6 +133,17 @@ export default async function RootLayout({
             url: SITE_ORIGIN,
           }}
         />
+        <JsonLd
+          type="LocalBusiness"
+          data={{
+            name: "Thailand Kitchens",
+            description: localBusinessDescription,
+            url: SITE_ORIGIN,
+            image: `${SITE_ORIGIN}/icon.png`,
+            telephone: (footerSection.phone as string) || undefined,
+            areaServed: (footerSection.address as string) || undefined,
+          }}
+          />
         <Script
           id="tk-locale-boot"
           strategy="beforeInteractive"
