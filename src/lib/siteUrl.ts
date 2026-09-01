@@ -1,7 +1,7 @@
 import { resolveCmsMediaUrl } from "./cmsMedia";
 
 /** Canonical public site origin — keep in sync across sitemap, robots, JSON-LD, canonicals. */
-export const SITE_ORIGIN = "https://thailandkitchens.com";
+export const SITE_ORIGIN = "https://www.thailandkitchens.com";
 
 /** Site-wide fallback share image, used whenever a page has no CMS image of its own. */
 export const DEFAULT_OG_IMAGE = "/products/Kitchen1.png";

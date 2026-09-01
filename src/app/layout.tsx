@@ -8,7 +8,7 @@ import Footer from "../component/Footer/footer";
 import { Toaster } from "sonner";
 import { SITE_ORIGIN, ogImageUrl } from "../lib/siteUrl";
 import { pickCmsText } from "../lib/cmsText";
-import { fetchHomeSections } from "../services/cmsPublic";
+import { fetchHomeSections, fetchMergedProducts, fetchMergedCategories } from "../services/cmsPublic";
 import JsonLd from "../components/seo/JsonLd";
 import { getServerLocale } from "../lib/serverLocale";
 
@@ -93,6 +93,19 @@ export default async function RootLayout({
   const ga4Id = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID?.trim() || "";
   const serverLocale = await getServerLocale();
 
+  // Fetch initial CMS data to prevent content flash on first paint
+  const [sections, products, categories] = await Promise.all([
+    fetchHomeSections().catch(() => ({})),
+    fetchMergedProducts().catch(() => []),
+    fetchMergedCategories().catch(() => []),
+  ]);
+
+  const initialCmsData = {
+    sections,
+    products,
+    categories,
+  };
+
   return (
     <html
       lang="en"
@@ -137,7 +150,7 @@ gtag('config', '${ga4Id}');
             </Script>
           </>
         ) : null}
-        <Providers initialLocale={serverLocale}>
+        <Providers initialLocale={serverLocale} initialCmsData={initialCmsData}>
           <Navbar />
           {children}
           <Footer />
