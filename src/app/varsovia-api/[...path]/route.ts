@@ -23,7 +23,7 @@ const ALLOWED_RESOURCES = new Set([
 function apiBase() {
   const configured = (
     process.env.VARSOVIA_API_URL?.trim() ||
-    "https://varsovia-design.onrender.com/api"
+    "https://staging-api.varsovia.design/api"
   ).replace(/\/+$/, "");
 
   // Accept either the API origin (`https://host/api`) or the service origin
