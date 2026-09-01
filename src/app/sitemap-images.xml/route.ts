@@ -1,11 +1,12 @@
 import {
   fetchMergedProducts,
+  fetchHomeSections,
   fetchMergedGallery,
   fetchMergedBlogs,
   getIndexableCategories,
 } from "../../services/cmsPublic";
 import { categoryPublicPath } from "../../lib/categoryRoutes";
-import { SITE_ORIGIN } from "../../lib/siteUrl";
+import { SITE_ORIGIN, ogImageUrl } from "../../lib/siteUrl";
 
 function xmlEscape(value: unknown) {
   // CMS fields can be multilingual objects; sitemap only needs a stable string.
@@ -57,8 +58,13 @@ export async function GET() {
     "/locations",
   ];
 
+const home = await fetchHomeSections().catch(() => ({}) as Record<string, unknown>);
+  const heroSection = (home as { hero?: Record<string, unknown> })?.hero || {};
+  const seoSection = (home as { seo?: Record<string, unknown> })?.seo || {};
+  const heroImage = ogImageUrl((seoSection.ogImage as string) || (heroSection.image as string) || "");
+  
   for (const path of staticPages) {
-    pushImage(entries, seen, `${SITE_ORIGIN}${path}`, "/icon.png", "Thailand Kitchens");
+          pushImage(entries, seen, `${SITE_ORIGIN}${path}`, heroImage, "Thailand Kitchens");
   }
 
   try {
