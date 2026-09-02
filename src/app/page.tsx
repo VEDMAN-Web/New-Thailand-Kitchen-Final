@@ -369,7 +369,14 @@ export default function AdminHomePage() {
     try {
       const res = await getHome(siteId);
       if (seq !== loadSeqRef.current) return;
-      setSections(res.home.sections || {});
+      const loaded = res?.home?.sections;
+      if (!loaded || typeof loaded !== "object" || Object.keys(loaded).length === 0) {
+        // Backend returned an empty/missing sections object — surface the anomaly
+        // so stale local state is not silently kept.
+        toast.error("No CMS data returned from server. Showing cached state.");
+        return;
+      }
+      setSections(loaded);
     } catch {
       if (seq !== loadSeqRef.current) return;
       toast.error("Failed to load home content");
@@ -440,8 +447,14 @@ export default function AdminHomePage() {
         }
       }
 
-      await updateHome(siteId, payload);
-      setSections(payload);
+      const res = await updateHome(siteId, payload);
+      // Update state from the server's returned sections — not from the local
+      // pre-normalisation payload — so the admin always reflects what was
+      // actually persisted and normalised in the database.
+      const persistedSections = res?.home?.sections;
+      setSections(persistedSections && typeof persistedSections === "object"
+        ? persistedSections
+        : payload);
       toast.success("Home page updated");
     } catch {
       toast.error("Update failed");
