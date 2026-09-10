@@ -29,18 +29,18 @@ export const translations = {
     "home.hero.eyebrow": "Fineline of kitchen",
     "home.hero.title": "Timeless craft of Thai kitchen",
     "home.hero.description":
-      "From custom cabinetry to complete kitchen transformations, we bring decades of Thai craftsmanship to every home we design.",
+      "From custom cabinetry to complete kitchen transformations, we bring Thai craftsmanship to every home we design.",
     "home.hero.cta": "Explore",
 
     "home.stats.years": "Years Of Experience",
-    "home.stats.cities": "Cities Across Thailand",
-    "home.stats.kitchens": "Kitchen Completed",
+    "home.stats.cities": "City in Thailand",
+    "home.stats.kitchens": "Kitchens Completed",
 
     "home.about.eyebrow": "Our Story",
     "home.about.title": "Crafted With Passion",
     "home.about.cardTitle": "Where Craftsmanship meets Beautiful Living",
     "home.about.cardDescription":
-      "Over the years, we have designed hundreds of kitchens across Thailand. Each project has taught us something new about space, about people, and about what it means to feel at home.",
+      "We have completed 25+ kitchens in our first year in Thailand. Each project teaches us something new about space, about people, and about what it means to feel at home.",
     "home.about.cta": "Get to know more about us",
 
     "home.craft.1.title": "Local Craftsmanship",
@@ -184,7 +184,7 @@ export const translations = {
     "gallery.hero.eyebrow": "The Gallery · Vol. 04",
     "gallery.hero.title": "Kitchens of the island, moments of everyday luxury.",
     "gallery.hero.description":
-      "A curated inspiration library of tropical, modern and minimal kitchens crafted by our Samui atelier — filter by style, layout, palette or material and discover your next design.",
+      "A curated inspiration library of tropical, modern and minimal kitchens designed across Thailand — filter by style, layout, palette or material and discover your next design.",
     "gallery.filter.all": "All",
     "gallery.filter.layout": "Layout & Space",
     "gallery.filter.storage": "Storage",
@@ -318,18 +318,18 @@ export const translations = {
     "home.hero.eyebrow": "เส้นบางของครัว",
     "home.hero.title": "งานฝีมือครัวไทยที่เหนือกาลเวลา",
     "home.hero.description":
-      "ตั้งแต่ตู้ครัวสั่งทำไปจนถึงการเปลี่ยนโฉมครัวทั้งหลัง เรานำทศวรรษแห่งงานฝีมือไทยมาสู่ทุกบ้านที่เราออกแบบ",
+      "ตั้งแต่ตู้ครัวสั่งทำไปจนถึงการเปลี่ยนโฉมครัวทั้งหลัง เรานำงานฝีมือไทยมาสู่ทุกบ้านที่เราออกแบบ",
     "home.hero.cta": "สำรวจ",
 
     "home.stats.years": "ปีแห่งประสบการณ์",
-    "home.stats.cities": "เมืองทั่วประเทศไทย",
+    "home.stats.cities": "เมืองในประเทศไทย",
     "home.stats.kitchens": "ครัวที่เสร็จสมบูรณ์",
 
     "home.about.eyebrow": "เรื่องราวของเรา",
     "home.about.title": "รังสรรค์ด้วยความหลงใหล",
     "home.about.cardTitle": "ที่ซึ่งงานฝีมือบรรจบกับการใช้ชีวิตอย่างสวยงาม",
     "home.about.cardDescription":
-      "ตลอดหลายปีที่ผ่านมา เราได้ออกแบบครัวหลายร้อยหลังทั่วประเทศไทย แต่ละโปรเจกต์สอนเราเกี่ยวกับพื้นที่ ผู้คน และความหมายของการรู้สึกเหมือนบ้าน",
+      "เราได้ส่งมอบครัวแล้วกว่า 25 หลังในปีแรกในประเทศไทย แต่ละโปรเจกต์สอนเราเกี่ยวกับพื้นที่ ผู้คน และความหมายของการรู้สึกเหมือนบ้าน",
     "home.about.cta": "ทำความรู้จักเรามากขึ้น",
 
     "home.craft.1.title": "งานฝีมือท้องถิ่น",
@@ -604,18 +604,18 @@ export const translations = {
     "home.hero.eyebrow": "Fine line kuchni",
     "home.hero.title": "Ponadczasowe rzemiosło kuchni tajskiej",
     "home.hero.description":
-      "Od zabudowy na wymiar po kompleksowe metamorfozy kuchni — od dekad wnosimy tajskie rzemiosło do każdego domu, który projektujemy.",
+      "Od zabudowy na wymiar po kompleksowe metamorfozy kuchni — wnosimy tajskie rzemiosło do każdego domu, który projektujemy.",
     "home.hero.cta": "Odkryj",
 
     "home.stats.years": "Lat doświadczenia",
-    "home.stats.cities": "Miast w Tajlandii",
+    "home.stats.cities": "Miasto w Tajlandii",
     "home.stats.kitchens": "Ukończonych kuchni",
 
     "home.about.eyebrow": "Nasza historia",
     "home.about.title": "Stworzone z pasją",
     "home.about.cardTitle": "Gdzie rzemiosło spotyka piękne życie",
     "home.about.cardDescription":
-      "Przez lata zaprojektowaliśmy setki kuchni w całej Tajlandii. Każdy projekt uczył nas czegoś nowego o przestrzeni, ludziach i tym, co znaczy czuć się jak w domu.",
+      "W pierwszym roku w Tajlandii ukończyliśmy ponad 25 kuchni. Każdy projekt uczy nas czegoś nowego o przestrzeni, ludziach i tym, co znaczy czuć się jak w domu.",
     "home.about.cta": "Poznaj nas bliżej",
 
     "home.craft.1.title": "Lokalne rzemiosło",

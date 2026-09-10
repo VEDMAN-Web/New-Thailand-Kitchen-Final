@@ -29,7 +29,7 @@ export const privacyPageContent: LegalPageContent = {
     },
     {
       title: "4. Your Privacy Rights & Contact",
-      body: "You have the right to access, correct, or delete your personal data at any time. For privacy-related inquiries or to exercise your rights, please contact us at thailandkichens@gmail.com.",
+      body: "You have the right to access, correct, or delete your personal data at any time. For privacy-related inquiries or to exercise your rights, please contact us at hello@thailandkitchens.com.",
     },
   ],
 };

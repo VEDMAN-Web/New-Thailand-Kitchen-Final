@@ -29,9 +29,10 @@ export const KITCHENS_SECTIONS: KitchensSectionConfig[] = [
     key: "styles",
     categoryType: "style",
     href: "/kitchens/styles",
-    label: "Styles",
+    label: "Kitchen Design Styles",
     shortLabel: "Style",
-    description: "Modern, tropical, minimal, and heritage kitchen styles.",
+    description:
+      "Modern, tropical, minimal, and heritage kitchen design styles.",
     accent: "#B38B6D",
     accentSoft: "#F5E8DC",
   },

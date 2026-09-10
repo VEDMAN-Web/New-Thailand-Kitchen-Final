@@ -5,7 +5,7 @@ export const aboutSlides = [
     title: "OUR STORY",
     heading: "Where craftsmanship meets beautiful living",
     description:
-      "Over the years, we have designed hundreds of kitchens across Gujarat and beyond. Each project has taught us something new about space, about people, about what it means to feel at home. Today, our team of designers, craftsmen, and project managers work together to deliver kitchens that exceed expectations, on time and within budget.",
+      "We design custom kitchens in Thailand. Each project teaches us something new about space, about people, and about what it means to feel at home. Our designers, craftsmen, and project managers work together to deliver kitchens on time and within budget.",
   },
   {
     id: 2,

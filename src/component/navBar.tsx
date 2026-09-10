@@ -81,13 +81,20 @@ const Navbar = () => {
         ? cmsLinks.map((l) => {
             const href = String(l.href || "/").replace(/\/+$/, "") || "/";
             const fallback = defaultNavLinks.find((d) => d.href === href);
+            const label = pickCmsText(
+              l.label,
+              fallback ? t(fallback.labelKey) : "",
+              locale
+            );
+            const isOurStory = /our story|เรื่องราว|nasza historia/i.test(label);
             return {
-              href,
-              label: pickCmsText(
-                l.label,
-                fallback ? t(fallback.labelKey) : "",
-                locale
-              ),
+              href:
+                isOurStory && /contact|about/i.test(href)
+                  ? "/#our-story"
+                  : href === "/about"
+                    ? "/#our-story"
+                    : href,
+              label,
             };
           })
         : cmsLoading

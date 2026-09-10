@@ -158,24 +158,6 @@ const IMG = [
 
 const HERO_FALLBACK = "/product/product.png";
 
-const defaultFeatures: ProductFeature[] = [
-  {
-    title: "Matte Obsidian Finish",
-    description:
-      "A deep, light-absorbing lacquer that keeps surfaces calm and fingerprints discreet in daily living.",
-  },
-  {
-    title: "Artisanal Gold Hardware",
-    description:
-      "Hand-finished pulls and hinges that catch soft light and complete the dark timber silhouette.",
-  },
-  {
-    title: "Imperial Marble Worktops",
-    description:
-      "Thick stone slabs with natural veining, sealed for lasting kitchen use and a quiet luxury feel.",
-  },
-];
-
 const defaultGallery = (name: string): GalleryTile[] => [
   { image: IMG[0], caption: `${name} Series Open...` },
   { image: IMG[1], caption: `${name} Series Open...` },
@@ -222,7 +204,7 @@ function makeProduct(
       IMG[((partial.id + 1) % 6)],
     ],
     gallery: defaultGallery(partial.name.split(" ")[0]),
-    features: defaultFeatures,
+    features: [],
     detailImages: [IMG[4], IMG[2]],
     contactImage: IMG[3],
     ...partial,

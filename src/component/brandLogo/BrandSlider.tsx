@@ -11,23 +11,25 @@ function isUsableLogo(src?: string | null): src is string {
   const trimmed = src.trim();
   if (!trimmed) return false;
   if (/\/brandLogo\/partner-\d\.svg$/i.test(trimmed)) return false;
-  if (trimmed === "/brand/brand.png" || trimmed.endsWith("/brand/brand.png")) {
-    return false;
-  }
+  // Block known CMS placeholder that is not a real partner logo asset.
+  if (/\/brand\/brand\.png$/i.test(trimmed)) return false;
   return true;
 }
 
-function BrandLogo({ src }: { src: string }) {
+function BrandLogo({ src, name }: { src: string; name?: string }) {
   const resolved = useResolvedMediaUrl(resolveCmsMediaUrl(src), "image");
   return (
-    <Image
-      src={resolved}
-      alt="brand"
-      width={150}
-      height={60}
-      className="object-contain h-9 sm:h-12 lg:h-14 w-auto grayscale opacity-50"
-      unoptimized
-    />
+    <div className="flex h-12 sm:h-14 lg:h-16 items-center justify-center rounded-xl bg-white px-4 py-2 shadow-[0_1px_0_rgba(0,0,0,0.04)]">
+      <Image
+        src={resolved}
+        alt={name || ""}
+        width={150}
+        height={60}
+        className="object-contain h-8 sm:h-10 lg:h-11 w-auto"
+        unoptimized
+        aria-hidden={!name}
+      />
+    </div>
   );
 }
 
@@ -37,15 +39,21 @@ export default function BrandSlider() {
   }>("partners");
 
   const cmsLogos = (partners?.logos || [])
-    .map((l) => String(l.image || ""))
-    .filter(isUsableLogo);
+    .map((l) => ({
+      image: String(l.image || ""),
+      name: String(l.name || "").trim(),
+    }))
+    .filter((l) => isUsableLogo(l.image));
 
-  const logos = cmsLogos.length > 0 ? cmsLogos : brands;
+  const logos =
+    cmsLogos.length > 0
+      ? cmsLogos
+      : brands.map((image) => ({ image, name: "" }));
 
   const renderSet = (setId: string) =>
     logos.map((logo, index) => (
-      <div key={`${logo}-${setId}-${index}`} className="flex-shrink-0">
-        <BrandLogo src={logo} />
+      <div key={`${logo.image}-${setId}-${index}`} className="flex-shrink-0">
+        <BrandLogo src={logo.image} name={logo.name} />
       </div>
     ));
 
