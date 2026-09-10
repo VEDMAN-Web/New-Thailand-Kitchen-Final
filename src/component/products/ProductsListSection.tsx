@@ -148,17 +148,20 @@ function buildMobilePages(current: number, total: number): (number | "...")[] {
 export default function ProductsListSection({
   initialItems,
   initialCategory,
+  initialPage = 1,
 }: {
   initialItems: ProductItem[];
   /** Category tab pre-selected via a /products/<category> URL (Smart merged route). */
   initialCategory?: string;
+  /** Page number pre-selected from the ?page= query param (server-rendered). */
+  initialPage?: number;
 }) {
   const { t, locale } = useTranslation();
   const router = useRouter();
   const { categories } = useCms();
   const searchParams = useSearchParams();
   const [layout, setLayout] = useState<string>(initialCategory || "All");
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(Math.max(1, initialPage));
 
   // Hydrate from module-level cache if fresh, otherwise use SSR data
   const startItems =
@@ -199,6 +202,32 @@ export default function ProductsListSection({
     }
     return collectProductFilterTabs(extras);
   }, [categories, items, locale]);
+
+  /**
+   * Navigate to a page number by updating the ?page= query param.
+   * Page 1 uses /products (no param) so canonical stays clean.
+   * Uses router.replace so pagination doesn't pollute the history stack.
+   */
+  function pushPage(n: number) {
+    setPage(n);
+    if (n <= 1) {
+      router.replace("/products", { scroll: false });
+    } else {
+      router.replace(`/products?page=${n}`, { scroll: false });
+    }
+  }
+
+  // Sync page state from the URL when the user navigates (back/forward)
+  // or when a ?page= param is present on first render.
+  // Skip when initialCategory is set — those routes (/products/u-shape) have
+  // no ?page= param and manage their own pagination state in isolation.
+  useEffect(() => {
+    if (initialCategory) return;
+    const raw = searchParams.get("page");
+    const n = raw ? parseInt(raw, 10) : 1;
+    const clamped = Number.isFinite(n) && n >= 1 ? n : 1;
+    setPage(clamped);
+  }, [searchParams, initialCategory]);
 
   // Skip legacy ?tab=/?filter= query-string handling when this view was
   // already given an initialCategory via a /products/<category> URL — the
@@ -304,7 +333,7 @@ export default function ProductsListSection({
             type="button"
             aria-label="Previous page"
             disabled={currentPage <= 1}
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            onClick={() => pushPage(Math.max(1, currentPage - 1))}
             className="flex items-center justify-center w-10 h-10 rounded-full text-[#1A1A1A] disabled:opacity-30 hover:bg-[#EDE8E1] transition text-lg leading-none"
           >
             ‹
@@ -318,7 +347,7 @@ export default function ProductsListSection({
                 type="button"
                 aria-label={`Page ${n}`}
                 aria-current={n === currentPage ? "page" : undefined}
-                onClick={() => setPage(n)}
+                onClick={() => pushPage(n)}
                 className={`w-10 h-10 rounded-full text-sm font-medium transition ${
                   n === currentPage
                     ? "bg-[#1A1A1A] text-white"
@@ -347,7 +376,7 @@ export default function ProductsListSection({
                   type="button"
                   aria-label={`Page ${item}`}
                   aria-current={item === currentPage ? "page" : undefined}
-                  onClick={() => setPage(item as number)}
+                  onClick={() => pushPage(item as number)}
                   className={`w-10 h-10 rounded-full text-sm font-medium transition flex-shrink-0 ${
                     item === currentPage
                       ? "bg-[#1A1A1A] text-white"
@@ -365,7 +394,7 @@ export default function ProductsListSection({
             type="button"
             aria-label="Next page"
             disabled={currentPage >= totalPages}
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            onClick={() => pushPage(Math.min(totalPages, currentPage + 1))}
             className="flex items-center justify-center w-10 h-10 rounded-full text-[#1A1A1A] disabled:opacity-30 hover:bg-[#EDE8E1] transition text-lg leading-none"
           >
             ›

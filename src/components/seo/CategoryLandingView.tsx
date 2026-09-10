@@ -85,7 +85,7 @@ export default function CategoryLandingView({
         </div>
       ) : null}
 
-      <RelatedProjects items={related} />
+      <RelatedProjects items={related} locale={locale} />
 
       <section className="bg-[#1A2332] text-white">
         <div className="max-w-7xl mx-auto px-5 sm:px-6 py-8 sm:py-14 lg:py-16 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6">
