@@ -14,7 +14,8 @@
     "seed:cwaa": "node src/scripts/seedCwaaService.js",
     "sync:cms": "node src/scripts/syncThailandCms.js",
     "seed:tk": "node src/scripts/seedThailandKitchen.js",
-    "seed:tk:safe": "node src/scripts/seedThailandKitchenSafe.js"
+    "seed:tk:safe": "node src/scripts/seedThailandKitchenSafe.js",
+    "export:images": "node src/scripts/exportImageInventory.js"
   },
   "dependencies": {
     "axios": "^1.18.1",

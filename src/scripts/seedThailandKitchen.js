@@ -38,8 +38,8 @@ const {
   DEFAULT_HOME_SECTIONS,
   DEFAULT_FAQS,
   DEFAULT_CATEGORIES,
-  DEFAULT_FEATURE_HIGHLIGHTS,
 } = require("../seed/thailandSiteDefaults");
+const { factsForSlug } = require("../seed/productModelFacts");
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -50,10 +50,18 @@ function row(label, count, note = "") {
   console.log(`  ${tick}  ${pad(count)} ${label}${extra}`);
 }
 
+function productSeed(partial) {
+  const facts = factsForSlug(partial.slug);
+  return {
+    ...partial,
+    featureHighlights: facts?.featureHighlights || [],
+  };
+}
+
 // ─── default products ────────────────────────────────────────────────────────
 
 const DEFAULT_PRODUCTS = [
-  {
+  productSeed({
     title: "Obsidian Bay",
     slug: "obsidian-bay",
     subtitle: "Island layout",
@@ -62,12 +70,11 @@ const DEFAULT_PRODUCTS = [
     description:
       "Obsidian Bay pairs matte dark cabinetry with warm timber undertones — a gallery-like presence designed for open-plan living.",
     image: "/products/Kitchen1.png",
-    gallery: ["/product/product.png", "/products/Kitchen1.png", "/products/Kitchen2.png"],
+    gallery: ["/products/Kitchen1.png"],
     category: "Islands",
     featured: true,
-    featureHighlights: DEFAULT_FEATURE_HIGHLIGHTS,
-  },
-  {
+  }),
+  productSeed({
     title: "Pearl Harbor",
     slug: "pearl-harbor",
     subtitle: "Straight layout",
@@ -76,12 +83,11 @@ const DEFAULT_PRODUCTS = [
     description:
       "Teak brings warmth, strength, and quiet richness to every surface — a material that ages with character.",
     image: "/products/Kitchen2.png",
-    gallery: ["/products/Kitchen2.png", "/products/Kitchen3.png", "/products/Kitchen4.png"],
+    gallery: ["/products/Kitchen2.png"],
     category: "Straight",
     featured: true,
-    featureHighlights: DEFAULT_FEATURE_HIGHLIGHTS,
-  },
-  {
+  }),
+  productSeed({
     title: "Teak Atelier",
     slug: "teak-atelier",
     subtitle: "L Shape layout",
@@ -90,12 +96,11 @@ const DEFAULT_PRODUCTS = [
     description:
       "Teak brings warmth, strength, and quiet richness to every surface — elevating your kitchen into a lasting heirloom.",
     image: "/products/Kitchen3.png",
-    gallery: ["/products/Kitchen3.png", "/products/Kitchen1.png", "/products/Kitchen6.png"],
+    gallery: ["/products/Kitchen3.png"],
     category: "L Shape",
     featured: true,
-    featureHighlights: DEFAULT_FEATURE_HIGHLIGHTS,
-  },
-  {
+  }),
+  productSeed({
     title: "Midnight Gallery",
     slug: "midnight-gallery",
     subtitle: "U Shape layout",
@@ -103,12 +108,11 @@ const DEFAULT_PRODUCTS = [
     sectionTag: "Core Component",
     description: "Deep tones with layered storage and generous worktop surfaces.",
     image: "/products/Kitchen4.png",
-    gallery: ["/products/Kitchen4.png", "/products/Kitchen5.png", "/products/Kitchen2.png"],
+    gallery: ["/products/Kitchen4.png"],
     category: "U Shape",
     featured: false,
-    featureHighlights: DEFAULT_FEATURE_HIGHLIGHTS,
-  },
-  {
+  }),
+  productSeed({
     title: "Soft Horizon",
     slug: "soft-horizon",
     subtitle: "Island layout",
@@ -116,12 +120,11 @@ const DEFAULT_PRODUCTS = [
     sectionTag: "Core Component",
     description: "Light finishes and open proportions for contemporary island homes.",
     image: "/products/Kitchen5.png",
-    gallery: ["/products/Kitchen5.png", "/products/Kitchen6.png", "/products/Kitchen1.png"],
+    gallery: ["/products/Kitchen5.png"],
     category: "Modern",
     featured: true,
-    featureHighlights: DEFAULT_FEATURE_HIGHLIGHTS,
-  },
-  {
+  }),
+  productSeed({
     title: "Coastal Line",
     slug: "coastal-line",
     subtitle: "T Shape layout",
@@ -129,89 +132,82 @@ const DEFAULT_PRODUCTS = [
     sectionTag: "Core Component",
     description: "T-shape kitchen with peninsula seating for casual dining.",
     image: "/products/Kitchen6.png",
-    gallery: ["/products/Kitchen6.png", "/products/Kitchen2.png", "/products/Kitchen3.png"],
+    gallery: ["/products/Kitchen6.png"],
     category: "T Shape",
     featured: false,
-    featureHighlights: DEFAULT_FEATURE_HIGHLIGHTS,
-  },
-  {
+  }),
+  productSeed({
     title: "Amber Court",
     slug: "amber-court",
     subtitle: "Island layout",
     productType: "Islands",
     sectionTag: "Core Component",
     description: "Warm amber tones paired with brass hardware and marble accents.",
-    image: "/products/Kitchen1.png",
-    gallery: ["/products/Kitchen1.png", "/products/Kitchen2.png", "/products/Kitchen3.png"],
+    image: "",
+    gallery: [],
     category: "Islands",
     featured: false,
-    featureHighlights: DEFAULT_FEATURE_HIGHLIGHTS,
-  },
-  {
+  }),
+  productSeed({
     title: "Nova Kitchen",
     slug: "nova-kitchen",
     subtitle: "Straight layout",
     productType: "Modern",
     sectionTag: "Core Component",
     description: "Clean lines and smart storage in a bright straight-run layout.",
-    image: "/products/Kitchen2.png",
-    gallery: ["/products/Kitchen2.png", "/products/Kitchen3.png", "/products/Kitchen4.png"],
+    image: "",
+    gallery: [],
     category: "Modern",
     featured: true,
-    featureHighlights: DEFAULT_FEATURE_HIGHLIGHTS,
-  },
-  {
+  }),
+  productSeed({
     title: "Heritage Wing",
     slug: "heritage-wing",
     subtitle: "U Shape layout",
     productType: "U Shape",
     sectionTag: "Core Component",
     description: "Classic proportions updated with contemporary materials.",
-    image: "/products/Kitchen3.png",
-    gallery: ["/products/Kitchen3.png", "/products/Kitchen4.png", "/products/Kitchen5.png"],
+    image: "",
+    gallery: [],
     category: "U Shape",
     featured: false,
-    featureHighlights: DEFAULT_FEATURE_HIGHLIGHTS,
-  },
-  {
+  }),
+  productSeed({
     title: "Calm Studio",
     slug: "calm-studio",
     subtitle: "L Shape layout",
     productType: "L Shape",
     sectionTag: "Core Component",
     description: "Quiet palette, integrated appliances, and seamless storage.",
-    image: "/products/Kitchen4.png",
-    gallery: ["/products/Kitchen4.png", "/products/Kitchen5.png", "/products/Kitchen6.png"],
+    image: "",
+    gallery: [],
     category: "L Shape",
     featured: false,
-    featureHighlights: DEFAULT_FEATURE_HIGHLIGHTS,
-  },
-  {
+  }),
+  productSeed({
     title: "Shadow Ridge",
     slug: "shadow-ridge",
     subtitle: "Island layout",
     productType: "Islands",
     sectionTag: "Core Component",
     description: "Deep charcoal cabinetry with a statement waterfall island.",
-    image: "/products/Kitchen5.png",
-    gallery: ["/products/Kitchen5.png", "/products/Kitchen6.png", "/products/Kitchen1.png"],
+    image: "",
+    gallery: [],
     category: "Islands",
     featured: true,
-    featureHighlights: DEFAULT_FEATURE_HIGHLIGHTS,
-  },
-  {
+  }),
+  productSeed({
     title: "Linen Bay",
     slug: "linen-bay",
     subtitle: "Straight layout",
     productType: "Straight",
     sectionTag: "Core Component",
     description: "Warm linen fronts with handle-less profiles and soft lighting.",
-    image: "/products/Kitchen6.png",
-    gallery: ["/products/Kitchen6.png", "/products/Kitchen1.png", "/products/Kitchen2.png"],
+    image: "",
+    gallery: [],
     category: "Straight",
     featured: false,
-    featureHighlights: DEFAULT_FEATURE_HIGHLIGHTS,
-  },
+  }),
 ];
 
 // ─── default gallery ─────────────────────────────────────────────────────────
@@ -238,8 +234,9 @@ const DEFAULT_BLOGS = [
     author: "Thailand Kitchen",
     readTime: "8 min",
     publishDate: "2024-05-12",
-    image: "/blog/blogImage (1).jpg",
-    gallery: ["/blog/blogImage (2).jpg", "/blog/blogImage (3).jpg"],
+    image: "",
+    gallery: [],
+    metaTitle: "The Art of Teak | Thailand Kitchens",
     bodySections: [
       {
         title: "A Legacy of Resilience",
@@ -271,8 +268,9 @@ const DEFAULT_BLOGS = [
     author: "Thailand Kitchen",
     readTime: "6 min",
     publishDate: "2024-04-28",
-    image: "/blog/blogImage (2).jpg",
-    gallery: ["/blog/blogImage (1).jpg", "/blog/blogImage (3).jpg"],
+    image: "",
+    gallery: [],
+    metaTitle: "Open Concept Kitchen Design | Thailand Kitchens",
     bodySections: [
       {
         title: "Designing for Connection",
@@ -297,8 +295,9 @@ const DEFAULT_BLOGS = [
     author: "Anan Sukhumvit",
     readTime: "5 min",
     publishDate: "2026-07-09",
-    image: "/blog/blogImage (3).jpg",
-    gallery: ["/blog/blogImage (1).jpg", "/blog/blogImage (2).jpg"],
+    image: "",
+    gallery: [],
+    metaTitle: "Modern Kitchen Transformation | Thailand Kitchens",
     bodySections: [
       {
         title: "Start With Lifestyle",
@@ -320,10 +319,9 @@ const DEFAULT_BLOGS = [
 // ─── default catalogues ──────────────────────────────────────────────────────
 
 const DEFAULT_CATALOGUES = [
-  { title: "2026 Minimal Edition", category: "Minimal", image: "/catlog/catlog.png",    pdfUrl: "", fileName: "catalogue-minimal.pdf", downloadName: "Thailand-Kitchens-Catalogue-Minimal.pdf", sortOrder: 1 },
-  { title: "2026 Classic Edition", category: "Classic", image: "/catlog/catlog (1).png", pdfUrl: "", fileName: "catalogue-classic.pdf", downloadName: "Thailand-Kitchens-Catalogue-Classic.pdf", sortOrder: 2 },
-  { title: "2026 Modern Edition",  category: "Modern",  image: "/catlog/catlog (2).png", pdfUrl: "", fileName: "catalogue-modern.pdf",  downloadName: "Thailand-Kitchens-Catalogue-Modern.pdf",  sortOrder: 3 },
-  { title: "2026 Full Catalogue",  category: "Modern",  image: "/catlog/catlog.png",     pdfUrl: "", fileName: "catalogue.pdf",         downloadName: "Thailand-Kitchens-Catalogue.pdf",         sortOrder: 4 },
+  { title: "2026 Minimal Edition", category: "Minimal", image: "/catlog/catlog.png",    pdfUrl: "", fileName: "catalogue-minimal.pdf", downloadName: "Thailand-Kitchens-Catalogue-Minimal.pdf", sortOrder: 1, editionKey: "minimal", locked: true },
+  { title: "2026 Classic Edition", category: "Classic", image: "/catlog/catlog (1).png", pdfUrl: "", fileName: "catalogue-classic.pdf", downloadName: "Thailand-Kitchens-Catalogue-Classic.pdf", sortOrder: 2, editionKey: "classic", locked: true },
+  { title: "2026 Modern Edition",  category: "Modern",  image: "/catlog/catlog (2).png", pdfUrl: "", fileName: "catalogue-modern.pdf",  downloadName: "Thailand-Kitchens-Catalogue-Modern.pdf",  sortOrder: 3, editionKey: "modern", locked: true },
 ];
 
 // ─── legal defaults ──────────────────────────────────────────────────────────
@@ -337,7 +335,7 @@ const DEFAULT_LEGAL = {
     sections: [
       { title: "Data We Collect", body: "Name, email, phone, and project details provided when you contact us." },
       { title: "How We Use It",   body: "To respond to enquiries, provide quotes, and improve our service." },
-      { title: "Your Rights",     body: "You may request access, correction, or deletion of your data at any time." },
+      { title: "Your Rights",     body: "You may request access, correction, or deletion of your data at any time. Contact hello@thailandkitchens.com for privacy requests." },
     ],
   },
   terms: {
@@ -429,7 +427,7 @@ async function main() {
     icon:             "",
     gallery:          p.gallery || [],
     pdfUrl:           "",
-    featureHighlights: locHighlights(p.featureHighlights || DEFAULT_FEATURE_HIGHLIGHTS),
+    featureHighlights: locHighlights(p.featureHighlights || []),
     category:         loc(p.category || ""),
     featured:         Boolean(p.featured),
   }));

@@ -47,16 +47,16 @@ const DEFAULT_HOME_SECTIONS = {
   hero: {
     subtitle: {"en":"Fineline of kitchen","th":"เส้นบางของครัว","pl":"Fine line kuchni"},
     title: {"en":"Timeless craft of Thai kitchen","th":"งานฝีมือครัวไทยที่เหนือกาลเวลา","pl":"Ponadczasowe rzemiosło kuchni tajskiej"},
-    description: {"en":"From custom cabinetry to complete kitchen transformations, we bring decades of Thai craftsmanship to every home we design.","th":"ตั้งแต่ตู้ครัวสั่งทำไปจนถึงการเปลี่ยนโฉมครัวทั้งหลัง เรานำทศวรรษแห่งงานฝีมือไทยมาสู่ทุกบ้านที่เราออกแบบ","pl":"Od zabudowy na wymiar po kompleksowe metamorfozy kuchni — od dekad wnosimy tajskie rzemiosło do każdego domu, który projektujemy."},
+    description: {"en":"From custom cabinetry to complete kitchen transformations, we bring Thai craftsmanship to every home we design.","th":"ตั้งแต่ตู้ครัวสั่งทำไปจนถึงการเปลี่ยนโฉมครัวทั้งหลัง เรานำงานฝีมือไทยมาสู่ทุกบ้านที่เราออกแบบ","pl":"Od zabudowy na wymiar po kompleksowe metamorfozy kuchni — wnosimy tajskie rzemiosło do każdego domu, który projektujemy."},
     buttonText: {"en":"Explore","th":"สำรวจ","pl":"Odkryj"},
     image: "/products/Kitchen2.png",
     videoUrl: "/video/2.mp4",
   },
   statistics: {
     items: [
-      { label: {"en":"Years Of Experience","th":"ปีแห่งประสบการณ์","pl":"Lat doświadczenia"}, value: "15", suffix: "+" },
-      { label: {"en":"Cities Across Thailand","th":"เมืองทั่วประเทศไทย","pl":"Miast w Tajlandii"}, value: "12", suffix: "" },
-      { label: {"en":"Kitchen Completed","th":"ครัวที่เสร็จสมบูรณ์","pl":"Ukończonych kuchni"}, value: "800", suffix: "+" },
+      { label: {"en":"Years Of Experience","th":"ปีแห่งประสบการณ์","pl":"Lat doświadczenia"}, value: "1", suffix: "+" },
+      { label: {"en":"City in Thailand","th":"เมืองในประเทศไทย","pl":"Miasto w Tajlandii"}, value: "1", suffix: "" },
+      { label: {"en":"Kitchens Completed","th":"ครัวที่เสร็จสมบูรณ์","pl":"Ukończonych kuchni"}, value: "25", suffix: "+" },
     ],
   },
   advantages: {
@@ -83,7 +83,7 @@ const DEFAULT_HOME_SECTIONS = {
   story: {
     title: {"en":"Crafted With Passion","th":"รังสรรค์ด้วยความหลงใหล","pl":"Stworzone z pasją"},
     subtitle: {"en":"Our Story","th":"เรื่องราวของเรา","pl":"Nasza historia"},
-    description: {"en":"Over the years, we have designed hundreds of kitchens across Thailand. Each project has taught us something new about space, about people, and about what it means to feel at home.","th":"ตลอดหลายปีที่ผ่านมา เราได้ออกแบบครัวหลายร้อยหลังทั่วประเทศไทย แต่ละโปรเจกต์สอนเราเกี่ยวกับพื้นที่ ผู้คน และความหมายของการรู้สึกเหมือนบ้าน","pl":"Przez lata zaprojektowaliśmy setki kuchni w całej Tajlandii. Każdy projekt uczył nas czegoś nowego o przestrzeni, ludziach i tym, co znaczy czuć się jak w domu."},
+    description: {"en":"We have completed 25+ kitchens in our first year in Thailand. Each project teaches us something new about space, about people, and about what it means to feel at home.","th":"เราทำครัวครบกว่า 25 หลังในปีแรกในประเทศไทย แต่ละโปรเจกต์สอนเราเกี่ยวกับพื้นที่ ผู้คน และความหมายของการรู้สึกเหมือนบ้าน","pl":"W pierwszym roku w Tajlandii ukończyliśmy ponad 25 kuchni. Każdy projekt uczy nas czegoś nowego o przestrzeni, ludziach i tym, co znaczy czuć się jak w domu."},
     image: "/slider/crafted-with-passion.png",
   },
   transition: {
@@ -171,6 +171,8 @@ const DEFAULT_HOME_SECTIONS = {
         pdfUrl: "",
         fileName: "catalogue-minimal.pdf",
         downloadName: "Thailand-Kitchens-Catalogue-Minimal.pdf",
+        editionKey: "minimal",
+        locked: true,
       },
       {
         title: L("2026 EDITION", "ฉบับ 2026", "EDYCJA 2026"),
@@ -179,6 +181,8 @@ const DEFAULT_HOME_SECTIONS = {
         pdfUrl: "",
         fileName: "catalogue-classic.pdf",
         downloadName: "Thailand-Kitchens-Catalogue-Classic.pdf",
+        editionKey: "classic",
+        locked: true,
       },
       {
         title: L("2026 EDITION", "ฉบับ 2026", "EDYCJA 2026"),
@@ -187,14 +191,8 @@ const DEFAULT_HOME_SECTIONS = {
         pdfUrl: "",
         fileName: "catalogue-modern.pdf",
         downloadName: "Thailand-Kitchens-Catalogue-Modern.pdf",
-      },
-      {
-        title: L("2026 EDITION", "ฉบับ 2026", "EDYCJA 2026"),
-        category: L("Modern", "โมเดิร์น", "Nowoczesny"),
-        image: "/catlog/catlog.png",
-        pdfUrl: "",
-        fileName: "catalogue.pdf",
-        downloadName: "Thailand-Kitchens-Catalogue.pdf",
+        editionKey: "modern",
+        locked: true,
       },
     ],
   },
@@ -223,7 +221,7 @@ const DEFAULT_HOME_SECTIONS = {
     ],
   },
   footer: {
-    email: "hello@Thaikitchen.in",
+    email: "hello@thailandkitchens.com",
     phone: "+91 98765 43210",
     address: {"en":"Pattaya & Samui, Thailand","th":"พัทยา และ เกาะสมุย ประเทศไทย","pl":"Pattaya i Samui, Tajlandia"},
     facebook: "https://www.facebook.com/ThailandKitchens/",
@@ -330,7 +328,7 @@ const DEFAULT_HOME_SECTIONS = {
     description: {"en":"We believe in the soul of teak wood and the precision of ancient joining techniques. Every kitchen we craft is a bridge between Thai heritage and modern living.","th":"เราเชื่อในจิตวิญญาณของไม้สักและความแม่นยำของเทคนิคการต่อไม้โบราณ ทุกครัวที่เรารังสรรค์คือสะพานเชื่อมมรดกไทยกับการใช้ชีวิตสมัยใหม่","pl":"Wierzymy w duszę drewna tekowego i precyzję starożytnych technik łączenia. Każda kuchnia, którą tworzymy, łączy tajskie dziedzictwo z nowoczesnym życiem."},
     videoUrl: "/video/contact.mp4?v=2",
     craftImage: "/contactUs/contact.png",
-    email: "hi@thailandkitchens.com",
+    email: "hello@thailandkitchens.com",
     phone: "+66 64 683 9777",
     locations: [
       {
@@ -393,6 +391,9 @@ const DEFAULT_HOME_SECTIONS = {
             "ครัวเกาะ รูปตัว U รูปตัว L ทางเดินแคบ และเลย์เอาต์อื่นๆ",
             "Wyspy, kształt U, kształt L, galeryjne i inne układy kuchni."
           ),
+          metaTitle: "Kitchen Layouts | Thailand Kitchens",
+          metaDescription:
+            "Island, U-shape, L-shape, galley, and straight kitchen layouts planned for Thai homes.",
           sections: [
             {
               heading: L("Layouts that work for your space", "เลย์เอาต์ที่เหมาะกับพื้นที่ของคุณ", "Układy dopasowane do przestrzeni"),
@@ -423,6 +424,9 @@ const DEFAULT_HOME_SECTIONS = {
             "สไตล์ครัวโมเดิร์น ทรอปิคอล มินิมอล และมรดก",
             "Nowoczesne, tropikalne, minimalistyczne i klasyczne style kuchni."
           ),
+          metaTitle: "Kitchen Styles | Thailand Kitchens",
+          metaDescription:
+            "Modern, tropical, minimal, and heritage kitchen styles with lasting character.",
           sections: [
             {
               heading: L("Styles with lasting character", "สไตล์ที่มีเอกลักษณ์ยาวนาน", "Style z charakterem"),
@@ -453,6 +457,9 @@ const DEFAULT_HOME_SECTIONS = {
             "โซลูชันครัวสำหรับวิลล่า คอนโด โรงแรม และโครงการพัฒนา",
             "Rozwiązania kuchenne dla willi, apartamentów, hoteli i deweloperów."
           ),
+          metaTitle: "Kitchens by Property | Thailand Kitchens",
+          metaDescription:
+            "Kitchen solutions for villas, condos, hotels, and developers across Thailand.",
           sections: [
             {
               heading: L("Solutions by property type", "โซลูชันตามประเภทที่อยู่อาศัย", "Rozwiązania według typu nieruchomości"),
