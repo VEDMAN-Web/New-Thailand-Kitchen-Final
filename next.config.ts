@@ -3,9 +3,10 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
-const apiTarget = (
+const rawBackend = (
   process.env.BACKEND_URL?.trim() || "http://127.0.0.1:5000"
 ).replace(/\/+$/, "");
+const apiTarget = rawBackend.replace(/\/api$/i, "");
 
 // Frontend URL for proxying public static assets (brand logos, product images, etc.)
 const frontendTarget = (
@@ -106,7 +107,8 @@ const nextConfig: NextConfig = {
     ];
 
     return {
-      beforeFiles: [...apiRewrites, ...varsoviaAssetRewrites, ...siteAssetRewrites],
+      beforeFiles: [...varsoviaAssetRewrites, ...siteAssetRewrites],
+      fallback: apiRewrites,
     };
   },
 };

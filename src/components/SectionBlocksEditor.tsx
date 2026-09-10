@@ -14,7 +14,9 @@ import {
 
 export type SectionBlockForm = {
   heading: LocalizedText;
-  body: LocalizedText;
+  /** Structured editor state. `body` remains supported for legacy templates. */
+  bodyItems?: Record<LocaleCode, string[]>;
+  body?: LocalizedText;
   image: string;
   layout: string;
 };
@@ -43,22 +45,22 @@ export const SECTION_LAYOUTS: { value: string; label: string; hint: string }[] =
   {
     value: "cards",
     label: "Feature cards",
-    hint: "Body: one item per line, or separate with | (e.g. Layout|Style|Property).",
+    hint: "Add each highlight as a separate item below.",
   },
   {
     value: "steps",
     label: "Process steps",
-    hint: "Body: one step per line. Use Title: description or Title|description.",
+    hint: "Add each process step as a separate item below.",
   },
   {
     value: "checklist",
     label: "Checklist",
-    hint: "Body: one checklist item per line, or separate with |.",
+    hint: "Add each checklist item as a separate item below.",
   },
   {
     value: "stats",
     label: "Stats / chips",
-    hint: "Body: location or stat labels separated by | or new lines.",
+    hint: "Add each location or stat as a separate item below.",
   },
   {
     value: "quote",
@@ -207,7 +209,7 @@ export default function SectionBlocksEditor({
       ...sections,
       {
         heading: emptyLocalized(),
-        body: emptyLocalized(),
+        bodyItems: { en: [], th: [], pl: [] },
         image: "",
         layout: "image-left",
       },
@@ -267,6 +269,8 @@ export default function SectionBlocksEditor({
         const layoutMeta = SECTION_LAYOUTS.find((l) => l.value === block.layout);
         const slot = sectionSlotMeta(block.layout || "image-left", i);
         const headingPreview = localizedValue(block.heading, "en").trim();
+        const currentItems =
+          block.bodyItems?.[locale] || bodyItemsFromValue(block.body, locale);
         return (
           <div
             key={`section-${i}`}
@@ -369,22 +373,119 @@ export default function SectionBlocksEditor({
               <label className="block text-xs font-semibold text-[#5C6370] mb-1">
                 Body ({locale.toUpperCase()})
               </label>
-              <textarea
-                rows={4}
-                placeholder={
-                  localeFieldPlaceholder(locale) || bodyPlaceholder(block.layout)
-                }
-                value={localizedValue(block.body, locale)}
-                onChange={(e) => {
-                  const next = [...sections];
-                  next[i] = {
-                    ...block,
-                    body: writeLocalized(block.body, locale, e.target.value),
-                  };
-                  onChange(next);
-                }}
-                className="w-full rounded-lg border border-[#E2E5EA] px-3 py-2 text-sm resize-y"
-              />
+              {block.layout === "cards" ? (
+                <div className="space-y-2">
+                  {currentItems.map((item, itemIndex) => (
+                    <div key={itemIndex} className="flex items-start gap-2">
+                      <textarea
+                        rows={2}
+                        value={item}
+                        placeholder={
+                          localeFieldPlaceholder(locale) ||
+                          bodyPlaceholder(block.layout)
+                        }
+                        onChange={(e) => {
+                          const items = [...currentItems];
+                          items[itemIndex] = e.target.value;
+                          const next = [...sections];
+                          next[i] = {
+                            ...block,
+                            bodyItems: { ...block.bodyItems, [locale]: items },
+                          };
+                          onChange(next);
+                        }}
+                        className="w-full rounded-lg border border-[#E2E5EA] px-3 py-2 text-sm resize-y"
+                      />
+                      <div className="flex shrink-0 items-center gap-1">
+                        <button
+                          type="button"
+                          disabled={itemIndex === 0}
+                          onClick={() => {
+                            const items = moveItem(currentItems, itemIndex, itemIndex - 1);
+                            const next = [...sections];
+                            next[i] = {
+                              ...block,
+                              bodyItems: { ...block.bodyItems, [locale]: items },
+                            };
+                            onChange(next);
+                          }}
+                          className="rounded-md border border-[#E2E5EA] p-1.5 disabled:opacity-30 hover:bg-[#F4F5F7]"
+                          title="Move item up"
+                        >
+                          <ChevronUp className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          disabled={itemIndex === currentItems.length - 1}
+                          onClick={() => {
+                            const items = moveItem(currentItems, itemIndex, itemIndex + 1);
+                            const next = [...sections];
+                            next[i] = {
+                              ...block,
+                              bodyItems: { ...block.bodyItems, [locale]: items },
+                            };
+                            onChange(next);
+                          }}
+                          className="rounded-md border border-[#E2E5EA] p-1.5 disabled:opacity-30 hover:bg-[#F4F5F7]"
+                          title="Move item down"
+                        >
+                          <ChevronDown className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const items = currentItems.filter((_, index) => index !== itemIndex);
+                            const next = [...sections];
+                            next[i] = {
+                              ...block,
+                              bodyItems: { ...block.bodyItems, [locale]: items },
+                            };
+                            onChange(next);
+                          }}
+                          className="rounded-md border border-red-100 p-1.5 text-red-600 hover:bg-red-50"
+                          title="Remove item"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = [...sections];
+                      next[i] = {
+                        ...block,
+                        bodyItems: {
+                          ...(block.bodyItems || { en: [], th: [], pl: [] }),
+                          [locale]: [...currentItems, ""],
+                        },
+                      };
+                      onChange(next);
+                    }}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-[#CBD5E1] px-3 py-2 text-xs font-semibold text-[#1A2332] hover:bg-[#F8FAFC]"
+                  >
+                    <Plus className="h-3.5 w-3.5" /> Add Item
+                  </button>
+                </div>
+              ) : (
+                <textarea
+                  rows={4}
+                  placeholder={
+                    localeFieldPlaceholder(locale) || bodyPlaceholder(block.layout)
+                  }
+                  value={currentItems.join(" | ")}
+                  onChange={(e) => {
+                    const next = [...sections];
+                    next[i] = {
+                      ...block,
+                      bodyItems: { ...block.bodyItems, [locale]: [e.target.value] },
+                    };
+                    onChange(next);
+                  }}
+                  className="w-full rounded-lg border border-[#E2E5EA] px-3 py-2 text-sm resize-y"
+                />
+              )}
             </div>
 
             {slot.usesImage ? (
@@ -412,7 +513,11 @@ export function sectionsFromApi(raw: unknown): SectionBlockForm[] {
   if (!Array.isArray(raw)) return [];
   return raw.map((block: any) => ({
     heading: asLocalizedForm(block?.heading),
-    body: asLocalizedForm(block?.body ?? block?.text),
+    bodyItems: {
+      en: bodyItemsFromValue(block?.bodyItems ?? block?.body ?? block?.text, "en"),
+      th: bodyItemsFromValue(block?.bodyItems ?? block?.body ?? block?.text, "th"),
+      pl: bodyItemsFromValue(block?.bodyItems ?? block?.body ?? block?.text, "pl"),
+    },
     image: String(block?.image || ""),
     layout: String(block?.layout || "image-left"),
   }));
@@ -421,8 +526,39 @@ export function sectionsFromApi(raw: unknown): SectionBlockForm[] {
 export function sectionsToApiPayload(sections: SectionBlockForm[]) {
   return sections.map((block) => ({
     heading: block.heading,
-    body: block.body,
+    bodyItems: block.bodyItems,
+    body: {
+      en: cleanBodyItems(
+        block.bodyItems?.en || bodyItemsFromValue(block.body, "en")
+      ).join(" | "),
+      th: cleanBodyItems(
+        block.bodyItems?.th || bodyItemsFromValue(block.body, "th")
+      ).join(" | "),
+      pl: cleanBodyItems(
+        block.bodyItems?.pl || bodyItemsFromValue(block.body, "pl")
+      ).join(" | "),
+    },
     image: block.image,
     layout: block.layout || "image-left",
   }));
+}
+
+function bodyItemsFromValue(value: unknown, locale: LocaleCode): string[] {
+  if (value === undefined || value === null) return [];
+  const localized =
+    value && typeof value === "object" && !Array.isArray(value)
+      ? (value as Record<string, unknown>)[locale]
+      : value;
+  if (localized === undefined || localized === null) return [];
+  if (Array.isArray(localized)) {
+    return localized.map((item) => String(item ?? ""));
+  }
+  const text = String(localized ?? "");
+  return text
+    ? text.split(/\s*\|\s*|\r?\n/).map((item) => item.trim())
+    : [""];
+}
+
+function cleanBodyItems(items: string[]) {
+  return (items || []).map((item) => item.trim()).filter(Boolean);
 }

@@ -15,6 +15,10 @@ import {
   type LocalizedText,
 } from "@/lib/localized";
 import { getLegal, updateLegal } from "@/services/adminAPI";
+import {
+  CANONICAL_CONTACT_EMAIL,
+  replaceLegacyEmailsDeep,
+} from "@/lib/approvedSiteFacts";
 
 type SectionDraft = { title: LocalizedText; body: LocalizedText };
 
@@ -41,6 +45,8 @@ export default function LegalEditor({
   const [sections, setSections] = useState<SectionDraft[]>([
     { title: emptyLocalized(), body: emptyLocalized() },
   ]);
+  const [ownerConfirmed, setOwnerConfirmed] = useState(false);
+  const [ownerConfirmedAt, setOwnerConfirmedAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const loadSeqRef = useRef(0);
@@ -55,6 +61,8 @@ export default function LegalEditor({
       setPageTitle(asLocalizedForm(page.title, defaultTitle));
       setSubtitle(asLocalizedForm(page.subtitle, defaultSubtitle));
       setUpdatedLabel(asLocalizedForm(page.updatedLabel, "July 2026"));
+      setOwnerConfirmed(false);
+      setOwnerConfirmedAt(page.ownerConfirmedAt || null);
       if (page.sections?.length) {
         setSections(
           page.sections.map((s) => ({
@@ -88,19 +96,39 @@ export default function LegalEditor({
       toast.error("English page title is required");
       return;
     }
-    const cleanSections = sections
-      .map((s) => ({
-        title: asLocalizedForm(s.title),
-        body: asLocalizedForm(s.body),
-      }))
-      .filter(
-        (s) =>
-          localizedValue(s.title, "en").trim() ||
-          localizedValue(s.body, "en").trim()
-      );
+    const cleanSections = replaceLegacyEmailsDeep(
+      sections
+        .map((s) => ({
+          title: asLocalizedForm(s.title),
+          body: asLocalizedForm(s.body),
+        }))
+        .filter(
+          (s) =>
+            localizedValue(s.title, "en").trim() ||
+            localizedValue(s.body, "en").trim()
+        )
+    );
     if (!cleanSections.length) {
       toast.error("Add at least one section");
       return;
+    }
+
+    if (type === "terms" && !ownerConfirmed) {
+      toast.error(
+        "Tick Vedant confirmation of deposit, warranty, and commercial clauses before saving Terms."
+      );
+      return;
+    }
+
+    if (type === "privacy") {
+      const joined = cleanSections
+        .map((s) => `${localizedValue(s.body, "en")} ${localizedValue(s.body, "th")} ${localizedValue(s.body, "pl")}`)
+        .join(" ");
+      if (!joined.includes(CANONICAL_CONTACT_EMAIL)) {
+        toast.message(
+          `Privacy contact should use ${CANONICAL_CONTACT_EMAIL}. Legacy leftovers were rewritten if present.`
+        );
+      }
     }
 
     setSaving(true);
@@ -110,6 +138,7 @@ export default function LegalEditor({
         subtitle: asLocalizedForm(subtitle),
         updatedLabel: asLocalizedForm(updatedLabel),
         sections: cleanSections,
+        ...(type === "terms" ? { ownerConfirmed: true } : {}),
       });
       toast.success("Saved");
       await load();
@@ -139,7 +168,32 @@ export default function LegalEditor({
       </div>
       <p className="text-xs text-[#94A3B8]">
         Switch language to edit Thai or Polish legal copy.
+        {type === "privacy"
+          ? " Contact address must stay hello@thailandkitchens.com (legacy leftovers are rewritten on save)."
+          : " Deposit, 10-year warranty, and commercial payment clauses need Vedant sign-off before any change is published."}
       </p>
+      {type === "terms" ? (
+        <label className="flex items-start gap-2 rounded-xl border border-[#E8EAED] bg-[#F8FAFC] p-3 text-sm text-[#1A2332]">
+          <input
+            type="checkbox"
+            className="mt-0.5"
+            checked={ownerConfirmed}
+            onChange={(e) => setOwnerConfirmed(e.target.checked)}
+          />
+          <span>
+            Vedant has confirmed the deposit, warranty, and commercial clauses in this draft.
+            {ownerConfirmedAt ? (
+              <span className="block text-[11px] text-[#64748B]">
+                Last confirmed {new Date(ownerConfirmedAt).toLocaleString()}.
+              </span>
+            ) : (
+              <span className="block text-[11px] text-[#64748B]">
+                Not yet confirmed in CMS.
+              </span>
+            )}
+          </span>
+        </label>
+      ) : null}
 
       <div>
         <label className="block text-xs font-semibold text-[#5C6370] mb-1.5">

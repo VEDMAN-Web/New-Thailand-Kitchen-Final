@@ -70,6 +70,10 @@ export default function AdminUsersPage() {
 
   return (
     <>
+    <p className="mb-4 rounded-xl border border-[#E8EAED] bg-[#F8FAFC] px-4 py-3 text-sm text-[#334155]">
+      Create one login per person (individually revocable). Keep these accounts on the
+      staging database until Vedant signs off production access. Do not share a single token.
+    </p>
     <div className="flex justify-end mb-6">
         <button
           type="button"

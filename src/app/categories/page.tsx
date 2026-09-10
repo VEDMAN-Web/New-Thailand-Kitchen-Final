@@ -30,6 +30,10 @@ import {
   categoryTypeLabel,
 } from "@/lib/thailandHubs";
 import { CMS_SYNCED_EVENT } from "@/lib/adminSectionNav";
+import {
+  isMislabelledKitchenStock,
+  stripKitchenStockFromCategoryDraft,
+} from "@/lib/approvedSiteFacts";
 import HubLandingEditor from "@/components/HubLandingEditor";
 import {
   createCategory,
@@ -328,10 +332,27 @@ export default function AdminCategoriesPage() {
     const eyebrowForm = asLocalizedForm((item as any).eyebrow);
     const footerHeadingForm = asLocalizedForm((item as any).footerCtaHeading);
     const footerBodyForm = asLocalizedForm((item as any).footerCtaBody);
+    const cleaned = stripKitchenStockFromCategoryDraft({
+      slug: (item as any).slug || "",
+      image: item.image,
+      sections: sectionsFromApi((item as any).sections).map((s) => ({
+        ...s,
+        image: s.image || "",
+      })),
+    });
+    if (
+      String(item.image || "") !== String(cleaned.image || "") ||
+      JSON.stringify((item as any).sections || []) !==
+        JSON.stringify(cleaned.sections || [])
+    ) {
+      toast.message(
+        "Kitchen stock photos were cleared from this media-wall page. Upload a real TV-wall image."
+      );
+    }
     setForm({
       title: asLocalizedForm(item.title),
       description: asLocalizedForm(item.description),
-      image: item.image,
+      image: cleaned.image || "",
       icon: item.icon || "",
       slug: (item as any).slug || "",
       categoryType: type,
@@ -345,7 +366,7 @@ export default function AdminCategoriesPage() {
       ctaHref: String((item as any).ctaHref || "/contact"),
       footerCtaHeading: footerHeadingForm,
       footerCtaBody: footerBodyForm,
-      sections: sectionsFromApi((item as any).sections),
+      sections: (cleaned.sections || []) as CategorySection[],
     });
     setLocale("en");
     setModal("edit");
@@ -382,11 +403,28 @@ export default function AdminCategoriesPage() {
       setSaving(false);
       return;
     }
+    const mediaWall = String(form.slug || "").toLowerCase() === "entertainment-units";
+    if (
+      mediaWall &&
+      (isMislabelledKitchenStock(form.image) ||
+        form.sections.some((s) => isMislabelledKitchenStock(s.image || "")))
+    ) {
+      toast.error(
+        "Entertainment units cannot use kitchen stock photos. Upload a TV wall / cable access / equipment cupboard image."
+      );
+      setSaving(false);
+      return;
+    }
     try {
+      const cleaned = stripKitchenStockFromCategoryDraft({
+        slug: form.slug,
+        image: form.image.trim(),
+        sections: form.sections,
+      });
       const payload: any = {
         title: asLocalizedForm(form.title),
         description: asLocalizedForm(form.description),
-        image: form.image.trim(),
+        image: String(cleaned.image || "").trim(),
         icon: form.icon,
         slug: form.slug,
         categoryType: form.categoryType,
@@ -400,7 +438,9 @@ export default function AdminCategoriesPage() {
         ctaHref: form.ctaHref.trim(),
         footerCtaHeading: asLocalizedForm(form.footerCtaHeading),
         footerCtaBody: asLocalizedForm(form.footerCtaBody),
-        sections: sectionsToApiPayload(form.sections),
+        sections: sectionsToApiPayload(
+          (cleaned.sections || []) as CategorySection[]
+        ),
       };
       if (modal === "create") {
         await createCategory(siteId, payload);

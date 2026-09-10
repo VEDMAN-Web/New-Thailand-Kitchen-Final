@@ -18,7 +18,7 @@ type Kind = "image" | "icon" | "pdf" | "any";
 
 type UploadResult = {
   success?: boolean;
-  file?: { url?: string };
+  file?: { url?: string; coverUrl?: string; coverHint?: string };
 };
 
 export default function MediaUpload({
@@ -32,6 +32,7 @@ export default function MediaUpload({
   previewSize = "md",
   clearable = false,
   onUploadingChange,
+  onUploaded,
 }: {
   label: string;
   value: string;
@@ -43,6 +44,7 @@ export default function MediaUpload({
   previewSize?: "sm" | "md" | "lg";
   clearable?: boolean;
   onUploadingChange?: (uploading: boolean) => void;
+  onUploaded?: (file: { url?: string; coverUrl?: string; coverHint?: string }) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const uploadingRef = useRef(false);
@@ -148,7 +150,12 @@ export default function MediaUpload({
         : await uploadMedia(file, kind);
       if (!res?.file?.url) throw new Error("No URL returned");
       onChange(res.file.url);
-      toast.success("Uploaded");
+      onUploaded?.(res.file);
+      if (kind === "pdf" && !res.file.coverUrl && res.file.coverHint) {
+        toast.message(res.file.coverHint);
+      } else {
+        toast.success("Uploaded");
+      }
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Upload failed");
     } finally {

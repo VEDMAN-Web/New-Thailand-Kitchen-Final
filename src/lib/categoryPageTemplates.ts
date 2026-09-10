@@ -178,19 +178,28 @@ export function buildDefaultCategorySections(input: {
   }
 
   if (type === "built-in-furniture") {
+    const mediaWall = String(input.slug || "").toLowerCase() === "entertainment-units";
     return [
       {
         heading: L(`How we deliver ${title}`),
         body: L(
-          "Measure & brief|Design proposal|Material selection|Fabrication|Install & handover"
+          mediaWall
+            ? "Measure the wall|Plan cable access|Equipment cupboard|Fabrication|Install & handover"
+            : "Measure & brief|Design proposal|Material selection|Fabrication|Install & handover"
         ),
-        image: imageA,
+        image: mediaWall ? "" : imageA,
         layout: "steps",
       },
       {
-        heading: L("Built around your rooms"),
-        body: L(lead),
-        image: imageB,
+        heading: L(
+          mediaWall ? "A TV wall, not a kitchen" : "Built around your rooms"
+        ),
+        body: L(
+          mediaWall
+            ? "Use a real media-wall photograph: screen, cable access and equipment cupboard. Kitchen stock is not a substitute."
+            : lead
+        ),
+        image: mediaWall ? "" : imageB,
         layout: "image-right",
       },
       {

@@ -36,7 +36,13 @@ import {
   type LocaleCode,
   type LocalizedText,
 } from "@/lib/localized";
-import { CMS_SYNCED_EVENT } from "@/lib/adminSectionNav";
+import {
+  CMS_SYNCED_EVENT,
+} from "@/lib/adminSectionNav";
+import {
+  isGenericFeaturePack,
+  isMislabelledKitchenStock,
+} from "@/lib/approvedSiteFacts";
 import {
   canonicalCategoryLabel,
   categoryTitleEn,
@@ -102,27 +108,6 @@ function gallerySlotMeta(index: number): { title: string; hint: string; label: s
     hint: "Used on: mid-page image slider and the features side panel carousel",
   };
 }
-
-const DEFAULT_FEATURE_HIGHLIGHTS: FeatureHighlight[] = [
-  {
-    title: asLocalizedForm("Matte Obsidian Finish"),
-    description: asLocalizedForm(
-      "A deep, light-absorbing lacquer that keeps surfaces calm and fingerprints discreet in daily living."
-    ),
-  },
-  {
-    title: asLocalizedForm("Artisanal Gold Hardware"),
-    description: asLocalizedForm(
-      "Hand-finished pulls and hinges that catch soft light and complete the dark timber silhouette."
-    ),
-  },
-  {
-    title: asLocalizedForm("Imperial Marble Worktops"),
-    description: asLocalizedForm(
-      "Thick stone slabs with natural veining, sealed for lasting kitchen use and a quiet luxury feel."
-    ),
-  },
-];
 
 const empty: ProductForm = {
   title: emptyLocalized(),
@@ -222,7 +207,7 @@ export default function AdminProductsPage() {
   };
 
   const openEdit = (item: ProductItem) => {
-    const highlights = (item.featureHighlights || [])
+    let highlights = (item.featureHighlights || [])
       .map((h) => ({
         title: asLocalizedForm(h.title),
         description: asLocalizedForm(h.description),
@@ -232,10 +217,22 @@ export default function AdminProductsPage() {
           localizedValue(h.title, "en").trim() ||
           localizedValue(h.description, "en").trim()
       );
+    if (isGenericFeaturePack(highlights)) {
+      highlights = [];
+      toast.message(
+        "Generic Obsidian/Gold/Marble pack removed. Enter verified per-model features only."
+      );
+    }
     const gallery = (item.gallery || [])
       .map((s) => String(s || "").trim())
-      .filter(Boolean);
+      .filter(Boolean)
+      .filter((url, index, all) => {
+        // Keep first unique URL; drop duplicate kitchen stock reuse in later slots.
+        if (all.indexOf(url) !== index) return false;
+        return true;
+      });
     while (gallery.length < 3) gallery.push("");
+    const primary = String(item.image || "").trim();
     setEditing(item);
     setForm({
       title: asLocalizedForm(item.title),
@@ -244,7 +241,7 @@ export default function AdminProductsPage() {
       productType: asLocalizedForm(item.productType),
       sectionTag: asLocalizedForm(item.sectionTag),
       description: asLocalizedForm(item.description),
-      image: item.image,
+      image: primary,
       icon: item.icon || "",
       gallery,
       contactImage: String((item as any).contactImage || ""),
@@ -255,10 +252,7 @@ export default function AdminProductsPage() {
       category: asLocalizedForm(item.category),
       featureHighlights: highlights.length
         ? highlights
-        : DEFAULT_FEATURE_HIGHLIGHTS.map((h) => ({
-            title: asLocalizedForm(h.title),
-            description: asLocalizedForm(h.description),
-          })),
+        : [{ title: emptyLocalized(), description: emptyLocalized() }],
       featured: item.featured,
       finish: asLocalizedForm(item.finish),
       material: asLocalizedForm(item.material),
@@ -351,6 +345,18 @@ export default function AdminProductsPage() {
       return;
     }
 
+    const imagePath = form.image.trim();
+    const duplicate = items.find((item) => {
+      if (editing && item._id === editing._id) return false;
+      return imagePath && String(item.image || "").trim() === imagePath;
+    });
+    if (duplicate) {
+      toast.error(
+        `This photo is already used on “${localizedValue(duplicate.title, "en") || duplicate.slug}”. Upload a unique photo for this model.`
+      );
+      return;
+    }
+
     const featureHighlights: FeatureHighlight[] = form.featureHighlights
       .map((f) => ({
         title: asLocalizedForm(f.title),
@@ -362,6 +368,21 @@ export default function AdminProductsPage() {
           localizedValue(f.description, "en").trim()
       );
 
+    if (isGenericFeaturePack(featureHighlights)) {
+      toast.error(
+        "Do not paste the shared Obsidian / Gold / Marble pack. Enter verified per-model features, or leave empty to hide the block."
+      );
+      return;
+    }
+
+    const gallery = form.gallery.map((s) => s.trim()).filter(Boolean);
+    if (gallery.some((url) => isMislabelledKitchenStock(url) && url !== form.image.trim())) {
+      toast.error(
+        "Gallery still reuses another Kitchen*.png. Upload unique photos for this model."
+      );
+      return;
+    }
+
     const payload: any = {
       title: asLocalizedForm(form.title),
       slug: form.slug || localizedValue(form.title, "en"),
@@ -371,7 +392,7 @@ export default function AdminProductsPage() {
       description: asLocalizedForm(form.description),
       image: form.image,
       icon: form.icon,
-      gallery: form.gallery.map((s) => s.trim()).filter(Boolean),
+      gallery,
       contactImage: form.contactImage.trim(),
       contactEyebrow: asLocalizedForm(form.contactEyebrow),
       contactTitle: asLocalizedForm(form.contactTitle),
@@ -972,7 +993,9 @@ export default function AdminProductsPage() {
                       Feature Highlights
                     </p>
                     <p className="text-[11px] text-[#94A3B8]">
-                      Titles and descriptions shown beside the feature images on the product page
+                      Per-model facts only. Leave empty to hide the feature block
+                      on the live product page. Do not paste the same Obsidian /
+                      Gold / Marble pack onto every model.
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -981,21 +1004,9 @@ export default function AdminProductsPage() {
                       onClick={() =>
                         setForm({
                           ...form,
-                          featureHighlights: DEFAULT_FEATURE_HIGHLIGHTS.map((h) => ({ ...h })),
-                        })
-                      }
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-[#E2E5EA] px-3 py-2 text-xs font-semibold text-[#475569] hover:bg-[#F8FAFC]"
-                    >
-                      Load defaults
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setForm({
-                          ...form,
                           featureHighlights: [
                             ...form.featureHighlights,
-                            { title: "", description: "" },
+                            { title: emptyLocalized(), description: emptyLocalized() },
                           ],
                         })
                       }
@@ -1022,7 +1033,7 @@ export default function AdminProductsPage() {
                             ...form,
                             featureHighlights: next.length
                               ? next
-                              : [{ title: "", description: "" }],
+                              : [{ title: emptyLocalized(), description: emptyLocalized() }],
                           });
                         }}
                       >
@@ -1082,7 +1093,8 @@ export default function AdminProductsPage() {
                     </p>
                     <p className="text-[11px] text-[#94A3B8]">
                       Image 01–03 = hero gallery. Image 04+ = mid-page slider and features side panel.
-                      Each slot is a separate upload.
+                      Each slot is a separate upload. Do not reuse another model’s Kitchen*.png — leave
+                      empty until a unique project photo is available.
                     </p>
                   </div>
                   <button
