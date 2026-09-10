@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
+import { Pause, Play } from "lucide-react";
 import ProductSection from "./Home/ProductSection";
 import CatalogSection from "./catlog/CatlogSection";
 import { useTranslation } from "../i18n/LanguageProvider";
@@ -256,11 +257,15 @@ function HomePage({
               <button
                 type="button"
                 onClick={() => setVideoPaused((prev) => !prev)}
-                className="absolute top-5 right-5 z-20 rounded-full bg-black/45 text-white px-3 py-1.5 text-xs font-medium tracking-wide hover:bg-black/65 transition"
+                className="absolute top-5 right-5 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-white/35 bg-transparent text-white backdrop-blur-[2px] transition hover:border-white/60 hover:bg-white/10"
                 aria-pressed={videoPaused}
                 aria-label={videoPaused ? "Play hero video" : "Pause hero video"}
               >
-                {videoPaused ? "Play" : "Pause"}
+                {videoPaused ? (
+                  <Play className="h-4 w-4 fill-white stroke-white" aria-hidden />
+                ) : (
+                  <Pause className="h-4 w-4 fill-white stroke-white" aria-hidden />
+                )}
               </button>
             ) : null}
 
