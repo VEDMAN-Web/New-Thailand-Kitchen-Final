@@ -15,7 +15,7 @@ import {
 export type SectionBlockForm = {
   heading: LocalizedText;
   /** Structured editor state. `body` remains supported for legacy templates. */
-  bodyItems?: Record<LocaleCode, string[]>;
+  bodyItems?: Partial<Record<LocaleCode, string[]>>;
   body?: LocalizedText;
   image: string;
   layout: string;
