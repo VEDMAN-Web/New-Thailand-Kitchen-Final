@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ProductItem } from "./productData";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import { pickCmsText } from "../../lib/cmsText";
+import { DEFAULT_OG_IMAGE } from "../../lib/siteUrl";
 
 interface Props {
   product: ProductItem;
@@ -24,6 +25,9 @@ export default function ProductCard({ product }: Props) {
   const layout = pickCmsText(product.layout, product.layout, locale);
   const finish = pickCmsText(product.finish, "", locale);
   const material = pickCmsText(product.material, "", locale);
+  const imageSrc = String(product.image || "").trim() || DEFAULT_OG_IMAGE;
+  const isRemote =
+    imageSrc.startsWith("http") || imageSrc.startsWith("/uploads");
 
   return (
     <Link 
@@ -31,13 +35,14 @@ export default function ProductCard({ product }: Props) {
       className="block bg-white rounded-[1.75rem] overflow-hidden shadow-[0_6px_24px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.08)] transition-shadow h-full"
     >
       <article className="flex flex-col h-full">
-        <div className="relative w-full h-50 sm:aspect-4/3 sm:h-auto overflow-hidden shrink-0">
+        <div className="relative w-full h-50 sm:aspect-4/3 sm:h-auto overflow-hidden shrink-0 bg-[#E8E4DC]">
           <Image
-            src={product.image}
-            alt={name}
+            src={imageSrc}
+            alt={name || "Kitchen product"}
             fill
             className="object-cover transition-transform duration-500 hover:scale-105"
             sizes="(max-width: 768px) 100vw, 33vw"
+            unoptimized={isRemote}
           />
         </div>
 

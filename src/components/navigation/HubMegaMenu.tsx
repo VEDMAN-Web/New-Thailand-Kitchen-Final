@@ -439,21 +439,29 @@ export function HubDesktopNavItem({
       onMouseEnter={handleEnter}
       onMouseLeave={handleLeave}
     >
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-haspopup="true"
-        onClick={() => {
-          clearCloseTimer();
-          setOpenKey(open ? null : config.key);
-        }}
-        className={`${linkClassName} inline-flex items-center gap-1.5 transition-colors duration-200 ${
-          open ? "text-[#1A1A1A] font-bold" : ""
-        }`}
-      >
-        {label}
-        <Chevron open={open} />
-      </button>
+      <div className={`${linkClassName} inline-flex items-center gap-1`}>
+        <Link
+          href={config.href}
+          className={`inline-flex items-center transition-colors duration-200 ${
+            open ? "text-[#1A1A1A] font-bold" : ""
+          }`}
+        >
+          {label}
+        </Link>
+        <button
+          type="button"
+          aria-label={`Open ${label} menu`}
+          aria-expanded={open}
+          aria-haspopup="true"
+          onClick={() => {
+            clearCloseTimer();
+            setOpenKey(open ? null : config.key);
+          }}
+          className="inline-flex items-center"
+        >
+          <Chevron open={open} />
+        </button>
+      </div>
 
       {/* Hover bridge + panel — always absolute so nav pill never expands */}
       {open ? (
@@ -532,17 +540,26 @@ export function HubMobileNavSection({
 
   return (
     <div className="shrink-0">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        className={`flex w-full items-center justify-between py-3 px-4 rounded-full text-[15px] leading-normal text-left font-medium transition ${
-          active ? "text-[#1A1A1A] font-bold bg-[#F5F3EF]" : "text-gray-500 hover:bg-gray-50"
-        }`}
-      >
-        <span className="min-w-0 truncate">{label || copy.title}</span>
-        <Chevron open={open} />
-      </button>
+      <div className="flex w-full items-center gap-1">
+        <Link
+          href={config.href}
+          onClick={onNavigate}
+          className={`flex min-w-0 flex-1 items-center py-3 px-4 rounded-full text-[15px] leading-normal text-left font-medium transition ${
+            active ? "text-[#1A1A1A] font-bold bg-[#F5F3EF]" : "text-gray-500 hover:bg-gray-50"
+          }`}
+        >
+          <span className="min-w-0 truncate">{label || copy.title}</span>
+        </Link>
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          aria-label={`Open ${label || copy.title} menu`}
+          className="shrink-0 rounded-full p-3 text-gray-500 hover:bg-gray-50"
+        >
+          <Chevron open={open} />
+        </button>
+      </div>
 
       {open ? (
         <div className="mx-2 mb-2 rounded-2xl border border-[#EEE8DF] bg-white px-2 py-2 space-y-0.5 max-h-72 overflow-y-auto">

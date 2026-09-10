@@ -23,14 +23,6 @@ export const products = [
     pdf: "catalogue-modern.pdf",
     downloadName: "Thailand-Kitchens-Catalogue-Modern.pdf",
   },
-  {
-    id: 4,
-    category: "Modern",
-    title: "2026 EDITION",
-    image: "/catlog/catlog.png",
-    pdf: "catalogue.pdf",
-    downloadName: "Thailand-Kitchens-Catalogue.pdf",
-  },
 ];
 
 /** Allowlist used by the secure download API */

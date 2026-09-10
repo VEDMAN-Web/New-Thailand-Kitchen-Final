@@ -3,6 +3,7 @@ import { fetchHomeSections } from "../../services/cmsPublic";
 import { pickCmsText } from "../../lib/cmsText";
 import { absoluteUrl, ogImageUrl } from "../../lib/siteUrl";
 import { getServerLocale } from "../../lib/serverLocale";
+import { seoAlternates, SITE_SEO_LOCALE } from "../../lib/pageMetadata";
 import Breadcrumbs from "./Breadcrumbs";
 import OverlayHeroBanner from "./OverlayHeroBanner";
 import HubContentBlock from "./HubContentBlock";
@@ -61,6 +62,23 @@ function resolveHubData(
     defaultHubSections(hubKey, kitchensSubKey)
   );
 
+  // Sub-hubs (layouts / styles / by-property) must NOT inherit the parent
+  // kitchens hub title/meta — that mixed property-types, layouts, and styles
+  // onto /kitchens/styles.
+  const titleSource = kitchensSubKey ? sub?.title : sub?.title || root.title;
+  const descriptionSource = kitchensSubKey
+    ? sub?.description
+    : sub?.description || root.description;
+  const eyebrowSource = kitchensSubKey
+    ? sub?.eyebrow
+    : sub?.eyebrow || root.eyebrow;
+  const metaTitleSource = kitchensSubKey
+    ? sub?.metaTitle
+    : sub?.metaTitle || root.metaTitle;
+  const metaDescriptionSource = kitchensSubKey
+    ? sub?.metaDescription
+    : sub?.metaDescription || root.metaDescription;
+
   return {
     config,
     title: pickCmsText(
@@ -69,12 +87,12 @@ function resolveHubData(
       locale
     ),
     description: pickCmsText(
-      sub?.description || root.description,
+      descriptionSource,
       sectionMeta?.description || config.fallbackDescription,
       locale
     ),
     eyebrow: pickCmsText(
-      sub?.eyebrow || root.eyebrow,
+      eyebrowSource,
       kitchensSubKey
         ? `${tx(locale, "nav.kitchens")} · ${sectionTitle}`
         : hubTitle,
@@ -89,10 +107,8 @@ function resolveHubData(
       locale
     ),
     ctaHref: String(sub?.ctaHref || root.ctaHref || "/contact").trim(),
-    metaTitle: String(sub?.metaTitle || root.metaTitle || "").trim(),
-    metaDescription: String(
-      sub?.metaDescription || root.metaDescription || ""
-    ).trim(),
+    metaTitle: pickCmsText(metaTitleSource, "", locale),
+    metaDescription: pickCmsText(metaDescriptionSource, "", locale),
     sections,
     currentHref: kitchensSubKey
       ? kitchensSectionByKey(kitchensSubKey)?.href || config.href
@@ -105,11 +121,15 @@ export async function generateHubMetadata(
   hubKey: HubNavKey,
   kitchensSubKey?: KitchensSectionKey
 ): Promise<Metadata> {
-  const locale = await getServerLocale();
   const home = await fetchHomeSections().catch(() => ({}));
   const hubPages = (home as { hubPages?: Record<string, HubPageCms> })
     ?.hubPages;
-  const data = resolveHubData(hubPages, hubKey, kitchensSubKey, locale);
+  const data = resolveHubData(
+    hubPages,
+    hubKey,
+    kitchensSubKey,
+    SITE_SEO_LOCALE
+  );
 
   const title = data.metaTitle || `${data.title} | Thailand Kitchens`;
   const description = data.metaDescription || data.description;
@@ -119,7 +139,7 @@ export async function generateHubMetadata(
   return {
     title,
     description,
-    alternates: { canonical },
+    alternates: seoAlternates(data.currentHref),
     openGraph: {
       type: "website",
       title,

@@ -49,7 +49,7 @@ export function defaultHubSections(
   if (hubKey === "kitchens" && kitchensSubKey === "styles") {
     return [
       {
-        heading: "A style that stays calm for decades",
+        heading: "A style chosen to last",
         body: "Modern, minimal, contemporary, and traditional Thai — proportions and finishes chosen to age gracefully, not chase trends.",
         image: IMG.k5,
         layout: "split-dark",
@@ -246,6 +246,31 @@ export function defaultCategorySections(input: {
       {
         heading: `Ready when you are`,
         body: `Talk to us about ${title} for your home or project — timelines, budget ranges, and next steps.`,
+        layout: "band",
+      },
+    ];
+  }
+
+  if (
+    type === "built-in-furniture" &&
+    /entertainment|media-wall|tv-wall/i.test(String(input.slug || ""))
+  ) {
+    return [
+      {
+        heading: "How we build a media wall",
+        body: `Measure the niche|Plan cable access|Equipment cupboard|Install and conceal`,
+        image: "/features/image2.png",
+        layout: "steps",
+      },
+      {
+        heading: "Storage that hides the kit",
+        body: lead,
+        image: "/features/image2.png",
+        layout: "image-right",
+      },
+      {
+        heading: "Ready to plan a TV wall that fits",
+        body: "Book a consultation — we design entertainment units to your screen size, cable routes, and finishes.",
         layout: "band",
       },
     ];

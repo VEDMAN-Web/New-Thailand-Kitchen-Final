@@ -8,6 +8,7 @@ import {
 import { fetchLegalPage } from "../../services/cmsPublic";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import { pickCmsText } from "../../lib/cmsText";
+import { CANONICAL_CONTACT_EMAIL } from "../../lib/pageMetadata";
 
 export default function LegalPageView({
   type,
@@ -51,7 +52,10 @@ export default function LegalPageView({
     raw?.sections && raw.sections.length
       ? raw.sections.map((s) => ({
           title: pickCmsText(s.title, "", locale),
-          body: pickCmsText(s.body, "", locale),
+          body: pickCmsText(s.body, "", locale)
+            .replace(/thailandkichens@gmail\.com/gi, CANONICAL_CONTACT_EMAIL)
+            .replace(/hello@thaikitchen\.in/gi, CANONICAL_CONTACT_EMAIL)
+            .replace(/hi@thailandkitchens\.com/gi, CANONICAL_CONTACT_EMAIL),
         }))
       : fallback.sections;
 

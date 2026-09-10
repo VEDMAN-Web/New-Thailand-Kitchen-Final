@@ -74,6 +74,7 @@ export default function CraftBar() {
                       className="object-contain"
                       sizes="32px"
                       unoptimized={remoteIcon}
+                      aria-hidden
                     />
                   </div>
                 ) : null}

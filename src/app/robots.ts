@@ -7,13 +7,13 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/api/", "/cms-api/", "/_next/", "/admin/"],
+        disallow: ["/api/", "/cms-api/", "/admin/"],
       },
       {
         // ChatGPT / OpenAI search crawler — LLM-friendly visibility
         userAgent: "OAI-SearchBot",
         allow: "/",
-        disallow: ["/api/", "/cms-api/", "/_next/", "/admin/"],
+        disallow: ["/api/", "/cms-api/", "/admin/"],
       },
     ],
     sitemap: [`${SITE_ORIGIN}/sitemap.xml`, `${SITE_ORIGIN}/sitemap-images.xml`],

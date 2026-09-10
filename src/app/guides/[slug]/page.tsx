@@ -34,22 +34,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: "Guide Not Found" };
   }
 
-  const locale = await getServerLocale();
-  const title =
-    (post as any).metaTitle ||
-    `${pickCmsText(post.title, "", locale)} | Thailand Kitchen Guides`;
-  const description =
-    (post as any).metaDescription || pickCmsText(post.excerpt, "", locale);
+  const title = pickCmsText(
+    (post as { metaTitle?: unknown }).metaTitle,
+    `${pickCmsText(post.title, "", SITE_SEO_LOCALE)} | Thailand Kitchen Guides`,
+    SITE_SEO_LOCALE
+  );
+  const description = pickCmsText(
+    (post as { metaDescription?: unknown }).metaDescription,
+    pickCmsText(post.excerpt, "", SITE_SEO_LOCALE),
+    SITE_SEO_LOCALE
+  );
 
   const canonical = absoluteUrl(`/guides/${post.slug}`);
-  const image = ogImageUrl(pickBlogCoverImage(post));
+  const image = ogImageUrl(
+    fixedGuideMedia(post.slug, pickBlogCoverImage(post), post.gallery).image
+  );
 
   return {
     title,
     description,
-    alternates: {
-      canonical,
-    },
+    alternates: seoAlternates(`/guides/${post.slug}`),
     openGraph: {
       type: "article",
       title,

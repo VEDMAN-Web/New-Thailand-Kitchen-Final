@@ -29,10 +29,16 @@ export const metadata: Metadata = {
 };
 export default async function Page() {
   const faqs = await fetchMergedFaqs().catch(() => []);
-  const faqJsonLdItems = faqs.map((f) => ({ question: ensureCmsString(f.question), answer: ensureCmsString(f.answer) })).filter((f) => f.question && f.answer);
+  const faqJsonLdItems = faqs
+    .map((f) => ({
+      question: ensureCmsString(f.question),
+      answer: ensureCmsString(f.answer),
+    }))
+    .filter((f) => f.question && f.answer);
   return [
     faqJsonLdItems.length > 0 ? (
-      <JsonLd key="faq-jsonld" type="FAQPage" data={{ items: faqJsonLdItems }} /> ) : null,
+      <JsonLd key="faq-jsonld" type="FAQPage" data={{ items: faqJsonLdItems }} />
+    ) : null,
     <FaqPage key="faq-page" initialFaqs={faqs} />,
-    ];
+  ];
 }

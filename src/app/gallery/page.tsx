@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import GalleryPageView from "../../component/gallery/GalleryPageView";
 import { fetchMergedGallery, fetchHomeSections } from "../../services/cmsPublic";
 import { galleryItems } from "../../component/gallery/galleryData";
@@ -34,10 +35,13 @@ export default async function GalleryPage() {
     fetchHomeSections().catch(() => ({})),
   ]);
 
-  const cmsFilters = (((sections as Record<string, any>)?.galleryPage?.filters || []) as {
-    id?: string;
-    label?: unknown;
-  }[])
+  const cmsFilters = (
+    (
+      sections as {
+        galleryPage?: { filters?: { id?: string; label?: unknown }[] };
+      }
+    )?.galleryPage?.filters || []
+  )
     .map((f) => ({ id: String(f.id || "").trim(), label: f.label ?? f.id }))
     .filter((f) => f.id);
 

@@ -68,10 +68,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // discovery before their content and metadata can stream.
   const product = await fetchProductBySlug(normalized);
   if (product) {
-    const locale = await getServerLocale();
     const title =
       product.metaTitle ||
-      `${pickCmsText((product as any).title || product.name, "", locale)} | Thailand Kitchens`;
+      `${pickCmsText((product as any).title || product.name, "", SITE_SEO_LOCALE)} | Thailand Kitchens`;
     const description =
       product.metaDescription ||
       pickCmsText((product as any).description || "", "", locale);
@@ -81,7 +80,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const metadata: Metadata = {
       title,
       description,
-      alternates: { canonical },
+      alternates: seoAlternates(`/products/${product.slug}`),
       openGraph: {
         type: "website",
         title,

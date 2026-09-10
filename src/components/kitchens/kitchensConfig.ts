@@ -39,7 +39,8 @@ export const KITCHENS_SECTIONS: KitchensSectionConfig[] = [
     shortLabelKey: "hub.short.style",
     label: "Styles",
     shortLabel: "Style",
-    description: "Modern, tropical, minimal, and heritage kitchen styles.",
+    description:
+      "Modern, tropical, minimal, and heritage kitchen design styles.",
     accent: "#B38B6D",
     accentSoft: "#F5E8DC",
   },
