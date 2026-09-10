@@ -240,6 +240,12 @@ const blogSchema = new mongoose.Schema(
       default: "",
       trim: true
     },
+    metaTitle: {
+      type: String,
+      default: "",
+      maxlength: [60, "Meta title cannot exceed 60 characters"],
+      trim: true,
+    },
     metaDescription: { 
       type: String, 
       default: "",
@@ -277,6 +283,8 @@ const legalPageSchema = new mongoose.Schema(
       ],
       default: [],
     },
+    /** Set when the owner confirms deposit / warranty / commercial clauses (DEV-29). */
+    ownerConfirmedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );
@@ -354,6 +362,8 @@ const catalogueItemSchema = new mongoose.Schema(
     pdfUrl: { type: String, default: "" },
     fileName: { type: String, default: "" },
     downloadName: { type: String, default: "" },
+    editionKey: { type: String, default: "", trim: true, lowercase: true },
+    locked: { type: Boolean, default: false },
     sortOrder: { type: Number, default: 0 },
   },
   { timestamps: true }

@@ -153,7 +153,8 @@ const THAILAND_TAXONOMY = [
     "Entertainment Units",
     "ชุดทีวีบิวท์อิน",
     "Zabudowy RTV",
-    "Media walls and entertainment cabinetry."
+    "Media walls and entertainment cabinetry.",
+    { image: "" }
   ),
 ];
 

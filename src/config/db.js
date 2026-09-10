@@ -24,9 +24,30 @@ const ConnectDB = async () => {
     }
 
     await mongoose.connect(uri, options);
+    const dbName = mongoose.connection.name;
+    const appEnv = String(process.env.APP_ENV || process.env.NODE_ENV || "development");
     console.log(
-      `Database is Connected...${process.env.MONGO_DB_NAME ? ` (${process.env.MONGO_DB_NAME})` : ""}`
+      `Database is Connected... ${dbName} [APP_ENV=${appEnv}]`
     );
+
+    const productionName = String(process.env.MONGO_DB_NAME_PRODUCTION || "").trim();
+    if (
+      appEnv.toLowerCase() === "staging" &&
+      productionName &&
+      dbName === productionName
+    ) {
+      throw new Error(
+        `Staging APP_ENV is connected to production database "${dbName}". Use a separate MONGO_DB_NAME.`
+      );
+    }
+    if (
+      appEnv.toLowerCase() === "production" &&
+      /stag/i.test(dbName)
+    ) {
+      throw new Error(
+        `Production APP_ENV cannot use staging database "${dbName}".`
+      );
+    }
   } catch (error) {
     console.log(error.message);
     process.exit(1);

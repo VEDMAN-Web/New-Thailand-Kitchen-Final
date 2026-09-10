@@ -1,11 +1,8 @@
 const asyncHandler = require("../utils/asyncHandler");
 const axios = require("axios");
 
-/** Kitchen stock images available in admin + client public folders */
+/** Owned kitchen stock only — never seed broken /blog/blogImage paths */
 const STOCK_IMAGES = [
-  "/blog/blogImage (1).jpg",
-  "/blog/blogImage (2).jpg",
-  "/blog/blogImage (3).jpg",
   "/products/Kitchen1.png",
   "/products/Kitchen2.png",
   "/products/Kitchen3.png",

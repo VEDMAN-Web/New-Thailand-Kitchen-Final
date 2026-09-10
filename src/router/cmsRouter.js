@@ -14,7 +14,7 @@ router.get("/:siteId/products", cms.listProducts);
 router.get("/:siteId/blogs", cms.listBlogs);
 router.get("/:siteId/legal/:type", cms.getLegal);
 router.get("/:siteId/gallery", cms.listGallery);
-router.get("/:siteId/catalogues", cms.listCatalogues);
+router.get("/:siteId/image-inventory", protect, cms.exportImageInventory);
 router.get("/:siteId/faqs", cms.listFaqs);
 
 // Protected writes (admin panel)
