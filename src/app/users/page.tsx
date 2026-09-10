@@ -83,22 +83,16 @@ export default function AdminUsersPage() {
 
   return (
     <>
-<<<<<<< Updated upstream
-    <p className="mb-4 rounded-xl border border-[#E8EAED] bg-[#F8FAFC] px-4 py-3 text-sm text-[#334155]">
-      Create one login per person (individually revocable). Keep these accounts on the
-      staging database until Vedant signs off production access. Do not share a single token.
-    </p>
-    <div className="flex justify-end mb-6">
-=======
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-      <p className="text-sm text-[#5C6370]">
-        Each content partner needs their own email and password. Do not share one login.
-      </p>
->>>>>>> Stashed changes
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <p className="rounded-xl border border-[#E8EAED] bg-[#F8FAFC] px-4 py-3 text-sm text-[#334155]">
+          Create one login per person (individually revocable). Keep these accounts on the
+          staging database until Vedant signs off production access. Do not share a single
+          token.
+        </p>
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-lg bg-[#1A2332] text-white text-sm font-semibold px-4 py-2.5"
+          className="inline-flex w-full sm:w-auto shrink-0 items-center justify-center gap-2 rounded-lg bg-[#1A2332] text-white text-sm font-semibold px-4 py-2.5"
         >
           <Plus className="w-4 h-4" />
           Add User

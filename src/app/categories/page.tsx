@@ -10,6 +10,7 @@ import AdminSkeleton from "@/components/AdminSkeleton";
 import SectionBlocksEditor, {
   sectionsFromApi,
   sectionsToApiPayload,
+  type SectionBlockForm,
 } from "@/components/SectionBlocksEditor";
 import { useAdminAuth } from "@/lib/AdminAuthContext";
 import {
@@ -43,13 +44,6 @@ import {
   type CategoryItem,
 } from "@/services/adminAPI";
 
-type CategorySection = {
-  heading: LocalizedText;
-  body: LocalizedText;
-  image: string;
-  layout: string;
-};
-
 type CategoryForm = {
   title: LocalizedText;
   description: LocalizedText;
@@ -67,7 +61,7 @@ type CategoryForm = {
   ctaHref: string;
   footerCtaHeading: LocalizedText;
   footerCtaBody: LocalizedText;
-  sections: CategorySection[];
+  sections: SectionBlockForm[];
 };
 
 /** Public path for a category type — keep in sync with thailand-kitchen-frontend routes. */
@@ -366,7 +360,7 @@ export default function AdminCategoriesPage() {
       ctaHref: String((item as any).ctaHref || "/contact"),
       footerCtaHeading: footerHeadingForm,
       footerCtaBody: footerBodyForm,
-      sections: (cleaned.sections || []) as CategorySection[],
+      sections: (cleaned.sections || []) as SectionBlockForm[],
     });
     setLocale("en");
     setModal("edit");
@@ -439,7 +433,7 @@ export default function AdminCategoriesPage() {
         footerCtaHeading: asLocalizedForm(form.footerCtaHeading),
         footerCtaBody: asLocalizedForm(form.footerCtaBody),
         sections: sectionsToApiPayload(
-          (cleaned.sections || []) as CategorySection[]
+          (cleaned.sections || []) as SectionBlockForm[]
         ),
       };
       if (modal === "create") {
