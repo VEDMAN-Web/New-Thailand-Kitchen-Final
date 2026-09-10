@@ -1415,6 +1415,7 @@ const createProduct = asyncHandler(async (req, res) => {
     color: asLocalized(req.body.color),
     metaTitle: String(req.body.metaTitle || "").substring(0, 60),
     metaDescription: String(req.body.metaDescription || "").substring(0, 160),
+    canonicalUrl: String(req.body.canonicalUrl || ""),
     indexable: Boolean(req.body.indexable),
   });
 
@@ -1472,6 +1473,7 @@ const updateProduct = asyncHandler(async (req, res) => {
         color: asLocalized(req.body.color),
         metaTitle: String(req.body.metaTitle || "").substring(0, 60),
         metaDescription: String(req.body.metaDescription || "").substring(0, 160),
+        canonicalUrl: String(req.body.canonicalUrl || ""),
         indexable: Boolean(req.body.indexable),
       },
     },

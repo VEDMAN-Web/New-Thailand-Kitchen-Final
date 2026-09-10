@@ -35,4 +35,11 @@ async function protect(req, res, next) {
   }
 }
 
-module.exports = { protect, signToken, getJwtSecret };
+function requireAdmin(req, res, next) {
+  if (!req.admin || req.admin.role !== "admin") {
+    return res.status(403).json({ success: false, message: "Forbidden" });
+  }
+  return next();
+}
+
+module.exports = { protect, requireAdmin, signToken, getJwtSecret };
