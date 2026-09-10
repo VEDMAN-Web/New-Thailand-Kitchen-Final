@@ -76,6 +76,7 @@ type ProductForm = {
   color: LocalizedText;
   metaTitle: string;
   metaDescription: string;
+  canonicalUrl: string;
   indexable: boolean;
 };
 
@@ -133,6 +134,7 @@ const empty: ProductForm = {
   color: emptyLocalized(),
   metaTitle: "",
   metaDescription: "",
+  canonicalUrl: "",
   indexable: false,
 };
 
@@ -260,6 +262,7 @@ export default function AdminProductsPage() {
       color: asLocalizedForm(item.color),
       metaTitle: (item as any).metaTitle || "",
       metaDescription: (item as any).metaDescription || "",
+      canonicalUrl: (item as any).canonicalUrl || "",
       indexable: (item as any).indexable ?? false,
     });
     setStep(1);
@@ -407,6 +410,7 @@ export default function AdminProductsPage() {
       color: asLocalizedForm(form.color),
       metaTitle: form.metaTitle,
       metaDescription: form.metaDescription,
+      canonicalUrl: form.canonicalUrl,
       indexable: form.indexable,
     };
     setSaving(true);
@@ -924,6 +928,19 @@ export default function AdminProductsPage() {
                             maxLength={160}
                             className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal resize-y"
                           />
+                        </label>
+
+                        <label className="block text-xs font-semibold text-[#5C6370]">
+                          Canonical URL (optional)
+                          <input
+                            value={form.canonicalUrl}
+                            onChange={(e) => setForm({ ...form, canonicalUrl: e.target.value })}
+                            placeholder="https://www.thailandkitchens.com/products/your-product"
+                            className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
+                          />
+                          <span className="mt-1 block text-[11px] text-[#94A3B8] font-normal">
+                            Leave blank to use the default self-referencing canonical.
+                          </span>
                         </label>
 
                         <div className="flex items-center gap-3">
