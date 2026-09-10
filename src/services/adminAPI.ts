@@ -65,6 +65,24 @@ export async function listSites() {
   return data as { success: boolean; sites: SiteInfo[] };
 }
 
+export async function getApiHealth() {
+  const { data } = await adminApi.get("/health");
+  return data as {
+    success: boolean;
+    message?: string;
+    env?: string;
+    database?: string;
+  };
+}
+
+export async function downloadImageInventory(siteId: SiteId) {
+  const { data } = await adminApi.get(`/cms/${siteId}/image-inventory`, {
+    responseType: "blob",
+    timeout: 60000,
+  });
+  return data as Blob;
+}
+
 export async function getHome(siteId: SiteId) {
   const { data } = await adminApi.get(`/cms/${siteId}/home`);
   return data as { success: boolean; home: { sections: Record<string, unknown> } };
@@ -315,6 +333,7 @@ export type BlogItem = {
   locationTag?: string;
   serviceTag?: string;
   materialTag?: string;
+  metaTitle?: string;
   metaDescription?: string;
   reviewer?: string;
 };
@@ -405,6 +424,7 @@ export type LegalPage = {
   content: LocalizedCmsText;
   sections?: LegalSection[];
   type: string;
+  ownerConfirmedAt?: string | null;
 };
 
 export async function getLegal(siteId: SiteId, type: "privacy" | "terms") {
@@ -421,6 +441,7 @@ export async function updateLegal(
     updatedLabel?: LocalizedCmsText;
     content?: LocalizedCmsText;
     sections?: LegalSection[];
+    ownerConfirmed?: boolean;
   }
 ) {
   const { data } = await adminApi.put(`/cms/${siteId}/legal/${type}`, body);
@@ -505,13 +526,15 @@ export async function uploadMedia(
         storage: string;
         kind: string;
         originalName: string;
+        coverUrl?: string;
+        coverHint?: string;
       };
     };
   } catch (error: unknown) {
     const ax = error as {
       code?: string;
       message?: string;
-      response?: { data?: { message?: string } };
+      response?: { status?: number; data?: { message?: string } };
     };
     if (ax.code === "ECONNABORTED" || /aborted|timeout/i.test(ax.message || "")) {
       throw new Error(
@@ -519,7 +542,9 @@ export async function uploadMedia(
       );
     }
     throw new Error(
-      ax.response?.data?.message || ax.message || "Upload failed"
+      ax.response?.status === 404
+        ? "Upload returned 404. Set BACKEND_URL to the API origin only (no trailing /api)."
+        : ax.response?.data?.message || ax.message || "Upload failed"
     );
   }
 }

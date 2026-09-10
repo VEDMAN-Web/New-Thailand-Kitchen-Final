@@ -32,6 +32,11 @@ import SectionBlocksEditor, {
 import { useAdminAuth } from "@/lib/AdminAuthContext";
 import { getHome, resetHome, updateHome } from "@/services/adminAPI";
 import {
+  applyApprovedHomeFacts,
+  CANONICAL_CONTACT_EMAIL,
+  lockCatalogueItems,
+} from "@/lib/approvedSiteFacts";
+import {
   ADMIN_SECTION_EVENT,
   CMS_SYNCED_EVENT,
   readAdminSectionFromUrl,
@@ -369,7 +374,7 @@ export default function AdminHomePage() {
     try {
       const res = await getHome(siteId);
       if (seq !== loadSeqRef.current) return;
-      setSections(res.home.sections || {});
+      setSections(applyApprovedHomeFacts(res.home.sections || {}));
     } catch {
       if (seq !== loadSeqRef.current) return;
       toast.error("Failed to load home content");
@@ -404,7 +409,7 @@ export default function AdminHomePage() {
   const saveAll = async () => {
     setSaving(true);
     try {
-      const payload = { ...sections };
+      const payload = applyApprovedHomeFacts({ ...sections });
       if (Array.isArray(payload.statistics?.items)) {
         const invalid = payload.statistics.items.some(
           (item: { value?: string }) =>
@@ -455,7 +460,7 @@ export default function AdminHomePage() {
     setSaving(true);
     try {
       const res = await resetHome(siteId);
-      setSections(res.home.sections);
+      setSections(applyApprovedHomeFacts(res.home.sections || {}));
       toast.success("Home page reset");
     } catch {
       toast.error("Reset failed");
@@ -712,6 +717,7 @@ function SectionEditor({
           locale={locale}
           label="Description"
           multiline
+          hint="Approved facts: 1+ years, 1 city, 25+ kitchens. Do not claim decades or hundreds of projects."
           value={data.description || ""}
           onChange={(v) => onChange({ ...data, description: v })}
         />
@@ -873,6 +879,10 @@ function SectionEditor({
     const items = data.items || [];
     return (
       <div className="space-y-4">
+        <p className="text-[11px] text-[#64748B]">
+          Locked business facts: <strong>1+</strong> years, <strong>1</strong> city,{" "}
+          <strong>25+</strong> kitchens. Values above those numbers are rewritten on save.
+        </p>
         {items.map((item: any, i: number) => (
           <div
             key={i}
@@ -893,7 +903,7 @@ function SectionEditor({
               shared
               numeric
               label="Value"
-              hint="Numbers only (e.g. 15). Put + in Suffix."
+              hint="Numbers only. Approved set is 1 / 1 / 25 with + on years and kitchens."
               value={item.value || ""}
               onChange={(v) => {
                 const next = [...items];
@@ -1072,6 +1082,7 @@ function SectionEditor({
           locale={locale}
           label="Description"
           multiline
+          hint="Must match the counters: 25+ kitchens in the first year in 1 city."
           value={data.description || ""}
           onChange={(v) => onChange({ ...data, description: v })}
         />
@@ -1305,7 +1316,7 @@ function SectionEditor({
   }
 
   if (sectionKey === "catalogue") {
-    const items = data.items || [];
+    const items = lockCatalogueItems(data.items || []);
     return (
       <div className="space-y-4">
         <div className="rounded-xl border border-[#E8EAED] bg-[#F8FAFC] p-4 space-y-3">
@@ -1330,6 +1341,9 @@ function SectionEditor({
         <div className="rounded-xl border border-[#E8EAED] bg-[#F8FAFC] p-4 space-y-3">
           <p className="text-xs font-bold uppercase tracking-wide text-[#334155]">
             /catalogue page heading
+          </p>
+          <p className="text-[11px] text-[#64748B]">
+            Live site serves the three locked 2026 editions only (Classic, Minimal, Modern). Upload the approved PDF in each card — page 1 becomes the cover when the upload API returns a cover image.
           </p>
           <div className="grid sm:grid-cols-2 gap-3">
             <Field
@@ -1358,7 +1372,13 @@ function SectionEditor({
             <div className="flex justify-between">
               <span className="text-xs font-bold uppercase text-[#5C6370]">
                 Catalogue #{i + 1}
+                {item.locked || item.editionKey ? " · locked 2026 edition" : ""}
               </span>
+              {item.locked || item.editionKey ? (
+                <span className="text-[11px] font-semibold text-[#64748B]">
+                  Locked
+                </span>
+              ) : (
               <button
                 type="button"
                 className="text-xs text-red-600"
@@ -1371,6 +1391,7 @@ function SectionEditor({
               >
                 Remove
               </button>
+              )}
             </div>
             <div className="grid sm:grid-cols-2 gap-3">
               <Field
@@ -1405,13 +1426,29 @@ function SectionEditor({
               }}
             />
             <MediaUpload
-              label="PDF File"
+              label="PDF File (approved 2026 edition)"
               kind="pdf"
+              hint="Upload the locked Classic / Minimal / Modern 2026 PDF. Page 1 is rendered as the cover when the API returns coverUrl."
               value={item.pdfUrl || ""}
               onChange={(v) => {
                 const next = [...items];
                 next[i] = { ...item, pdfUrl: v };
                 onChange({ ...data, items: next });
+              }}
+              onUploaded={(file) => {
+                const next = [...items];
+                next[i] = {
+                  ...item,
+                  pdfUrl: file.url || item.pdfUrl,
+                  image: file.coverUrl || item.image,
+                };
+                onChange({ ...data, items: next });
+                if (!file?.coverUrl) {
+                  toast.message(
+                    file?.coverHint ||
+                      "PDF saved. Upload page 1 as Cover Image if the thumbnail is still a generic kitchen shot."
+                  );
+                }
               }}
             />
             <div className="grid sm:grid-cols-2 gap-3">
@@ -1439,25 +1476,6 @@ function SectionEditor({
             </div>
           </div>
         ))}
-        <AddItemButton
-          label="Add catalogue"
-          onClick={() =>
-            onChange({
-              ...data,
-              items: [
-                ...items,
-                {
-                  title: "",
-                  category: "",
-                  image: "",
-                  pdfUrl: "",
-                  fileName: "",
-                  downloadName: "",
-                },
-              ],
-            })
-          }
-        />
       </div>
     );
   }
@@ -2091,6 +2109,7 @@ function SectionEditor({
           locale={locale}
           shared
           label="Email"
+          hint={`Live footer must be ${CANONICAL_CONTACT_EMAIL}. Legacy leftover addresses are rewritten on save.`}
           value={data.email || ""}
           onChange={(v) => onChange({ ...data, email: v })}
         />

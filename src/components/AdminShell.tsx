@@ -31,7 +31,7 @@ import {
 } from "lucide-react";
 import { useAdminAuth } from "@/lib/AdminAuthContext";
 import type { SiteId } from "@/services/adminAPI";
-import { syncSiteFromDb } from "@/services/adminAPI";
+import { downloadImageInventory, getApiHealth, syncSiteFromDb } from "@/services/adminAPI";
 import { syncVarsoviaFromDb } from "@/services/varsoviaAPI";
 import {
   varsoviaHubKeyFromPath,
@@ -359,6 +359,9 @@ function AdminShellContent({
     isVarsoviaRoute || (isSharedAdmin && siteId === "varsovia-kitchen");
   const [profileOpen, setProfileOpen] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [apiEnv, setApiEnv] = useState("");
+  const [apiDb, setApiDb] = useState("");
+  const [exportingImages, setExportingImages] = useState(false);
   const [syncConfirmOpen, setSyncConfirmOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -399,6 +402,15 @@ function AdminShellContent({
                 : syncFooter
                   ? FOOTER_LIVE_PATH
                   : "";
+
+  useEffect(() => {
+    void getApiHealth()
+      .then((health) => {
+        setApiEnv(String(health.env || ""));
+        setApiDb(String(health.database || ""));
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     setHomeSection(readAdminSectionFromUrl());
@@ -468,6 +480,13 @@ function AdminShellContent({
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [profileOpen]);
+
+  useEffect(() => {
+    const navigation = isVarsovia ? VARSOVIA_NAV : THAILAND_NAV;
+    navigation.forEach((item) => {
+      void router.prefetch(item.href);
+    });
+  }, [isVarsovia, router]);
 
   /** Prefer soft-nav state; fall back to URL search params on first paint. */
   const requestedResource =
@@ -621,6 +640,27 @@ function AdminShellContent({
     }
     if (isVarsoviaRoute || (isSharedAdmin && siteId === "varsovia-kitchen")) {
       router.push("/");
+    }
+  };
+
+  const exportImageInventoryCsv = async () => {
+    if (exportingImages || siteId !== "thailand-kitchen") return;
+    setExportingImages(true);
+    try {
+      const blob = await downloadImageInventory(siteId);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "image_inventory.csv";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast.success("Downloaded image_inventory.csv — re-check URLs on staging");
+    } catch {
+      toast.error("Could not export image inventory");
+    } finally {
+      setExportingImages(false);
     }
   };
 
@@ -778,6 +818,7 @@ function AdminShellContent({
                   <Link
                     key={`${href}-${label}`}
                     href={href}
+                    prefetch
                     onClick={(e) => handleNavItem(e, item)}
                     className={clsx(
                       "flex min-h-11 items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
@@ -800,6 +841,7 @@ function AdminShellContent({
                   <Link
                     key={`${href}-${label}`}
                     href={href}
+                    prefetch
                     onClick={(e) => handleNavItem(e, item)}
                     className={clsx(
                       "flex min-h-11 items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
@@ -822,6 +864,7 @@ function AdminShellContent({
                   <Link
                     key={`${href}-${label}`}
                     href={href}
+                    prefetch
                     onClick={() => setNavOpen(false)}
                     className={clsx(
                       "flex min-h-11 items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
@@ -862,6 +905,7 @@ function AdminShellContent({
                   <Link
                     key={`${href}-${label}`}
                     href={href}
+                    prefetch
                     onClick={(e) => handleNavItem(e, item)}
                     className={clsx(
                       "flex min-h-11 items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
@@ -884,6 +928,7 @@ function AdminShellContent({
                   <Link
                     key={`${href}-${label}`}
                     href={href}
+                    prefetch
                     onClick={(e) => handleNavItem(e, item)}
                     className={clsx(
                       "flex min-h-11 items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
@@ -908,6 +953,7 @@ function AdminShellContent({
                       <Link
                         key={`${href}-${label}`}
                         href={href}
+                        prefetch
                         onClick={(e) => handleNavItem(e, item)}
                         className={clsx(
                           "flex min-h-11 items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
@@ -932,6 +978,7 @@ function AdminShellContent({
                   <Link
                     key={`${href}-${label}`}
                     href={href}
+                    prefetch
                     onClick={(e) => handleNavItem(e, item)}
                     className={clsx(
                       "flex min-h-11 items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
@@ -997,6 +1044,25 @@ function AdminShellContent({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
+            {siteId === "thailand-kitchen" ? (
+              <button
+                type="button"
+                onClick={() => void exportImageInventoryCsv()}
+                disabled={exportingImages}
+                title="Download image_inventory.csv (VIS-28)"
+                className={clsx(
+                  "inline-flex items-center gap-2 rounded-xl border border-[#E2E5EA] bg-white px-2.5 sm:px-3 py-2 text-xs font-semibold text-[#1A2332] transition-colors",
+                  exportingImages
+                    ? "opacity-70 cursor-wait"
+                    : "hover:bg-[#F5F6F8] hover:border-[#CBD5E1]"
+                )}
+              >
+                <Inbox className="w-3.5 h-3.5" strokeWidth={2} />
+                <span className="hidden lg:inline">
+                  {exportingImages ? "Exporting…" : "Image CSV"}
+                </span>
+              </button>
+            ) : null}
             <button
               type="button"
               onClick={openSyncConfirm}
@@ -1039,8 +1105,14 @@ function AdminShellContent({
                 className="absolute right-0 top-[calc(100%+10px)] z-50 w-[min(240px,calc(100vw-24px))] rounded-2xl bg-white px-5 py-4 shadow-[0_8px_28px_rgba(15,23,42,0.14)] border border-[#EEF0F3]"
               >
                 <p className="text-[14px] text-[#4B5563] truncate">
-                  {user?.email || "thailandkichens@gmail.com"}
+                  {user?.email || "hello@thailandkitchens.com"}
                 </p>
+                {apiEnv || apiDb ? (
+                  <p className="mt-1 text-[11px] text-[#64748B]">
+                    {apiEnv || "env?"} · {apiDb || "db?"}
+                    {/prod/i.test(apiEnv) ? " — production access needs Vedant sign-off" : " — staging only until Vedant sign-off"}
+                  </p>
+                ) : null}
                 <button
                   type="button"
                   role="menuitem"

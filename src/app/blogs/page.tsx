@@ -28,6 +28,10 @@ import { useAdminAuth } from "@/lib/AdminAuthContext";
 import { CMS_SYNCED_EVENT } from "@/lib/adminSectionNav";
 import { resolveAdminMediaPreviewUrl } from "@/lib/adminMediaPreview";
 import {
+  isUnusableGuideOrMediaImage,
+  stripUnrelatedBlogStockFromDraft,
+} from "@/lib/approvedSiteFacts";
+import {
   asLocalizedForm,
   emptyLocalized,
   localizedValue,
@@ -89,6 +93,7 @@ type FormState = {
   locationTag: string;
   serviceTag: string;
   materialTag: string;
+  metaTitle: string;
   metaDescription: string;
   reviewer: string;
 };
@@ -151,6 +156,7 @@ const emptyForm = (): FormState => ({
   locationTag: "",
   serviceTag: "",
   materialTag: "",
+  metaTitle: "",
   metaDescription: "",
   reviewer: "",
 });
@@ -332,6 +338,25 @@ export default function AdminBlogsPage() {
         ? item.bodySections
         : [{ title: "", content: item.content || "", image: "" }];
     setEditing(item);
+    const cleaned = stripUnrelatedBlogStockFromDraft({
+      image: item.image || "",
+      gallery1: gallery[0] || "",
+      gallery2: gallery[1] || "",
+      bodySections: sections.map((s) => ({
+        title: s.title || "",
+        content: s.content || "",
+        image: s.image || "",
+      })),
+    });
+    if (
+      cleaned.image !== (item.image || "") ||
+      cleaned.gallery1 !== (gallery[0] || "") ||
+      cleaned.gallery2 !== (gallery[1] || "")
+    ) {
+      toast.message(
+        "Mislabelled stock photos were cleared. Upload a real renovation / project image before publishing."
+      );
+    }
     setForm({
       title: item.title || "",
       slug: item.slug || "",
@@ -342,18 +367,18 @@ export default function AdminBlogsPage() {
         item.publishDate ||
         (item.createdAt ? item.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10)),
       excerpt: item.excerpt || "",
-      image: item.image || "",
-      bodySections: sections.map((s) => ({
-        title: s.title || "",
-        content: s.content || "",
-        image: s.image || "",
+      image: cleaned.image || "",
+      bodySections: (cleaned.bodySections || []).map((s) => ({
+        title: String(s.title || ""),
+        content: String(s.content || ""),
+        image: String(s.image || ""),
       })),
       highlightTitle: item.highlightTitle || "",
       highlightText: item.highlightText || "",
       quote: item.quote || "",
       quoteAuthor: item.quoteAuthor || "",
-      gallery1: gallery[0] || "",
-      gallery2: gallery[1] || "",
+      gallery1: cleaned.gallery1 || "",
+      gallery2: cleaned.gallery2 || "",
       translations: {
         th: toTranslation(item.translations?.th),
         pl: toTranslation(item.translations?.pl),
@@ -363,6 +388,7 @@ export default function AdminBlogsPage() {
       locationTag: (item as any).locationTag || "",
       serviceTag: (item as any).serviceTag || "",
       materialTag: (item as any).materialTag || "",
+      metaTitle: String((item as any).metaTitle || "").slice(0, 60),
       metaDescription: (item as any).metaDescription || "",
       reviewer: (item as any).reviewer || "",
     });
@@ -553,6 +579,28 @@ export default function AdminBlogsPage() {
   const saveBlog = async () => {
     if (!validateStep(2) || !validateStep(3)) return;
 
+    if (form.metaTitle && form.metaTitle.length > 60) {
+      toast.error("Meta Title must be 60 characters or less");
+      return;
+    }
+    if (form.metaDescription && form.metaDescription.length > 160) {
+      toast.error("Meta Description must be 160 characters or less");
+      return;
+    }
+
+    const stockHit = [
+      form.image,
+      form.gallery1,
+      form.gallery2,
+      ...form.bodySections.map((s) => s.image || ""),
+    ].some((url) => isUnusableGuideOrMediaImage(url));
+    if (stockHit) {
+      toast.error(
+        "Remove bedroom/portrait/Kitchen*.png stock. Use a real renovation or labelled process photo."
+      );
+      return;
+    }
+
     const bodySections = form.bodySections
       .map((s) => ({
         title: s.title.trim(),
@@ -600,6 +648,7 @@ export default function AdminBlogsPage() {
       locationTag: form.locationTag.trim(),
       serviceTag: form.serviceTag.trim(),
       materialTag: form.materialTag.trim(),
+      metaTitle: form.metaTitle.trim().slice(0, 60),
       metaDescription: form.metaDescription.trim(),
       reviewer: form.reviewer.trim(),
     };
@@ -1566,6 +1615,22 @@ export default function AdminBlogsPage() {
                           />
                         </label>
                       </div>
+
+                      <label className="block text-xs font-semibold text-[#5C6370]">
+                        Meta Title ({form.metaTitle.length}/60)
+                        <input
+                          value={form.metaTitle}
+                          onChange={(e) =>
+                            setForm({
+                              ...form,
+                              metaTitle: e.target.value.slice(0, 60),
+                            })
+                          }
+                          placeholder="Search-result title for this post. Falls back to the article title if empty."
+                          maxLength={60}
+                          className="mt-1.5 w-full rounded-lg border border-[#E2E5EA] px-3 py-2.5 text-sm font-normal"
+                        />
+                      </label>
 
                       <label className="block text-xs font-semibold text-[#5C6370]">
                         Meta Description ({form.metaDescription.length}/160)
