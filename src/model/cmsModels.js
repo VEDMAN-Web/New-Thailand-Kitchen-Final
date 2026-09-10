@@ -148,6 +148,11 @@ const productSchema = new mongoose.Schema(
       maxlength: [160, 'Meta description cannot exceed 160 characters'],
       trim: true
     },
+    canonicalUrl: {
+      type: String,
+      default: "",
+      trim: true,
+    },
     indexable: { 
       type: Boolean, 
       default: false,
