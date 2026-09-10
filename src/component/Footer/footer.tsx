@@ -11,6 +11,7 @@ import {
 import { useTranslation } from "../../i18n/LanguageProvider";
 import { useCmsSection } from "../../lib/CmsHomeContext";
 import { pickCmsText } from "../../lib/cmsText";
+import { publicContactEmail } from "../../lib/pageMetadata";
 import { smoothScrollAfterNav } from "../../lib/smoothScroll";
 import { isExternalHref, normalizeFooterHref } from "../../lib/footerHref";
 import { trackGa4Event } from "../../lib/ga4";
@@ -66,6 +67,10 @@ function SocialIcon({ name }: { name: SocialIconName }) {
   }
 }
 
+function publicEmail(value?: string) {
+  return publicContactEmail(value);
+}
+
 function scrollToFooterTarget(href: string) {
   smoothScrollAfterNav(href);
 }
@@ -101,7 +106,7 @@ export default function Footer() {
     },
     {
       icon: "/footer/email.png",
-      text: footerCms?.email || contactInfo[1].text,
+      text: publicEmail(footerCms?.email || contactInfo[1].text),
     },
     {
       icon: "/footer/calling.png",

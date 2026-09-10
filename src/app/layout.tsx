@@ -6,11 +6,19 @@ import Providers from "../lib/react-query";
 import Navbar from "../component/navBar";
 import Footer from "../component/Footer/footer";
 import { Toaster } from "sonner";
-import { SITE_ORIGIN, ogImageUrl } from "../lib/siteUrl";
-import { pickCmsText } from "../lib/cmsText";
+import { SITE_ORIGIN, DEFAULT_OG_IMAGE, ogImageUrl } from "../lib/siteUrl";
+import { pickCmsText, ensureCmsString } from "../lib/cmsText";
 import { fetchHomeSections, fetchMergedProducts, fetchMergedCategories } from "../services/cmsPublic";
 import JsonLd from "../components/seo/JsonLd";
 import { getServerLocale } from "../lib/serverLocale";
+import {
+  SITE_HTML_LANG,
+  SITE_OG_LOCALE,
+  SITE_SEO_LOCALE,
+  localBusinessImage,
+  verifiedAreaServed,
+  seoAlternates,
+} from "../lib/pageMetadata";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -54,11 +62,17 @@ export async function generateMetadata(): Promise<Metadata> {
   const seo = (home as { seo?: Record<string, unknown> })?.seo || {};
   const hero = (home as { hero?: Record<string, unknown> })?.hero || {};
 
-  const locale = await getServerLocale();
-  const title = pickCmsText(seo.title, FALLBACK_TITLE, locale);
-  const description = pickCmsText(seo.description, FALLBACK_DESCRIPTION, locale);
+  // Default (un-prefixed) URLs are English. Do not let Accept-Language or a
+  // UI locale cookie swap title/meta/OG into TH/PL — that is what caused
+  // lang="en" pages to ship Polish metadata.
+  const title = pickCmsText(seo.title, FALLBACK_TITLE, SITE_SEO_LOCALE);
+  const description = pickCmsText(
+    seo.description,
+    FALLBACK_DESCRIPTION,
+    SITE_SEO_LOCALE
+  );
   const image = ogImageUrl(
-    (seo.ogImage as string) || (hero.image as string) || ""
+    (seo.ogImage as string) || (hero.image as string) || DEFAULT_OG_IMAGE
   );
 
   return {
@@ -68,12 +82,14 @@ export async function generateMetadata(): Promise<Metadata> {
     // child's plain-string title, which would double up the suffix.
     title,
     description,
+    alternates: seoAlternates("/"),
     openGraph: {
       type: "website",
       siteName: FALLBACK_TITLE,
       title,
       description,
       url: SITE_ORIGIN,
+      locale: SITE_OG_LOCALE,
       images: [{ url: image, width: 1200, height: 630, alt: title }],
     },
     twitter: {
@@ -100,9 +116,24 @@ export default async function RootLayout({
     fetchMergedCategories().catch(() => []),
   ]);
 
-    const footerSection = (sections as { footer?: Record<string, unknown> })?.footer || {};
-  const seoSection = (sections as { seo?: Record<string, unknown> })?.seo || {};
-  const localBusinessDescription = pickCmsText(seoSection.description, FALLBACK_DESCRIPTION, serverLocale);
+  const footerSection =
+    (sections as { footer?: Record<string, unknown> })?.footer || {};
+  const seoSection =
+    (sections as { seo?: Record<string, unknown> })?.seo || {};
+  const heroSection =
+    (sections as { hero?: Record<string, unknown> })?.hero || {};
+  const localBusinessDescription = pickCmsText(
+    seoSection.description,
+    FALLBACK_DESCRIPTION,
+    SITE_SEO_LOCALE
+  );
+  const areaServed = verifiedAreaServed(
+    pickCmsText(footerSection.address, "", SITE_SEO_LOCALE)
+  );
+  const telephone = ensureCmsString(footerSection.phone);
+  const businessImage = localBusinessImage(
+    (seoSection.ogImage as string) || (heroSection.image as string) || ""
+  );
 
   const initialCmsData = {
     sections,
@@ -112,7 +143,7 @@ export default async function RootLayout({
 
   return (
     <html
-      lang="en"
+      lang={SITE_HTML_LANG}
       data-locale="EN"
       className={manrope.variable}
       suppressHydrationWarning
@@ -139,11 +170,11 @@ export default async function RootLayout({
             name: "Thailand Kitchens",
             description: localBusinessDescription,
             url: SITE_ORIGIN,
-            image: `${SITE_ORIGIN}/icon.png`,
-            telephone: (footerSection.phone as string) || undefined,
-            areaServed: (footerSection.address as string) || undefined,
+            image: businessImage,
+            telephone: telephone || undefined,
+            areaServed,
           }}
-          />
+        />
         <Script
           id="tk-locale-boot"
           strategy="beforeInteractive"

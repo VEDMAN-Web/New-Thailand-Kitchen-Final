@@ -27,7 +27,7 @@ export const galleryHero = {
   eyebrow: "The Gallery · Vol. 04",
   title: "Kitchens of the island, moments of everyday luxury.",
   description:
-    "A curated inspiration library of tropical, modern and minimal kitchens crafted by our Samui atelier — filter by style, layout, palette or material and discover your next design.",
+    "A curated inspiration library of tropical, modern and minimal kitchens designed across Thailand — filter by style, layout, palette or material and discover your next design.",
   // [leftTop, rightTop, leftBottom, rightBottom]
   collage: [
     "/products/Kitchen2.png",

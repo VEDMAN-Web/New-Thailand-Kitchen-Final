@@ -5,7 +5,7 @@ export const footerLinks: {
   product: { key: TranslationKey; href: string }[];
 } = {
   home: [
-    { key: "footer.link.ourStory", href: "/#our-service" },
+    { key: "footer.link.ourStory", href: "/#our-story" },
     { key: "footer.link.freeCatalogue", href: "/catalogue" },
     { key: "footer.link.globalPartner", href: "/#brands" },
     { key: "footer.link.contact", href: "/contact" },
@@ -24,7 +24,7 @@ export const contactInfo = [
   },
   {
     icon: "/footer/email.png",
-    text: "hello@Thaikitchen.in",
+    text: "hello@thailandkitchens.com",
   },
   {
     icon: "/footer/calling.png",

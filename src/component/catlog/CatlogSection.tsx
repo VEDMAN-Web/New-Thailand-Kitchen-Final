@@ -1,15 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Download, X } from "lucide-react";
+import Link from "next/link";
 import { toast } from "sonner";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import type { TranslationKey } from "../../i18n/translations";
 import { createContact } from "../../services/contactAPI";
 import {
   fetchMergedCatalogues,
+  mapCatalogueItems,
   type CmsCatalogue,
 } from "../../services/cmsPublic";
+import { useCms, useCmsSection } from "../../lib/CmsHomeContext";
 import type { ContactData } from "../../types/contactUs";
 import { pickCmsText } from "../../lib/cmsText";
 import { trackGa4Event } from "../../lib/ga4";
@@ -63,10 +66,24 @@ function validateGateForm(
   return errors;
 }
 
-export default function CatlogSection() {
+export default function CatlogSection({
+  initialCatalogues = [],
+}: {
+  initialCatalogues?: CmsCatalogue[];
+}) {
   const { t, locale } = useTranslation();
-  const [catalogItems, setCatalogItems] = useState<CmsCatalogue[]>([]);
-  const items = catalogItems;
+  const { loading: cmsLoading } = useCms();
+  const catalogueSection = useCmsSection<{ items?: unknown[] }>("catalogue");
+  const fromCms = useMemo(
+    () => mapCatalogueItems(catalogueSection?.items || []),
+    [catalogueSection?.items]
+  );
+  const [fetchedItems, setFetchedItems] = useState<CmsCatalogue[]>([]);
+  const items = fromCms.length
+    ? fromCms
+    : initialCatalogues.length
+      ? initialCatalogues
+      : fetchedItems;
   const [active, setActive] = useState<number | null>(null);
   const [unlocked, setUnlocked] = useState(false);
   const [showFormPopup, setShowFormPopup] = useState(false);
@@ -78,10 +95,11 @@ export default function CatlogSection() {
   const unlockedRef = useRef(false);
 
   useEffect(() => {
+    if (fromCms.length || initialCatalogues.length) return;
     fetchMergedCatalogues().then((list) => {
-      setCatalogItems(Array.isArray(list) ? list : []);
+      setFetchedItems(Array.isArray(list) ? list : []);
     });
-  }, []);
+  }, [fromCms.length, initialCatalogues.length]);
 
   const refreshUnlockStatus = useCallback(async () => {
     try {
@@ -299,7 +317,9 @@ export default function CatlogSection() {
           >
             {items.length === 0 ? (
               <p className="text-sm text-[#6B6B6B]">
-                {t("home.catalog.empty")}
+                {cmsLoading
+                  ? t("home.catalog.downloading")
+                  : t("home.catalog.empty")}
               </p>
             ) : null}
             {items.map((item, index) => {
@@ -377,9 +397,12 @@ export default function CatlogSection() {
                     <p className="text-[10px] sm:text-[11px] tracking-[0.18em] uppercase text-[#E0905A] font-semibold mb-0.5 sm:mb-1">
                       {category}
                     </p>
-                    <p className="text-xs sm:text-base font-bold uppercase tracking-[0.08em] text-[#1A1A1A]">
+                    <Link
+                      href="/catalogue"
+                      className="text-xs sm:text-base font-bold uppercase tracking-[0.08em] text-[#1A1A1A] hover:text-[#E0905A] transition-colors"
+                    >
                       {title}
-                    </p>
+                    </Link>
                   </div>
                 </div>
               );

@@ -13,8 +13,13 @@ import {
   pickBlogCoverImage,
   resolveCmsMediaUrl,
 } from "../lib/cmsMedia";
+import { fixedGuideMedia } from "../lib/imageFixRegister";
+import { cache } from "react";
 
 const SITE_ID = "thailand-kitchen";
+
+/** Fail fast in local dev when the CMS is down instead of hanging the page. */
+const DEV_CMS_TIMEOUT_MS = 4_000;
 
 /** Static mocks only when dev explicitly opts in (CMS is source of truth in production). */
 function allowStaticFallback(): boolean {
@@ -51,22 +56,45 @@ function cmsBase() {
   return `${backend}/api`;
 }
 
-async function cmsFetch(path: string) {
+/**
+ * Deduped per-request CMS fetch on the server (layout + generateMetadata +
+ * page share one hydrate pass). Client callers use the uncached path.
+ * Dev adds a short timeout so a hanging backend cannot block rendering.
+ */
+async function cmsFetchUncached(path: string) {
   const base = cmsBase();
   const url = `${base}${path.startsWith("/") ? path : `/${path}`}`;
   try {
-    const res = await fetch(
-      url,
+    const init: RequestInit & { next?: { revalidate: number } } =
       typeof window === "undefined"
         ? { next: { revalidate: 60 } }
-        : { cache: "no-store" }
-    );
+        : { cache: "no-store" };
+
+    if (
+      typeof window === "undefined" &&
+      process.env.NODE_ENV === "development" &&
+      typeof AbortSignal !== "undefined" &&
+      typeof AbortSignal.timeout === "function"
+    ) {
+      init.signal = AbortSignal.timeout(DEV_CMS_TIMEOUT_MS);
+    }
+
+    const res = await fetch(url, init);
     if (!res.ok) return null;
     const json = await res.json();
     return hydrateCmsMediaTree(json);
   } catch {
     return null;
   }
+}
+
+const cmsFetchCached = cache(cmsFetchUncached);
+
+async function cmsFetch(path: string) {
+  if (typeof window === "undefined") {
+    return cmsFetchCached(path);
+  }
+  return cmsFetchUncached(path);
 }
 
 export type HomeSections = Record<string, any>;
@@ -134,6 +162,7 @@ type CmsBlog = {
   serviceTag?: string;
   materialTag?: string;
   metaDescription?: string;
+  metaTitle?: string;
   reviewer?: string;
 };
 
@@ -167,12 +196,8 @@ function mapLayout(category: string): ProductLayout {
 }
 
 function mapCmsProduct(p: CmsProduct, index: number): ProductItem {
-  const template = productItems[0];
-  const image = p.image || template.image;
-  const galleryImages =
-    p.gallery && p.gallery.length
-      ? p.gallery
-      : [image, image, image];
+  const image = String(p.image || "").trim();
+  const galleryImages = (p.gallery || []).map((g) => String(g || "").trim()).filter(Boolean);
   const categoryEn =
     typeof p.category === "object" && p.category
       ? String((p.category as any).en || "")
@@ -194,14 +219,21 @@ function mapCmsProduct(p: CmsProduct, index: number): ProductItem {
         ? p.sectionTag.trim()
         : "";
   const layoutType = mapLayout(categoryEn);
+  const fallbackImage = "/products/Kitchen1.png";
+  const primaryImage =
+    resolveCmsMediaUrl(galleryImages[0] || image, fallbackImage) ||
+    fallbackImage;
   const heroImages: [string, string, string] = [
-    galleryImages[0] || image,
-    galleryImages[1] || galleryImages[0] || image,
-    galleryImages[2] || galleryImages[1] || galleryImages[0] || image,
+    primaryImage,
+    resolveCmsMediaUrl(galleryImages[1], primaryImage) || primaryImage,
+    resolveCmsMediaUrl(galleryImages[2] || galleryImages[1], primaryImage) ||
+      primaryImage,
   ];
   const detailImages: string[] = galleryImages.length
     ? galleryImages
-    : [image, image];
+        .map((img) => resolveCmsMediaUrl(img, primaryImage) || primaryImage)
+        .filter(Boolean)
+    : [primaryImage];
   const features =
     p.featureHighlights
       ?.map((f) => ({
@@ -217,32 +249,33 @@ function mapCmsProduct(p: CmsProduct, index: number): ProductItem {
           typeof f.description === "string"
             ? f.description
             : String((f.description as any)?.en || "");
-        return Boolean(t || d);
+        return Boolean(t && d);
       }) || [];
 
   const contactImage =
-    String(p.contactImage || "").trim() || image;
+    resolveCmsMediaUrl(p.contactImage, primaryImage) || primaryImage;
 
   return {
-    ...template,
     id: 10000 + index,
     slug: normalizeSlug(p.slug) || normalizeSlug(titleEn).replace(/\s+/g, "-"),
     name: p.title as any,
     layout: categoryEn || layoutType,
     layoutType,
-    image,
+    image: primaryImage,
     bestSeller: Boolean(p.featured),
     heroImages,
-    // Narrative eyebrow: sectionTag, then category
-    tag: (sectionTagEn ? (p.sectionTag as any) : null) || (p.category as any) || categoryEn || "Collection",
-    // Narrative headline: subtitle, then title
+    tag:
+      (sectionTagEn ? (p.sectionTag as any) : null) ||
+      (p.category as any) ||
+      categoryEn ||
+      "Collection",
     headline: (subtitleEn ? (p.subtitle as any) : null) || (p.title as any),
-    description: (p.description as any) || template.description,
+    description: (p.description as any) || "",
     gallery: galleryImages.map((img) => ({
-      image: img,
+      image: resolveCmsMediaUrl(img, primaryImage) || primaryImage,
       caption: titleEn,
     })),
-    features: features.length ? (features as any) : template.features,
+    features: features as any,
     detailImages,
     contactImage,
     contactEyebrow: p.contactEyebrow as any,
@@ -250,10 +283,10 @@ function mapCmsProduct(p: CmsProduct, index: number): ProductItem {
     contactFormTitle: p.contactFormTitle as any,
     pdfUrl: p.pdfUrl || "",
     icon: p.icon || "",
-    finish: (p.finish as any) || template.finish,
-    material: (p.material as any) || template.material,
-    style: (p.style as any) || template.style,
-    color: (p.color as any) || template.color,
+    finish: (p.finish as any) || "",
+    material: (p.material as any) || "",
+    style: (p.style as any) || "",
+    color: (p.color as any) || "",
     metaTitle: String(p.metaTitle || ""),
     metaDescription: String(p.metaDescription || ""),
     indexable: p.indexable === true,
@@ -318,22 +351,25 @@ function mapCmsBlog(b: CmsBlog, index: number): BlogPost {
     ? new Date((b as any).updatedAt).toISOString()
     : undefined;
 
+  const slug = normalizeSlug(b.slug) || normalizeSlug(b.title).replace(/\s+/g, "-");
   const coverImage = pickBlogCoverImage(b);
+  const fixed = fixedGuideMedia(slug, coverImage, b.gallery);
 
   const gallery =
-    b.gallery && b.gallery.length >= 2
+    fixed.gallery ||
+    (b.gallery && b.gallery.length >= 2
       ? ([
           resolveCmsMediaUrl(b.gallery[0]) || coverImage,
           resolveCmsMediaUrl(b.gallery[1]) || coverImage,
         ] as [string, string])
       : ([
-          coverImage,
-          resolveCmsMediaUrl(b.gallery?.[0]) || coverImage,
-        ] as [string, string]);
+          fixed.image,
+          resolveCmsMediaUrl(b.gallery?.[0]) || fixed.image,
+        ] as [string, string]));
 
   return {
     id: 20000 + index,
-    slug: normalizeSlug(b.slug) || normalizeSlug(b.title).replace(/\s+/g, "-"),
+    slug,
     title: b.title,
     excerpt: b.excerpt || paragraphs[0] || "",
     category: b.category || "Journal",
@@ -344,7 +380,7 @@ function mapCmsBlog(b: CmsBlog, index: number): BlogPost {
     readTime: (b.readTime || "5 MIN READ").toUpperCase().includes("MIN")
       ? (b.readTime || "5 MIN READ").toUpperCase()
       : `${b.readTime || "5"} MIN READ`,
-    image: coverImage,
+    image: fixed.image,
     gallery,
     featured: index === 0,
     subsectionTitle: b.highlightTitle || undefined,
@@ -370,6 +406,7 @@ function mapCmsBlog(b: CmsBlog, index: number): BlogPost {
     locationTag: b.locationTag || undefined,
     serviceTag: b.serviceTag || undefined,
     materialTag: b.materialTag || undefined,
+    metaTitle: b.metaTitle || undefined,
     metaDescription: b.metaDescription || undefined,
     reviewer: b.reviewer || undefined,
     published: b.published !== false,
@@ -446,22 +483,94 @@ export type CmsCatalogue = {
   downloadName: string;
 };
 
-export async function fetchMergedCatalogues(): Promise<CmsCatalogue[]> {
-  const home = await fetchHomeSections();
+const APPROVED_CATALOGUE_EDITIONS = ["classic", "minimal", "modern"] as const;
+type CatalogueEdition = (typeof APPROVED_CATALOGUE_EDITIONS)[number];
 
-  if (home && Array.isArray(home.catalogue?.items)) {
-    return (home.catalogue.items as any[]).map((c, index) => ({
+const CATALOGUE_COVERS: Record<CatalogueEdition, string> = {
+  classic: "/catlog/catlog (1).png",
+  minimal: "/catlog/catlog.png",
+  modern: "/catlog/catlog (2).png",
+};
+
+function catalogueEditionOf(value: unknown): CatalogueEdition | "" {
+  const text = String(
+    typeof value === "object" && value
+      ? (value as { en?: string }).en || JSON.stringify(value)
+      : value || ""
+  ).toLowerCase();
+  if (text.includes("classic")) return "classic";
+  if (text.includes("minimal")) return "minimal";
+  if (text.includes("modern")) return "modern";
+  return "";
+}
+
+export function mapCatalogueItems(rawItems: unknown[]): CmsCatalogue[] {
+  const seen = new Set<CatalogueEdition>();
+  const approved: CmsCatalogue[] = [];
+  const remainder: CmsCatalogue[] = [];
+
+  (rawItems || []).forEach((entry, index) => {
+    const c = (entry || {}) as Record<string, unknown>;
+    const fileName = String(c.fileName || c.pdf || "").toLowerCase();
+    const edition =
+      catalogueEditionOf(c.category) ||
+      catalogueEditionOf(c.title) ||
+      catalogueEditionOf(fileName) ||
+      catalogueEditionOf(c.downloadName);
+    const cmsImage = String(c.image || "").trim();
+    const item: CmsCatalogue = {
       id: 31000 + index,
-      category: c.category ?? "Catalogue",
-      title: c.title ?? "Catalogue",
-      image: String(c.image || "/catlog/catlog.png"),
+      category: c.category ?? edition ?? "Catalogue",
+      title: c.title ?? "2026 EDITION",
+      image: cmsImage || (edition ? CATALOGUE_COVERS[edition] : "/catlog/catlog.png"),
       pdf: String(c.fileName || ""),
       pdfUrl: String(c.pdfUrl || ""),
-      downloadName: String(c.downloadName || c.fileName || "catalogue.pdf"),
-    }));
+      downloadName: String(
+        c.downloadName ||
+          c.fileName ||
+          (edition
+            ? `Thailand-Kitchens-Catalogue-${edition}.pdf`
+            : "Thailand-Kitchens-Catalogue.pdf")
+      ),
+    };
+
+    const isGenericLeftover =
+      (!edition && /catalogue\.pdf$/i.test(fileName)) ||
+      /catalogue\.pdf$/i.test(item.downloadName) && !edition;
+
+    if (edition) {
+      if (seen.has(edition)) return;
+      seen.add(edition);
+      approved.push(item);
+      return;
+    }
+    if (!isGenericLeftover) remainder.push(item);
+  });
+
+  if (approved.length) {
+    return approved.sort((a, b) => {
+      const order: CatalogueEdition[] = ["classic", "minimal", "modern"];
+      return (
+        order.indexOf(catalogueEditionOf(a.category) as CatalogueEdition) -
+        order.indexOf(catalogueEditionOf(b.category) as CatalogueEdition)
+      );
+    });
   }
 
-  return [];
+  return remainder.slice(0, 3);
+}
+
+export function cataloguesFromHomeSections(
+  home: HomeSections | null | undefined
+): CmsCatalogue[] {
+  const items = home?.catalogue?.items;
+  if (!Array.isArray(items)) return [];
+  return mapCatalogueItems(items);
+}
+
+export async function fetchMergedCatalogues(): Promise<CmsCatalogue[]> {
+  const home = await fetchHomeSections();
+  return cataloguesFromHomeSections(home);
 }
 
 export type CmsFaq = {

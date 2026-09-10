@@ -24,6 +24,7 @@ import {
 } from "../../lib/categoryRoutes";
 import { absoluteUrl, ogImageUrl, SITE_ORIGIN } from "../../lib/siteUrl";
 import { getServerLocale } from "../../lib/serverLocale";
+import { seoAlternates, SITE_SEO_LOCALE } from "../../lib/pageMetadata";
 
 function normalizeSlug(slug: string) {
   return String(slug || "")
@@ -66,12 +67,12 @@ export async function generateCategoryMetadata(
     return { title: `${fallbackLabel} Not Found` };
   }
 
-  const locale = await getServerLocale();
   const title =
     category.metaTitle ||
-    `${pickCmsText(category.title, "", locale)} | Thailand Kitchens`;
+    `${pickCmsText(category.title, "", SITE_SEO_LOCALE)} | Thailand Kitchens`;
   const description =
-    category.metaDescription || pickCmsText(category.description, "", locale);
+    category.metaDescription ||
+    pickCmsText(category.description, "", SITE_SEO_LOCALE);
 
   const path = categoryPublicPath(category);
   const canonical = category.canonicalUrl || absoluteUrl(path);
@@ -81,6 +82,7 @@ export async function generateCategoryMetadata(
     title,
     description,
     alternates: {
+      ...seoAlternates(path),
       canonical,
     },
     openGraph: {

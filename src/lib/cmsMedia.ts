@@ -144,12 +144,19 @@ export async function resolveRemoteCmsMedia(
   const pending = (async () => {
     try {
       const endpoint = `${mediaApiBase()}/upload/resolve?url=${encodeURIComponent(local)}&field=${field}`;
-      const res = await fetch(
-        endpoint,
+      const init: RequestInit & { next?: { revalidate: number } } =
         typeof window === "undefined"
           ? { next: { revalidate: 3600 } }
-          : { cache: "no-store" }
-      );
+          : { cache: "no-store" };
+      if (
+        typeof window === "undefined" &&
+        process.env.NODE_ENV === "development" &&
+        typeof AbortSignal !== "undefined" &&
+        typeof AbortSignal.timeout === "function"
+      ) {
+        init.signal = AbortSignal.timeout(2500);
+      }
+      const res = await fetch(endpoint, init);
       if (!res.ok) return local;
       const data = (await res.json()) as {
         resolvedUrl?: string;
@@ -235,17 +242,20 @@ export function pickBlogCoverImage(b: {
   gallery?: string[];
   bodySections?: { image?: string }[];
 }): string {
-  const fromImage = resolveCmsMediaUrl(b.image);
-  if (fromImage) return fromImage;
+  const candidates = [
+    b.image,
+    ...(b.gallery || []),
+    ...(b.bodySections || []).map((section) => section?.image),
+  ];
 
-  for (const g of b.gallery || []) {
-    const resolved = resolveCmsMediaUrl(g);
-    if (resolved) return resolved;
-  }
-
-  for (const section of b.bodySections || []) {
-    const resolved = resolveCmsMediaUrl(section?.image);
-    if (resolved) return resolved;
+  for (const candidate of candidates) {
+    const resolved = resolveCmsMediaUrl(candidate);
+    if (!resolved) continue;
+    if (/blogimage\s*\(\d+\)/i.test(decodeURIComponent(resolved))) continue;
+    if (/pexels|unsplash|pixabay|shutterstock|istockphoto|gettyimages/i.test(resolved)) {
+      continue;
+    }
+    return resolved;
   }
 
   return DEFAULT_BLOG_COVER;
