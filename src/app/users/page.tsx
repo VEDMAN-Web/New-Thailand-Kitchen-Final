@@ -14,6 +14,7 @@ import {
 
 export default function AdminUsersPage() {
   const { user: me } = useAdminAuth();
+  const canManageUsers = me?.role === "admin";
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -21,10 +22,14 @@ export default function AdminUsersPage() {
     name: "",
     email: "",
     password: "",
-    role: "admin",
+    role: "editor",
   });
 
   const load = useCallback(async () => {
+    if (!canManageUsers) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const res = await listUsers();
@@ -34,7 +39,7 @@ export default function AdminUsersPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [canManageUsers]);
 
   useEffect(() => {
     load();
@@ -46,7 +51,7 @@ export default function AdminUsersPage() {
       await createUser(form);
       toast.success("User created");
       setOpen(false);
-      setForm({ name: "", email: "", password: "", role: "admin" });
+      setForm({ name: "", email: "", password: "", role: "editor" });
       await load();
     } catch {
       toast.error("Could not create user");
@@ -68,13 +73,28 @@ export default function AdminUsersPage() {
     }
   };
 
+  if (!canManageUsers) {
+    return (
+      <p className="text-sm text-[#5C6370]">
+        Only admins can create or revoke individual user credentials.
+      </p>
+    );
+  }
+
   return (
     <>
+<<<<<<< Updated upstream
     <p className="mb-4 rounded-xl border border-[#E8EAED] bg-[#F8FAFC] px-4 py-3 text-sm text-[#334155]">
       Create one login per person (individually revocable). Keep these accounts on the
       staging database until Vedant signs off production access. Do not share a single token.
     </p>
     <div className="flex justify-end mb-6">
+=======
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+      <p className="text-sm text-[#5C6370]">
+        Each content partner needs their own email and password. Do not share one login.
+      </p>
+>>>>>>> Stashed changes
         <button
           type="button"
           onClick={() => setOpen(true)}

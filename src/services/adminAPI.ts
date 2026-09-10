@@ -248,6 +248,10 @@ export type ProductItem = {
   material?: LocalizedCmsText;
   style?: LocalizedCmsText;
   color?: LocalizedCmsText;
+  metaTitle?: string;
+  metaDescription?: string;
+  canonicalUrl?: string;
+  indexable?: boolean;
 };
 
 export async function listProducts(siteId: SiteId) {

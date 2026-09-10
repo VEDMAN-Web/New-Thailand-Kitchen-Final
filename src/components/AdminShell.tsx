@@ -353,6 +353,7 @@ function AdminShellContent({
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, logout, siteId, setSiteId } = useAdminAuth();
+  const canManageUsers = user?.role === "admin";
   const isVarsoviaRoute = pathname.startsWith("/varsovia");
   const isSharedAdmin = pathname === "/contacts" || pathname === "/users";
   const isVarsovia =
@@ -858,7 +859,9 @@ function AdminShellContent({
               <p className="px-3 pb-1 pt-4 text-[10px] font-bold tracking-[0.14em] uppercase text-[#9CA3AF]">
                 Admin
               </p>
-              {THAILAND_NAV.filter((i) => i.group === "admin").map((item) => {
+              {THAILAND_NAV.filter((i) => i.group === "admin")
+                .filter((i) => i.href !== "/users" || canManageUsers)
+                .map((item) => {
                 const { href, label, icon: Icon } = item;
                 return (
                   <Link
@@ -972,7 +975,9 @@ function AdminShellContent({
               <p className="px-3 pb-1 pt-4 text-[10px] font-bold tracking-[0.14em] uppercase text-[#9CA3AF]">
                 Site chrome
               </p>
-              {VARSOVIA_NAV.filter((i) => i.group === "admin").map((item) => {
+              {VARSOVIA_NAV.filter((i) => i.group === "admin")
+                .filter((i) => i.href !== "/users" || canManageUsers)
+                .map((item) => {
                 const { href, label, icon: Icon } = item;
                 return (
                   <Link

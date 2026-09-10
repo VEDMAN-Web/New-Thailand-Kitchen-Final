@@ -10,12 +10,14 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const isLogin = pathname === "/login";
+  const isUsersAdminOnly = pathname === "/users";
 
   useEffect(() => {
     if (loading) return;
     if (!user && !isLogin) router.replace("/login");
     if (user && isLogin) router.replace("/");
-  }, [user, loading, isLogin, router]);
+    if (user && isUsersAdminOnly && user.role !== "admin") router.replace("/");
+  }, [user, loading, isLogin, isUsersAdminOnly, router]);
 
   if (loading) {
     return (
