@@ -9,8 +9,7 @@ import { pickCmsText } from "../../../lib/cmsText";
 import { absoluteUrl, ogImageUrl } from "../../../lib/siteUrl";
 import { pickBlogCoverImage } from "../../../lib/cmsMedia";
 import { getServerLocale } from "../../../lib/serverLocale";
-import { seoAlternates, SITE_SEO_LOCALE } from "../../../lib/pageMetadata";
-import { fixedGuideMedia } from "../../../lib/imageFixRegister";
+import { tx } from "../../../i18n/translations";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -93,11 +92,12 @@ export default async function GuideDetailPage({ params }: Props) {
     <main className="w-full">
       <Breadcrumbs
         items={[
-          { label: "Home", href: "/" },
-          { label: "Guides", href: "/guides" },
+          { label: tx(locale, "nav.home"), href: "/" },
+          { label: tx(locale, "nav.guides"), href: "/guides" },
         ]}
         currentPage={postTitle}
         currentHref={`/guides/${post.slug}`}
+        locale={locale}
       />
       <JsonLd
         type="Article"

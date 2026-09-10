@@ -1,19 +1,29 @@
 import type { Metadata } from "next";
 import { fetchMergedCatalogues } from "../../services/cmsPublic";
 import CataloguePageClient from "./CataloguePageClient";
-import { pageSeo } from "../../lib/pageMetadata";
+import { SITE_ORIGIN } from "../../lib/siteUrl";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export async function generateMetadata(): Promise<Metadata> {
-  return pageSeo({
-    title: "Kitchen Catalogues | Thailand Kitchens",
-    description:
-      "Download the Classic, Minimal, and Modern 2026 kitchen catalogues from Thailand Kitchens.",
-    path: "/catalogue",
-  });
-}
+const CATALOGUE_TITLE = "Free Kitchen Catalogue | Thailand Kitchens";
+const CATALOGUE_DESCRIPTION =
+  "Download our latest kitchen catalogue instantly — no contact form required. Browse layouts, finishes, and materials from Thailand Kitchens.";
+const CATALOGUE_URL = `${SITE_ORIGIN}/catalogue`;
+
+export const metadata: Metadata = {
+  title: CATALOGUE_TITLE,
+  description: CATALOGUE_DESCRIPTION,
+  alternates: {
+    canonical: CATALOGUE_URL,
+  },
+  openGraph: {
+    type: "website",
+    title: CATALOGUE_TITLE,
+    description: CATALOGUE_DESCRIPTION,
+    url: CATALOGUE_URL,
+  },
+};
 
 export default async function CataloguePage() {
   const catalogues = await fetchMergedCatalogues().catch(() => []);

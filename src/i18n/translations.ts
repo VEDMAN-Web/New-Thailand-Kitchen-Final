@@ -25,6 +25,18 @@ export const translations = {
     "nav.overview": "Overview",
     "nav.explore": "Explore",
     "nav.builtInFurniture": "Built-In Furniture",
+    "hub.layouts": "Layouts",
+    "hub.styles": "Styles",
+    "hub.byProperty": "By Property",
+    "hub.short.layout": "Layout",
+    "hub.short.style": "Style",
+    "hub.short.property": "Property",
+    "hub.highlights": "Highlights",
+    "hub.process": "Process",
+    "hub.whatMatters": "What matters",
+    "hub.feature": "Feature",
+    "hub.relatedProjects": "Related projects",
+    "breadcrumb.aria": "Breadcrumb",
 
     "home.hero.eyebrow": "Fineline of kitchen",
     "home.hero.title": "Timeless craft of Thai kitchen",
@@ -314,6 +326,18 @@ export const translations = {
     "nav.overview": "ภาพรวม",
     "nav.explore": "สำรวจ",
     "nav.builtInFurniture": "เฟอร์นิเจอร์บิวท์อิน",
+    "hub.layouts": "เลย์เอาต์",
+    "hub.styles": "สไตล์",
+    "hub.byProperty": "ตามประเภทที่อยู่อาศัย",
+    "hub.short.layout": "เลย์เอาต์",
+    "hub.short.style": "สไตล์",
+    "hub.short.property": "ที่อยู่อาศัย",
+    "hub.highlights": "ไฮไลต์",
+    "hub.process": "ขั้นตอน",
+    "hub.whatMatters": "สิ่งที่สำคัญ",
+    "hub.feature": "ฟีเจอร์",
+    "hub.relatedProjects": "โปรเจกต์ที่เกี่ยวข้อง",
+    "breadcrumb.aria": "เส้นทาง",
 
     "home.hero.eyebrow": "เส้นบางของครัว",
     "home.hero.title": "งานฝีมือครัวไทยที่เหนือกาลเวลา",
@@ -600,6 +624,18 @@ export const translations = {
     "nav.overview": "Przegląd",
     "nav.explore": "Odkryj",
     "nav.builtInFurniture": "Meble na wymiar",
+    "hub.layouts": "Układy",
+    "hub.styles": "Style",
+    "hub.byProperty": "Według nieruchomości",
+    "hub.short.layout": "Układ",
+    "hub.short.style": "Styl",
+    "hub.short.property": "Nieruchomość",
+    "hub.highlights": "Najważniejsze",
+    "hub.process": "Proces",
+    "hub.whatMatters": "Co ma znaczenie",
+    "hub.feature": "Cecha",
+    "hub.relatedProjects": "Powiązane projekty",
+    "breadcrumb.aria": "Nawigacja",
 
     "home.hero.eyebrow": "Fine line kuchni",
     "home.hero.title": "Ponadczasowe rzemiosło kuchni tajskiej",
@@ -869,3 +905,7 @@ export const translations = {
 } as const;
 
 export type TranslationKey = keyof typeof translations.EN;
+
+export function tx(locale: Locale, key: TranslationKey): string {
+  return translations[locale][key] ?? translations.EN[key] ?? key;
+}

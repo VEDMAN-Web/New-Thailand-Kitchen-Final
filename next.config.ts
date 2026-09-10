@@ -41,12 +41,28 @@ const nextConfig: NextConfig = {
       }
     : undefined,
   images: {
-    unoptimized: true,
+    unoptimized: false,
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "images.pexels.com",
+      },
+    ],
   },
   async redirects() {
     return [
       { source: "/blog", destination: "/guides", permanent: true },
       { source: "/blog/:slug", destination: "/guides/:slug", permanent: true },
+      { source: "/blogs", destination: "/guides", permanent: true },
+      { source: "/blogs/:slug*", destination: "/guides/:slug*", permanent: true },
       { source: "/journal", destination: "/guides", permanent: true },
       { source: "/journal/:slug", destination: "/guides/:slug", permanent: true },
       { source: "/kitchen", destination: "/kitchens", permanent: true },
@@ -56,33 +72,11 @@ const nextConfig: NextConfig = {
       { source: "/portfolio", destination: "/gallery", permanent: true },
       { source: "/about", destination: "/#our-story", permanent: false },
       { source: "/catalog", destination: "/catalogue", permanent: true },
-      { source: "/blogs", destination: "/guides", permanent: true },
-      { source: "/blogs/:slug", destination: "/guides/:slug", permanent: true },
-      {
-        source: "/kitchens/by-property/kitchens",
-        destination: "/kitchens/by-property",
-        statusCode: 301,
-      },
-      {
-        source: "/services/wardrobes",
-        destination: "/built-in-furniture/wardrobes",
-        statusCode: 301,
-      },
-      {
-        source: "/services/wardrobe",
-        destination: "/built-in-furniture/wardrobes",
-        statusCode: 301,
-      },
-      {
-        source: "/services/walk-in-wardrobes",
-        destination: "/built-in-furniture/wardrobes",
-        statusCode: 301,
-      },
-      {
-        source: "/services/walk-in-wardrobe",
-        destination: "/built-in-furniture/wardrobes",
-        statusCode: 301,
-      },
+      // DEV-10: redirect thin location×service pages to their parent city pages
+      { source: "/locations/bangkok/kitchen-renovation", destination: "/locations/bangkok", permanent: true },
+      { source: "/locations/bangkok/kitchen-design", destination: "/locations/bangkok", permanent: true },
+      { source: "/locations/phuket/kitchen-renovation", destination: "/locations/phuket", permanent: true },
+      { source: "/locations/koh-samui/kitchen-design", destination: "/locations/koh-samui", permanent: true },
     ];
   },
   async rewrites() {

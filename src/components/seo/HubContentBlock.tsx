@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { pickCmsText } from "../../lib/cmsText";
-import type { Locale } from "../../i18n/translations";
+import { tx, type Locale } from "../../i18n/translations";
 
 export type ContentSectionBlock = {
   heading?: unknown;
@@ -135,7 +135,7 @@ export default function HubContentBlock({
         : [];
     return (
       <section>
-        <SectionEyebrow index={index} label="Highlights" />
+        <SectionEyebrow index={index} label={tx(locale, "hub.highlights")} />
         {heading ? (
           <h2 className="font-sans font-extrabold text-2xl min-[425px]:text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-5 sm:mb-8 max-w-2xl leading-tight break-words">
             {heading}
@@ -189,7 +189,7 @@ export default function HubContentBlock({
           <div className="relative mt-5 sm:mt-8 aspect-[21/9] rounded-2xl overflow-hidden bg-[#E8E4DC]">
             <Image
               src={image}
-              alt={heading || "Highlights"}
+              alt={heading || tx(locale, "hub.highlights")}
               fill
               className="object-cover"
               sizes="100vw"
@@ -206,7 +206,7 @@ export default function HubContentBlock({
     return (
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-8 lg:gap-12 items-center">
         <div>
-          <SectionEyebrow index={index} label="Process" />
+          <SectionEyebrow index={index} label={tx(locale, "hub.process")} />
           {heading ? (
             <h2 className="font-sans font-extrabold text-2xl min-[425px]:text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-5 sm:mb-8 leading-tight break-words">
               {heading}
@@ -237,7 +237,7 @@ export default function HubContentBlock({
           <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-[#E8E4DC]">
             <Image
               src={image}
-              alt={heading || "Process"}
+              alt={heading || tx(locale, "hub.process")}
               fill
               className="object-cover"
               sizes="(max-width: 1024px) 100vw, 50vw"
@@ -294,7 +294,7 @@ export default function HubContentBlock({
           </div>
         ) : null}
         <div className={image ? "lg:order-1" : ""}>
-          <SectionEyebrow index={index} label="What matters" />
+          <SectionEyebrow index={index} label={tx(locale, "hub.whatMatters")} />
           {heading ? (
             <h2 className="font-sans font-extrabold text-2xl min-[425px]:text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-4 sm:mb-6 leading-tight break-words">
               {heading}
@@ -364,7 +364,7 @@ export default function HubContentBlock({
           <div className="relative h-50 sm:h-auto sm:aspect-[21/9] rounded-2xl sm:rounded-3xl overflow-hidden bg-[#E8E4DC] mb-4 sm:mb-8">
             <Image
               src={image}
-              alt={heading || "Feature"}
+              alt={heading || tx(locale, "hub.feature")}
               fill
               className="object-cover"
               sizes="100vw"
@@ -373,7 +373,7 @@ export default function HubContentBlock({
           </div>
         ) : null}
         <div className="max-w-3xl">
-          <SectionEyebrow index={index} label="Feature" />
+          <SectionEyebrow index={index} label={tx(locale, "hub.feature")} />
           {heading ? (
             <h2 className="font-sans font-extrabold text-2xl min-[425px]:text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-4 leading-tight break-words">
               {heading}

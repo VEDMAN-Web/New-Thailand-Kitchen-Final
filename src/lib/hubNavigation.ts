@@ -1,6 +1,6 @@
 import type { CategoryType } from "./categoryRoutes";
 import type { KitchensSectionKey } from "../components/kitchens/kitchensConfig";
-import { KITCHENS_SECTIONS } from "../components/kitchens/kitchensConfig";
+import { tx, type Locale, type TranslationKey } from "../i18n/translations";
 
 export type HubNavKey =
   | "kitchens"
@@ -85,6 +85,21 @@ export function hubNavByHref(href: string): HubNavConfig | undefined {
 
 export function hubNavByKey(key: HubNavKey): HubNavConfig {
   return HUB_NAV_CONFIG.find((h) => h.key === key)!;
+}
+
+const HUB_TITLE_KEY: Record<HubNavKey, TranslationKey> = {
+  kitchens: "nav.kitchens",
+  services: "nav.services",
+  materials: "nav.materials",
+  locations: "nav.locations",
+  builtInFurniture: "nav.builtInFurniture",
+};
+
+export function hubFallbackTitle(
+  config: HubNavConfig,
+  locale: Locale = "EN"
+): string {
+  return tx(locale, HUB_TITLE_KEY[config.key]);
 }
 
 export function hubNavActive(pathname: string, config: HubNavConfig) {

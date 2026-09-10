@@ -9,12 +9,17 @@ import OverlayHeroBanner from "./OverlayHeroBanner";
 import HubContentBlock from "./HubContentBlock";
 import type { Locale } from "../../i18n/translations";
 import {
+  hubFallbackTitle,
   hubNavByKey,
   type HubNavKey,
   type HubPageCms,
 } from "../../lib/hubNavigation";
 import type { KitchensSectionKey } from "../kitchens/kitchensConfig";
-import { kitchensSectionByKey } from "../kitchens/kitchensConfig";
+import {
+  kitchensSectionByKey,
+  kitchensSectionLabel,
+} from "../kitchens/kitchensConfig";
+import { tx } from "../../i18n/translations";
 import {
   defaultHubSections,
   resolvePageSections,
@@ -42,6 +47,10 @@ function resolveHubData(
   const sectionMeta = kitchensSubKey
     ? kitchensSectionByKey(kitchensSubKey)
     : null;
+  const hubTitle = hubFallbackTitle(config, locale);
+  const sectionTitle = sectionMeta
+    ? kitchensSectionLabel(sectionMeta, locale)
+    : hubTitle;
 
   const cmsSections = kitchensSubKey
     ? (Array.isArray(sub?.sections) ? sub.sections : undefined)
@@ -73,8 +82,8 @@ function resolveHubData(
   return {
     config,
     title: pickCmsText(
-      titleSource,
-      sectionMeta?.label || config.fallbackTitle,
+      sub?.title || root.title,
+      sectionTitle,
       locale
     ),
     description: pickCmsText(
@@ -85,8 +94,8 @@ function resolveHubData(
     eyebrow: pickCmsText(
       eyebrowSource,
       kitchensSubKey
-        ? `Kitchens · ${sectionMeta?.shortLabel || sectionMeta?.label || ""}`
-        : config.fallbackTitle,
+        ? `${tx(locale, "nav.kitchens")} · ${sectionTitle}`
+        : hubTitle,
       locale
     ),
     heroImage: String(
@@ -162,10 +171,10 @@ export default async function SeoHubLandingPage({
     breadcrumbTrail ||
     (kitchensSubKey
       ? [
-          { label: "Home", href: "/" },
-          { label: "Kitchens", href: "/kitchens" },
+          { label: tx(locale, "nav.home"), href: "/" },
+          { label: tx(locale, "nav.kitchens"), href: "/kitchens" },
         ]
-      : [{ label: "Home", href: "/" }]);
+      : [{ label: tx(locale, "nav.home"), href: "/" }]);
 
   return (
     <main className="w-full bg-[#F5F3EF] min-h-[50vh]">
@@ -173,6 +182,7 @@ export default async function SeoHubLandingPage({
         items={trail}
         currentPage={data.title}
         currentHref={data.currentHref}
+        locale={locale}
       />
 
       <OverlayHeroBanner

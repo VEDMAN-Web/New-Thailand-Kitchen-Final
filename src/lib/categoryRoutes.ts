@@ -1,5 +1,7 @@
 /** Canonical public paths for CMS category types — keep in sync with admin Live URL preview. */
 
+import { tx, type Locale, type TranslationKey } from "../i18n/translations";
+
 export type CategoryType =
   | "service"
   | "material"
@@ -69,70 +71,104 @@ export function categoryPublicPath(category: {
   return `${categoryPublicBasePath(category.categoryType || "")}/${slug}`;
 }
 
-export function categorySectionLabel(categoryType: CategoryType): string {
+function sectionLabelKey(categoryType: CategoryType): TranslationKey {
   switch (categoryType) {
     case "service":
-      return "Services";
+      return "nav.services";
     case "material":
-      return "Materials";
+      return "nav.materials";
     case "style":
-      return "Styles";
+      return "hub.styles";
     case "layout":
-      return "Layouts";
+      return "hub.layouts";
     case "property-type":
-      return "By Property";
+      return "hub.byProperty";
     case "location":
-      return "Locations";
+      return "nav.locations";
     case "built-in-furniture":
-      return "Built-In Furniture";
+      return "nav.builtInFurniture";
     default:
-      return "Products";
+      return "nav.products";
   }
+}
+
+export function categorySectionLabel(
+  categoryType: CategoryType,
+  locale: Locale = "EN"
+): string {
+  return tx(locale, sectionLabelKey(categoryType));
 }
 
 export function categoryBreadcrumbTrail(
   categoryType: CategoryType,
-  opts?: { locationSlug?: string; locationTitle?: string }
+  opts?: {
+    locationSlug?: string;
+    locationTitle?: string;
+    locale?: Locale;
+  }
 ): { label: string; href: string }[] {
-  const home = { label: "Home", href: "/" };
+  const locale = opts?.locale ?? "EN";
+  const home = { label: tx(locale, "nav.home"), href: "/" };
+  const kitchens = { label: tx(locale, "nav.kitchens"), href: "/kitchens" };
   switch (categoryType) {
     case "layout":
       return [
         home,
-        { label: "Kitchens", href: "/kitchens" },
-        { label: "Layouts", href: "/kitchens/layouts" },
+        kitchens,
+        { label: tx(locale, "hub.layouts"), href: "/kitchens/layouts" },
       ];
     case "style":
       return [
         home,
-        { label: "Kitchens", href: "/kitchens" },
-        { label: "Styles", href: "/kitchens/styles" },
+        kitchens,
+        { label: tx(locale, "hub.styles"), href: "/kitchens/styles" },
       ];
     case "property-type":
       return [
         home,
-        { label: "Kitchens", href: "/kitchens" },
-        { label: "By Property", href: "/kitchens/by-property" },
+        kitchens,
+        {
+          label: tx(locale, "hub.byProperty"),
+          href: "/kitchens/by-property",
+        },
       ];
     case "built-in-furniture":
-      return [home, { label: "Built-In Furniture", href: "/built-in-furniture" }];
+      return [
+        home,
+        {
+          label: tx(locale, "nav.builtInFurniture"),
+          href: "/built-in-furniture",
+        },
+      ];
     case "service":
       if (opts?.locationSlug) {
         return [
           home,
-          { label: "Locations", href: "/locations" },
+          { label: tx(locale, "nav.locations"), href: "/locations" },
           {
             label: opts.locationTitle || opts.locationSlug,
             href: `/locations/${opts.locationSlug}`,
           },
         ];
       }
-      return [home, { label: "Services", href: "/services" }];
+      return [
+        home,
+        { label: tx(locale, "nav.services"), href: "/services" },
+      ];
     case "material":
-      return [home, { label: "Materials", href: "/materials" }];
+      return [
+        home,
+        { label: tx(locale, "nav.materials"), href: "/materials" },
+      ];
     case "location":
-      return [home, { label: "Locations", href: "/locations" }];
+      return [
+        home,
+        { label: tx(locale, "nav.locations"), href: "/locations" },
+      ];
     default:
-      return [home, { label: "Products", href: "/products" }];
+      return [
+        home,
+        { label: tx(locale, "nav.products"), href: "/products" },
+      ];
   }
 }

@@ -1,36 +1,33 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import GalleryPageView from "../../component/gallery/GalleryPageView";
 import { fetchMergedGallery, fetchHomeSections } from "../../services/cmsPublic";
 import { galleryItems } from "../../component/gallery/galleryData";
-import { pickCmsText } from "../../lib/cmsText";
-import { pageSeo, SITE_SEO_LOCALE } from "../../lib/pageMetadata";
+import { SITE_ORIGIN } from "../../lib/siteUrl";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const GALLERY_TITLE = "Kitchen Gallery | Thailand Kitchens";
+const GALLERY_TITLE =
+  "Kitchens of the Island — Gallery | Thailand Kitchens";
 const GALLERY_DESCRIPTION =
-  "A curated inspiration library of tropical, modern, and minimal kitchens designed across Thailand — filter by style, layout, palette, or material.";
+  "A curated inspiration library of tropical, modern and minimal kitchens crafted by our Samui atelier — filter by style, layout, palette or material and discover your next design.";
+const GALLERY_URL = `${SITE_ORIGIN}/gallery`;
 
-export async function generateMetadata(): Promise<Metadata> {
-  const home = await fetchHomeSections().catch(() => ({}));
-  const cms = (home as { galleryPage?: Record<string, unknown> }).galleryPage || {};
-  const title = pickCmsText(cms.metaTitle, GALLERY_TITLE, SITE_SEO_LOCALE);
-  const description = pickCmsText(
-    cms.metaDescription || cms.description,
-    GALLERY_DESCRIPTION,
-    SITE_SEO_LOCALE
-  );
-  return pageSeo({
-    title: title.includes("Thailand Kitchens")
-      ? title
-      : `${title} | Thailand Kitchens`,
-    description,
-    path: "/gallery",
-    image: typeof cms.ogImage === "string" ? cms.ogImage : undefined,
-  });
-}
+export const metadata: Metadata = {
+  title: GALLERY_TITLE,
+  description: GALLERY_DESCRIPTION,
+  alternates: {
+    canonical: GALLERY_URL,
+  },
+  openGraph: {
+    type: "website",
+    title: GALLERY_TITLE,
+    description: GALLERY_DESCRIPTION,
+    url: GALLERY_URL,
+  },
+};
 
 export default async function GalleryPage() {
   const [items, sections] = await Promise.all([

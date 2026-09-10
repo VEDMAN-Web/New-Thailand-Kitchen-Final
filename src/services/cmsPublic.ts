@@ -123,6 +123,7 @@ type CmsProduct = {
   color?: string;
   metaTitle?: string;
   metaDescription?: string;
+  canonicalUrl?: string;
   indexable?: boolean;
 };
 
@@ -289,6 +290,7 @@ function mapCmsProduct(p: CmsProduct, index: number): ProductItem {
     color: (p.color as any) || "",
     metaTitle: String(p.metaTitle || ""),
     metaDescription: String(p.metaDescription || ""),
+    canonicalUrl: String(p.canonicalUrl || ""),
     indexable: p.indexable === true,
   };
 }

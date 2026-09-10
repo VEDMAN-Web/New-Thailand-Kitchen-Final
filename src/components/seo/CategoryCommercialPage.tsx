@@ -141,7 +141,7 @@ export async function CategoryCommercialPage({
 
   const categoryTitle = pickCmsText(
     category.title,
-    categorySectionLabel(categoryType),
+    categorySectionLabel(categoryType, locale),
     locale
   );
   const description = pickCmsText(category.description, "", locale);
@@ -163,6 +163,7 @@ export async function CategoryCommercialPage({
   const trail = categoryBreadcrumbTrail(categoryType, {
     locationSlug: categoryType === "service" ? locSlug || undefined : undefined,
     locationTitle: locTitle || undefined,
+    locale,
   });
   const pagePath = categoryPublicPath(category);
   const pageUrl = absoluteUrl(pagePath);
@@ -173,6 +174,7 @@ export async function CategoryCommercialPage({
         items={trail}
         currentPage={categoryTitle}
         currentHref={pagePath}
+        locale={locale}
       />
       {categoryType === "service" ? (
         <JsonLd
@@ -201,7 +203,7 @@ export async function CategoryCommercialPage({
       <CategoryLandingView
         category={category}
         related={related}
-        sectionLabel={categorySectionLabel(categoryType)}
+        sectionLabel={categorySectionLabel(categoryType, locale)}
         locale={locale}
       />
     </main>

@@ -20,12 +20,13 @@ import type { CmsCategory } from "../../services/cmsPublic";
 import type { Locale } from "../../i18n/translations";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import {
+  hubFallbackTitle,
   hubNavActive,
   hubNavByKey,
   type HubNavConfig,
   type HubPageCms,
 } from "../../lib/hubNavigation";
-import { KITCHENS_SECTIONS } from "../kitchens/kitchensConfig";
+import { KITCHENS_SECTIONS, kitchensSectionLabel, kitchensSectionShortLabel } from "../kitchens/kitchensConfig";
 
 /** Delay before close — forgiving for diagonal mouse travel (Varsovia / Google-style). */
 const HOVER_CLOSE_MS = 220;
@@ -56,7 +57,7 @@ function useHubCopy(config: HubNavConfig, locale: Locale) {
     | undefined;
   const hub = hubPages?.[config.key];
   return {
-    title: pickCmsText(hub?.title, config.fallbackTitle, locale),
+    title: pickCmsText(hub?.title, hubFallbackTitle(config, locale), locale),
   };
 }
 
@@ -191,7 +192,11 @@ function KitchensMegaPanel({
     return {
       section,
       items,
-      label: pickCmsText(sub?.title, section.label, locale),
+      label: pickCmsText(
+        sub?.title,
+        kitchensSectionLabel(section, locale),
+        locale
+      ),
     };
   });
 
@@ -227,7 +232,7 @@ function KitchensMegaPanel({
                 className="text-[9px] uppercase tracking-[0.16em] font-semibold"
                 style={{ color: section.accent }}
               >
-                {section.shortLabel}
+                {kitchensSectionShortLabel(section, locale)}
               </span>
               <span className="mt-0.5 block text-[13px] font-semibold text-[#1A2332] truncate">
                 {label}
@@ -586,9 +591,9 @@ export function HubMobileNavSection({
                           className="text-[9px] uppercase tracking-[0.14em] font-semibold block mb-0.5"
                           style={{ color: section.accent }}
                         >
-                          {section.shortLabel}
+                          {kitchensSectionShortLabel(section, locale)}
                         </span>
-                        {section.label}
+                        {kitchensSectionLabel(section, locale)}
                       </Link>
                       {sectionItems.map((item) => (
                         <CategoryLink

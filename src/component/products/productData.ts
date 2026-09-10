@@ -43,6 +43,7 @@ export interface ProductItem {
   icon?: string;
   metaTitle?: string;
   metaDescription?: string;
+  canonicalUrl?: string;
   indexable?: boolean;
 }
 
