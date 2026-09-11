@@ -509,6 +509,8 @@ export default function AdminProductsPage() {
 
   return (
     <>
+    {(!loading || items.length > 0) && (
+      <>
     <div className="rounded-xl border border-[#C9D9EE] bg-[#F3F7FC] px-4 py-4 mb-6 space-y-2">
       <p className="text-sm font-semibold text-[#1A2332]">Where products show on the live site</p>
       <ol className="list-decimal pl-4 space-y-1.5 text-[13px] leading-snug text-[#334155]">
@@ -583,6 +585,8 @@ export default function AdminProductsPage() {
           Create Product
         </button>
       </div>
+      </>
+    )}
 
       {loading && items.length === 0 && !loadError ? (
         <AdminSkeleton variant="products" count={8} />

@@ -467,6 +467,8 @@ export default function AdminCategoriesPage() {
   return (
     <>
     <div className="space-y-6">
+        {(!loading || items.length > 0) && (
+          <>
         {hub ? (
           <HubLandingEditor hub={hub} />
         ) : (
@@ -527,8 +529,10 @@ export default function AdminCategoriesPage() {
             ))}
           </div>
         ) : null}
+          </>
+        )}
 
-        {loading ? (
+        {loading && items.length === 0 ? (
           <AdminSkeleton variant="cards" count={4} />
         ) : filtered.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-[#E2E5EA] bg-white p-8 sm:p-12 text-center">
@@ -862,7 +866,7 @@ export default function AdminCategoriesPage() {
               locale={locale}
               label="Body sections · below the hero"
               sections={form.sections}
-              onChange={(sections) => setForm((f) => ({ ...f, sections }))}
+              onChange={(sections) => setForm((f) => ({ ...f, sections: sections as CategoryForm["sections"] }))}
               onLoadTemplate={() => {
                 const title = localizedValue(form.title, "en") || "Kitchen";
                 const description = localizedValue(form.description, "en");
