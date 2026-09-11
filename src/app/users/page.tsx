@@ -83,11 +83,18 @@ export default function AdminUsersPage() {
 
   return (
     <>
+<<<<<<< Updated upstream
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <p className="rounded-xl border border-[#E8EAED] bg-[#F8FAFC] px-4 py-3 text-sm text-[#334155]">
           Create one login per person (individually revocable). Keep these accounts on the
           staging database until Vedant signs off production access. Do not share a single
           token.
+=======
+    {(!loading || users.length > 0) && (
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <p className="text-sm text-[#5C6370]">
+          Each content partner needs their own email and password. Do not share one login.
+>>>>>>> Stashed changes
         </p>
         <button
           type="button"
@@ -98,6 +105,7 @@ export default function AdminUsersPage() {
           Add User
         </button>
       </div>
+    )}
 
       {loading ? (
         <AdminSkeleton variant="rows" count={4} />

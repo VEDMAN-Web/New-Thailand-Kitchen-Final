@@ -390,7 +390,7 @@ export default function SectionBlocksEditor({
                           const next = [...sections];
                           next[i] = {
                             ...block,
-                            bodyItems: { ...block.bodyItems, [locale]: items },
+                            bodyItems: { ...(block.bodyItems ?? { en: [], th: [], pl: [] }), [locale]: items },
                           };
                           onChange(next);
                         }}
@@ -405,7 +405,7 @@ export default function SectionBlocksEditor({
                             const next = [...sections];
                             next[i] = {
                               ...block,
-                              bodyItems: { ...block.bodyItems, [locale]: items },
+                              bodyItems: { ...(block.bodyItems ?? { en: [], th: [], pl: [] }), [locale]: items },
                             };
                             onChange(next);
                           }}
@@ -422,7 +422,7 @@ export default function SectionBlocksEditor({
                             const next = [...sections];
                             next[i] = {
                               ...block,
-                              bodyItems: { ...block.bodyItems, [locale]: items },
+                              bodyItems: { ...(block.bodyItems ?? { en: [], th: [], pl: [] }), [locale]: items },
                             };
                             onChange(next);
                           }}
@@ -438,7 +438,7 @@ export default function SectionBlocksEditor({
                             const next = [...sections];
                             next[i] = {
                               ...block,
-                              bodyItems: { ...block.bodyItems, [locale]: items },
+                              bodyItems: { ...(block.bodyItems ?? { en: [], th: [], pl: [] }), [locale]: items },
                             };
                             onChange(next);
                           }}
@@ -479,7 +479,7 @@ export default function SectionBlocksEditor({
                     const next = [...sections];
                     next[i] = {
                       ...block,
-                      bodyItems: { ...block.bodyItems, [locale]: [e.target.value] },
+                      bodyItems: { ...(block.bodyItems ?? { en: [], th: [], pl: [] }), [locale]: [e.target.value] },
                     };
                     onChange(next);
                   }}

@@ -340,6 +340,8 @@ export default function AdminGalleryPage() {
   return (
     <>
       <div className="space-y-6">
+        {(!loading || items.length > 0) && (
+          <>
         <div className="bg-white rounded-xl border border-[#E8EAED] p-4 sm:p-5 space-y-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -550,6 +552,8 @@ export default function AdminGalleryPage() {
             </button>
           ))}
         </div>
+          </>
+        )}
 
         {loading ? (
           <AdminSkeleton variant="cards" count={6} />
