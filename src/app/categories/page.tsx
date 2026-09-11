@@ -532,7 +532,7 @@ export default function AdminCategoriesPage() {
           </>
         )}
 
-        {loading ? (
+        {loading && items.length === 0 ? (
           <AdminSkeleton variant="cards" count={4} />
         ) : filtered.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-[#E2E5EA] bg-white p-8 sm:p-12 text-center">

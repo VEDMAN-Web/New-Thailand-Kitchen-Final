@@ -555,7 +555,7 @@ export default function AdminGalleryPage() {
           </>
         )}
 
-        {loading ? (
+        {loading && items.length === 0 ? (
           <AdminSkeleton variant="cards" count={6} />
         ) : visibleItems.length === 0 ? (
           <div className="bg-white rounded-xl border border-[#E8EAED] p-10 text-center text-[#6B7280]">

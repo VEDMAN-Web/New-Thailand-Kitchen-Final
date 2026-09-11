@@ -286,7 +286,7 @@ export default function AdminFaqsPage() {
           </>
         )}
 
-        {loading ? (
+        {loading && items.length === 0 ? (
           <AdminSkeleton variant="rows" count={5} />
         ) : filtered.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-[#E2E5EA] bg-white p-8 sm:p-12 text-center">

@@ -1029,7 +1029,7 @@ export default function AdminBlogsPage() {
           </>
         )}
 
-        {loading ? (
+        {loading && items.length === 0 ? (
           <AdminSkeleton variant="cards" count={6} />
         ) : filtered.length === 0 ? (
           <div className="rounded-xl border border-dashed bg-white p-10 text-center text-sm text-[#6B7280]">
