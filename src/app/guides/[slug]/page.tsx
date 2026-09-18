@@ -10,6 +10,8 @@ import { absoluteUrl, ogImageUrl } from "../../../lib/siteUrl";
 import { pickBlogCoverImage } from "../../../lib/cmsMedia";
 import { getServerLocale } from "../../../lib/serverLocale";
 import { tx } from "../../../i18n/translations";
+import { SITE_SEO_LOCALE, seoAlternates } from "../../../lib/pageMetadata";
+import { fixedGuideMedia } from "../../../lib/imageFixRegister";
 
 interface Props {
   params: Promise<{ slug: string }>;

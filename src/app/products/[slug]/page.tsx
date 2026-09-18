@@ -18,6 +18,7 @@ import {
 import { pickCmsText } from "../../../lib/cmsText";
 import { absoluteUrl, ogImageUrl } from "../../../lib/siteUrl";
 import { getServerLocale } from "../../../lib/serverLocale";
+import { SITE_SEO_LOCALE, seoAlternates } from "../../../lib/pageMetadata";
 import { tx } from "../../../i18n/translations";
 
 interface Props {
@@ -73,7 +74,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       `${pickCmsText((product as any).title || product.name, "", SITE_SEO_LOCALE)} | Thailand Kitchens`;
     const description =
       product.metaDescription ||
-      pickCmsText((product as any).description || "", "", locale);
+      pickCmsText((product as any).description || "", "", SITE_SEO_LOCALE);
     const canonical = product.canonicalUrl || absoluteUrl(`/products/${product.slug}`);
     const image = ogImageUrl(product.image);
 

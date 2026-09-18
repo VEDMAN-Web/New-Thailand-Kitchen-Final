@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import type { Metadata } from "next";
 import ProductsPageView from "../../component/products/ProductsPageView";
 import { fetchHomeSections, fetchMergedProducts } from "../../services/cmsPublic";
 import { productItems } from "../../component/products/productData";

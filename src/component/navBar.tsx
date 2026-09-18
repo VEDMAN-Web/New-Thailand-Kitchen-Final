@@ -64,6 +64,9 @@ const Navbar = () => {
   const headerRowRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLAnchorElement>(null);
   const mobileDrawerRef = useRef<HTMLDivElement>(null);
+  const navScrollRef = useRef<HTMLDivElement>(null);
+  const [navHasOverflow, setNavHasOverflow] = useState(false);
+  const [anyMegaMenuOpen, setAnyMegaMenuOpen] = useState(false);
 
   const searchExpanded = searchHover || searchFocused || search.trim().length > 0;
   const showSearchResults = searchFocused || search.trim().length > 0;
@@ -174,7 +177,7 @@ const Navbar = () => {
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
   const navLinkClass = (href: string) =>
-    `shrink-0 rounded-full tracking-wide transition-colors duration-200 px-2 py-1.5 text-[11px] min-[1400px]:px-2.5 min-[1400px]:text-[13px] 2xl:px-3.5 2xl:py-2 2xl:text-sm ${
+    `shrink-0 rounded-full tracking-wide transition-colors duration-200 px-2 py-1.5 text-[11px] md:text-[12px] lg:px-2.5 lg:text-[13px] min-[1400px]:px-2.5 min-[1400px]:text-[13px] 2xl:px-3.5 2xl:py-2 2xl:text-sm ${
       isActive(href)
         ? "bg-[#F5F3EF] text-[#1A1A1A] font-bold"
         : "text-gray-500 font-medium hover:text-[#1A1A1A]"
@@ -239,7 +242,39 @@ const Navbar = () => {
     setSearchHover(false);
     setSearchFocused(false);
     setSearch("");
+    // Reset nav scroll to start (show Home first)
+    if (navScrollRef.current) {
+      navScrollRef.current.scrollLeft = 0;
+    }
   }, [pathname]);
+
+  // Reset scroll position ONLY on mount
+  useEffect(() => {
+    if (navScrollRef.current) {
+      navScrollRef.current.scrollLeft = 0;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Detect overflow to adjust justify behavior
+  useEffect(() => {
+    const checkOverflow = () => {
+      if (navScrollRef.current) {
+        const hasOverflow = navScrollRef.current.scrollWidth > navScrollRef.current.clientWidth;
+        setNavHasOverflow(hasOverflow);
+      }
+    };
+
+    // Use a small delay to ensure DOM has updated
+    const timeoutId = setTimeout(checkOverflow, 0);
+    
+    window.addEventListener('resize', checkOverflow);
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', checkOverflow);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navLinks.length]);
 
   useEffect(() => {
     const onPointerDown = (event: PointerEvent) => {
@@ -253,6 +288,24 @@ const Navbar = () => {
     document.addEventListener("pointerdown", onPointerDown);
     return () => document.removeEventListener("pointerdown", onPointerDown);
   }, []);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      // Close language dropdown
+      if (isOpen && !headerRowRef.current?.contains(target)) {
+        setIsOpen(false);
+      }
+      // Close more menu dropdown
+      if (moreOpen && navScrollRef.current && !navScrollRef.current.contains(target)) {
+        setMoreOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen, moreOpen]);
 
   const openSearch = () => {
     setIsOpen(false);
@@ -395,9 +448,14 @@ const Navbar = () => {
             />
           </Link>
 
-          <nav className="hidden min-[1280px]:flex flex-1 min-w-0 justify-center">
-            <HubMegaProvider>
-            <div className="flex items-center justify-center flex-nowrap bg-white rounded-full shadow-[0_4px_16px_rgba(0,0,0,0.08)] px-1 py-1 min-[1400px]:px-2 min-[1400px]:py-1.5 gap-0 max-w-full">
+          <nav className="hidden md:flex flex-1 min-w-0 justify-center relative z-[60]">
+            <HubMegaProvider onOpenChange={setAnyMegaMenuOpen}>
+            <div 
+              ref={navScrollRef}
+              className={`flex items-center flex-nowrap bg-white rounded-full shadow-[0_4px_16px_rgba(0,0,0,0.08)] px-1 py-1 md:px-1.5 md:py-1.5 lg:px-2 lg:py-1.5 min-[1400px]:px-2 min-[1400px]:py-1.5 gap-0 max-w-full scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 relative z-[60] overflow-x-auto ${
+                navHasOverflow ? 'justify-start' : 'justify-center'
+              }`}
+            >
               {visibleNavLinks.map((link) => {
                 const href = link.href === "/blog" ? "/guides" : link.href;
                 const hubConfig = hubNavForHref(href);
@@ -425,11 +483,12 @@ const Navbar = () => {
                     type="button"
                     aria-label="More"
                     aria-expanded={moreOpen}
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setMoreOpen((open) => !open);
                       setIsOpen(false);
                     }}
-                    className={`shrink-0 rounded-full px-2.5 py-1.5 text-[13px] font-semibold tracking-widest transition-colors ${
+                    className={`shrink-0 rounded-full px-2 py-1.5 text-[11px] md:text-[12px] lg:px-2.5 lg:text-[13px] min-[1400px]:px-2.5 min-[1400px]:text-[13px] font-semibold tracking-widest transition-colors ${
                       moreOpen ||
                       overflowNavLinks.some((l) =>
                         isActive(l.href === "/blog" ? "/guides" : l.href)
@@ -441,7 +500,7 @@ const Navbar = () => {
                     ···
                   </button>
                   {moreOpen ? (
-                    <div className="absolute right-0 top-full z-[80] mt-2 min-w-[11rem] overflow-hidden rounded-xl border border-black/5 bg-white py-1 shadow-[0_8px_28px_rgba(0,0,0,0.12)]">
+                    <div className="fixed md:absolute right-2 md:right-0 top-[4.5rem] md:top-full z-[80] mt-0 md:mt-2 min-w-[11rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-black/5 bg-white py-1 shadow-[0_8px_28px_rgba(0,0,0,0.12)]">
                       {overflowNavLinks.map((link) => {
                         const href =
                           link.href === "/blog" ? "/guides" : link.href;
@@ -449,8 +508,11 @@ const Navbar = () => {
                           <Link
                             key={link.href}
                             href={href}
-                            onClick={() => setMoreOpen(false)}
-                            className={`block px-4 py-2.5 text-sm transition hover:bg-[#F5F3EF] ${
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setMoreOpen(false);
+                            }}
+                            className={`block px-4 py-2.5 text-[11px] md:text-[12px] lg:text-[13px] min-[1400px]:text-[13px] 2xl:text-sm transition hover:bg-[#F5F3EF] ${
                               isActive(href)
                                 ? "font-semibold text-[#1A1A1A]"
                                 : "font-medium text-gray-500"
@@ -614,7 +676,7 @@ const Navbar = () => {
               }}
               aria-label="Toggle menu"
               aria-expanded={mobileOpen}
-              className="flex min-[1280px]:hidden w-10 h-10 items-center justify-center rounded-full bg-white shadow-[0_4px_16px_rgba(0,0,0,0.08)] transition"
+              className="flex md:hidden w-10 h-10 items-center justify-center rounded-full bg-white shadow-[0_4px_16px_rgba(0,0,0,0.08)] transition"
             >
               <div className="flex flex-col justify-center gap-1.5 w-5">
                 <span

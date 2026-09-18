@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import type { Metadata } from "next";
 import GalleryPageView from "../../component/gallery/GalleryPageView";
 import { fetchMergedGallery, fetchHomeSections } from "../../services/cmsPublic";
 import { galleryItems } from "../../component/gallery/galleryData";

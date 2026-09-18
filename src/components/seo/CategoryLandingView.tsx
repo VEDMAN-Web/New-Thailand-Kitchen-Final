@@ -3,6 +3,7 @@ import { pickCmsText } from "../../lib/cmsText";
 import { resolveCmsMediaUrl } from "../../lib/cmsMedia";
 import type { CmsCategory } from "../../services/cmsPublic";
 import type { Locale } from "../../i18n/translations";
+import { tx } from "../../i18n/translations";
 import OverlayHeroBanner from "./OverlayHeroBanner";
 import HubContentBlock, {
   type ContentSectionBlock,
@@ -37,7 +38,7 @@ export default function CategoryLandingView({
   const eyebrow = pickCmsText(category.eyebrow, sectionLabel, locale);
   const ctaLabel = pickCmsText(
     category.ctaLabel,
-    "Request a consultation",
+    tx(locale, "hub.requestConsultation"),
     locale
   );
   const ctaHref = String(category.ctaHref || "/contact").trim() || "/contact";
@@ -48,7 +49,7 @@ export default function CategoryLandingView({
   );
   const footerBody = pickCmsText(
     category.footerCtaBody,
-    "Speak with our design team for a free consultation and tailored quote.",
+    tx(locale, "hub.footerCtaBody"),
     locale
   );
   const paragraphs = description

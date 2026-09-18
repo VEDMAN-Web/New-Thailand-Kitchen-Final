@@ -621,7 +621,7 @@ export type CmsCategory = {
   metaDescription?: string;
   canonicalUrl?: string;
   indexable?: boolean;
-  sections?: { heading?: unknown; body?: unknown; image?: string; layout?: string }[];
+  sections?: { heading?: unknown; body?: unknown; image?: string; layout?: string; label?: unknown }[];
   eyebrow?: unknown;
   ctaLabel?: unknown;
   ctaHref?: string;

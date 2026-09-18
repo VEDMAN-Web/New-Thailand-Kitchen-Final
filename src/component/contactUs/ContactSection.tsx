@@ -38,7 +38,7 @@ export default function ContactSection() {
           {eyebrow}
         </p>
         <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-[#1A1A1A] mb-10 lg:mb-14">
-          {t("home.contact.title")}
+          {title}
         </h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 items-stretch">

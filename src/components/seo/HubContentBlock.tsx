@@ -10,6 +10,7 @@ export type ContentSectionBlock = {
   text?: unknown;
   image?: string;
   layout?: string;
+  label?: unknown; // Localized section label (e.g. "SECTION 02")
 };
 
 /** Slugify a card title to match the CMS category slug convention (e.g. "Kitchen Design" -> "kitchen-design"). */
@@ -85,6 +86,7 @@ export default function HubContentBlock({
   const body = pickCmsText(block.body, pickCmsText(block.text, "", locale), locale);
   const image = String(block.image || "").trim();
   const layout = String(block.layout || "image-left").trim();
+  const sectionLabel = pickCmsText(block.label, "", locale); // Get label from CMS
   const items = splitItems(body);
 
   if (!heading && !body && !image) return null;
@@ -135,7 +137,7 @@ export default function HubContentBlock({
         : [];
     return (
       <section>
-        <SectionEyebrow index={index} label={tx(locale, "hub.highlights")} />
+        <SectionEyebrow index={index} label={sectionLabel || tx(locale, "hub.highlights")} />
         {heading ? (
           <h2 className="font-sans font-extrabold text-2xl min-[425px]:text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-5 sm:mb-8 max-w-2xl leading-tight break-words">
             {heading}
@@ -206,7 +208,7 @@ export default function HubContentBlock({
     return (
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-8 lg:gap-12 items-center">
         <div>
-          <SectionEyebrow index={index} label={tx(locale, "hub.process")} />
+          <SectionEyebrow index={index} label={sectionLabel || tx(locale, "hub.process")} />
           {heading ? (
             <h2 className="font-sans font-extrabold text-2xl min-[425px]:text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-5 sm:mb-8 leading-tight break-words">
               {heading}
@@ -294,7 +296,7 @@ export default function HubContentBlock({
           </div>
         ) : null}
         <div className={image ? "lg:order-1" : ""}>
-          <SectionEyebrow index={index} label={tx(locale, "hub.whatMatters")} />
+          <SectionEyebrow index={index} label={sectionLabel || tx(locale, "hub.whatMatters")} />
           {heading ? (
             <h2 className="font-sans font-extrabold text-2xl min-[425px]:text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-4 sm:mb-6 leading-tight break-words">
               {heading}
@@ -373,7 +375,7 @@ export default function HubContentBlock({
           </div>
         ) : null}
         <div className="max-w-3xl">
-          <SectionEyebrow index={index} label={tx(locale, "hub.feature")} />
+          <SectionEyebrow index={index} label={sectionLabel || tx(locale, "hub.feature")} />
           {heading ? (
             <h2 className="font-sans font-extrabold text-2xl min-[425px]:text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-4 leading-tight break-words">
               {heading}
@@ -392,7 +394,7 @@ export default function HubContentBlock({
   if (layout === "text") {
     return (
       <section className="max-w-3xl">
-        <SectionEyebrow index={index} />
+        <SectionEyebrow index={index} label={sectionLabel} />
         {heading ? (
           <h2 className="font-sans font-extrabold text-2xl min-[425px]:text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-4 break-words">
             {heading}
@@ -430,7 +432,7 @@ export default function HubContentBlock({
         ) : null}
       </div>
       <div className={imageLeft ? "lg:order-2" : "lg:order-1"}>
-        <SectionEyebrow index={index} />
+        <SectionEyebrow index={index} label={sectionLabel} />
         {heading ? (
           <h2 className="font-sans font-extrabold text-2xl min-[425px]:text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-4 leading-tight break-words">
             {heading}
