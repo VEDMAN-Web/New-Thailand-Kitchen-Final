@@ -764,8 +764,10 @@ function normalizeContentSections(sections) {
   return sections.map((block) => ({
     heading: asLocalized(block?.heading),
     body: asLocalized(block?.body ?? block?.text),
+    bodyItems: block?.bodyItems, // Preserve structured body items
     image: sanitizeMediaUrl(block?.image),
     layout: String(block?.layout || "image-left").trim(),
+    label: asLocalized(block?.label), // ADD LABEL FIELD
   }));
 }
 
