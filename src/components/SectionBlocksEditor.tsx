@@ -19,6 +19,7 @@ export type SectionBlockForm = {
   body?: LocalizedText;
   image: string;
   layout: string;
+  label?: LocalizedText; // Section label (e.g. "SECTION 02", "Overview", etc.)
 };
 
 export const SECTION_LAYOUTS: { value: string; label: string; hint: string }[] = [
@@ -212,6 +213,7 @@ export default function SectionBlocksEditor({
         bodyItems: { en: [], th: [], pl: [] },
         image: "",
         layout: "image-left",
+        label: emptyLocalized(), // Initialize label field
       },
     ]);
   };
@@ -349,6 +351,28 @@ export default function SectionBlocksEditor({
             {layoutMeta ? (
               <p className="text-[11px] text-[#6B7280] -mt-1">{layoutMeta.hint}</p>
             ) : null}
+
+            <div>
+              <label className="block text-xs font-semibold text-[#5C6370] mb-1">
+                Section Label ({locale.toUpperCase()})
+                <span className="ml-1 text-[10px] font-normal text-[#9CA3AF]">
+                  (Optional - e.g. "SECTION 02", "Overview")
+                </span>
+              </label>
+              <input
+                value={localizedValue(block.label, locale)}
+                placeholder={localeFieldPlaceholder(locale) || `Section ${String(i + 1).padStart(2, "0")}`}
+                onChange={(e) => {
+                  const next = [...sections];
+                  next[i] = {
+                    ...block,
+                    label: writeLocalized(block.label || emptyLocalized(), locale, e.target.value),
+                  };
+                  onChange(next);
+                }}
+                className="w-full rounded-lg border border-[#E2E5EA] px-3 py-2 text-sm"
+              />
+            </div>
 
             <div>
               <label className="block text-xs font-semibold text-[#5C6370] mb-1">
@@ -520,6 +544,7 @@ export function sectionsFromApi(raw: unknown): SectionBlockForm[] {
     },
     image: String(block?.image || ""),
     layout: String(block?.layout || "image-left"),
+    label: asLocalizedForm(block?.label),
   }));
 }
 
@@ -540,6 +565,7 @@ export function sectionsToApiPayload(sections: SectionBlockForm[]) {
     },
     image: block.image,
     layout: block.layout || "image-left",
+    label: block.label,
   }));
 }
 
