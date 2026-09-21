@@ -1,11 +1,8 @@
 const asyncHandler = require("../utils/asyncHandler");
 const axios = require("axios");
 
-/** Kitchen stock images available in admin + client public folders */
+/** Owned kitchen stock only — never seed broken /blog/blogImage paths */
 const STOCK_IMAGES = [
-  "/blog/blogImage (1).jpg",
-  "/blog/blogImage (2).jpg",
-  "/blog/blogImage (3).jpg",
   "/products/Kitchen1.png",
   "/products/Kitchen2.png",
   "/products/Kitchen3.png",
@@ -637,8 +634,9 @@ const generateBlogImage = asyncHandler(async (req, res) => {
   if (!process.env.OPENAI_API_KEY?.trim()) {
     return res.status(503).json({
       success: false,
+      code: "AI_SERVICE_UNAVAILABLE",
       message:
-        "OPENAI_API_KEY is not configured. Add it to server/.env and restart the server.",
+        "Image generation service is not configured. Contact support.",
     });
   }
 
@@ -655,11 +653,30 @@ const generateBlogImage = asyncHandler(async (req, res) => {
       prompt: promptTopic,
     });
   } catch (err) {
-    const msg = err?.message || "OpenAI image generation failed";
+    const msg = err?.message || "Image generation failed";
     console.warn("[generate-ai-image]", msg);
+
+    if (msg.includes("does not exist")) {
+      return res.status(503).json({
+        success: false,
+        code: "AI_MODEL_UNAVAILABLE",
+        message:
+          "The requested AI model is not available. Please try again later.",
+      });
+    }
+
+    if (msg.includes("quota") || msg.includes("Insufficient") || msg.includes("billing")) {
+      return res.status(503).json({
+        success: false,
+        code: "AI_SERVICE_QUOTA_EXCEEDED",
+        message: "Image generation quota exceeded. Please try again later.",
+      });
+    }
+
     return res.status(502).json({
       success: false,
-      message: msg,
+      code: "AI_SERVICE_ERROR",
+      message: "Image generation failed. Please try again.",
     });
   }
 });

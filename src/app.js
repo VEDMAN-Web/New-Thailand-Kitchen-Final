@@ -64,7 +64,13 @@ app.use(morgan("dev"));
 app.use("/uploads", express.static(UPLOAD_ROOT));
 
 app.get("/api/health", (_req, res) => {
-  res.json({ success: true, message: "API OK" });
+  const mongoose = require("mongoose");
+  res.json({
+    success: true,
+    message: "API OK",
+    env: process.env.APP_ENV || process.env.NODE_ENV || "development",
+    database: mongoose.connection?.name || process.env.MONGO_DB_NAME || "",
+  });
 });
 
 const contactRouter = require("./router/contactRouter");
@@ -77,6 +83,8 @@ app.use("/api/contact", contactRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/cms", cmsRouter);
 app.use("/api/upload", uploadRouter);
+app.use("/api/uploads", uploadRouter);
+app.use("/upload", uploadRouter);
 
 app.use(errorHandler);
 

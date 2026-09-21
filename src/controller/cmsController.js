@@ -1,4 +1,6 @@
-﻿const asyncHandler = require("../utils/asyncHandler");
+const mongoose = require("mongoose");
+const asyncHandler = require("../utils/asyncHandler");
+const { triggerFrontendRevalidation } = require("../utils/revalidateFrontend");
 const {
   SITE_IDS,
   HomePage,
@@ -9,6 +11,7 @@ const {
   GalleryItem,
   CatalogueItem,
   FaqItem,
+  CmsDeletion,
 } = require("../model/cmsModels");
 
 const SITES = [
@@ -18,13 +21,28 @@ const SITES = [
 
 const {
   DEFAULT_HOME_SECTIONS,
-  DEFAULT_FEATURE_HIGHLIGHTS,
   DEFAULT_FAQS,
-  DEFAULT_CATEGORIES,
 } = require("../seed/thailandSiteDefaults");
+const { factsForSlug, KITCHEN_IMAGE_OWNERS, normalizeKitchenImagePath } = require("../seed/productModelFacts");
+const {
+  repairApprovedHomeFacts,
+  isGenericFeaturePack,
+  isMislabelledKitchenStock,
+  isGenericBlogStock,
+  replaceLegacyEmailsDeep,
+  lockApprovedCatalogues,
+  editionKeyOf,
+} = require("../utils/approvedSiteFacts");
+const { collect, uniqueRows, toCsv } = require("../utils/imageInventory");
 
 function assertSite(siteId) {
   return SITE_IDS.includes(siteId);
+}
+
+function categoryDeletionKey(categoryType, slug, parentId = null) {
+  return `${String(categoryType || "").trim().toLowerCase()}:${String(slug || "")
+    .trim()
+    .toLowerCase()}:${parentId || "root"}`;
 }
 
 function slugify(value) {
@@ -87,12 +105,12 @@ const DEFAULT_PRODUCTS = [
     productType: "Islands",
     sectionTag: "Core Component",
     description:
-      "Obsidian Bay pairs matte dark cabinetry with warm timber undertones â€” a quiet, gallery-like presence designed for open-plan living and island entertaining.",
+      "Obsidian Bay pairs matte dark cabinetry with warm timber undertones — a quiet, gallery-like presence designed for open-plan living and island entertaining.",
     image: "/products/Kitchen1.png",
-    gallery: ["/product/product.png", "/products/Kitchen1.png", "/products/Kitchen2.png"],
+    gallery: ["/products/Kitchen1.png"],
     category: "Islands",
     featured: true,
-    featureHighlights: DEFAULT_FEATURE_HIGHLIGHTS,
+    featureHighlights: factsForSlug("obsidian-bay")?.featureHighlights || [],
   },
   {
     title: "Pearl Harbor",
@@ -103,10 +121,10 @@ const DEFAULT_PRODUCTS = [
     description:
       "Teak brings warmth, strength, and quiet richness to every surface â€” a material that ages with character and elevates the kitchen into a lasting heirloom.",
     image: "/products/Kitchen2.png",
-    gallery: ["/products/Kitchen2.png", "/products/Kitchen3.png", "/products/Kitchen4.png"],
+    gallery: ["/products/Kitchen2.png"],
     category: "Straight",
     featured: true,
-    featureHighlights: DEFAULT_FEATURE_HIGHLIGHTS,
+    featureHighlights: factsForSlug("pearl-harbor")?.featureHighlights || [],
   },
   {
     title: "Teak Atelier",
@@ -117,10 +135,10 @@ const DEFAULT_PRODUCTS = [
     description:
       "Teak brings warmth, strength, and quiet richness to every surface â€” a material that ages with character and elevates the kitchen into a lasting heirloom.",
     image: "/products/Kitchen3.png",
-    gallery: ["/products/Kitchen3.png", "/products/Kitchen1.png", "/products/Kitchen6.png"],
+    gallery: ["/products/Kitchen3.png"],
     category: "L Shape",
     featured: true,
-    featureHighlights: DEFAULT_FEATURE_HIGHLIGHTS,
+    featureHighlights: factsForSlug("teak-atelier")?.featureHighlights || [],
   },
   {
     title: "Midnight Gallery",
@@ -131,10 +149,10 @@ const DEFAULT_PRODUCTS = [
     description:
       "Teak brings warmth, strength, and quiet richness to every surface â€” a material that ages with character and elevates the kitchen into a lasting heirloom.",
     image: "/products/Kitchen4.png",
-    gallery: ["/products/Kitchen4.png", "/products/Kitchen5.png", "/products/Kitchen2.png"],
+    gallery: ["/products/Kitchen4.png"],
     category: "U Shape",
     featured: false,
-    featureHighlights: DEFAULT_FEATURE_HIGHLIGHTS,
+    featureHighlights: factsForSlug("midnight-gallery")?.featureHighlights || [],
   },
   {
     title: "Soft Horizon",
@@ -145,10 +163,10 @@ const DEFAULT_PRODUCTS = [
     description:
       "Teak brings warmth, strength, and quiet richness to every surface â€” a material that ages with character and elevates the kitchen into a lasting heirloom.",
     image: "/products/Kitchen5.png",
-    gallery: ["/products/Kitchen5.png", "/products/Kitchen6.png", "/products/Kitchen1.png"],
+    gallery: ["/products/Kitchen5.png"],
     category: "Modern",
     featured: true,
-    featureHighlights: DEFAULT_FEATURE_HIGHLIGHTS,
+    featureHighlights: factsForSlug("soft-horizon")?.featureHighlights || [],
   },
   {
     title: "Coastal Line",
@@ -159,10 +177,10 @@ const DEFAULT_PRODUCTS = [
     description:
       "Teak brings warmth, strength, and quiet richness to every surface â€” a material that ages with character and elevates the kitchen into a lasting heirloom.",
     image: "/products/Kitchen6.png",
-    gallery: ["/products/Kitchen6.png", "/products/Kitchen2.png", "/products/Kitchen3.png"],
+    gallery: ["/products/Kitchen6.png"],
     category: "T Shape",
     featured: false,
-    featureHighlights: DEFAULT_FEATURE_HIGHLIGHTS,
+    featureHighlights: factsForSlug("coastal-line")?.featureHighlights || [],
   },
   {
     title: "Amber Court",
@@ -172,11 +190,11 @@ const DEFAULT_PRODUCTS = [
     sectionTag: "Core Component",
     description:
       "Teak brings warmth, strength, and quiet richness to every surface â€” a material that ages with character and elevates the kitchen into a lasting heirloom.",
-    image: "/products/Kitchen1.png",
-    gallery: ["/products/Kitchen1.png", "/products/Kitchen2.png", "/products/Kitchen3.png"],
+    image: "",
+    gallery: [],
     category: "Islands",
     featured: false,
-    featureHighlights: DEFAULT_FEATURE_HIGHLIGHTS,
+    featureHighlights: factsForSlug("amber-court")?.featureHighlights || [],
   },
   {
     title: "Nova Kitchen",
@@ -186,11 +204,11 @@ const DEFAULT_PRODUCTS = [
     sectionTag: "Core Component",
     description:
       "Teak brings warmth, strength, and quiet richness to every surface â€” a material that ages with character and elevates the kitchen into a lasting heirloom.",
-    image: "/products/Kitchen2.png",
-    gallery: ["/products/Kitchen2.png", "/products/Kitchen3.png", "/products/Kitchen4.png"],
+    image: "",
+    gallery: [],
     category: "Modern",
     featured: true,
-    featureHighlights: DEFAULT_FEATURE_HIGHLIGHTS,
+    featureHighlights: factsForSlug("nova-kitchen")?.featureHighlights || [],
   },
   {
     title: "Heritage Wing",
@@ -200,11 +218,11 @@ const DEFAULT_PRODUCTS = [
     sectionTag: "Core Component",
     description:
       "Teak brings warmth, strength, and quiet richness to every surface â€” a material that ages with character and elevates the kitchen into a lasting heirloom.",
-    image: "/products/Kitchen3.png",
-    gallery: ["/products/Kitchen3.png", "/products/Kitchen4.png", "/products/Kitchen5.png"],
+    image: "",
+    gallery: [],
     category: "U Shape",
     featured: false,
-    featureHighlights: DEFAULT_FEATURE_HIGHLIGHTS,
+    featureHighlights: factsForSlug("heritage-wing")?.featureHighlights || [],
   },
   {
     title: "Calm Studio",
@@ -213,12 +231,12 @@ const DEFAULT_PRODUCTS = [
     productType: "L Shape",
     sectionTag: "Core Component",
     description:
-      "Teak brings warmth, strength, and quiet richness to every surface â€” a material that ages with character and elevates the kitchen into a lasting heirloom.",
-    image: "/products/Kitchen4.png",
-    gallery: ["/products/Kitchen4.png", "/products/Kitchen5.png", "/products/Kitchen6.png"],
+      "Quiet palette, integrated appliances, and seamless storage.",
+    image: "",
+    gallery: [],
     category: "L Shape",
     featured: false,
-    featureHighlights: DEFAULT_FEATURE_HIGHLIGHTS,
+    featureHighlights: factsForSlug("calm-studio")?.featureHighlights || [],
   },
   {
     title: "Shadow Ridge",
@@ -227,12 +245,12 @@ const DEFAULT_PRODUCTS = [
     productType: "Islands",
     sectionTag: "Core Component",
     description:
-      "Teak brings warmth, strength, and quiet richness to every surface â€” a material that ages with character and elevates the kitchen into a lasting heirloom.",
-    image: "/products/Kitchen5.png",
-    gallery: ["/products/Kitchen5.png", "/products/Kitchen6.png", "/products/Kitchen1.png"],
+      "Deep charcoal cabinetry with a statement waterfall island.",
+    image: "",
+    gallery: [],
     category: "Islands",
     featured: true,
-    featureHighlights: DEFAULT_FEATURE_HIGHLIGHTS,
+    featureHighlights: factsForSlug("shadow-ridge")?.featureHighlights || [],
   },
   {
     title: "Linen Bay",
@@ -241,48 +259,79 @@ const DEFAULT_PRODUCTS = [
     productType: "Straight",
     sectionTag: "Core Component",
     description:
-      "Teak brings warmth, strength, and quiet richness to every surface â€” a material that ages with character and elevates the kitchen into a lasting heirloom.",
-    image: "/products/Kitchen6.png",
-    gallery: ["/products/Kitchen6.png", "/products/Kitchen1.png", "/products/Kitchen2.png"],
+      "Warm linen fronts with handle-less profiles and soft lighting.",
+    image: "",
+    gallery: [],
     category: "Straight",
     featured: false,
-    featureHighlights: DEFAULT_FEATURE_HIGHLIGHTS,
+    featureHighlights: factsForSlug("linen-bay")?.featureHighlights || [],
   },
 ];
+
+function uniqueProductGallery(product) {
+  const primary = String(product.image || "").trim();
+  const gallery = Array.isArray(product.gallery)
+    ? product.gallery.map((g) => String(g || "").trim()).filter(Boolean)
+    : [];
+  const cleaned = gallery.filter((url) => {
+    if (url === primary) return true;
+    if (isMislabelledKitchenStock(url)) return false;
+    return true;
+  });
+  if (primary && !cleaned.includes(primary)) cleaned.unshift(primary);
+  return cleaned.length ? cleaned : primary ? [primary] : [];
+}
 
 async function ensureDefaultProducts(siteId) {
   const count = await Product.countDocuments({ siteId });
   if (count === 0) {
     const { syncProductsMissingOnly } = require("../scripts/syncProductsSafe");
-    await syncProductsMissingOnly(siteId, DEFAULT_PRODUCTS, DEFAULT_FEATURE_HIGHLIGHTS);
+    await syncProductsMissingOnly(siteId, DEFAULT_PRODUCTS, []);
   }
 
-  const existing = await Product.find({ siteId }).select("slug image featureHighlights gallery").lean();
+  const existing = await Product.find({ siteId }).select(
+    "slug image featureHighlights gallery"
+  );
   if (!existing.length) return;
 
-  // Backfill empty Features & Details for products created before highlights existed
-  const needsHighlights = existing.filter((p) => {
-    const highlights = Array.isArray(p.featureHighlights) ? p.featureHighlights : [];
-    return !highlights.some((h) => String(h?.title || "").trim() || String(h?.description || "").trim());
-  });
-  if (needsHighlights.length) {
-    await Product.updateMany(
-      { _id: { $in: needsHighlights.map((p) => p._id) } },
-      { $set: { featureHighlights: DEFAULT_FEATURE_HIGHLIGHTS } }
+  for (const product of existing) {
+    const slug = String(product.slug || "").trim().toLowerCase();
+    const facts = factsForSlug(slug);
+    const highlights = Array.isArray(product.featureHighlights)
+      ? product.featureHighlights
+      : [];
+    const generic = isGenericFeaturePack(highlights);
+    const empty = !highlights.some(
+      (h) =>
+        String(h?.title?.en || h?.title || "").trim() ||
+        String(h?.description?.en || h?.description || "").trim()
     );
-  }
+    let dirty = false;
 
-  // Ensure each product has at least two gallery images for the Features side panel
-  const needsGallery = existing.filter((p) => !Array.isArray(p.gallery) || p.gallery.length < 2);
-  for (const product of needsGallery) {
-    const seed = DEFAULT_PRODUCTS.find(
-      (p) => String(p.slug).toLowerCase() === String(product.slug || "").toLowerCase()
-    );
-    const gallery =
-      seed?.gallery?.length >= 2
-        ? seed.gallery
-        : [product.image || "/products/Kitchen1.png", "/products/Kitchen2.png"].filter(Boolean);
-    await Product.updateOne({ _id: product._id }, { $set: { gallery } });
+    if ((generic || empty) && facts?.featureHighlights?.length) {
+      product.featureHighlights = facts.featureHighlights;
+      product.markModified("featureHighlights");
+      dirty = true;
+    } else if (generic && !facts) {
+      product.featureHighlights = [];
+      product.markModified("featureHighlights");
+      dirty = true;
+    }
+
+    const kitchenPath = normalizeKitchenImagePath(product.image);
+    const ownerSlug = kitchenPath ? KITCHEN_IMAGE_OWNERS[kitchenPath] : "";
+    if (ownerSlug && ownerSlug !== slug) {
+      product.image = "";
+      dirty = true;
+    }
+
+    const nextGallery = uniqueProductGallery(product);
+    if (JSON.stringify(nextGallery) !== JSON.stringify(product.gallery || [])) {
+      product.gallery = nextGallery;
+      dirty = true;
+    }
+
+    if (dirty) await product.save();
   }
 }
 
@@ -372,12 +421,85 @@ async function ensureDefaultFaqs(siteId) {
 
 const taxonomyRepaired = new Set();
 const localesRepaired = new Set();
+const visualRepaired = new Set();
+
+function stripKitchenStockFromCategory(category) {
+  if (String(category.slug || "") !== "entertainment-units") return false;
+  let dirty = false;
+  if (isMislabelledKitchenStock(category.image)) {
+    category.image = "";
+    dirty = true;
+  }
+  if (Array.isArray(category.sections)) {
+    const next = category.sections.map((block) => {
+      if (!isMislabelledKitchenStock(block?.image)) return block;
+      dirty = true;
+      return { ...block, image: "" };
+    });
+    if (dirty) {
+      category.sections = next;
+      category.markModified("sections");
+    }
+  }
+  return dirty;
+}
+
+function stripUnrelatedBlogStock(blog) {
+  let dirty = false;
+  if (isGenericBlogStock(blog.image) || isMislabelledKitchenStock(blog.image)) {
+    blog.image = "";
+    dirty = true;
+  }
+  const gallery = Array.isArray(blog.gallery) ? blog.gallery : [];
+  const nextGallery = gallery.filter(
+    (url) => !isGenericBlogStock(url) && !isMislabelledKitchenStock(url)
+  );
+  if (nextGallery.length !== gallery.length) {
+    blog.gallery = nextGallery;
+    dirty = true;
+  }
+  if (Array.isArray(blog.bodySections)) {
+    let sectionsDirty = false;
+    const next = blog.bodySections.map((section) => {
+      if (
+        !isGenericBlogStock(section?.image) &&
+        !isMislabelledKitchenStock(section?.image)
+      ) {
+        return section;
+      }
+      sectionsDirty = true;
+      dirty = true;
+      return { ...section, image: "" };
+    });
+    if (sectionsDirty) {
+      blog.bodySections = next;
+      blog.markModified("bodySections");
+    }
+  }
+  if (!String(blog.metaTitle || "").trim()) {
+    blog.metaTitle = String(blog.title || "").trim().slice(0, 60);
+    dirty = true;
+  }
+  return dirty;
+}
+
+async function repairVisualMislabels(siteId) {
+  if (visualRepaired.has(siteId)) return;
+  const [categories, blogs] = await Promise.all([
+    Category.find({ siteId, slug: "entertainment-units" }),
+    Blog.find({ siteId }),
+  ]);
+  for (const category of categories) {
+    if (stripKitchenStockFromCategory(category)) await category.save();
+  }
+  for (const blog of blogs) {
+    if (stripUnrelatedBlogStock(blog)) await blog.save();
+  }
+  visualRepaired.add(siteId);
+}
 
 async function ensureDefaultCategories(siteId) {
-  const {
-    repairThailandTaxonomy,
-    seedEmptyCategoryLandingSections,
-  } = require("../scripts/repairThailandTaxonomyLib");
+  const { repairThailandTaxonomy } = require("../scripts/repairThailandTaxonomyLib");
   const count = await Category.countDocuments({ siteId });
   if (count === 0) {
     await repairThailandTaxonomy(siteId);
@@ -385,7 +507,7 @@ async function ensureDefaultCategories(siteId) {
   } else if (!taxonomyRepaired.has(siteId)) {
     taxonomyRepaired.add(siteId);
   }
-  await seedEmptyCategoryLandingSections(siteId).catch(() => {});
+  await repairVisualMislabels(siteId).catch(() => {});
 }
 
 /**
@@ -501,6 +623,52 @@ function enrichHomeSections(sections) {
   return sanitizeMediaUrlsDeep(normalizeHomeSections(next));
 }
 
+function applyApprovedHomeFacts(sections) {
+  const defaults = structuredClone(DEFAULT_HOME_SECTIONS);
+  return repairApprovedHomeFacts(sections || {}, defaults);
+}
+
+async function lockCatalogueCollection(siteId, homeItems = []) {
+  const locked = lockApprovedCatalogues(homeItems);
+  const existing = await CatalogueItem.find({ siteId });
+  const keepKeys = locked.map((row) => row.editionKey).filter(Boolean);
+
+  for (const row of locked) {
+    const found = existing.find(
+      (item) => String(item.editionKey || "").toLowerCase() === row.editionKey
+    );
+    const payload = {
+      title:
+        typeof row.title === "object"
+          ? row.title.en || row.category?.en || "2026 EDITION"
+          : row.title,
+      category:
+        typeof row.category === "object"
+          ? row.category.en || ""
+          : row.category,
+      image: row.image,
+      pdfUrl: row.pdfUrl,
+      fileName: row.fileName,
+      downloadName: row.downloadName,
+      editionKey: row.editionKey,
+      locked: true,
+      sortOrder: row.sortOrder || 0,
+    };
+    if (found) {
+      await CatalogueItem.updateOne({ _id: found._id }, { $set: payload });
+    } else {
+      await CatalogueItem.create({ siteId, ...payload });
+    }
+  }
+
+  if (keepKeys.length) {
+    await CatalogueItem.deleteMany({
+      siteId,
+      editionKey: { $nin: keepKeys },
+    });
+  }
+}
+
 async function ensureAllSiteDefaults(siteId) {
   await Promise.all([
     ensureDefaultProducts(siteId),
@@ -518,6 +686,20 @@ async function ensureAllSiteDefaults(siteId) {
     }).catch(() => null);
     localesRepaired.add(siteId);
   }
+}
+
+const siteDefaultsReady = new Map();
+
+async function ensureAllSiteDefaultsOnce(siteId) {
+  const existing = siteDefaultsReady.get(siteId);
+  if (existing) return existing;
+
+  const pending = ensureAllSiteDefaults(siteId).catch((error) => {
+    siteDefaultsReady.delete(siteId);
+    throw error;
+  });
+  siteDefaultsReady.set(siteId, pending);
+  return pending;
 }
 
 function asStringArray(value) {
@@ -538,6 +720,7 @@ const {
 } = require("../utils/normalizeLocalizedHome");
 const {
   findProbePath,
+  isSupportedImageUrl,
   repairHubPages,
   sanitizeMediaUrl,
   sanitizeMediaUrlsDeep,
@@ -581,9 +764,23 @@ function normalizeContentSections(sections) {
   return sections.map((block) => ({
     heading: asLocalized(block?.heading),
     body: asLocalized(block?.body ?? block?.text),
+    bodyItems: block?.bodyItems, // Preserve structured body items
     image: sanitizeMediaUrl(block?.image),
     layout: String(block?.layout || "image-left").trim(),
+    label: asLocalized(block?.label), // ADD LABEL FIELD
   }));
+}
+
+function validateHeroImage(value) {
+  const image = sanitizeMediaUrl(value);
+  if (!isSupportedImageUrl(image)) {
+    const err = new Error(
+      "Hero image is required and must be a supported image URL or uploaded image path"
+    );
+    err.statusCode = 400;
+    throw err;
+  }
+  return image;
 }
 
 function rejectProbePayload(payload, label = "content") {
@@ -674,16 +871,20 @@ const getHome = asyncHandler(async (req, res) => {
     });
   }
 
-  const sections = enrichHomeSections(home.sections || {});
+  const enriched = enrichHomeSections(home.sections || {});
+  const { sections, changed: factsChanged } = applyApprovedHomeFacts(enriched);
   const storedLogos = home.sections?.partners?.logos;
   const storedUsable = Array.isArray(storedLogos)
     ? storedLogos.filter((l) => l && String(l.image || l.logo || "").trim()).length
     : 0;
-  if (storedUsable === 0 && sections.partners?.logos?.length) {
-    home.sections = { ...(home.sections || {}), partners: sections.partners };
+  if ((storedUsable === 0 && sections.partners?.logos?.length) || factsChanged) {
+    home.sections = sections;
     home.markModified("sections");
     await home.save();
   }
+  await lockCatalogueCollection(siteId, sections?.catalogue?.items || []).catch(
+    () => {}
+  );
 
   return res.json({ success: true, home: { sections } });
 });
@@ -702,12 +903,23 @@ const updateHome = asyncHandler(async (req, res) => {
       .json({ success: false, message: err.message });
   }
 
-  const sections = normalizeHomeSections(req.body.sections || {});
+  const { sections } = applyApprovedHomeFacts(
+    normalizeHomeSections(req.body.sections || {})
+  );
   const home = await HomePage.findOneAndUpdate(
     { siteId },
     { $set: { sections } },
     { upsert: true, new: true }
   );
+  await lockCatalogueCollection(siteId, sections?.catalogue?.items || []).catch(
+    () => {}
+  );
+
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-home", "cms-site-settings", "cms-faqs"],
+    paths: ["/"],
+  });
 
   return res.json({ success: true, home: { sections: home.sections || {} } });
 });
@@ -723,6 +935,16 @@ const resetHome = asyncHandler(async (req, res) => {
     { $set: { sections: structuredClone(DEFAULT_HOME_SECTIONS) } },
     { upsert: true, new: true }
   );
+  await lockCatalogueCollection(
+    siteId,
+    home.sections?.catalogue?.items || []
+  ).catch(() => {});
+
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-home", "cms-site-settings", "cms-faqs"],
+    paths: ["/"],
+  });
 
   return res.json({ success: true, home: { sections: home.sections || {} } });
 });
@@ -799,6 +1021,12 @@ const getCategoryBySlug = asyncHandler(async (req, res) => {
   if (!item) {
     return res.status(404).json({ success: false, message: "Category not found" });
   }
+  if (item.indexable === true && !isSupportedImageUrl(item.image)) {
+    return res.status(404).json({
+      success: false,
+      message: "Published page is unavailable because its hero image is invalid",
+    });
+  }
   
   // Keep `item` (existing clients) and `category` (SEO pages / cmsPublic)
   return res.json({ success: true, item, category: item });
@@ -823,6 +1051,12 @@ const createCategory = asyncHandler(async (req, res) => {
       .status(err.statusCode || 400)
       .json({ success: false, message: err.message });
   }
+
+  const parentId = req.body.parentId ? String(req.body.parentId).trim() : null;
+  if (parentId && !mongoose.isValidObjectId(parentId)) {
+    return res.status(400).json({ success: false, message: "Invalid parent category" });
+  }
+  const image = validateHeroImage(req.body.image);
   
   // Auto-generate slug from title if not provided
   const slug = req.body.slug ? slugify(req.body.slug) : slugify(titleEn);
@@ -830,7 +1064,6 @@ const createCategory = asyncHandler(async (req, res) => {
   // Validate slug uniqueness per categoryType + parent (location × service)
   if (slug) {
     const categoryType = String(req.body.categoryType || "");
-    const parentId = req.body.parentId || null;
     const existing = await Category.findOne({
       siteId,
       slug,
@@ -846,8 +1079,8 @@ const createCategory = asyncHandler(async (req, res) => {
   }
   
   // Validate parent category exists if parentId provided
-  if (req.body.parentId) {
-    const parent = await Category.findOne({ _id: req.body.parentId, siteId });
+  if (parentId) {
+    const parent = await Category.findOne({ _id: parentId, siteId });
     if (!parent) {
       return res.status(400).json({ success: false, message: "Parent category not found" });
     }
@@ -857,11 +1090,11 @@ const createCategory = asyncHandler(async (req, res) => {
     siteId,
     title,
     description: asLocalized(req.body.description),
-    image: sanitizeMediaUrl(req.body.image),
+    image,
     icon: String(req.body.icon || ""),
     slug,
     categoryType: String(req.body.categoryType || ""),
-    parentId: req.body.parentId || null,
+    parentId,
     metaTitle: String(req.body.metaTitle || "").substring(0, 60),
     metaDescription: String(req.body.metaDescription || "").substring(0, 160),
     canonicalUrl: String(req.body.canonicalUrl || ""),
@@ -873,7 +1106,19 @@ const createCategory = asyncHandler(async (req, res) => {
     footerCtaHeading: asLocalized(req.body.footerCtaHeading),
     footerCtaBody: asLocalized(req.body.footerCtaBody),
   });
+
+  await CmsDeletion.deleteOne({
+    siteId,
+    resource: "categories",
+    key: categoryDeletionKey(item.categoryType, item.slug, item.parentId),
+  });
   
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-categories", "cms-home"],
+    paths: ["/categories", "/services", "/materials", "/locations", "/kitchens", "/built-in-furniture", "/"],
+  });
+
   return res.status(201).json({ success: true, item });
 });
 
@@ -899,11 +1144,31 @@ const updateCategory = asyncHandler(async (req, res) => {
       .status(err.statusCode || 400)
       .json({ success: false, message: err.message });
   }
+
+  const requestedParentId =
+    req.body.parentId !== undefined
+      ? req.body.parentId
+        ? String(req.body.parentId).trim()
+        : null
+      : undefined;
+  if (requestedParentId && !mongoose.isValidObjectId(requestedParentId)) {
+    return res.status(400).json({ success: false, message: "Invalid parent category" });
+  }
+  const image =
+    req.body.image !== undefined
+      ? validateHeroImage(req.body.image)
+      : sanitizeMediaUrl(existing.image);
+  if (req.body.indexable === true && !isSupportedImageUrl(image)) {
+    return res.status(400).json({
+      success: false,
+      message: "A published page must have a supported hero image",
+    });
+  }
   
   const updateData = {
     title,
     description: asLocalized(req.body.description),
-    image: sanitizeMediaUrl(req.body.image),
+    image,
     icon: String(req.body.icon || ""),
   };
   
@@ -916,8 +1181,8 @@ const updateCategory = asyncHandler(async (req, res) => {
           ? String(req.body.categoryType || "")
           : String(existing.categoryType || "");
       const nextParent =
-        req.body.parentId !== undefined
-          ? req.body.parentId || null
+        requestedParentId !== undefined
+          ? requestedParentId
           : existing.parentId || null;
       const existingSlug = await Category.findOne({
         siteId,
@@ -937,18 +1202,18 @@ const updateCategory = asyncHandler(async (req, res) => {
   }
   
   // Validate parent category if being updated
-  if (req.body.parentId !== undefined) {
-    if (req.body.parentId) {
-      const parent = await Category.findOne({ _id: req.body.parentId, siteId });
+  if (requestedParentId !== undefined) {
+    if (requestedParentId) {
+      const parent = await Category.findOne({ _id: requestedParentId, siteId });
       if (!parent) {
         return res.status(400).json({ success: false, message: "Parent category not found" });
       }
       // Prevent circular references
-      if (req.body.parentId === id) {
+      if (requestedParentId === id) {
         return res.status(400).json({ success: false, message: "Category cannot be its own parent" });
       }
     }
-    updateData.parentId = req.body.parentId || null;
+    updateData.parentId = requestedParentId;
   }
   
   // Update optional SEO fields if provided
@@ -1003,14 +1268,61 @@ const updateCategory = asyncHandler(async (req, res) => {
     await syncProductCategoryLabel(siteId, oldTitleEn, item.title);
   }
   
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-categories", "cms-home"],
+    paths: ["/categories", "/services", "/materials", "/locations", "/kitchens", "/built-in-furniture", "/"],
+  });
+
   return res.json({ success: true, item });
 });
 
 const deleteCategory = asyncHandler(async (req, res) => {
   const { siteId, id } = req.params;
-  const item = await Category.findOneAndDelete({ _id: id, siteId });
+  if (!assertSite(siteId) || !mongoose.isValidObjectId(id)) {
+    return res.status(400).json({ success: false, message: "Invalid category ID or site" });
+  }
+  const item = await Category.findOne({ _id: id, siteId }).select("_id title categoryType slug parentId").lean();
   if (!item) {
     return res.status(404).json({ success: false, message: "Category not found" });
+  }
+  if (process.env.NODE_ENV !== "production") {
+    console.info("[cms.deleteCategory] request", {
+      siteId,
+      id: String(id),
+      model: Category.modelName,
+      collection: Category.collection.name,
+    });
+  }
+  const deletionResult = await Category.deleteOne({ _id: id, siteId });
+  if (process.env.NODE_ENV !== "production") {
+    console.info("[cms.deleteCategory] database result", {
+      id: String(id),
+      deletedCount: deletionResult.deletedCount,
+      deletedId: deletionResult.deletedCount === 1 ? String(item._id) : null,
+    });
+  }
+  if (deletionResult.deletedCount !== 1) {
+    return res.status(500).json({ success: false, message: "Category deletion was not confirmed by the database" });
+  }
+
+  const deletion = await CmsDeletion.updateOne(
+    {
+      siteId,
+      resource: "categories",
+      key: categoryDeletionKey(item.categoryType, item.slug, item.parentId),
+    },
+    {
+      $setOnInsert: {
+        siteId,
+        resource: "categories",
+        key: categoryDeletionKey(item.categoryType, item.slug, item.parentId),
+      },
+    },
+    { upsert: true }
+  );
+  if (deletion.acknowledged !== true) {
+    return res.status(500).json({ success: false, message: "Category deletion marker was not saved" });
   }
 
   const titleEn = localizedTitleEn(item.title);
@@ -1024,7 +1336,19 @@ const deleteCategory = asyncHandler(async (req, res) => {
     { $set: { parentId: null } }
   );
 
-  return res.json({ success: true, message: "Deleted" });
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-categories", "cms-home"],
+    paths: ["/categories", "/services", "/materials", "/locations", "/kitchens", "/built-in-furniture", "/"],
+  });
+
+  return res.json({
+    success: true,
+    deleted: true,
+    deletedCount: deletionResult.deletedCount,
+    deletedId: String(item._id),
+    message: "Deleted",
+  });
 });
 
 const listProducts = asyncHandler(async (req, res) => {
@@ -1032,18 +1356,18 @@ const listProducts = asyncHandler(async (req, res) => {
   if (!assertSite(siteId)) {
     return res.status(400).json({ success: false, message: "Invalid site" });
   }
-  // Seed website catalogue products into CMS so admin + site share one list
-  await ensureAllSiteDefaults(siteId).catch(() => {});
-  let items = await Product.find({ siteId }).sort({ createdAt: -1 });
+  // Only bootstrap an empty catalogue; still repair generic feature packs on existing rows.
+  const hasProducts = await Product.exists({ siteId });
+  if (!hasProducts) await ensureAllSiteDefaultsOnce(siteId).catch(() => {});
+  else await ensureDefaultProducts(siteId).catch(() => {});
+  const items = await Product.find({ siteId })
+    .sort({ createdAt: -1 })
+    .lean();
   
   // Fix: Ensure indexable field exists on all items
-  items = items.map(item => {
-    const obj = item.toObject();
-    if (obj.indexable === undefined) {
-      obj.indexable = false;
-    }
-    return obj;
-  });
+  for (const item of items) {
+    if (item.indexable === undefined) item.indexable = false;
+  }
   
   return res.json({ success: true, items });
 });
@@ -1093,7 +1417,16 @@ const createProduct = asyncHandler(async (req, res) => {
     color: asLocalized(req.body.color),
     metaTitle: String(req.body.metaTitle || "").substring(0, 60),
     metaDescription: String(req.body.metaDescription || "").substring(0, 160),
+    canonicalUrl: String(req.body.canonicalUrl || ""),
     indexable: Boolean(req.body.indexable),
+  });
+
+  await CmsDeletion.deleteOne({ siteId, resource: "products", key: slug });
+
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-products", "cms-home"],
+    paths: ["/products", `/products/${slug}`, "/"],
   });
 
   return res.status(201).json({ success: true, item });
@@ -1142,6 +1475,7 @@ const updateProduct = asyncHandler(async (req, res) => {
         color: asLocalized(req.body.color),
         metaTitle: String(req.body.metaTitle || "").substring(0, 60),
         metaDescription: String(req.body.metaDescription || "").substring(0, 160),
+        canonicalUrl: String(req.body.canonicalUrl || ""),
         indexable: Boolean(req.body.indexable),
       },
     },
@@ -1151,16 +1485,74 @@ const updateProduct = asyncHandler(async (req, res) => {
   if (!item) {
     return res.status(404).json({ success: false, message: "Product not found" });
   }
+
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-products", "cms-home"],
+    paths: ["/products", `/products/${slug}`, "/"],
+  });
+
   return res.json({ success: true, item });
 });
 
 const deleteProduct = asyncHandler(async (req, res) => {
   const { siteId, id } = req.params;
-  const item = await Product.findOneAndDelete({ _id: id, siteId });
+  if (!assertSite(siteId) || !mongoose.isValidObjectId(id)) {
+    return res.status(400).json({ success: false, message: "Invalid product ID or site" });
+  }
+
+  const item = await Product.findOne({ _id: id, siteId }).select("_id slug").lean();
   if (!item) {
     return res.status(404).json({ success: false, message: "Product not found" });
   }
-  return res.json({ success: true, message: "Deleted" });
+  if (process.env.NODE_ENV !== "production") {
+    console.info("[cms.deleteProduct] request", {
+      siteId,
+      id: String(id),
+      model: Product.modelName,
+      collection: Product.collection.name,
+    });
+  }
+  const deletion = await Product.deleteOne({ _id: id, siteId });
+  if (process.env.NODE_ENV !== "production") {
+    console.info("[cms.deleteProduct] database result", {
+      id: String(id),
+      deletedCount: deletion.deletedCount,
+      deletedId: deletion.deletedCount === 1 ? String(item._id) : null,
+    });
+  }
+  if (deletion.deletedCount !== 1) {
+    return res.status(500).json({
+      success: false,
+      message: "Product deletion was not confirmed by the database",
+    });
+  }
+  await CmsDeletion.updateOne(
+    { siteId, resource: "products", key: String(item.slug || "").trim().toLowerCase() },
+    { $setOnInsert: { siteId, resource: "products", key: String(item.slug || "").trim().toLowerCase() } },
+    { upsert: true }
+  );
+  const stillExists = await Product.exists({ _id: item._id, siteId });
+  if (stillExists) {
+    return res.status(500).json({
+      success: false,
+      message: "Product deletion was not confirmed by the database",
+    });
+  }
+
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-products", "cms-home"],
+    paths: ["/products", "/"],
+  });
+
+  return res.json({
+    success: true,
+    deleted: true,
+    deletedCount: deletion.deletedCount,
+    deletedId: String(item._id),
+    message: "Deleted",
+  });
 });
 
 function asBodySections(value) {
@@ -1247,8 +1639,9 @@ const DEFAULT_BLOGS = [
     author: "Thailand Kitchen",
     readTime: "8 min",
     publishDate: "2024-05-12",
-    image: "/blog/blogImage (1).jpg",
-    gallery: ["/blog/blogImage (2).jpg", "/blog/blogImage (3).jpg"],
+    image: "",
+    gallery: [],
+    metaTitle: "The Art of Teak | Thailand Kitchens",
     bodySections: [
       {
         title: "A Legacy of Resilience",
@@ -1281,8 +1674,9 @@ const DEFAULT_BLOGS = [
     author: "Thailand Kitchen",
     readTime: "6 min",
     publishDate: "2024-04-28",
-    image: "/blog/blogImage (2).jpg",
-    gallery: ["/blog/blogImage (1).jpg", "/blog/blogImage (3).jpg"],
+    image: "",
+    gallery: [],
+    metaTitle: "Open Concept Kitchen Design | Thailand Kitchens",
     bodySections: [
       {
         title: "Designing for Connection",
@@ -1308,8 +1702,9 @@ const DEFAULT_BLOGS = [
     author: "Anan Sukhumvit",
     readTime: "5 min",
     publishDate: "2026-07-09",
-    image: "/blog/blogImage (3).jpg",
-    gallery: ["/blog/blogImage (1).jpg", "/blog/blogImage (2).jpg"],
+    image: "",
+    gallery: [],
+    metaTitle: "Modern Kitchen Transformation | Thailand Kitchens",
     bodySections: [
       {
         title: "Start With Lifestyle",
@@ -1335,8 +1730,9 @@ const DEFAULT_BLOGS = [
     author: "Thailand Kitchen",
     readTime: "7 min",
     publishDate: "2024-04-10",
-    image: "/blog/blogImage (3).jpg",
-    gallery: ["/blog/blogImage (1).jpg", "/blog/blogImage (2).jpg"],
+    image: "",
+    gallery: [],
+    metaTitle: "Marble Masterclass | Thailand Kitchens",
     bodySections: [
       {
         title: "Reading the Stone",
@@ -1362,8 +1758,9 @@ const DEFAULT_BLOGS = [
     author: "Thailand Kitchen",
     readTime: "5 min",
     publishDate: "2024-03-22",
-    image: "/blog/blogImage (1).jpg",
-    gallery: ["/blog/blogImage (2).jpg", "/blog/blogImage (3).jpg"],
+    image: "",
+    gallery: [],
+    metaTitle: "Kitchen as Hub | Thailand Kitchens",
     bodySections: [
       {
         title: "Life Around the Island",
@@ -1389,8 +1786,9 @@ const DEFAULT_BLOGS = [
     author: "Thailand Kitchen",
     readTime: "6 min",
     publishDate: "2024-03-05",
-    image: "/blog/blogImage (2).jpg",
-    gallery: ["/blog/blogImage (1).jpg", "/blog/blogImage (3).jpg"],
+    image: "",
+    gallery: [],
+    metaTitle: "Kitchen Ergonomics | Thailand Kitchens",
     bodySections: [
       {
         title: "Movement Without Friction",
@@ -1411,9 +1809,11 @@ const DEFAULT_BLOGS = [
 
 async function ensureDefaultBlogs(siteId) {
   const count = await Blog.countDocuments({ siteId });
-  if (count > 0) return;
-  const { syncBlogsMissingOnly } = require("../scripts/syncBlogsSafe");
-  await syncBlogsMissingOnly(siteId, DEFAULT_BLOGS);
+  if (count === 0) {
+    const { syncBlogsMissingOnly } = require("../scripts/syncBlogsSafe");
+    await syncBlogsMissingOnly(siteId, DEFAULT_BLOGS);
+  }
+  await repairVisualMislabels(siteId).catch(() => {});
 }
 
 const listBlogs = asyncHandler(async (req, res) => {
@@ -1427,6 +1827,9 @@ const listBlogs = asyncHandler(async (req, res) => {
   // Fix: Ensure all SEO fields exist
   items = items.map(item => {
     const obj = item.toObject();
+    if (obj.metaTitle === undefined) {
+      obj.metaTitle = "";
+    }
     if (obj.indexable === undefined) {
       obj.indexable = false;
     }
@@ -1442,6 +1845,7 @@ function blogSeoFieldsFromBody(body = {}) {
     locationTag: String(body.locationTag || "").trim(),
     serviceTag: String(body.serviceTag || "").trim(),
     materialTag: String(body.materialTag || "").trim(),
+    metaTitle: String(body.metaTitle || "").trim().slice(0, 60),
     metaDescription: String(body.metaDescription || "").trim().slice(0, 160),
     reviewer: String(body.reviewer || "").trim(),
   };
@@ -1546,6 +1950,12 @@ const createBlog = asyncHandler(async (req, res) => {
     ...seo,
   });
 
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-blogs", "cms-home"],
+    paths: ["/blog", "/guides", `/blog/${slug}`, `/guides/${slug}`, "/"],
+  });
+
   return res.status(201).json({ success: true, item });
 });
 
@@ -1574,6 +1984,14 @@ const updateBlog = asyncHandler(async (req, res) => {
         : existing.primaryCommercialPage,
     published:
       req.body.published !== undefined ? req.body.published : existing.published,
+    metaTitle:
+      req.body.metaTitle !== undefined
+        ? req.body.metaTitle
+        : existing.metaTitle,
+    metaDescription:
+      req.body.metaDescription !== undefined
+        ? req.body.metaDescription
+        : existing.metaDescription,
   };
 
   const publishGate = assertPublishedBlogHasPrimaryCommercial(mergedBody);
@@ -1691,6 +2109,12 @@ const updateBlog = asyncHandler(async (req, res) => {
     { new: true }
   );
 
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-blogs", "cms-home"],
+    paths: ["/blog", "/guides", `/blog/${slug}`, `/guides/${slug}`, "/"],
+  });
+
   return res.json({ success: true, item });
 });
 
@@ -1700,6 +2124,13 @@ const deleteBlog = asyncHandler(async (req, res) => {
   if (!item) {
     return res.status(404).json({ success: false, message: "Blog not found" });
   }
+
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-blogs", "cms-home"],
+    paths: ["/blog", "/guides", "/"],
+  });
+
   return res.json({ success: true, message: "Deleted" });
 });
 
@@ -1756,9 +2187,9 @@ const DEFAULT_LEGAL = {
           "Twoje prawa do prywatności i kontakt"
         ),
         body: L(
-          "You have the right to access, correct, or delete your personal data at any time. For privacy-related inquiries or to exercise your rights, please contact us at thailandkichens@gmail.com.",
-          "คุณมีสิทธิเข้าถึง แก้ไข หรือลบข้อมูลส่วนบุคคลได้ทุกเมื่อ สำหรับคำถามด้านความเป็นส่วนตัวหรือการใช้สิทธิ ติดต่อเราที่ thailandkichens@gmail.com",
-          "Masz prawo w każdej chwili uzyskać dostęp, poprawić lub usunąć swoje dane. W sprawach prywatności lub realizacji praw napisz na thailandkichens@gmail.com."
+          "You have the right to access, correct, or delete your personal data at any time. For privacy-related inquiries or to exercise your rights, please contact us at hello@thailandkitchens.com.",
+          "คุณมีสิทธิเข้าถึง แก้ไข หรือลบข้อมูลส่วนบุคคลได้ทุกเมื่อ สำหรับคำถามด้านความเป็นส่วนตัวหรือการใช้สิทธิ ติดต่อเราที่ hello@thailandkitchens.com",
+          "Masz prawo w każdej chwili uzyskać dostęp, poprawić lub usunąć swoje dane. W sprawach prywatności lub realizacji praw napisz na hello@thailandkitchens.com."
         ),
       },
     ],
@@ -1917,18 +2348,18 @@ const getLegal = asyncHandler(async (req, res) => {
         : asLegalSections(defaults.sections);
       dirty = true;
     } else {
+      const prevJson = JSON.stringify(page.sections);
       sections = page.sections.map((s, i) => ({
         title: mergeLocalized(s?.title, defaults.sections[i]?.title || ""),
         body: mergeLocalized(s?.body, defaults.sections[i]?.body || ""),
       }));
-      dirty = true;
+      sections = replaceLegacyEmailsDeep(sections);
+      if (prevJson !== JSON.stringify(sections)) dirty = true;
     }
-    page.sections = sections;
-
-    if (!localizedTitleEn(page.content)) {
-      page.content = asLocalized(serializeLegalSections(page.sections));
-      dirty = true;
-    }
+    page.sections = replaceLegacyEmailsDeep(sections);
+    page.content = replaceLegacyEmailsDeep(
+      asLocalized(page.content || serializeLegalSections(page.sections))
+    );
     if (dirty) {
       page.markModified("sections");
       page.markModified("title");
@@ -1948,35 +2379,51 @@ const updateLegal = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: "Invalid request" });
   }
 
+  if (type === "terms" && req.body.ownerConfirmed !== true) {
+    return res.status(400).json({
+      success: false,
+      message:
+        "Vedant must confirm deposit, warranty, and commercial clauses before saving Terms.",
+    });
+  }
+
   const defaults = DEFAULT_LEGAL[type];
   let sections = asLegalSections(req.body.sections);
   if (!sections.length && req.body.content) {
     sections = parseLegalSectionsFromContent(req.body.content);
   }
   if (!sections.length) sections = asLegalSections(defaults.sections);
+  sections = replaceLegacyEmailsDeep(sections);
 
   const title = asLocalized(req.body.title || defaults.title);
   const subtitle = asLocalized(req.body.subtitle || defaults.subtitle);
   const updatedLabel = asLocalized(
     req.body.updatedLabel || defaults.updatedLabel
   );
-  const content = asLocalized(
-    req.body.content || serializeLegalSections(sections)
+  const content = replaceLegacyEmailsDeep(
+    asLocalized(req.body.content || serializeLegalSections(sections))
   );
+
+  const set = {
+    title,
+    subtitle,
+    updatedLabel,
+    sections,
+    content,
+  };
+  if (type === "terms") set.ownerConfirmedAt = new Date();
 
   const page = await LegalPage.findOneAndUpdate(
     { siteId, type },
-    {
-      $set: {
-        title,
-        subtitle,
-        updatedLabel,
-        sections,
-        content,
-      },
-    },
+    { $set: set },
     { upsert: true, new: true }
   );
+
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-legal"],
+    paths: [`/${type}`, "/privacy", "/terms"],
+  });
 
   return res.json({ success: true, page });
 });
@@ -2033,6 +2480,13 @@ const createGalleryItem = asyncHandler(async (req, res) => {
     sortOrder: Number(req.body.sortOrder) || 0,
     ...project,
   });
+
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-gallery", "cms-home"],
+    paths: ["/gallery", "/"],
+  });
+
   return res.status(201).json({ success: true, item });
 });
 
@@ -2058,6 +2512,13 @@ const updateGalleryItem = asyncHandler(async (req, res) => {
   if (!item) {
     return res.status(404).json({ success: false, message: "Not found" });
   }
+
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-gallery", "cms-home"],
+    paths: ["/gallery", "/"],
+  });
+
   return res.json({ success: true, item });
 });
 
@@ -2067,6 +2528,13 @@ const deleteGalleryItem = asyncHandler(async (req, res) => {
   if (!item) {
     return res.status(404).json({ success: false, message: "Not found" });
   }
+
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-gallery", "cms-home"],
+    paths: ["/gallery", "/"],
+  });
+
   return res.json({ success: true, message: "Deleted" });
 });
 
@@ -2087,6 +2555,21 @@ const createCatalogue = asyncHandler(async (req, res) => {
   if (!assertSite(siteId)) {
     return res.status(400).json({ success: false, message: "Invalid site" });
   }
+  const editionKey = editionKeyOf(req.body);
+  if (!editionKey) {
+    return res.status(400).json({
+      success: false,
+      message:
+        "Only the locked 2026 Classic, Minimal, and Modern editions can be stored.",
+    });
+  }
+  const already = await CatalogueItem.findOne({ siteId, editionKey });
+  if (already) {
+    return res.status(409).json({
+      success: false,
+      message: `The ${editionKey} 2026 edition already exists and is locked.`,
+    });
+  }
   const item = await CatalogueItem.create({
     siteId,
     title: String(req.body.title || "").trim() || "Catalogue",
@@ -2095,40 +2578,90 @@ const createCatalogue = asyncHandler(async (req, res) => {
     pdfUrl: String(req.body.pdfUrl || ""),
     fileName: String(req.body.fileName || ""),
     downloadName: String(req.body.downloadName || ""),
+    editionKey,
+    locked: true,
     sortOrder: Number(req.body.sortOrder) || 0,
   });
+
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-home"],
+    paths: ["/catalogue", "/"],
+  });
+
   return res.status(201).json({ success: true, item });
 });
 
 const updateCatalogue = asyncHandler(async (req, res) => {
   const { siteId, id } = req.params;
+  const existing = await CatalogueItem.findOne({ _id: id, siteId });
+  if (!existing) {
+    return res.status(404).json({ success: false, message: "Not found" });
+  }
+  const locked = existing.locked === true;
   const item = await CatalogueItem.findOneAndUpdate(
     { _id: id, siteId },
     {
       $set: {
-        title: String(req.body.title || "").trim() || "Catalogue",
-        category: String(req.body.category || ""),
-        image: sanitizeMediaUrl(req.body.image),
-        pdfUrl: String(req.body.pdfUrl || ""),
-        fileName: String(req.body.fileName || ""),
-        downloadName: String(req.body.downloadName || ""),
-        sortOrder: Number(req.body.sortOrder) || 0,
+        title: String(req.body.title || existing.title || "").trim() || "Catalogue",
+        category: String(req.body.category || existing.category || ""),
+        image: sanitizeMediaUrl(
+          req.body.image !== undefined ? req.body.image : existing.image
+        ),
+        pdfUrl: String(
+          req.body.pdfUrl !== undefined ? req.body.pdfUrl : existing.pdfUrl || ""
+        ),
+        fileName: String(
+          req.body.fileName !== undefined
+            ? req.body.fileName
+            : existing.fileName || ""
+        ),
+        downloadName: String(
+          req.body.downloadName !== undefined
+            ? req.body.downloadName
+            : existing.downloadName || ""
+        ),
+        editionKey: String(
+          existing.editionKey || req.body.editionKey || ""
+        )
+          .trim()
+          .toLowerCase(),
+        locked,
+        sortOrder: Number(req.body.sortOrder ?? existing.sortOrder) || 0,
       },
     },
     { new: true }
   );
-  if (!item) {
-    return res.status(404).json({ success: false, message: "Not found" });
-  }
+
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-home"],
+    paths: ["/catalogue", "/"],
+  });
+
   return res.json({ success: true, item });
 });
 
 const deleteCatalogue = asyncHandler(async (req, res) => {
   const { siteId, id } = req.params;
-  const item = await CatalogueItem.findOneAndDelete({ _id: id, siteId });
-  if (!item) {
+  const existing = await CatalogueItem.findOne({ _id: id, siteId });
+  if (!existing) {
     return res.status(404).json({ success: false, message: "Not found" });
   }
+  if (existing.locked) {
+    return res.status(400).json({
+      success: false,
+      message: "This 2026 catalogue edition is locked and cannot be deleted.",
+    });
+  }
+  const item = await CatalogueItem.findOneAndDelete({ _id: id, siteId });
+
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-home"],
+    paths: ["/catalogue", "/"],
+  });
+
   return res.json({ success: true, message: "Deleted" });
 });
 
@@ -2160,6 +2693,13 @@ const createFaq = asyncHandler(async (req, res) => {
     answer: asLocalized(req.body.answer),
     sortOrder: Number(req.body.sortOrder) || 0,
   });
+
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-faqs", "cms-home"],
+    paths: ["/faq", "/"],
+  });
+
   return res.status(201).json({ success: true, item });
 });
 
@@ -2183,6 +2723,13 @@ const updateFaq = asyncHandler(async (req, res) => {
   if (!item) {
     return res.status(404).json({ success: false, message: "Not found" });
   }
+
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-faqs", "cms-home"],
+    paths: ["/faq", "/"],
+  });
+
   return res.json({ success: true, item });
 });
 
@@ -2192,6 +2739,13 @@ const deleteFaq = asyncHandler(async (req, res) => {
   if (!item) {
     return res.status(404).json({ success: false, message: "Not found" });
   }
+
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: ["cms-faqs", "cms-home"],
+    paths: ["/faq", "/"],
+  });
+
   return res.json({ success: true, message: "Deleted" });
 });
 
@@ -2242,7 +2796,7 @@ const syncSite = asyncHandler(async (req, res) => {
   const [gallerySync, blogSync, productSync, faqSync] = await Promise.all([
     syncGalleryMissingOnly(siteId, DEFAULT_GALLERY),
     syncBlogsMissingOnly(siteId, DEFAULT_BLOGS),
-    syncProductsMissingOnly(siteId, DEFAULT_PRODUCTS, DEFAULT_FEATURE_HIGHLIGHTS),
+    syncProductsMissingOnly(siteId, DEFAULT_PRODUCTS, []),
     syncFaqsMissingOnly(siteId, DEFAULT_FAQS),
   ]);
 
@@ -2295,7 +2849,9 @@ const syncSite = asyncHandler(async (req, res) => {
     });
   }
   const beforeHome = JSON.stringify(home.sections || {});
-  const sections = enrichHomeSections(home.sections || {});
+  const { sections } = applyApprovedHomeFacts(
+    enrichHomeSections(home.sections || {})
+  );
   const afterHome = JSON.stringify(sections);
   let homeUpdated = false;
   if (beforeHome !== afterHome) {
@@ -2304,6 +2860,9 @@ const syncSite = asyncHandler(async (req, res) => {
     await home.save();
     homeUpdated = true;
   }
+  await lockCatalogueCollection(siteId, sections?.catalogue?.items || []).catch(
+    () => {}
+  );
 
   // Legal pages — create only if missing (same shape as getLegal)
   let legalCreated = 0;
@@ -2375,6 +2934,21 @@ const syncSite = asyncHandler(async (req, res) => {
     mongoose.connection.db?.databaseName ||
     "connected";
 
+  await triggerFrontendRevalidation({
+    siteId,
+    tags: [
+      "cms-home",
+      "cms-products",
+      "cms-categories",
+      "cms-blogs",
+      "cms-gallery",
+      "cms-faqs",
+      "cms-legal",
+      "cms-site-settings",
+    ],
+    paths: ["/"],
+  });
+
   return res.json({
     success: true,
     message: "Synced from connected database. Existing content was preserved.",
@@ -2419,6 +2993,46 @@ const syncSite = asyncHandler(async (req, res) => {
   });
 });
 
+const exportImageInventory = asyncHandler(async (req, res) => {
+  const { siteId } = req.params;
+  if (!assertSite(siteId)) {
+    return res.status(400).json({ success: false, message: "Invalid site" });
+  }
+
+  const mediaBase = String(
+    process.env.MEDIA_BASE_URL || process.env.PUBLIC_API_URL || ""
+  ).replace(/\/+$/, "");
+
+  const rows = [];
+  const [home, products, blogs, categories, gallery, catalogues] =
+    await Promise.all([
+      HomePage.findOne({ siteId }).lean(),
+      Product.find({ siteId }).lean(),
+      Blog.find({ siteId }).lean(),
+      Category.find({ siteId }).lean(),
+      GalleryItem.find({ siteId }).lean(),
+      CatalogueItem.find({ siteId }).lean(),
+    ]);
+
+  collect(home?.sections, rows, "home.sections");
+  products.forEach((p, i) => collect(p, rows, `products[${i}:${p.slug}]`));
+  blogs.forEach((b, i) => collect(b, rows, `blogs[${i}:${b.slug}]`));
+  categories.forEach((c, i) =>
+    collect(c, rows, `categories[${i}:${c.slug || c._id}]`)
+  );
+  gallery.forEach((g, i) => collect(g, rows, `gallery[${i}]`));
+  catalogues.forEach((c, i) => collect(c, rows, `catalogues[${i}]`));
+
+  const unique = uniqueRows(rows);
+  const csv = toCsv(unique, mediaBase);
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader(
+    "Content-Disposition",
+    'attachment; filename="image_inventory.csv"'
+  );
+  return res.status(200).send(csv);
+});
+
 module.exports = {
   listSites,
   getHome,
@@ -2452,4 +3066,5 @@ module.exports = {
   createFaq,
   updateFaq,
   deleteFaq,
+  exportImageInventory,
 };
