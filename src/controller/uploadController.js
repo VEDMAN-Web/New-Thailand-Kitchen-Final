@@ -72,7 +72,11 @@ async function uploadToCloudinary(filePath, kind) {
 
 const uploadFile = asyncHandler(async (req, res) => {
   if (!req.file) {
-    return res.status(400).json({ success: false, message: "No file uploaded" });
+    return res.status(400).json({
+      success: false,
+      code: "NO_FILE",
+      message: "No file uploaded",
+    });
   }
 
   const kind = String(req.body?.kind || req.query?.kind || "image").toLowerCase();
@@ -80,42 +84,77 @@ const uploadFile = asyncHandler(async (req, res) => {
   let publicId = "";
   let storage = "local";
   let coverUrl = "";
+  const filePath = req.file.path;
 
-  if (hasCloudinary()) {
-    try {
-      const cloud = await uploadToCloudinary(req.file.path, kind);
-      url = cloud.url;
-      publicId = cloud.publicId;
-      storage = "cloudinary";
-      coverUrl = cloud.coverUrl || "";
-      fs.unlink(req.file.path, () => {});
-    } catch (err) {
-      console.error("Cloudinary upload failed, keeping local file:", err.message);
+  try {
+    if (hasCloudinary()) {
+      try {
+        const cloud = await uploadToCloudinary(filePath, kind);
+        url = cloud.url;
+        publicId = cloud.publicId;
+        storage = "cloudinary";
+        coverUrl = cloud.coverUrl || "";
+
+        // Cleanup local file after successful Cloudinary upload
+        if (fs.existsSync(filePath)) {
+          fs.unlink(filePath, (err) => {
+            if (err)
+              console.warn(
+                "[upload-cleanup] failed to delete local file after Cloudinary upload:",
+                err.message
+              );
+          });
+        }
+      } catch (err) {
+        console.error(
+          "[upload-cloudinary] upload failed, keeping local file:",
+          err.message
+        );
+        // Keep local file as fallback
+      }
     }
-  }
 
-  if (!coverUrl && (kind === "pdf" || /\.pdf$/i.test(req.file.originalname || ""))) {
-    const localCover = renderLocalPdfCover(req.file.path);
-    if (localCover) coverUrl = publicUrlFor(req, localCover);
-  }
+    if (
+      !coverUrl &&
+      (kind === "pdf" || /\.pdf$/i.test(req.file.originalname || ""))
+    ) {
+      const localCover = renderLocalPdfCover(filePath);
+      if (localCover) coverUrl = publicUrlFor(req, localCover);
+    }
 
-  return res.status(201).json({
-    success: true,
-    file: {
-      url,
-      coverUrl,
-      publicId,
-      storage,
-      kind,
-      originalName: req.file.originalname,
-      mimeType: req.file.mimetype,
-      size: req.file.size,
-      relativePath: path.relative(UPLOAD_ROOT, req.file.path).split(path.sep).join("/"),
-      coverHint: coverUrl
-        ? ""
-        : "Page-1 cover was not generated. Install ImageMagick/pdftoppm or configure Cloudinary, or upload page 1 as the Cover Image.",
-    },
-  });
+    return res.status(201).json({
+      success: true,
+      file: {
+        url,
+        coverUrl,
+        publicId,
+        storage,
+        kind,
+        originalName: req.file.originalname,
+        mimeType: req.file.mimetype,
+        size: req.file.size,
+        relativePath: path
+          .relative(UPLOAD_ROOT, filePath)
+          .split(path.sep)
+          .join("/"),
+        coverHint: coverUrl
+          ? ""
+          : "Page-1 cover was not generated. Install ImageMagick/pdftoppm or configure Cloudinary, or upload page 1 as the Cover Image.",
+      },
+    });
+  } catch (err) {
+    // Cleanup on error
+    if (fs.existsSync(filePath)) {
+      fs.unlink(filePath, (unlinkErr) => {
+        if (unlinkErr)
+          console.warn(
+            "[upload-cleanup] failed to delete file on error:",
+            unlinkErr.message
+          );
+      });
+    }
+    throw err;
+  }
 });
 
 const deleteUpload = asyncHandler(async (req, res) => {

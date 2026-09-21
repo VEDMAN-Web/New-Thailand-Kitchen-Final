@@ -100,10 +100,19 @@ function fileFilter(req, file, cb) {
   return cb(new Error("Unsupported file type. Use image, PDF, or video."));
 }
 
+const uploadLimits = require("./uploadLimits");
+
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
+  limits: {
+    fileSize: uploadLimits.MAX_FILE_SIZE_MB * 1024 * 1024,
+    files: 1,
+    fields: uploadLimits.MAX_FIELDS,
+    parts: uploadLimits.MAX_PARTS,
+    fieldNameSize: 100,
+    fieldSize: uploadLimits.MAX_FIELD_SIZE_KB * 1024,
+  },
 });
 
 function publicUrlFor(req, absolutePath) {
