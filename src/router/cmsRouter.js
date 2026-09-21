@@ -2,6 +2,7 @@ const express = require("express");
 const cms = require("../controller/cmsController");
 const ai = require("../controller/aiController");
 const { protect } = require("../middleware/authMiddleware");
+const { aiImageRateLimit } = require("../middleware/uploadMiddleware");
 
 const router = express.Router();
 
@@ -31,7 +32,7 @@ router.put("/:siteId/products/:id", protect, cms.updateProduct);
 router.delete("/:siteId/products/:id", protect, cms.deleteProduct);
 
 router.post("/:siteId/blogs/generate-ai", protect, ai.generateBlog);
-router.post("/:siteId/blogs/generate-ai-image", protect, ai.generateBlogImage);
+router.post("/:siteId/blogs/generate-ai-image", protect, aiImageRateLimit, ai.generateBlogImage);
 router.post("/:siteId/blogs", protect, cms.createBlog);
 router.put("/:siteId/blogs/:id", protect, cms.updateBlog);
 router.delete("/:siteId/blogs/:id", protect, cms.deleteBlog);
