@@ -143,7 +143,8 @@ export default function AdminContactsPage() {
   return (
     <>
     <div className="space-y-4">
-        <div className="flex flex-wrap items-center gap-3 justify-between">
+        {(!loading || items.length > 0) && (
+          <div className="flex flex-wrap items-center gap-3 justify-between">
           <div className="relative flex-1 min-w-0 w-full sm:min-w-[220px] max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9CA3AF]" />
             <input
@@ -163,6 +164,7 @@ export default function AdminContactsPage() {
             Refresh
           </button>
         </div>
+        )}
 
         <div className="bg-white rounded-xl border border-[#E8EAED] overflow-hidden">
           <div className="px-4 sm:px-5 py-4 border-b border-[#E8EAED] flex flex-wrap items-center justify-between gap-2">

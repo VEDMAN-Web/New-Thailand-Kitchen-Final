@@ -83,6 +83,7 @@ export default function AdminUsersPage() {
 
   return (
     <>
+      {(!loading || users.length > 0) && (
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <p className="rounded-xl border border-[#E8EAED] bg-[#F8FAFC] px-4 py-3 text-sm text-[#334155]">
           Create one login per person (individually revocable). Keep these accounts on the
@@ -98,8 +99,9 @@ export default function AdminUsersPage() {
           Add User
         </button>
       </div>
+      )}
 
-      {loading ? (
+      {loading && users.length === 0 ? (
         <AdminSkeleton variant="rows" count={4} />
       ) : (
         <div className="overflow-x-auto bg-white rounded-xl border border-[#E8EAED]">

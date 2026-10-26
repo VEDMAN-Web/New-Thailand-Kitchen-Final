@@ -789,6 +789,8 @@ export default function AdminBlogsPage() {
   return (
     <>
     <div className="space-y-5">
+        {(!loading || items.length > 0) && (
+          <>
         <div className="rounded-xl border border-[#E8EDF2] bg-white p-5 space-y-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -1024,8 +1026,10 @@ export default function AdminBlogsPage() {
             </button>
           ))}
         </div>
+          </>
+        )}
 
-        {loading ? (
+        {loading && items.length === 0 ? (
           <AdminSkeleton variant="cards" count={6} />
         ) : filtered.length === 0 ? (
           <div className="rounded-xl border border-dashed bg-white p-10 text-center text-sm text-[#6B7280]">

@@ -195,6 +195,8 @@ export default function AdminFaqsPage() {
   return (
     <>
       <div className="space-y-6">
+        {(!loading || items.length > 0) && (
+          <>
         <div className="rounded-xl border border-[#E8EAED] bg-white p-4 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="min-w-0">
@@ -281,8 +283,10 @@ export default function AdminFaqsPage() {
           Q&amp;A items power <code>/faq</code> and the first 5 also appear on the
           homepage FAQ band.
         </p>
+          </>
+        )}
 
-        {loading ? (
+        {loading && items.length === 0 ? (
           <AdminSkeleton variant="rows" count={5} />
         ) : filtered.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-[#E2E5EA] bg-white p-8 sm:p-12 text-center">
