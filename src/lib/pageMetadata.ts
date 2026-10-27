@@ -21,7 +21,6 @@ export function withoutSeoPlaceholder(value: string, fallback: string): string {
 
 // SEO P0-3: the single confirmed public contact address.
 export const CANONICAL_CONTACT_EMAIL = "hi@thailandkitchens.com";
-export const CANONICAL_PHONE = "+66 99 359 6916";
 export const VERIFIED_AREA_SERVED = "Pattaya & Koh Samui, Thailand";
 export const SAMUI_KITCHENS_ORIGIN = "https://www.samuikitchens.com";
 
