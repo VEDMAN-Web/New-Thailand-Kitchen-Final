@@ -70,7 +70,7 @@ const nextConfig: NextConfig = {
       { source: "/styles/:slug", destination: "/kitchens/styles/:slug", permanent: true },
       { source: "/projects", destination: "/gallery", permanent: true },
       { source: "/portfolio", destination: "/gallery", permanent: true },
-      { source: "/about", destination: "/#our-story", permanent: false },
+      { source: "/about", destination: "/#our-story", permanent: true },
       { source: "/catalog", destination: "/catalogue", permanent: true },
       // DEV-10: redirect thin location×service pages to their parent city pages
       { source: "/locations/bangkok/kitchen-renovation", destination: "/locations/bangkok", permanent: true },
