@@ -60,7 +60,8 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: "/blog", destination: "/guides", permanent: true },
-      { source: "/blog/:slug", destination: "/guides/:slug", permanent: true },
+      // DEV-17: only redirect extension-less slugs so /blog/*.jpg assets still serve
+      { source: "/blog/:slug([^./]+)", destination: "/guides/:slug", permanent: true },
       { source: "/blogs", destination: "/guides", permanent: true },
       { source: "/blogs/:slug*", destination: "/guides/:slug*", permanent: true },
       { source: "/journal", destination: "/guides", permanent: true },
