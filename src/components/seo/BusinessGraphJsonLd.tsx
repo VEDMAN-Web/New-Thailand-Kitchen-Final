@@ -3,7 +3,7 @@ import {
   CANONICAL_CONTACT_EMAIL,
   HOMEPAGE_SEO_DESCRIPTION,
 } from "../../lib/pageMetadata";
-import { BUSINESS_PHONE_E164 } from "../../lib/businessContact";
+import { BUSINESS_PHONE_E164, BUSINESS_WHATSAPP_URL } from "../../lib/businessContact";
 
 /**
  * SEO P0-4: Organization + WebSite + one HomeAndConstructionBusiness per office.
@@ -36,7 +36,9 @@ export default function BusinessGraphJsonLd() {
         description: HOMEPAGE_SEO_DESCRIPTION,
         email: CANONICAL_CONTACT_EMAIL,
         telephone: BUSINESS_PHONE_E164,
-        sameAs: ["https://www.facebook.com/ThailandKitchens/"],
+        // Facebook + WhatsApp. No Instagram profile URL exists in the code
+        // (the footer Instagram icon links to Facebook), so none is invented.
+        sameAs: ["https://www.facebook.com/ThailandKitchens/", BUSINESS_WHATSAPP_URL],
       },
       {
         "@type": "WebSite",
