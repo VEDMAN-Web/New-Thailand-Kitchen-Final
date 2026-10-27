@@ -15,6 +15,7 @@ import { publicContactEmail } from "../../lib/pageMetadata";
 import { smoothScrollAfterNav } from "../../lib/smoothScroll";
 import { isExternalHref, normalizeFooterHref } from "../../lib/footerHref";
 import { trackGa4Event } from "../../lib/ga4";
+import { BUSINESS_PHONE_DISPLAY } from "../../lib/businessContact";
 
 function SocialIcon({ name }: { name: SocialIconName }) {
   const common = {
@@ -110,7 +111,8 @@ export default function Footer() {
     },
     {
       icon: "/footer/calling.png",
-      text: footerCms?.phone || contactInfo[2].text,
+      // Verified number; the CMS phone field held a placeholder.
+      text: BUSINESS_PHONE_DISPLAY,
     },
   ];
 

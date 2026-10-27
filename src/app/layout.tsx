@@ -7,9 +7,10 @@ import Navbar from "../component/navBar";
 import Footer from "../component/Footer/footer";
 import { Toaster } from "sonner";
 import { SITE_ORIGIN, DEFAULT_OG_IMAGE, ogImageUrl } from "../lib/siteUrl";
-import { pickCmsText, ensureCmsString } from "../lib/cmsText";
+import { pickCmsText } from "../lib/cmsText";
 import { fetchHomeSections, fetchMergedProducts, fetchMergedCategories } from "../services/cmsPublic";
 import JsonLd from "../components/seo/JsonLd";
+import { BUSINESS_PHONE_E164 } from "../lib/businessContact";
 import { getServerLocale } from "../lib/serverLocale";
 import {
   SITE_HTML_LANG,
@@ -130,7 +131,6 @@ export default async function RootLayout({
   const areaServed = verifiedAreaServed(
     pickCmsText(footerSection.address, "", SITE_SEO_LOCALE)
   );
-  const telephone = ensureCmsString(footerSection.phone);
   const businessImage = localBusinessImage(
     (seoSection.ogImage as string) || (heroSection.image as string) || ""
   );
@@ -171,7 +171,7 @@ export default async function RootLayout({
             description: localBusinessDescription,
             url: SITE_ORIGIN,
             image: businessImage,
-            telephone: telephone || undefined,
+            telephone: BUSINESS_PHONE_E164,
             areaServed,
           }}
         />

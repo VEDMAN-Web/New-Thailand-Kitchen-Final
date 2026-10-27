@@ -28,7 +28,7 @@ export const contactInfo = [
   },
   {
     icon: "/footer/calling.png",
-    text: "+66 99 359 6916",
+    text: "+66 64 683 9777",
   },
 ];
 
