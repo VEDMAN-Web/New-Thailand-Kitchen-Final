@@ -7,8 +7,8 @@ export const SITE_SEO_LOCALE = "EN" as const;
 export const SITE_HTML_LANG = "en";
 export const SITE_OG_LOCALE = "en_US";
 
-// TODO(seo P0-3, waiting on client): confirm hi@ vs hello@ as the one public address.
-export const CANONICAL_CONTACT_EMAIL = "hello@thailandkitchens.com";
+// SEO P0-3: the single confirmed public contact address.
+export const CANONICAL_CONTACT_EMAIL = "hi@thailandkitchens.com";
 export const CANONICAL_PHONE = "+66 99 359 6916";
 export const VERIFIED_AREA_SERVED = "Pattaya & Koh Samui, Thailand";
 export const SAMUI_KITCHENS_ORIGIN = "https://www.samuikitchens.com";
@@ -21,7 +21,7 @@ export function publicContactEmail(value?: string): string {
   const email = String(value || "").trim();
   if (
     !email ||
-    /thaikitchen\.in|thailandkichens@gmail|hi@thailandkitchens/i.test(email)
+    /thaikitchen\.in|thailandkichens@gmail|hello@thailandkitchens/i.test(email)
   ) {
     return CANONICAL_CONTACT_EMAIL;
   }

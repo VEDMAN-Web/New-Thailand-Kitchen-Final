@@ -138,9 +138,8 @@ export default function ContactInfoPanel() {
           address: location.address,
         }));
 
-  // TODO(seo P0-2/P0-3, waiting on client): confirm the single public contact
-  // email. The CMS value contained a stray "hello@Thaikitchen.in"; it is
-  // filtered out here and the existing site address is shown as a placeholder.
+  // SEO P0-2/P0-3: stray or legacy CMS emails are mapped to the one
+  // confirmed public address (CANONICAL_CONTACT_EMAIL).
   const email = publicContactEmail(
     pickCmsAsset(cms?.email, "") || contactDetails[0].value
   );

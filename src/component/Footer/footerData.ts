@@ -24,7 +24,7 @@ export const contactInfo = [
   },
   {
     icon: "/footer/email.png",
-    text: "hello@thailandkitchens.com",
+    text: "hi@thailandkitchens.com",
   },
   {
     icon: "/footer/calling.png",

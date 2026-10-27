@@ -55,7 +55,7 @@ export default function LegalPageView({
           body: pickCmsText(s.body, "", locale)
             .replace(/thailandkichens@gmail\.com/gi, CANONICAL_CONTACT_EMAIL)
             .replace(/hello@thaikitchen\.in/gi, CANONICAL_CONTACT_EMAIL)
-            .replace(/hi@thailandkitchens\.com/gi, CANONICAL_CONTACT_EMAIL),
+            .replace(/hello@thailandkitchens\.com/gi, CANONICAL_CONTACT_EMAIL),
         }))
       : fallback.sections;
 
