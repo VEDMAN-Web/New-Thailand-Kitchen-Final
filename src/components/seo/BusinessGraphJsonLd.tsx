@@ -14,7 +14,8 @@ import { BUSINESS_PHONE_E164 } from "../../lib/businessContact";
  */
 export default function BusinessGraphJsonLd() {
   const org = `${SITE_ORIGIN}/#org`;
-  const image = `${SITE_ORIGIN}/products/Kitchen2.png`;
+  // Neutral branded logo from /public (no stock or product photos).
+  const image = `${SITE_ORIGIN}/logo1.png`;
   const openingHoursSpecification = [
     {
       "@type": "OpeningHoursSpecification",
