@@ -9,15 +9,12 @@ import { Toaster } from "sonner";
 import { SITE_ORIGIN, DEFAULT_OG_IMAGE, ogImageUrl } from "../lib/siteUrl";
 import { pickCmsText } from "../lib/cmsText";
 import { fetchHomeSections, fetchMergedProducts, fetchMergedCategories } from "../services/cmsPublic";
-import JsonLd from "../components/seo/JsonLd";
-import { BUSINESS_PHONE_E164 } from "../lib/businessContact";
+import BusinessGraphJsonLd from "../components/seo/BusinessGraphJsonLd";
 import { getServerLocale } from "../lib/serverLocale";
 import {
   SITE_HTML_LANG,
   SITE_OG_LOCALE,
   SITE_SEO_LOCALE,
-  localBusinessImage,
-  verifiedAreaServed,
   seoAlternates,
 } from "../lib/pageMetadata";
 
@@ -117,23 +114,6 @@ export default async function RootLayout({
     fetchMergedCategories().catch(() => []),
   ]);
 
-  const footerSection =
-    (sections as { footer?: Record<string, unknown> })?.footer || {};
-  const seoSection =
-    (sections as { seo?: Record<string, unknown> })?.seo || {};
-  const heroSection =
-    (sections as { hero?: Record<string, unknown> })?.hero || {};
-  const localBusinessDescription = pickCmsText(
-    seoSection.description,
-    FALLBACK_DESCRIPTION,
-    SITE_SEO_LOCALE
-  );
-  const areaServed = verifiedAreaServed(
-    pickCmsText(footerSection.address, "", SITE_SEO_LOCALE)
-  );
-  const businessImage = localBusinessImage(
-    (seoSection.ogImage as string) || (heroSection.image as string) || ""
-  );
 
   const initialCmsData = {
     sections,
@@ -149,32 +129,7 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body className="font-sans antialiased" suppressHydrationWarning>
-        <JsonLd
-          type="Organization"
-          data={{
-            name: "Thailand Kitchens",
-            url: SITE_ORIGIN,
-            logo: `${SITE_ORIGIN}/icon.png`,
-          }}
-        />
-        <JsonLd
-          type="WebSite"
-          data={{
-            name: "Thailand Kitchens",
-            url: SITE_ORIGIN,
-          }}
-        />
-        <JsonLd
-          type="LocalBusiness"
-          data={{
-            name: "Thailand Kitchens",
-            description: localBusinessDescription,
-            url: SITE_ORIGIN,
-            image: businessImage,
-            telephone: BUSINESS_PHONE_E164,
-            areaServed,
-          }}
-        />
+        <BusinessGraphJsonLd />
         <Script
           id="tk-locale-boot"
           strategy="beforeInteractive"
