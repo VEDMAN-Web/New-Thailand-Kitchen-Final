@@ -3,7 +3,6 @@
 import Image from "next/image";
 import {
   contactLocations,
-  contactDetails,
   contactCraftImage,
 } from "./contactData";
 import { useTranslation } from "../../i18n/LanguageProvider";
@@ -11,6 +10,7 @@ import type { TranslationKey } from "../../i18n/translations";
 import { useCmsSection } from "../../lib/CmsHomeContext";
 import { pickCmsAsset, pickCmsText } from "../../lib/cmsText";
 import { CANONICAL_CONTACT_EMAIL } from "../../lib/pageMetadata";
+import { BUSINESS_PHONE_DISPLAY } from "../../lib/businessContact";
 import { useResolvedMediaUrl } from "../../lib/useResolvedMediaUrl";
 
 const contactLabelKeys: Record<string, TranslationKey> = {
@@ -141,7 +141,7 @@ export default function ContactInfoPanel() {
   // SEO P0-2/P0-3: always the one confirmed public address; the CMS value
   // held a stray "hello@Thaikitchen.in".
   const email = CANONICAL_CONTACT_EMAIL;
-  const phone = pickCmsAsset(cms?.phone, "") || contactDetails[1].value;
+  const phone = BUSINESS_PHONE_DISPLAY; // P0-2: verified number, not the CMS value
   const details = [
     { id: 1, label: "Email Us", value: email, type: "email" as const },
     { id: 2, label: "Call Us", value: phone, type: "phone" as const },
