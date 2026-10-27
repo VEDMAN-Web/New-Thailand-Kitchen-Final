@@ -10,6 +10,7 @@ import { useTranslation } from "../../i18n/LanguageProvider";
 import type { TranslationKey } from "../../i18n/translations";
 import { useCmsSection } from "../../lib/CmsHomeContext";
 import { pickCmsAsset, pickCmsText } from "../../lib/cmsText";
+import { publicContactEmail } from "../../lib/pageMetadata";
 import { useResolvedMediaUrl } from "../../lib/useResolvedMediaUrl";
 
 const contactLabelKeys: Record<string, TranslationKey> = {
@@ -137,7 +138,12 @@ export default function ContactInfoPanel() {
           address: location.address,
         }));
 
-  const email = pickCmsAsset(cms?.email, "") || contactDetails[0].value;
+  // TODO(seo P0-2/P0-3, waiting on client): confirm the single public contact
+  // email. The CMS value contained a stray "hello@Thaikitchen.in"; it is
+  // filtered out here and the existing site address is shown as a placeholder.
+  const email = publicContactEmail(
+    pickCmsAsset(cms?.email, "") || contactDetails[0].value
+  );
   const phone = pickCmsAsset(cms?.phone, "") || contactDetails[1].value;
   const details = [
     { id: 1, label: "Email Us", value: email, type: "email" as const },

@@ -6,6 +6,7 @@ export const SITE_SEO_LOCALE = "EN" as const;
 export const SITE_HTML_LANG = "en";
 export const SITE_OG_LOCALE = "en_US";
 
+// TODO(seo P0-3, waiting on client): confirm hi@ vs hello@ as the one public address.
 export const CANONICAL_CONTACT_EMAIL = "hello@thailandkitchens.com";
 export const CANONICAL_PHONE = "+66 99 359 6916";
 export const VERIFIED_AREA_SERVED = "Pattaya & Koh Samui, Thailand";
