@@ -28,9 +28,13 @@ const defaultShareLinks = [
   {
     icon: "/footer/facebook.png",
     label: "Facebook",
-    href: "https://www.facebook.com/ThailandKitchens/",
+    href: "https://www.facebook.com/varsoviaestate/",
   },
-  { icon: "/footer/instagram.png", label: "Instagram", href: "#" },
+  {
+    icon: "/footer/instagram.png",
+    label: "Instagram",
+    href: "https://www.instagram.com/varsoviacambodia/",
+  },
   { icon: "/footer/x.png", label: "X", href: "#" },
   { icon: "/footer/whatsapp.png", label: "WhatsApp", href: "#" },
 ];
