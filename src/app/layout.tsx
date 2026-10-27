@@ -29,9 +29,15 @@ const manrope = Manrope({
 
 const localeBootScript = `
 try {
-  // A /pl or /th URL prefix wins over stored preferences (DEV-02).
+  // A /pl or /th URL prefix wins for this page only and is NOT persisted, so
+  // visiting /pl or /th never makes un-prefixed (English) URLs render in PL/TH.
   var p = location.pathname.match(/^\\/(pl|th)(\\/|$)/);
-  if (p) document.cookie = 'tk-locale=' + p[1].toUpperCase() + '; path=/; max-age=31536000; SameSite=Lax';
+  if (p) {
+    var u = p[1].toUpperCase();
+    document.documentElement.dataset.locale = u;
+    document.documentElement.lang = p[1];
+    throw 0;
+  }
   // Priority: cookie (server-side source of truth) → localStorage → default
   var m = document.cookie.match(/(?:^|; )tk-locale=([^;]+)/);
   var l = m ? decodeURIComponent(m[1]) : null;
