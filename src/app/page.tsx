@@ -9,6 +9,8 @@ import {
   HOMEPAGE_SEO_TITLE,
   HOMEPAGE_SEO_DESCRIPTION,
   withoutSeoPlaceholder,
+  HOMEPAGE_OG_TITLE,
+  HOMEPAGE_OG_DESCRIPTION,
 } from "../lib/pageMetadata";
 
 const HOMEPAGE_TITLE = HOMEPAGE_SEO_TITLE;
@@ -42,6 +44,8 @@ export async function generateMetadata(): Promise<Metadata> {
     description,
     path: "/",
     image,
+    ogTitle: HOMEPAGE_OG_TITLE,
+    ogDescription: HOMEPAGE_OG_DESCRIPTION,
   });
 }
 

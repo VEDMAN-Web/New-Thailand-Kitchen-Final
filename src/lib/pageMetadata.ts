@@ -13,6 +13,11 @@ export const HOMEPAGE_SEO_TITLE =
 export const HOMEPAGE_SEO_DESCRIPTION =
   "Made-to-measure kitchens, cabinetry and built-in furniture for villas, condos and homes in Pattaya, Koh Samui and across Thailand. Book a design consult.";
 
+/** SEO P0-1: shorter homepage OG/Twitter values from the change list. */
+export const HOMEPAGE_OG_TITLE = "Custom Kitchens & Cabinets in Thailand";
+export const HOMEPAGE_OG_DESCRIPTION =
+  "Made-to-measure kitchens and built-ins for villas, condos and homes in Pattaya, Koh Samui and across Thailand.";
+
 /** Treat the legacy CMS placeholder "Thailand Kitchens Website" as empty. */
 export function withoutSeoPlaceholder(value: string, fallback: string): string {
   const v = String(value || "").trim();
@@ -44,6 +49,8 @@ type PageSeoInput = {
   description: string;
   path: string;
   image?: string;
+  ogTitle?: string;
+  ogDescription?: string;
 };
 
 /**
@@ -69,6 +76,8 @@ export async function pageSeo({
   description,
   path,
   image,
+  ogTitle,
+  ogDescription,
 }: PageSeoInput): Promise<Metadata> {
   const canonical = absoluteUrl(path);
   const ogImage = ogImageUrl(image);
@@ -80,16 +89,16 @@ export async function pageSeo({
     openGraph: {
       type: "website",
       siteName: "Thailand Kitchens",
-      title,
-      description,
+      title: ogTitle || title,
+      description: ogDescription || description,
       url: canonical,
       locale: SITE_OG_LOCALE,
       images: [{ url: ogImage, width: 1200, height: 630, alt: title }],
     },
     twitter: {
       card: "summary_large_image",
-      title,
-      description,
+      title: ogTitle || title,
+      description: ogDescription || description,
       images: [ogImage],
     },
   };
