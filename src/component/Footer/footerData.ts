@@ -24,11 +24,11 @@ export const contactInfo = [
   },
   {
     icon: "/footer/email.png",
-    text: "hello@thailandkitchens.com",
+    text: "hi@thailandkitchens.com",
   },
   {
     icon: "/footer/calling.png",
-    text: "+66 99 359 6916",
+    text: "+66 64 683 9777",
   },
 ];
 
@@ -37,5 +37,5 @@ export type SocialIconName = "instagram" | "facebook" | "whatsapp" | "x";
 export const socialLinks: { name: SocialIconName; link: string; label: string }[] = [
   { name: "instagram", link: "https://www.facebook.com/ThailandKitchens/", label: "Instagram" },
   { name: "facebook", link: "https://www.facebook.com/ThailandKitchens/", label: "Facebook" },
-  { name: "whatsapp", link: "https://wa.me/99 359 6916", label: "WhatsApp" },
+  { name: "whatsapp", link: "https://wa.me/66646839777", label: "WhatsApp" },
 ];

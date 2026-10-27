@@ -11,10 +11,11 @@ import {
 import { useTranslation } from "../../i18n/LanguageProvider";
 import { useCmsSection } from "../../lib/CmsHomeContext";
 import { pickCmsText } from "../../lib/cmsText";
-import { publicContactEmail } from "../../lib/pageMetadata";
+import { CANONICAL_CONTACT_EMAIL } from "../../lib/pageMetadata";
 import { smoothScrollAfterNav } from "../../lib/smoothScroll";
 import { isExternalHref, normalizeFooterHref } from "../../lib/footerHref";
 import { trackGa4Event } from "../../lib/ga4";
+import { BUSINESS_PHONE_DISPLAY, BUSINESS_WHATSAPP_URL } from "../../lib/businessContact";
 
 function SocialIcon({ name }: { name: SocialIconName }) {
   const common = {
@@ -67,10 +68,6 @@ function SocialIcon({ name }: { name: SocialIconName }) {
   }
 }
 
-function publicEmail(value?: string) {
-  return publicContactEmail(value);
-}
-
 function scrollToFooterTarget(href: string) {
   smoothScrollAfterNav(href);
 }
@@ -106,11 +103,13 @@ export default function Footer() {
     },
     {
       icon: "/footer/email.png",
-      text: publicEmail(footerCms?.email || contactInfo[1].text),
+      // P0-3: always exactly hi@thailandkitchens.com (text + mailto).
+      text: CANONICAL_CONTACT_EMAIL,
     },
     {
       icon: "/footer/calling.png",
-      text: footerCms?.phone || contactInfo[2].text,
+      // Verified number; the CMS phone field held a placeholder.
+      text: BUSINESS_PHONE_DISPLAY,
     },
   ];
 
@@ -121,8 +120,9 @@ export default function Footer() {
     if (s.name === "instagram" && footerCms?.instagram) {
       return { ...s, link: normalizeFooterHref(footerCms.instagram) || s.link };
     }
-    if (s.name === "whatsapp" && footerCms?.line) {
-      return { ...s, link: normalizeFooterHref(footerCms.line) || s.link };
+    if (s.name === "whatsapp") {
+      // DEV-20: always the verified wa.me link (CMS value pointed at web.whatsapp.com).
+      return { ...s, link: BUSINESS_WHATSAPP_URL };
     }
     return s;
   });

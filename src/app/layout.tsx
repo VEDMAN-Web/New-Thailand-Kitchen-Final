@@ -7,17 +7,18 @@ import Navbar from "../component/navBar";
 import Footer from "../component/Footer/footer";
 import { Toaster } from "sonner";
 import { SITE_ORIGIN, DEFAULT_OG_IMAGE, ogImageUrl } from "../lib/siteUrl";
-import { pickCmsText, ensureCmsString } from "../lib/cmsText";
+import { pickCmsText } from "../lib/cmsText";
 import { fetchHomeSections, fetchMergedProducts, fetchMergedCategories } from "../services/cmsPublic";
-import JsonLd from "../components/seo/JsonLd";
+import BusinessGraphJsonLd from "../components/seo/BusinessGraphJsonLd";
 import { getServerLocale } from "../lib/serverLocale";
+import { getUrlLocale } from "../lib/urlLocale";
 import {
   SITE_HTML_LANG,
   SITE_OG_LOCALE,
   SITE_SEO_LOCALE,
-  localBusinessImage,
-  verifiedAreaServed,
   seoAlternates,
+  HOMEPAGE_SEO_DESCRIPTION,
+  withoutSeoPlaceholder,
 } from "../lib/pageMetadata";
 
 const manrope = Manrope({
@@ -28,6 +29,15 @@ const manrope = Manrope({
 
 const localeBootScript = `
 try {
+  // A /pl or /th URL prefix wins for this page only and is NOT persisted, so
+  // visiting /pl or /th never makes un-prefixed (English) URLs render in PL/TH.
+  var p = location.pathname.match(/^\\/(pl|th)(\\/|$)/);
+  if (p) {
+    var u = p[1].toUpperCase();
+    document.documentElement.dataset.locale = u;
+    document.documentElement.lang = p[1];
+    throw 0;
+  }
   // Priority: cookie (server-side source of truth) → localStorage → default
   var m = document.cookie.match(/(?:^|; )tk-locale=([^;]+)/);
   var l = m ? decodeURIComponent(m[1]) : null;
@@ -47,8 +57,7 @@ try {
 `;
 
 const FALLBACK_TITLE = "Thailand Kitchens";
-const FALLBACK_DESCRIPTION =
-  "Custom Thai kitchen design and cabinetry — timeless craftsmanship for every home.";
+const FALLBACK_DESCRIPTION = HOMEPAGE_SEO_DESCRIPTION;
 
 /**
  * Site-wide default metadata (title/description/OG image), sourced from the
@@ -65,11 +74,13 @@ export async function generateMetadata(): Promise<Metadata> {
   // Default (un-prefixed) URLs are English. Do not let Accept-Language or a
   // UI locale cookie swap title/meta/OG into TH/PL — that is what caused
   // lang="en" pages to ship Polish metadata.
-  const title = pickCmsText(seo.title, FALLBACK_TITLE, SITE_SEO_LOCALE);
-  const description = pickCmsText(
-    seo.description,
-    FALLBACK_DESCRIPTION,
-    SITE_SEO_LOCALE
+  const title = withoutSeoPlaceholder(
+    pickCmsText(seo.title, FALLBACK_TITLE, SITE_SEO_LOCALE),
+    FALLBACK_TITLE
+  );
+  const description = withoutSeoPlaceholder(
+    pickCmsText(seo.description, FALLBACK_DESCRIPTION, SITE_SEO_LOCALE),
+    FALLBACK_DESCRIPTION
   );
   const image = ogImageUrl(
     (seo.ogImage as string) || (hero.image as string) || DEFAULT_OG_IMAGE
@@ -82,7 +93,9 @@ export async function generateMetadata(): Promise<Metadata> {
     // child's plain-string title, which would double up the suffix.
     title,
     description,
-    alternates: seoAlternates("/"),
+    alternates: await seoAlternates("/"),
+    // /pl and /th are noindex until translated (TODO DEV-02).
+    ...((await getUrlLocale()) ? { robots: { index: false, follow: true } } : {}),
     openGraph: {
       type: "website",
       siteName: FALLBACK_TITLE,
@@ -108,6 +121,7 @@ export default async function RootLayout({
 }) {
   const ga4Id = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID?.trim() || "";
   const serverLocale = await getServerLocale();
+  const urlLocale = await getUrlLocale();
 
   // Fetch initial CMS data to prevent content flash on first paint
   const [sections, products, categories] = await Promise.all([
@@ -116,24 +130,6 @@ export default async function RootLayout({
     fetchMergedCategories().catch(() => []),
   ]);
 
-  const footerSection =
-    (sections as { footer?: Record<string, unknown> })?.footer || {};
-  const seoSection =
-    (sections as { seo?: Record<string, unknown> })?.seo || {};
-  const heroSection =
-    (sections as { hero?: Record<string, unknown> })?.hero || {};
-  const localBusinessDescription = pickCmsText(
-    seoSection.description,
-    FALLBACK_DESCRIPTION,
-    SITE_SEO_LOCALE
-  );
-  const areaServed = verifiedAreaServed(
-    pickCmsText(footerSection.address, "", SITE_SEO_LOCALE)
-  );
-  const telephone = ensureCmsString(footerSection.phone);
-  const businessImage = localBusinessImage(
-    (seoSection.ogImage as string) || (heroSection.image as string) || ""
-  );
 
   const initialCmsData = {
     sections,
@@ -143,38 +139,13 @@ export default async function RootLayout({
 
   return (
     <html
-      lang={SITE_HTML_LANG}
-      data-locale="EN"
+      lang={urlLocale === "PL" ? "pl" : urlLocale === "TH" ? "th" : SITE_HTML_LANG}
+      data-locale={urlLocale || "EN"}
       className={manrope.variable}
       suppressHydrationWarning
     >
       <body className="font-sans antialiased" suppressHydrationWarning>
-        <JsonLd
-          type="Organization"
-          data={{
-            name: "Thailand Kitchens",
-            url: SITE_ORIGIN,
-            logo: `${SITE_ORIGIN}/icon.png`,
-          }}
-        />
-        <JsonLd
-          type="WebSite"
-          data={{
-            name: "Thailand Kitchens",
-            url: SITE_ORIGIN,
-          }}
-        />
-        <JsonLd
-          type="LocalBusiness"
-          data={{
-            name: "Thailand Kitchens",
-            description: localBusinessDescription,
-            url: SITE_ORIGIN,
-            image: businessImage,
-            telephone: telephone || undefined,
-            areaServed,
-          }}
-        />
+        <BusinessGraphJsonLd />
         <Script
           id="tk-locale-boot"
           strategy="beforeInteractive"

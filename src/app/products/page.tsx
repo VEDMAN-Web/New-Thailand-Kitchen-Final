@@ -4,6 +4,7 @@ import ProductsPageView from "../../component/products/ProductsPageView";
 import { fetchHomeSections, fetchMergedProducts } from "../../services/cmsPublic";
 import { productItems } from "../../component/products/productData";
 import { SITE_ORIGIN } from "../../lib/siteUrl";
+import { seoAlternates } from "../../lib/pageMetadata";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -38,9 +39,10 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   return {
     title: PRODUCTS_TITLE,
     description: PRODUCTS_DESCRIPTION,
-    alternates: {
-      canonical,
-    },
+    alternates:
+      page <= 1
+        ? await seoAlternates("/products")
+        : { canonical },
     openGraph: {
       type: "website",
       title: PRODUCTS_TITLE,

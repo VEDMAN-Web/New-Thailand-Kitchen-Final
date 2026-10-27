@@ -4,6 +4,7 @@
  */
 import { cookies, headers } from "next/headers";
 import type { Locale } from "../i18n/translations";
+import { getUrlLocale } from "./urlLocale";
 
 const LOCALE_COOKIE = "tk-locale";
 
@@ -16,6 +17,10 @@ function isValidLocale(value: unknown): value is Locale {
  * Defaults to EN.
  */
 export async function getServerLocale(): Promise<Locale> {
+  // A /pl or /th URL prefix always wins (DEV-02).
+  const urlLocale = await getUrlLocale();
+  if (urlLocale) return urlLocale;
+
   try {
     // Try cookie first (user's explicit choice)
     const cookieStore = await cookies();

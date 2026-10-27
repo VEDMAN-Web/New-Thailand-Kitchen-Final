@@ -1,13 +1,31 @@
 import type { Metadata } from "next";
 import { absoluteUrl, ogImageUrl } from "./siteUrl";
+import { getUrlLocale, localePath } from "./urlLocale";
 
 /** Canonical public language for un-prefixed thailandkitchens.com URLs. */
 export const SITE_SEO_LOCALE = "EN" as const;
 export const SITE_HTML_LANG = "en";
 export const SITE_OG_LOCALE = "en_US";
 
-export const CANONICAL_CONTACT_EMAIL = "hello@thailandkitchens.com";
-export const CANONICAL_PHONE = "+66 99 359 6916";
+/** SEO P0-1: homepage EN title/description (code fallback for empty CMS fields). */
+export const HOMEPAGE_SEO_TITLE =
+  "Custom Kitchens & Cabinets in Thailand | Thailand Kitchens";
+export const HOMEPAGE_SEO_DESCRIPTION =
+  "Made-to-measure kitchens, cabinetry and built-in furniture for villas, condos and homes in Pattaya, Koh Samui and across Thailand. Book a design consult.";
+
+/** SEO P0-1: shorter homepage OG/Twitter values from the change list. */
+export const HOMEPAGE_OG_TITLE = "Custom Kitchens & Cabinets in Thailand";
+export const HOMEPAGE_OG_DESCRIPTION =
+  "Made-to-measure kitchens and built-ins for villas, condos and homes in Pattaya, Koh Samui and across Thailand.";
+
+/** Treat the legacy CMS placeholder "Thailand Kitchens Website" as empty. */
+export function withoutSeoPlaceholder(value: string, fallback: string): string {
+  const v = String(value || "").trim();
+  return !v || /^thailand kitchens website$/i.test(v) ? fallback : v;
+}
+
+// SEO P0-3: the single confirmed public contact address.
+export const CANONICAL_CONTACT_EMAIL = "hi@thailandkitchens.com";
 export const VERIFIED_AREA_SERVED = "Pattaya & Koh Samui, Thailand";
 export const SAMUI_KITCHENS_ORIGIN = "https://www.samuikitchens.com";
 
@@ -19,7 +37,7 @@ export function publicContactEmail(value?: string): string {
   const email = String(value || "").trim();
   if (
     !email ||
-    /thaikitchen\.in|thailandkichens@gmail|hi@thailandkitchens/i.test(email)
+    /thaikitchen\.in|thailandkichens@gmail|hello@thailandkitchens/i.test(email)
   ) {
     return CANONICAL_CONTACT_EMAIL;
   }
@@ -31,49 +49,56 @@ type PageSeoInput = {
   description: string;
   path: string;
   image?: string;
+  ogTitle?: string;
+  ogDescription?: string;
 };
 
 /**
- * Self-referencing en + x-default only. /pl and /th are not emitted until
- * those routes exist (DEV-02) so hreflang never points at 404s.
+ * Self-referencing canonical with en + x-default hreflang. /pl and /th routes
+ * exist (DEV-02) but are noindex and NOT advertised in hreflang or the sitemap
+ * until PL/TH metadata and localized internal links exist.
+ * TODO(DEV-02): add pl/th alternates once translations ship.
  */
-export function seoAlternates(path: string) {
-  const canonical = absoluteUrl(path);
+export async function seoAlternates(path: string) {
+  const urlLocale = await getUrlLocale();
+  const en = absoluteUrl(path);
   return {
-    canonical,
+    canonical: urlLocale ? absoluteUrl(localePath(path, urlLocale)) : en,
     languages: {
-      en: canonical,
-      "x-default": canonical,
+      en,
+      "x-default": en,
     },
   };
 }
 
-export function pageSeo({
+export async function pageSeo({
   title,
   description,
   path,
   image,
-}: PageSeoInput): Metadata {
+  ogTitle,
+  ogDescription,
+}: PageSeoInput): Promise<Metadata> {
   const canonical = absoluteUrl(path);
   const ogImage = ogImageUrl(image);
 
   return {
     title,
     description,
-    alternates: seoAlternates(path),
+    alternates: await seoAlternates(path),
     openGraph: {
       type: "website",
       siteName: "Thailand Kitchens",
-      title,
-      description,
+      title: ogTitle || title,
+      description: ogDescription || description,
       url: canonical,
       locale: SITE_OG_LOCALE,
       images: [{ url: ogImage, width: 1200, height: 630, alt: title }],
     },
     twitter: {
       card: "summary_large_image",
-      title,
-      description,
+      title: ogTitle || title,
+      description: ogDescription || description,
       images: [ogImage],
     },
   };

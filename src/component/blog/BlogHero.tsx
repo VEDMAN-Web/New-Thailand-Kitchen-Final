@@ -79,7 +79,7 @@ export default function BlogHero() {
           <Image
             key={imageDisplaySrc}
             src={imageDisplaySrc}
-            alt=""
+            alt="Kitchen design guides by Thailand Kitchens"
             fill
             priority
             className="absolute inset-0 h-full w-full object-cover object-center pointer-events-none"

@@ -139,7 +139,7 @@ export async function generateHubMetadata(
   return {
     title,
     description,
-    alternates: seoAlternates(data.currentHref),
+    alternates: await seoAlternates(data.currentHref),
     openGraph: {
       type: "website",
       title,

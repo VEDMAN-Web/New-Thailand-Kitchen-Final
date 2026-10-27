@@ -30,7 +30,7 @@ export const contactDetails = [
   {
     id: 1,
     label: "Email Us",
-    value: "hello@thailandkitchens.com",
+    value: "hi@thailandkitchens.com",
     type: "email" as const,
   },
   {
