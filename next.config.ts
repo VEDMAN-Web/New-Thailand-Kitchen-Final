@@ -72,6 +72,8 @@ const nextConfig: NextConfig = {
       { source: "/portfolio", destination: "/gallery", permanent: true },
       { source: "/about", destination: "/#our-story", permanent: true },
       { source: "/catalog", destination: "/catalogue", permanent: true },
+      // DEV-14: retired peninsula layout URL
+      { source: "/kitchens/layouts/peninsula", destination: "/kitchens/layouts/t-shape", permanent: true },
       // DEV-10: redirect thin location×service pages to their parent city pages
       { source: "/locations/bangkok/kitchen-renovation", destination: "/locations/bangkok", permanent: true },
       { source: "/locations/bangkok/kitchen-design", destination: "/locations/bangkok", permanent: true },
