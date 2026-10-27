@@ -10,7 +10,7 @@ import { useTranslation } from "../../i18n/LanguageProvider";
 import type { TranslationKey } from "../../i18n/translations";
 import { useCmsSection } from "../../lib/CmsHomeContext";
 import { pickCmsAsset, pickCmsText } from "../../lib/cmsText";
-import { publicContactEmail } from "../../lib/pageMetadata";
+import { CANONICAL_CONTACT_EMAIL } from "../../lib/pageMetadata";
 import { useResolvedMediaUrl } from "../../lib/useResolvedMediaUrl";
 
 const contactLabelKeys: Record<string, TranslationKey> = {
@@ -138,11 +138,9 @@ export default function ContactInfoPanel() {
           address: location.address,
         }));
 
-  // SEO P0-2/P0-3: stray or legacy CMS emails are mapped to the one
-  // confirmed public address (CANONICAL_CONTACT_EMAIL).
-  const email = publicContactEmail(
-    pickCmsAsset(cms?.email, "") || contactDetails[0].value
-  );
+  // SEO P0-2/P0-3: always the one confirmed public address; the CMS value
+  // held a stray "hello@Thaikitchen.in".
+  const email = CANONICAL_CONTACT_EMAIL;
   const phone = pickCmsAsset(cms?.phone, "") || contactDetails[1].value;
   const details = [
     { id: 1, label: "Email Us", value: email, type: "email" as const },

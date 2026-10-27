@@ -11,7 +11,7 @@ import {
 import { useTranslation } from "../../i18n/LanguageProvider";
 import { useCmsSection } from "../../lib/CmsHomeContext";
 import { pickCmsText } from "../../lib/cmsText";
-import { publicContactEmail } from "../../lib/pageMetadata";
+import { CANONICAL_CONTACT_EMAIL } from "../../lib/pageMetadata";
 import { smoothScrollAfterNav } from "../../lib/smoothScroll";
 import { isExternalHref, normalizeFooterHref } from "../../lib/footerHref";
 import { trackGa4Event } from "../../lib/ga4";
@@ -68,10 +68,6 @@ function SocialIcon({ name }: { name: SocialIconName }) {
   }
 }
 
-function publicEmail(value?: string) {
-  return publicContactEmail(value);
-}
-
 function scrollToFooterTarget(href: string) {
   smoothScrollAfterNav(href);
 }
@@ -107,7 +103,8 @@ export default function Footer() {
     },
     {
       icon: "/footer/email.png",
-      text: publicEmail(footerCms?.email || contactInfo[1].text),
+      // P0-3: always exactly hi@thailandkitchens.com (text + mailto).
+      text: CANONICAL_CONTACT_EMAIL,
     },
     {
       icon: "/footer/calling.png",
