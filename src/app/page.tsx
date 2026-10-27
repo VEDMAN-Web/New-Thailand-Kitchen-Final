@@ -3,11 +3,16 @@ import { ogImageUrl } from "../lib/siteUrl";
 import HomePage from "../component/HomePage";
 import { fetchHomeSections, fetchMergedProducts, cataloguesFromHomeSections } from "../services/cmsPublic";
 import { pickCmsText } from "../lib/cmsText";
-import { pageSeo, SITE_SEO_LOCALE } from "../lib/pageMetadata";
+import {
+  pageSeo,
+  SITE_SEO_LOCALE,
+  HOMEPAGE_SEO_TITLE,
+  HOMEPAGE_SEO_DESCRIPTION,
+  withoutSeoPlaceholder,
+} from "../lib/pageMetadata";
 
-const HOMEPAGE_TITLE = "Thailand Kitchens | Custom Thai Kitchen Design";
-const HOMEPAGE_DESCRIPTION =
-  "Discover custom Thai kitchen design and cabinetry, crafted with timeless materials and made for beautiful everyday living.";
+const HOMEPAGE_TITLE = HOMEPAGE_SEO_TITLE;
+const HOMEPAGE_DESCRIPTION = HOMEPAGE_SEO_DESCRIPTION;
 export async function generateMetadata(): Promise<Metadata> {
   const home = await fetchHomeSections().catch(() => ({}));
   const sections = home as {
@@ -16,11 +21,13 @@ export async function generateMetadata(): Promise<Metadata> {
   };
   const seo = sections.seo || {};
   const hero = sections.hero || {};
-  const title = pickCmsText(seo.title, HOMEPAGE_TITLE, SITE_SEO_LOCALE);
-  const description = pickCmsText(
-    seo.description,
-    HOMEPAGE_DESCRIPTION,
-    SITE_SEO_LOCALE
+  const title = withoutSeoPlaceholder(
+    pickCmsText(seo.title, HOMEPAGE_TITLE, SITE_SEO_LOCALE),
+    HOMEPAGE_TITLE
+  );
+  const description = withoutSeoPlaceholder(
+    pickCmsText(seo.description, HOMEPAGE_DESCRIPTION, SITE_SEO_LOCALE),
+    HOMEPAGE_DESCRIPTION
   );
   const image = ogImageUrl(
     typeof seo.ogImage === "string"

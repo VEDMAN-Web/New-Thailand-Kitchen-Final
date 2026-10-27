@@ -17,6 +17,8 @@ import {
   SITE_OG_LOCALE,
   SITE_SEO_LOCALE,
   seoAlternates,
+  HOMEPAGE_SEO_DESCRIPTION,
+  withoutSeoPlaceholder,
 } from "../lib/pageMetadata";
 
 const manrope = Manrope({
@@ -49,8 +51,7 @@ try {
 `;
 
 const FALLBACK_TITLE = "Thailand Kitchens";
-const FALLBACK_DESCRIPTION =
-  "Custom Thai kitchen design and cabinetry — timeless craftsmanship for every home.";
+const FALLBACK_DESCRIPTION = HOMEPAGE_SEO_DESCRIPTION;
 
 /**
  * Site-wide default metadata (title/description/OG image), sourced from the
@@ -67,11 +68,13 @@ export async function generateMetadata(): Promise<Metadata> {
   // Default (un-prefixed) URLs are English. Do not let Accept-Language or a
   // UI locale cookie swap title/meta/OG into TH/PL — that is what caused
   // lang="en" pages to ship Polish metadata.
-  const title = pickCmsText(seo.title, FALLBACK_TITLE, SITE_SEO_LOCALE);
-  const description = pickCmsText(
-    seo.description,
-    FALLBACK_DESCRIPTION,
-    SITE_SEO_LOCALE
+  const title = withoutSeoPlaceholder(
+    pickCmsText(seo.title, FALLBACK_TITLE, SITE_SEO_LOCALE),
+    FALLBACK_TITLE
+  );
+  const description = withoutSeoPlaceholder(
+    pickCmsText(seo.description, FALLBACK_DESCRIPTION, SITE_SEO_LOCALE),
+    FALLBACK_DESCRIPTION
   );
   const image = ogImageUrl(
     (seo.ogImage as string) || (hero.image as string) || DEFAULT_OG_IMAGE

@@ -7,6 +7,18 @@ export const SITE_SEO_LOCALE = "EN" as const;
 export const SITE_HTML_LANG = "en";
 export const SITE_OG_LOCALE = "en_US";
 
+/** SEO P0-1: homepage EN title/description (code fallback for empty CMS fields). */
+export const HOMEPAGE_SEO_TITLE =
+  "Custom Kitchens & Cabinets in Thailand | Thailand Kitchens";
+export const HOMEPAGE_SEO_DESCRIPTION =
+  "Made-to-measure kitchens, cabinetry and built-in furniture for villas, condos and homes in Pattaya, Koh Samui and across Thailand. Book a design consult.";
+
+/** Treat the legacy CMS placeholder "Thailand Kitchens Website" as empty. */
+export function withoutSeoPlaceholder(value: string, fallback: string): string {
+  const v = String(value || "").trim();
+  return !v || /^thailand kitchens website$/i.test(v) ? fallback : v;
+}
+
 // SEO P0-3: the single confirmed public contact address.
 export const CANONICAL_CONTACT_EMAIL = "hi@thailandkitchens.com";
 export const CANONICAL_PHONE = "+66 99 359 6916";
