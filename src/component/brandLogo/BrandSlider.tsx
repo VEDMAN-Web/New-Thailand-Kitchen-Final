@@ -22,7 +22,7 @@ function BrandLogo({ src, name }: { src: string; name?: string }) {
     <div className="flex h-12 sm:h-14 lg:h-16 items-center justify-center rounded-xl bg-white px-4 py-2 shadow-[0_1px_0_rgba(0,0,0,0.04)]">
       <Image
         src={resolved}
-        alt={name || ""}
+        alt={name ? `${name} logo` : "Partner brand logo"}
         width={150}
         height={60}
         className="object-contain h-8 sm:h-10 lg:h-11 w-auto"

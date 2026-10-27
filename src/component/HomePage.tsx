@@ -218,7 +218,7 @@ function HomePage({
             {reducedMotion || (!heroVideo && heroPoster) ? (
               <Image
                 src={heroPoster}
-                alt=""
+                alt="Custom kitchen by Thailand Kitchens"
                 fill
                 priority
                 className="absolute inset-0 z-0 h-full w-full object-cover object-[center_30%] sm:object-center"
