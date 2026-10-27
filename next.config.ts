@@ -71,13 +71,13 @@ const nextConfig: NextConfig = {
       { source: "/styles/:slug", destination: "/kitchens/styles/:slug", permanent: true },
       { source: "/projects", destination: "/gallery", permanent: true },
       { source: "/portfolio", destination: "/gallery", permanent: true },
-      { source: "/about", destination: "/#our-story", permanent: true },
+      { source: "/about", destination: "/#our-story", statusCode: 301 },
       { source: "/catalog", destination: "/catalogue", permanent: true },
       // DEV-09: duplicate pages
-      { source: "/services/built-in-wardrobes", destination: "/built-in-furniture/wardrobes", permanent: true },
-      { source: "/kitchens/by-property/apartment", destination: "/kitchens/by-property/condo", permanent: true },
+      { source: "/services/built-in-wardrobes", destination: "/built-in-furniture/wardrobes", statusCode: 301 },
+      { source: "/kitchens/by-property/apartment", destination: "/kitchens/by-property/condo", statusCode: 301 },
       // DEV-14: retired peninsula layout URL
-      { source: "/kitchens/layouts/peninsula", destination: "/kitchens/layouts/t-shape", permanent: true },
+      { source: "/kitchens/layouts/peninsula", destination: "/kitchens/layouts/t-shape", statusCode: 301 },
       // DEV-10: redirect thin location×service pages to their parent city pages
       { source: "/locations/bangkok/kitchen-renovation", destination: "/locations/bangkok", permanent: true },
       { source: "/locations/bangkok/kitchen-design", destination: "/locations/bangkok", permanent: true },
