@@ -4,8 +4,8 @@ import {
   HOMEPAGE_SEO_DESCRIPTION,
 } from "../../lib/pageMetadata";
 import {
+  BUSINESS_PHONE_DISPLAY,
   BUSINESS_PHONE_E164,
-  BUSINESS_WHATSAPP_URL,
 } from "../../lib/businessContact";
 
 /**
@@ -39,9 +39,15 @@ export default function BusinessGraphJsonLd() {
         description: HOMEPAGE_SEO_DESCRIPTION,
         email: CANONICAL_CONTACT_EMAIL,
         telephone: BUSINESS_PHONE_E164,
-        // Only Thailand Kitchens-branded profiles. The Varsovia-branded Facebook and
-        // Instagram stay in the footer but are excluded here (SEO P0-4 / P1-8).
-        sameAs: [BUSINESS_WHATSAPP_URL],
+        // No sameAs: no verified Thailand Kitchens-branded profiles. WhatsApp is a
+        // contact channel (ContactPoint + footer link), not an identity profile.
+        contactPoint: {
+          "@type": "ContactPoint",
+          telephone: BUSINESS_PHONE_DISPLAY,
+          contactType: "customer service",
+          email: CANONICAL_CONTACT_EMAIL,
+          availableLanguage: ["English"],
+        },
       },
       {
         "@type": "WebSite",
