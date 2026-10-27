@@ -15,7 +15,7 @@ import { publicContactEmail } from "../../lib/pageMetadata";
 import { smoothScrollAfterNav } from "../../lib/smoothScroll";
 import { isExternalHref, normalizeFooterHref } from "../../lib/footerHref";
 import { trackGa4Event } from "../../lib/ga4";
-import { BUSINESS_PHONE_DISPLAY } from "../../lib/businessContact";
+import { BUSINESS_PHONE_DISPLAY, BUSINESS_WHATSAPP_URL } from "../../lib/businessContact";
 
 function SocialIcon({ name }: { name: SocialIconName }) {
   const common = {
@@ -123,8 +123,9 @@ export default function Footer() {
     if (s.name === "instagram" && footerCms?.instagram) {
       return { ...s, link: normalizeFooterHref(footerCms.instagram) || s.link };
     }
-    if (s.name === "whatsapp" && footerCms?.line) {
-      return { ...s, link: normalizeFooterHref(footerCms.line) || s.link };
+    if (s.name === "whatsapp") {
+      // DEV-20: always the verified wa.me link (CMS value pointed at web.whatsapp.com).
+      return { ...s, link: BUSINESS_WHATSAPP_URL };
     }
     return s;
   });
