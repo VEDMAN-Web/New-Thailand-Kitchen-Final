@@ -88,6 +88,8 @@ export async function generateMetadata(): Promise<Metadata> {
     title,
     description,
     alternates: await seoAlternates("/"),
+    // /pl and /th are noindex until translated (TODO DEV-02).
+    ...((await getUrlLocale()) ? { robots: { index: false, follow: true } } : {}),
     openGraph: {
       type: "website",
       siteName: FALLBACK_TITLE,
