@@ -15,7 +15,7 @@ import { CANONICAL_CONTACT_EMAIL } from "../../lib/pageMetadata";
 import { smoothScrollAfterNav } from "../../lib/smoothScroll";
 import { isExternalHref, normalizeFooterHref } from "../../lib/footerHref";
 import { trackGa4Event } from "../../lib/ga4";
-import { BUSINESS_PHONE_DISPLAY, BUSINESS_WHATSAPP_URL } from "../../lib/businessContact";
+import { BUSINESS_PHONE_DISPLAY, BUSINESS_WHATSAPP_URL, BUSINESS_FACEBOOK_URL, BUSINESS_INSTAGRAM_URL } from "../../lib/businessContact";
 
 function SocialIcon({ name }: { name: SocialIconName }) {
   const common = {
@@ -114,11 +114,12 @@ export default function Footer() {
   ];
 
   const cmsSocials = socialLinks.map((s) => {
-    if (s.name === "facebook" && footerCms?.facebook) {
-      return { ...s, link: normalizeFooterHref(footerCms.facebook) || s.link };
+    // Verified social profiles; the CMS values pointed Instagram at Facebook.
+    if (s.name === "facebook") {
+      return { ...s, link: BUSINESS_FACEBOOK_URL };
     }
-    if (s.name === "instagram" && footerCms?.instagram) {
-      return { ...s, link: normalizeFooterHref(footerCms.instagram) || s.link };
+    if (s.name === "instagram") {
+      return { ...s, link: BUSINESS_INSTAGRAM_URL };
     }
     if (s.name === "whatsapp") {
       // DEV-20: always the verified wa.me link (CMS value pointed at web.whatsapp.com).
