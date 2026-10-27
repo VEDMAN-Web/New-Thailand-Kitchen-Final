@@ -1,3 +1,4 @@
+import { getUrlLocale } from "../../lib/urlLocale";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import CategoryLandingView from "./CategoryLandingView";
@@ -82,8 +83,8 @@ export async function generateCategoryMetadata(
     title,
     description,
     alternates: {
-      ...seoAlternates(path),
-      canonical,
+      ...(await seoAlternates(path)),
+      ...((await getUrlLocale()) ? {} : { canonical }),
     },
     openGraph: {
       type: "website",

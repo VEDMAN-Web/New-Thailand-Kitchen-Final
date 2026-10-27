@@ -16,16 +16,36 @@ function isLocalOrPreviewHost(host: string) {
  * Collapse every public host onto https://www.thailandkitchens.com
  * in a single 301 hop, preserving path and query.
  */
+const LOCALE_HEADER = "x-tk-url-locale";
+const URL_LOCALES: Record<string, "PL" | "TH"> = { pl: "PL", th: "TH" };
+
+/**
+ * DEV-02: serve /pl/<path> and /th/<path> by rewriting to /<path> and passing
+ * the locale in a request header (read by src/lib/urlLocale.ts).
+ */
+function localeRewrite(request: NextRequest) {
+  const match = request.nextUrl.pathname.match(/^\/(pl|th)(\/.*)?$/);
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.delete(LOCALE_HEADER);
+  if (!match) {
+    return NextResponse.next({ request: { headers: requestHeaders } });
+  }
+  requestHeaders.set(LOCALE_HEADER, URL_LOCALES[match[1]]);
+  const url = request.nextUrl.clone();
+  url.pathname = match[2] || "/";
+  return NextResponse.rewrite(url, { request: { headers: requestHeaders } });
+}
+
 export function proxy(request: NextRequest) {
   const headerHost = request.headers.get("host") || "";
   const host = headerHost.split(":")[0]?.toLowerCase() || "";
 
   if (!host || isLocalOrPreviewHost(host)) {
-    return NextResponse.next();
+    return localeRewrite(request);
   }
 
   if (host === CANONICAL_HOST) {
-    return NextResponse.next();
+    return localeRewrite(request);
   }
 
   if (host === "thailandkitchens.com") {
@@ -36,7 +56,7 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(url, 301);
   }
 
-  return NextResponse.next();
+  return localeRewrite(request);
 }
 
 export const config = {

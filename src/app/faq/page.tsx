@@ -8,25 +8,26 @@ export const revalidate = 0;
 
 import JsonLd from "../../components/seo/JsonLd";
 import { ensureCmsString } from "../../lib/cmsText";
+import { seoAlternates } from "../../lib/pageMetadata";
 
 const FAQ_TITLE = "Most Frequent Questions | Thailand Kitchens";
 const FAQ_DESCRIPTION =
   "Find answers to the most common questions about custom modular kitchen design, installation timelines, pricing, materials, and after-sales support.";
 const FAQ_URL = `${SITE_ORIGIN}/faq`;
 
-export const metadata: Metadata = {
+export async function generateMetadata(): Promise<Metadata> {
+  return {
   title: FAQ_TITLE,
   description: FAQ_DESCRIPTION,
-  alternates: {
-    canonical: FAQ_URL,
-  },
+  alternates: await seoAlternates("/faq"),
   openGraph: {
     type: "website",
     title: FAQ_TITLE,
     description: FAQ_DESCRIPTION,
     url: FAQ_URL,
   },
-};
+  };
+}
 export default async function Page() {
   const faqs = await fetchMergedFaqs().catch(() => []);
   const faqJsonLdItems = faqs

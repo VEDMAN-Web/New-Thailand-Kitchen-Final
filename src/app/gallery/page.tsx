@@ -4,6 +4,7 @@ import GalleryPageView from "../../component/gallery/GalleryPageView";
 import { fetchMergedGallery, fetchHomeSections } from "../../services/cmsPublic";
 import { galleryItems } from "../../component/gallery/galleryData";
 import { SITE_ORIGIN } from "../../lib/siteUrl";
+import { seoAlternates } from "../../lib/pageMetadata";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -14,19 +15,19 @@ const GALLERY_DESCRIPTION =
   "A curated inspiration library of tropical, modern and minimal kitchens crafted by our Samui atelier — filter by style, layout, palette or material and discover your next design.";
 const GALLERY_URL = `${SITE_ORIGIN}/gallery`;
 
-export const metadata: Metadata = {
+export async function generateMetadata(): Promise<Metadata> {
+  return {
   title: GALLERY_TITLE,
   description: GALLERY_DESCRIPTION,
-  alternates: {
-    canonical: GALLERY_URL,
-  },
+  alternates: await seoAlternates("/gallery"),
   openGraph: {
     type: "website",
     title: GALLERY_TITLE,
     description: GALLERY_DESCRIPTION,
     url: GALLERY_URL,
   },
-};
+  };
+}
 
 export default async function GalleryPage() {
   const [items, sections] = await Promise.all([

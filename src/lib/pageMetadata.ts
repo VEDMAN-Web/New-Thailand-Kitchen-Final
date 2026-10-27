@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { absoluteUrl, ogImageUrl } from "./siteUrl";
+import { getUrlLocale, localePath } from "./urlLocale";
 
 /** Canonical public language for un-prefixed thailandkitchens.com URLs. */
 export const SITE_SEO_LOCALE = "EN" as const;
@@ -35,33 +36,38 @@ type PageSeoInput = {
 };
 
 /**
- * Self-referencing en + x-default only. /pl and /th are not emitted until
- * those routes exist (DEV-02) so hreflang never points at 404s.
+ * Self-referencing canonical plus reciprocal en / pl / th / x-default hreflang
+ * (DEV-02). On /pl/... and /th/... requests the canonical is the prefixed URL.
  */
-export function seoAlternates(path: string) {
-  const canonical = absoluteUrl(path);
+export async function seoAlternates(path: string) {
+  const urlLocale = await getUrlLocale();
+  const en = absoluteUrl(path);
+  const pl = absoluteUrl(localePath(path, "PL"));
+  const th = absoluteUrl(localePath(path, "TH"));
   return {
-    canonical,
+    canonical: urlLocale === "PL" ? pl : urlLocale === "TH" ? th : en,
     languages: {
-      en: canonical,
-      "x-default": canonical,
+      en,
+      pl,
+      th,
+      "x-default": en,
     },
   };
 }
 
-export function pageSeo({
+export async function pageSeo({
   title,
   description,
   path,
   image,
-}: PageSeoInput): Metadata {
+}: PageSeoInput): Promise<Metadata> {
   const canonical = absoluteUrl(path);
   const ogImage = ogImageUrl(image);
 
   return {
     title,
     description,
-    alternates: seoAlternates(path),
+    alternates: await seoAlternates(path),
     openGraph: {
       type: "website",
       siteName: "Thailand Kitchens",

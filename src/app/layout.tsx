@@ -11,6 +11,7 @@ import { pickCmsText } from "../lib/cmsText";
 import { fetchHomeSections, fetchMergedProducts, fetchMergedCategories } from "../services/cmsPublic";
 import BusinessGraphJsonLd from "../components/seo/BusinessGraphJsonLd";
 import { getServerLocale } from "../lib/serverLocale";
+import { getUrlLocale } from "../lib/urlLocale";
 import {
   SITE_HTML_LANG,
   SITE_OG_LOCALE,
@@ -26,6 +27,9 @@ const manrope = Manrope({
 
 const localeBootScript = `
 try {
+  // A /pl or /th URL prefix wins over stored preferences (DEV-02).
+  var p = location.pathname.match(/^\\/(pl|th)(\\/|$)/);
+  if (p) document.cookie = 'tk-locale=' + p[1].toUpperCase() + '; path=/; max-age=31536000; SameSite=Lax';
   // Priority: cookie (server-side source of truth) → localStorage → default
   var m = document.cookie.match(/(?:^|; )tk-locale=([^;]+)/);
   var l = m ? decodeURIComponent(m[1]) : null;
@@ -80,7 +84,7 @@ export async function generateMetadata(): Promise<Metadata> {
     // child's plain-string title, which would double up the suffix.
     title,
     description,
-    alternates: seoAlternates("/"),
+    alternates: await seoAlternates("/"),
     openGraph: {
       type: "website",
       siteName: FALLBACK_TITLE,
@@ -106,6 +110,7 @@ export default async function RootLayout({
 }) {
   const ga4Id = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID?.trim() || "";
   const serverLocale = await getServerLocale();
+  const urlLocale = await getUrlLocale();
 
   // Fetch initial CMS data to prevent content flash on first paint
   const [sections, products, categories] = await Promise.all([
@@ -123,8 +128,8 @@ export default async function RootLayout({
 
   return (
     <html
-      lang={SITE_HTML_LANG}
-      data-locale="EN"
+      lang={urlLocale === "PL" ? "pl" : urlLocale === "TH" ? "th" : SITE_HTML_LANG}
+      data-locale={urlLocale || "EN"}
       className={manrope.variable}
       suppressHydrationWarning
     >
