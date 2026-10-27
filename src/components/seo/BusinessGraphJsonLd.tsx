@@ -1,12 +1,15 @@
 import { SITE_ORIGIN } from "../../lib/siteUrl";
-import { CANONICAL_CONTACT_EMAIL } from "../../lib/pageMetadata";
+import {
+  CANONICAL_CONTACT_EMAIL,
+  HOMEPAGE_SEO_DESCRIPTION,
+} from "../../lib/pageMetadata";
 import { BUSINESS_PHONE_E164 } from "../../lib/businessContact";
 
 /**
  * SEO P0-4: Organization + WebSite + one HomeAndConstructionBusiness per office.
  *
- * Offices (confirmed): Pattaya and Koh Samui. Hours (confirmed): 09:00-18:00;
- * the site does not state the days, so Monday-Saturday is used.
+ * Offices (confirmed): Pattaya and Koh Samui. Hours (confirmed): 09:00-18:00.
+ * TODO(pending): days of week; add `dayOfWeek` once confirmed.
  * TODO(waiting on client): add `geo` (GeoCoordinates) per office; no verified
  * coordinates exist in the codebase. Do not publish ratings or offers.
  */
@@ -15,7 +18,7 @@ export default function BusinessGraphJsonLd() {
   const image = `${SITE_ORIGIN}/products/Kitchen2.png`;
   const openingHoursSpecification = {
     "@type": "OpeningHoursSpecification",
-    dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+    // TODO(pending): dayOfWeek, waiting on confirmation.
     opens: "09:00",
     closes: "18:00",
   };
@@ -28,6 +31,7 @@ export default function BusinessGraphJsonLd() {
         name: "Thailand Kitchens",
         url: SITE_ORIGIN,
         logo: `${SITE_ORIGIN}/icon.png`,
+        description: HOMEPAGE_SEO_DESCRIPTION,
         email: CANONICAL_CONTACT_EMAIL,
         telephone: BUSINESS_PHONE_E164,
         sameAs: ["https://www.facebook.com/ThailandKitchens/"],
