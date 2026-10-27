@@ -114,18 +114,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("[SITEMAP] Error fetching published blogs:", error);
   }
 
-  // DEV-02: reciprocal hreflang alternates for the /pl and /th versions.
-  for (const entry of sitemap) {
-    const path = entry.url.slice(SITE_ORIGIN.length) || "/";
-    entry.alternates = {
-      languages: {
-        en: entry.url,
-        pl: `${SITE_ORIGIN}${path === "/" ? "/pl" : `/pl${path}`}`,
-        th: `${SITE_ORIGIN}${path === "/" ? "/th" : `/th${path}`}`,
-        "x-default": entry.url,
-      },
-    };
-  }
-
   return sitemap;
 }

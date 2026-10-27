@@ -48,20 +48,18 @@ type PageSeoInput = {
 };
 
 /**
- * Self-referencing canonical plus reciprocal en / pl / th / x-default hreflang
- * (DEV-02). On /pl/... and /th/... requests the canonical is the prefixed URL.
+ * Self-referencing canonical with en + x-default hreflang. /pl and /th routes
+ * exist (DEV-02) but are noindex and NOT advertised in hreflang or the sitemap
+ * until PL/TH metadata and localized internal links exist.
+ * TODO(DEV-02): add pl/th alternates once translations ship.
  */
 export async function seoAlternates(path: string) {
   const urlLocale = await getUrlLocale();
   const en = absoluteUrl(path);
-  const pl = absoluteUrl(localePath(path, "PL"));
-  const th = absoluteUrl(localePath(path, "TH"));
   return {
-    canonical: urlLocale === "PL" ? pl : urlLocale === "TH" ? th : en,
+    canonical: urlLocale ? absoluteUrl(localePath(path, urlLocale)) : en,
     languages: {
       en,
-      pl,
-      th,
       "x-default": en,
     },
   };

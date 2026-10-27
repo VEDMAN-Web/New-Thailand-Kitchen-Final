@@ -33,7 +33,12 @@ function localeRewrite(request: NextRequest) {
   requestHeaders.set(LOCALE_HEADER, URL_LOCALES[match[1]]);
   const url = request.nextUrl.clone();
   url.pathname = match[2] || "/";
-  return NextResponse.rewrite(url, { request: { headers: requestHeaders } });
+  const response = NextResponse.rewrite(url, {
+    request: { headers: requestHeaders },
+  });
+  // Not indexable until PL/TH translations exist (TODO DEV-02).
+  response.headers.set("X-Robots-Tag", "noindex, follow");
+  return response;
 }
 
 export function proxy(request: NextRequest) {
