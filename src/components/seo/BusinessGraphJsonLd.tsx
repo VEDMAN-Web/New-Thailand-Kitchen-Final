@@ -10,8 +10,7 @@ import { BUSINESS_PHONE_E164 } from "../../lib/businessContact";
  *
  * Offices (confirmed): Pattaya and Koh Samui.
  * Hours: Monday-Saturday 09:00-18:00.
- * TODO(waiting on client): add `geo` (GeoCoordinates) per office; no verified
- * coordinates exist in the codebase. Do not publish ratings or offers.
+ * No geo coordinates (none verified). Do not publish ratings or offers.
  */
 export default function BusinessGraphJsonLd() {
   const org = `${SITE_ORIGIN}/#org`;
