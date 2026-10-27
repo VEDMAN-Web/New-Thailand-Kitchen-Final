@@ -8,20 +8,16 @@ import { BUSINESS_PHONE_E164 } from "../../lib/businessContact";
 /**
  * SEO P0-4: Organization + WebSite + one HomeAndConstructionBusiness per office.
  *
- * Offices (confirmed): Pattaya and Koh Samui. Hours (confirmed): 09:00-18:00.
- * TODO(pending): days of week; add `dayOfWeek` once confirmed.
+ * Offices (confirmed): Pattaya and Koh Samui.
+ * TODO(pending): openingHoursSpecification. Hours are 09:00-18:00 but the days
+ * of week are not confirmed, and opens/closes without dayOfWeek is invalid, so
+ * no hours are emitted until the days are confirmed.
  * TODO(waiting on client): add `geo` (GeoCoordinates) per office; no verified
  * coordinates exist in the codebase. Do not publish ratings or offers.
  */
 export default function BusinessGraphJsonLd() {
   const org = `${SITE_ORIGIN}/#org`;
   const image = `${SITE_ORIGIN}/products/Kitchen2.png`;
-  const openingHoursSpecification = {
-    "@type": "OpeningHoursSpecification",
-    // TODO(pending): dayOfWeek, waiting on confirmation.
-    opens: "09:00",
-    closes: "18:00",
-  };
   const graph = {
     "@context": "https://schema.org",
     "@graph": [
@@ -62,7 +58,6 @@ export default function BusinessGraphJsonLd() {
           addressCountry: "TH",
         },
         areaServed: ["Pattaya", "Chonburi", "Bangkok"],
-        openingHoursSpecification,
         // TODO(waiting on client): geo coordinates
       },
       {
@@ -83,7 +78,6 @@ export default function BusinessGraphJsonLd() {
           addressCountry: "TH",
         },
         areaServed: ["Koh Samui", "Surat Thani"],
-        openingHoursSpecification,
         // TODO(waiting on client): geo coordinates
       },
     ],
