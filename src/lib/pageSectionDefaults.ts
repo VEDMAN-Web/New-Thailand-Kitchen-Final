@@ -463,10 +463,20 @@ export function ensureMinSections(
 /** Boilerplate blocks removed site-wide (also drops copies saved in the CMS). */
 const REMOVED_SECTION_HEADING = /^\s*(what['’]?s included|ready when you are)\s*$/i;
 
+function headingTexts(h: unknown): string[] {
+  if (typeof h === "string") return [h];
+  if (h && typeof h === "object") {
+    return Object.values(h as Record<string, unknown>).filter(
+      (v): v is string => typeof v === "string"
+    );
+  }
+  return [];
+}
+
 export function withoutRemovedSections<T extends { heading?: unknown }>(
   blocks: T[]
 ): T[] {
   return blocks.filter(
-    (b) => !REMOVED_SECTION_HEADING.test(String(b?.heading || ""))
+    (b) => !headingTexts(b?.heading).some((t) => REMOVED_SECTION_HEADING.test(t))
   );
 }
