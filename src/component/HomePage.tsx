@@ -214,7 +214,7 @@ function HomePage({
     <div className="w-full relative bg-[#F5F3EF]">
       <div className="relative overflow-hidden">
         <section className="bg-[#F5F3EF] px-3 pb-3 pt-[80px] sm:px-4 sm:pb-4 sm:pt-[84px]">
-          <div className="relative w-full h-[80vh] sm:h-[calc(100vh-2rem)] overflow-hidden rounded-[1.5rem] sm:rounded-[2rem]">
+          <div className="relative w-full h-[80vh] sm:h-[calc(100svh-6.5rem)] overflow-hidden rounded-[1.5rem] sm:rounded-[2rem]">
             {reducedMotion || (!heroVideo && heroPoster) ? (
               <Image
                 src={heroPoster}
