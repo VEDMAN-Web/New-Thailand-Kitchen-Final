@@ -148,6 +148,11 @@ const productSchema = new mongoose.Schema(
       maxlength: [160, 'Meta description cannot exceed 160 characters'],
       trim: true
     },
+    canonicalUrl: {
+      type: String,
+      default: "",
+      trim: true,
+    },
     indexable: { 
       type: Boolean, 
       default: false,
@@ -159,6 +164,7 @@ const productSchema = new mongoose.Schema(
 
 productSchema.index({ siteId: 1, slug: 1 }, { unique: true });
 productSchema.index({ siteId: 1, indexable: 1 });
+productSchema.index({ siteId: 1, createdAt: -1 });
 
 /** Per-locale copy for a blog. Empty fields fall back to the English base. */
 const blogTranslationSchema = new mongoose.Schema(
@@ -239,6 +245,12 @@ const blogSchema = new mongoose.Schema(
       default: "",
       trim: true
     },
+    metaTitle: {
+      type: String,
+      default: "",
+      maxlength: [60, "Meta title cannot exceed 60 characters"],
+      trim: true,
+    },
     metaDescription: { 
       type: String, 
       default: "",
@@ -276,6 +288,8 @@ const legalPageSchema = new mongoose.Schema(
       ],
       default: [],
     },
+    /** Set when the owner confirms deposit / warranty / commercial clauses (DEV-29). */
+    ownerConfirmedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );
@@ -353,6 +367,8 @@ const catalogueItemSchema = new mongoose.Schema(
     pdfUrl: { type: String, default: "" },
     fileName: { type: String, default: "" },
     downloadName: { type: String, default: "" },
+    editionKey: { type: String, default: "", trim: true, lowercase: true },
+    locked: { type: Boolean, default: false },
     sortOrder: { type: Number, default: 0 },
   },
   { timestamps: true }
@@ -368,6 +384,17 @@ const faqItemSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+const cmsDeletionSchema = new mongoose.Schema(
+  {
+    siteId: { type: String, enum: SITE_IDS, required: true, index: true },
+    resource: { type: String, required: true },
+    key: { type: String, required: true },
+  },
+  { timestamps: true }
+);
+
+cmsDeletionSchema.index({ siteId: 1, resource: 1, key: 1 }, { unique: true });
+
 module.exports = {
   SITE_IDS,
   HomePage: mongoose.model("CmsHomePage", homePageSchema),
@@ -378,4 +405,5 @@ module.exports = {
   GalleryItem: mongoose.model("CmsGalleryItem", galleryItemSchema),
   CatalogueItem: mongoose.model("CmsCatalogueItem", catalogueItemSchema),
   FaqItem: mongoose.model("CmsFaqItem", faqItemSchema),
+  CmsDeletion: mongoose.model("CmsDeletion", cmsDeletionSchema),
 };

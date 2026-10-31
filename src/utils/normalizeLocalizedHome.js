@@ -10,6 +10,11 @@ const {
   sectionContainsProbe,
   sanitizeMediaUrl,
 } = require("./cmsContentGuard");
+const {
+  CANONICAL_CONTACT_EMAIL,
+  LEGACY_EMAIL_RE,
+  lockApprovedCatalogues,
+} = require("./approvedSiteFacts");
 
 function hrefFromCms(raw) {
   if (typeof raw === "string") return raw.trim();
@@ -247,13 +252,18 @@ function normalizeLocalizedHomeSections(raw = {}) {
       catalogueSrc.pageDescription,
       defaults.catalogue.pageDescription || ""
     ),
-    items: catalogueItemsRaw.map((c) => ({
+    items: lockApprovedCatalogues(
+      catalogueItemsRaw,
+      defaults.catalogue.items
+    ).map((c) => ({
       title: mergeLocalized(c.title, "Catalogue"),
       category: mergeLocalized(c.category, ""),
       image: String(c.image || "").trim(),
       pdfUrl: String(c.pdfUrl || "").trim(),
       fileName: String(c.fileName || "").trim(),
       downloadName: String(c.downloadName || c.fileName || "").trim(),
+      editionKey: String(c.editionKey || "").trim(),
+      locked: c.locked !== false,
     })),
   };
 
@@ -278,7 +288,11 @@ function normalizeLocalizedHomeSections(raw = {}) {
 
   const footerSrc = src.footer || {};
   const footer = {
-    email: String(footerSrc.email || defaults.footer.email || "").trim(),
+    email: (() => {
+      const raw = String(footerSrc.email || defaults.footer.email || "").trim();
+      if (!raw || LEGACY_EMAIL_RE.test(raw)) return CANONICAL_CONTACT_EMAIL;
+      return raw;
+    })(),
     phone: String(footerSrc.phone || defaults.footer.phone || "").trim(),
     address: mergeLocalized(footerSrc.address, defaults.footer.address),
     facebook: String(footerSrc.facebook || defaults.footer.facebook || "").trim(),

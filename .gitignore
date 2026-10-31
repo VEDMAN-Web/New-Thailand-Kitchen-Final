@@ -5,6 +5,7 @@ dist/
 coverage/
 *.log
 uploads/
+tmp/
 .audit-snapshots/
 .audit-*
 *.audit.js

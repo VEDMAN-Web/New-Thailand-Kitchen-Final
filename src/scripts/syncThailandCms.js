@@ -46,7 +46,7 @@ async function main() {
     if (!sec.faq?.items || sec.faq.items.length < 8) {
       sec.faq = defaults.faq;
     }
-    if (!sec.catalogue?.items || sec.catalogue.items.length < 4) {
+    if (!sec.catalogue?.items || sec.catalogue.items.length < 3) {
       sec.catalogue = defaults.catalogue;
     }
     if (!sec.advantages?.items || sec.advantages.items.length < 3) {

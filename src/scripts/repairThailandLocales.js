@@ -5,10 +5,11 @@
 const { Product, Category, GalleryItem, FaqItem, Blog, HomePage } = require("../model/cmsModels");
 const { THAILAND_TAXONOMY } = require("../seed/thailandTaxonomy");
 const {
-  DEFAULT_FEATURE_HIGHLIGHTS,
   DEFAULT_FAQS,
   DEFAULT_CATEGORIES,
 } = require("../seed/thailandSiteDefaults");
+const { factsForSlug } = require("../seed/productModelFacts");
+const { isGenericFeaturePack } = require("../utils/approvedSiteFacts");
 const { asLocalized, mergeLocalizedFillEmpty, mergeLocalized, fillEmptyLocalesFromEn } = require("../utils/localized");
 
 const PRODUCT_TEXT_FIELDS = [
@@ -60,7 +61,7 @@ function categoryLabelFallback(enLabel) {
   return null;
 }
 
-function repairHighlightList(current, seedList = DEFAULT_FEATURE_HIGHLIGHTS) {
+function repairHighlightList(current, seedList = []) {
   const cur = Array.isArray(current) ? current : [];
   if (!cur.length) return seedList.map((s) => ({ ...s }));
 
@@ -94,13 +95,20 @@ function repairProductRow(product, seed) {
   }
 
   const highlightsBefore = JSON.stringify(product.featureHighlights || []);
-  product.featureHighlights = repairHighlightList(
-    product.featureHighlights,
-    seed?.featureHighlights || DEFAULT_FEATURE_HIGHLIGHTS
-  ).map((row) => ({
-    title: fillEmptyLocalesFromEn(row.title),
-    description: fillEmptyLocalesFromEn(row.description),
-  }));
+  const slug = String(product.slug || "").trim().toLowerCase();
+  const modelFacts = factsForSlug(slug);
+  const seedHighlights = seed?.featureHighlights || modelFacts?.featureHighlights || [];
+  if (isGenericFeaturePack(product.featureHighlights) && modelFacts?.featureHighlights) {
+    product.featureHighlights = modelFacts.featureHighlights;
+  } else {
+    product.featureHighlights = repairHighlightList(
+      product.featureHighlights,
+      seedHighlights
+    ).map((row) => ({
+      title: fillEmptyLocalesFromEn(row.title),
+      description: fillEmptyLocalesFromEn(row.description),
+    }));
+  }
   if (JSON.stringify(product.featureHighlights) !== highlightsBefore) dirty = true;
 
   return dirty;

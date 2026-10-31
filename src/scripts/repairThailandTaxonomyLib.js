@@ -2,7 +2,15 @@
  * Upsert full Thailand Kitchen SEO category taxonomy (idempotent).
  * Also seeds empty landing sections for kitchens + services + materials (non-destructive).
  */
-const { Category, HomePage, Product, Blog, GalleryItem, CatalogueItem } = require("../model/cmsModels");
+const {
+  Category,
+  HomePage,
+  Product,
+  Blog,
+  GalleryItem,
+  CatalogueItem,
+  CmsDeletion,
+} = require("../model/cmsModels");
 const { THAILAND_TAXONOMY } = require("../seed/thailandTaxonomy");
 const {
   buildDefaultCategorySections,
@@ -182,6 +190,18 @@ async function seedEmptyKitchenLandingSections(siteId) {
 }
 
 async function repairThailandTaxonomy(siteId = "thailand-kitchen") {
+  const deletedRows = await CmsDeletion.find({ siteId, resource: "categories" })
+    .select("key")
+    .lean();
+  const deletedKeys = new Set(deletedRows.map((row) => String(row.key || "")));
+  const categoryKey = (categoryType, slug, parentId = null) =>
+    `${categoryType}:${String(slug || "").trim().toLowerCase()}:${parentId || "root"}`;
+  if (process.env.NODE_ENV !== "production") {
+    console.info("[cms.repairTaxonomy] deletion markers", {
+      siteId,
+      deletedCount: deletedKeys.size,
+    });
+  }
   const removed = await Category.deleteMany({
     siteId,
     $or: [
@@ -194,6 +214,7 @@ async function repairThailandTaxonomy(siteId = "thailand-kitchen") {
   let upserted = 0;
 
   for (const row of THAILAND_TAXONOMY.filter((r) => !r.parentSlug)) {
+    if (deletedKeys.has(categoryKey(row.categoryType, row.slug))) continue;
     const doc = await Category.findOneAndUpdate(
       { siteId, categoryType: row.categoryType, slug: row.slug, parentId: null },
       {
@@ -223,6 +244,7 @@ async function repairThailandTaxonomy(siteId = "thailand-kitchen") {
   for (const row of THAILAND_TAXONOMY.filter((r) => r.parentSlug)) {
     const parentId = locationIds[row.parentSlug];
     if (!parentId) continue;
+    if (deletedKeys.has(categoryKey(row.categoryType, row.slug, parentId))) continue;
     await Category.findOneAndUpdate(
       { siteId, categoryType: row.categoryType, slug: row.slug, parentId },
       {

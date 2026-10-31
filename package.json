@@ -11,7 +11,11 @@
     "build": "node --check src/server.js",
     "start": "node src/server.js",
     "seed:admin": "node src/scripts/seedAdmin.js",
-    "sync:cms": "node src/scripts/syncThailandCms.js"
+    "seed:cwaa": "node src/scripts/seedCwaaService.js",
+    "sync:cms": "node src/scripts/syncThailandCms.js",
+    "seed:tk": "node src/scripts/seedThailandKitchen.js",
+    "seed:tk:safe": "node src/scripts/seedThailandKitchenSafe.js",
+    "export:images": "node src/scripts/exportImageInventory.js"
   },
   "dependencies": {
     "axios": "^1.18.1",
