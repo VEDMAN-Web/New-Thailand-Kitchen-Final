@@ -71,7 +71,7 @@ export default function BrandSlider() {
     <section id="brands" className="py-12 overflow-hidden">
       <div className="relative">
         <div
-          className="flex w-max animate-marquee items-center whitespace-nowrap bg-white"
+          className="flex w-max animate-marquee items-center whitespace-nowrap bg-white/85"
           style={
             {
               "--marquee-d": `${desktopSeconds}s`,
