@@ -6,10 +6,26 @@ import { useCmsSection } from "../../lib/CmsHomeContext";
 import { pickCmsAsset, pickCmsText } from "../../lib/cmsText";
 import { useResolvedMediaUrl } from "../../lib/useResolvedMediaUrl";
 
+const unsplash = (id: string) =>
+  `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1200&q=80`;
+
+/** Used when the CMS faqPage section has no images (the admin has no photo slots for FAQ yet). */
+const DEFAULT_FAQ_POSTER = unsplash("photo-1592506119503-c0b18879bd5a");
+const DEFAULT_FAQ_IMAGES = [
+  "photo-1761679296920-b48e07e9e267",
+  "photo-1682888813795-192fca4a10d9",
+  "photo-1782290546855-03a5def1d265",
+  "photo-1556911220-bff31c812dba",
+].map(unsplash);
+
 type FaqPageCms = {
   eyebrow?: string;
   title?: string;
   videoUrl?: string;
+  /** Optional still image: shown as the video poster / fallback behind the banner. */
+  posterUrl?: string;
+  /** Optional photo strip shown directly below the banner (up to 4 images). */
+  images?: string[];
 };
 
 export default function FaqHero() {
@@ -22,6 +38,8 @@ export default function FaqHero() {
   const videoSrc =
     useResolvedMediaUrl(pickCmsAsset(cms?.videoUrl, ""), "video") ||
     "/video/faq-autoplay.mp4";
+
+  const posterSrc = pickCmsAsset(cms?.posterUrl, DEFAULT_FAQ_POSTER);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -65,6 +83,7 @@ export default function FaqHero() {
           loop
           playsInline
           preload="auto"
+          poster={posterSrc || undefined}
           onCanPlay={() => {
             videoRef.current?.play().catch(() => {});
           }}
@@ -87,6 +106,28 @@ export default function FaqHero() {
           </h1>
         </div>
       </div>
+      <FaqPhotoStrip images={cms?.images} />
     </section>
+  );
+}
+
+function FaqPhotoStrip({ images }: { images?: string[] }) {
+  const fromCms = (Array.isArray(images) ? images : [])
+    .map((u) => pickCmsAsset(u, ""))
+    .filter(Boolean);
+  const list = (fromCms.length ? fromCms : DEFAULT_FAQ_IMAGES).slice(0, 4);
+  return (
+    <div className="mt-3 grid grid-cols-2 gap-3 sm:mt-4 sm:gap-4 md:grid-cols-4">
+      {list.map((src, i) => (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          key={`${src}-${i}`}
+          src={src}
+          alt="Thailand Kitchens kitchen design"
+          loading="lazy"
+          className="h-[140px] w-full rounded-[1rem] object-cover sm:h-[180px] md:h-[200px] sm:rounded-[1.5rem]"
+        />
+      ))}
+    </div>
   );
 }

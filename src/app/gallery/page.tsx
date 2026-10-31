@@ -9,10 +9,9 @@ import { seoAlternates } from "../../lib/pageMetadata";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const GALLERY_TITLE =
-  "Kitchens of the Island — Gallery | Thailand Kitchens";
+const GALLERY_TITLE = "Kitchen Gallery Thailand: Modern Kitchen Inspiration";
 const GALLERY_DESCRIPTION =
-  "A curated inspiration library of tropical, modern and minimal kitchens crafted by our Samui atelier — filter by style, layout, palette or material and discover your next design.";
+  "Browse the Thailand Kitchens gallery to discover modern kitchen layouts and product ideas for homes and villas. Explore styles that match your space.";
 const GALLERY_URL = `${SITE_ORIGIN}/gallery`;
 
 export async function generateMetadata(): Promise<Metadata> {

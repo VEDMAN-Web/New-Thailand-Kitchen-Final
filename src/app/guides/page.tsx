@@ -8,9 +8,9 @@ import { seoAlternates } from "../../lib/pageMetadata";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const GUIDES_TITLE = "Kitchen Design Guides & Inspiration | Thailand Kitchens";
+const GUIDES_TITLE = "Kitchen Blog Thailand: Kitchen Ideas & Layout Guides";
 const GUIDES_DESCRIPTION =
-  "Explore our curated collection of kitchen design guides, craftsmanship stories, and tropical living inspiration from the Thailand Kitchens journal.";
+  "Read expert articles on kitchen layouts, design ideas, and practical tips for choosing the right kitchen products for your home in Thailand.";
 const GUIDES_URL = `${SITE_ORIGIN}/guides`;
 
 export async function generateMetadata(): Promise<Metadata> {

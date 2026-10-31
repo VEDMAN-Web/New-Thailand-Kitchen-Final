@@ -3,9 +3,9 @@ import ContactPage from "../../component/contact/ContactPage";
 import { SITE_ORIGIN } from "../../lib/siteUrl";
 import { seoAlternates } from "../../lib/pageMetadata";
 
-const CONTACT_TITLE = "Connect With Us | Thailand Kitchens";
+const CONTACT_TITLE = "Contact Thailand Kitchens: Get in Touch Today";
 const CONTACT_DESCRIPTION =
-  "We believe in the soul of teak wood and the precision of ancient joining techniques. Every kitchen we craft is a bridge between Thai heritage and modern living.";
+  "Contact Thailand Kitchens to learn more about our kitchen products and layouts. We're here to help you explore the right kitchen options.";
 const CONTACT_URL = `${SITE_ORIGIN}/contact`;
 
 export async function generateMetadata(): Promise<Metadata> {
