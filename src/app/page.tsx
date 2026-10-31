@@ -717,7 +717,7 @@ function SectionEditor({
           locale={locale}
           label="Description"
           multiline
-          hint="Approved facts: 1+ years, 1 city, 25+ kitchens. Do not claim decades or hundreds of projects."
+          hint="Approved facts: 16+ years, 78+ cities, 8491+ projects."
           value={data.description || ""}
           onChange={(v) => onChange({ ...data, description: v })}
         />
@@ -880,8 +880,8 @@ function SectionEditor({
     return (
       <div className="space-y-4">
         <p className="text-[11px] text-[#64748B]">
-          Locked business facts: <strong>1+</strong> years, <strong>1</strong> city,{" "}
-          <strong>25+</strong> kitchens. Values above those numbers are rewritten on save.
+          Locked business facts: <strong>16+</strong> years, <strong>78+</strong> cities,{" "}
+          <strong>8491+</strong> projects. Values above those numbers are rewritten on save.
         </p>
         {items.map((item: any, i: number) => (
           <div
