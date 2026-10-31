@@ -252,9 +252,6 @@ export function pickBlogCoverImage(b: {
     const resolved = resolveCmsMediaUrl(candidate);
     if (!resolved) continue;
     if (/blogimage\s*\(\d+\)/i.test(decodeURIComponent(resolved))) continue;
-    if (/pexels|unsplash|pixabay|shutterstock|istockphoto|gettyimages/i.test(resolved)) {
-      continue;
-    }
     return resolved;
   }
 
