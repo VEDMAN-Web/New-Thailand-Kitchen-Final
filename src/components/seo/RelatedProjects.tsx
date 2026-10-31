@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import CmsResolvedImage from "../../component/CmsResolvedImage";
 import { pickCmsText } from "../../lib/cmsText";
 import type { Locale } from "../../i18n/translations";
 import { tx } from "../../i18n/translations";
@@ -36,7 +36,7 @@ export default function RelatedProjects({
               <>
                 <div className="relative aspect-[4/3] overflow-hidden bg-[#E8E4DC]">
                   {item.image ? (
-                    <Image
+                    <CmsResolvedImage
                       src={item.image}
                       alt={item.title}
                       fill

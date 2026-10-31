@@ -843,7 +843,12 @@ export async function getRelatedGalleryProjects(
     return fields.some((f) => needles.some((n) => tagMatches(f, n)));
   });
 
-  return matched.filter((g) => g.image).slice(0, limit);
+  const withImages = matched.filter((g) => g.image);
+  if (withImages.length) return withImages.slice(0, limit);
+
+  // No tag match (common for service and built-in-furniture pages): fall back to
+  // the newest gallery photos rather than hiding the section entirely.
+  return all.filter((g) => g.image).slice(0, limit);
 }
 
 export async function fetchLegalPage(type: "privacy" | "terms") {
