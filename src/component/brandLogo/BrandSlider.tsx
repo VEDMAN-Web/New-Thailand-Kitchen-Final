@@ -71,9 +71,10 @@ export default function BrandSlider() {
     <section id="brands" className="py-12 overflow-hidden">
       <div className="relative">
         <div
-          className="flex w-max animate-marquee items-center whitespace-nowrap bg-white/85"
+          className="flex w-max animate-marquee items-center whitespace-nowrap"
           style={
             {
+              backgroundColor: "rgba(255, 255, 255, 0.85)",
               "--marquee-d": `${desktopSeconds}s`,
               "--marquee-m": `${mobileSeconds}s`,
             } as React.CSSProperties
