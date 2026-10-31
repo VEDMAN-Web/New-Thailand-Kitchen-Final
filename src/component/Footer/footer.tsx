@@ -9,7 +9,9 @@ import {
   type SocialIconName,
 } from "./footerData";
 import { useTranslation } from "../../i18n/LanguageProvider";
-import { useCmsSection } from "../../lib/CmsHomeContext";
+import { useCms, useCmsSection } from "../../lib/CmsHomeContext";
+import { categoryPublicPath } from "../../lib/categoryRoutes";
+import { KITCHENS_SECTIONS, kitchensSectionLabel } from "../../components/kitchens/kitchensConfig";
 import { pickCmsText } from "../../lib/cmsText";
 import { CANONICAL_CONTACT_EMAIL } from "../../lib/pageMetadata";
 import { smoothScrollAfterNav } from "../../lib/smoothScroll";
@@ -72,8 +74,40 @@ function scrollToFooterTarget(href: string) {
   smoothScrollAfterNav(href);
 }
 
+function isTopLevelCategory(c: { parentId?: unknown }) {
+  if (!c.parentId) return true;
+  if (typeof c.parentId === "object") return false;
+  return !String(c.parentId).trim();
+}
+
 export default function Footer() {
   const { t, locale } = useTranslation();
+  const { categories } = useCms();
+  const topCategories = (type: string) =>
+    categories.filter(
+      (c) => String(c.categoryType) === type && c.slug && isTopLevelCategory(c)
+    );
+  // Same groups as the header menu: kitchens (layouts, styles, property types), services, materials.
+  const browseGroups = [
+    ...KITCHENS_SECTIONS.map((section) => ({
+      key: section.key,
+      title: `${t("nav.kitchens")} · ${kitchensSectionLabel(section, locale)}`,
+      href: section.href,
+      items: topCategories(section.categoryType),
+    })),
+    {
+      key: "services",
+      title: t("nav.services"),
+      href: "/services",
+      items: topCategories("service"),
+    },
+    {
+      key: "materials",
+      title: t("nav.materials"),
+      href: "/materials",
+      items: topCategories("material"),
+    },
+  ].filter((g) => g.items.length > 0);
   const footerCms = useCmsSection<{
     address?: unknown;
     email?: string;
@@ -354,6 +388,35 @@ export default function Footer() {
             </div>
           </div>
         </div>
+
+        {browseGroups.length > 0 ? (
+          <div className="mt-12 pt-10 border-t border-white/10 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-6 gap-y-10">
+            {browseGroups.map((group) => (
+              <div key={group.key} className="min-w-0">
+                <h3 className="mb-4">
+                  <Link
+                    href={group.href}
+                    className="text-[#B38B6D] text-xs font-semibold tracking-wider uppercase hover:text-white transition"
+                  >
+                    {group.title}
+                  </Link>
+                </h3>
+                <ul className="space-y-2.5">
+                  {group.items.map((item) => (
+                    <li key={item.id}>
+                      <Link
+                        href={categoryPublicPath(item)}
+                        className="text-white/70 text-sm hover:text-white transition"
+                      >
+                        {pickCmsText(item.title, item.slug || "", locale)}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       <div className="relative z-10 mt-6 border-t border-white/10">

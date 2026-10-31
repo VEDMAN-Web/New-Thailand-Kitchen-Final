@@ -6,6 +6,9 @@ import { useCmsSection } from "../../lib/CmsHomeContext";
 import { resolveCmsMediaUrl } from "../../lib/cmsMedia";
 import { useResolvedMediaUrl } from "../../lib/useResolvedMediaUrl";
 
+// Each rendered set must be wider than the viewport so the loop has no empty gap.
+const MIN_TILES_PER_SET = 16;
+
 function isUsableLogo(src?: string | null): src is string {
   if (!src) return false;
   const trimmed = src.trim();
@@ -19,13 +22,13 @@ function isUsableLogo(src?: string | null): src is string {
 function BrandLogo({ src, name }: { src: string; name?: string }) {
   const resolved = useResolvedMediaUrl(resolveCmsMediaUrl(src), "image");
   return (
-    <div className="flex h-12 sm:h-14 lg:h-16 items-center justify-center rounded-xl bg-white px-4 py-2 shadow-[0_1px_0_rgba(0,0,0,0.04)]">
+    <div className="flex h-14 sm:h-16 lg:h-20 items-center justify-center px-6">
       <Image
         src={resolved}
         alt={name ? `${name} logo` : "Partner brand logo"}
         width={150}
         height={60}
-        className="object-contain h-8 sm:h-10 lg:h-11 w-auto"
+        className="object-contain h-9 sm:h-11 lg:h-14 w-auto"
         unoptimized
         aria-hidden={!name}
       />
@@ -45,10 +48,17 @@ export default function BrandSlider() {
     }))
     .filter((l) => isUsableLogo(l.image));
 
-  const logos =
+  const baseLogos =
     cmsLogos.length > 0
       ? cmsLogos
       : brands.map((image) => ({ image, name: "" }));
+  const logos = Array.from({
+    length: Math.ceil(MIN_TILES_PER_SET / baseLogos.length),
+  }).flatMap(() => baseLogos);
+
+  // Keep scroll speed steady (~60px/s desktop, ~50px/s mobile) whatever the logo count.
+  const desktopSeconds = Math.round((logos.length * 164) / 60);
+  const mobileSeconds = Math.round((logos.length * 122) / 50);
 
   const renderSet = (setId: string) =>
     logos.map((logo, index) => (
@@ -60,7 +70,15 @@ export default function BrandSlider() {
   return (
     <section id="brands" className="py-12 overflow-hidden">
       <div className="relative">
-        <div className="flex w-max animate-marquee items-center gap-3 sm:gap-4 lg:gap-4 whitespace-nowrap">
+        <div
+          className="flex w-max animate-marquee items-center whitespace-nowrap bg-white"
+          style={
+            {
+              "--marquee-d": `${desktopSeconds}s`,
+              "--marquee-m": `${mobileSeconds}s`,
+            } as React.CSSProperties
+          }
+        >
           {renderSet("a")}
           {renderSet("b")}
           {/* Desktop-only 3rd set (>=769px): wide viewports need more than 2

@@ -50,8 +50,8 @@ export const translations = {
     "home.hero.cta": "Explore",
 
     "home.stats.years": "Years Of Experience",
-    "home.stats.cities": "City in Thailand",
-    "home.stats.kitchens": "Kitchens Completed",
+    "home.stats.cities": "Cities in Thailand",
+    "home.stats.kitchens": "Projects Completed",
 
     "home.about.eyebrow": "Our Story",
     "home.about.title": "Crafted With Passion",
@@ -357,7 +357,7 @@ export const translations = {
 
     "home.stats.years": "ปีแห่งประสบการณ์",
     "home.stats.cities": "เมืองในประเทศไทย",
-    "home.stats.kitchens": "ครัวที่เสร็จสมบูรณ์",
+    "home.stats.kitchens": "โครงการที่เสร็จสมบูรณ์",
 
     "home.about.eyebrow": "เรื่องราวของเรา",
     "home.about.title": "รังสรรค์ด้วยความหลงใหล",
@@ -659,8 +659,8 @@ export const translations = {
     "home.hero.cta": "Odkryj",
 
     "home.stats.years": "Lat doświadczenia",
-    "home.stats.cities": "Miasto w Tajlandii",
-    "home.stats.kitchens": "Ukończonych kuchni",
+    "home.stats.cities": "Miast w Tajlandii",
+    "home.stats.kitchens": "Zrealizowanych projektów",
 
     "home.about.eyebrow": "Nasza historia",
     "home.about.title": "Stworzone z pasją",
