@@ -1082,7 +1082,7 @@ function SectionEditor({
           locale={locale}
           label="Description"
           multiline
-          hint="Must match the counters: 25+ kitchens in the first year in 1 city."
+          hint="Must match the counters: 8491+ projects, 78+ cities, 16+ years."
           value={data.description || ""}
           onChange={(v) => onChange({ ...data, description: v })}
         />
