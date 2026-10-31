@@ -47,25 +47,25 @@ const APPROVED_STATISTICS = {
         th: "ปีแห่งประสบการณ์",
         pl: "Lat doświadczenia",
       },
-      value: "1",
+      value: "16",
       suffix: "+",
     },
     {
       label: {
-        en: "City in Thailand",
+        en: "Cities in Thailand",
         th: "เมืองในประเทศไทย",
-        pl: "Miasto w Tajlandii",
+        pl: "Miast w Tajlandii",
       },
-      value: "1",
-      suffix: "",
+      value: "78",
+      suffix: "+",
     },
     {
       label: {
-        en: "Kitchens Completed",
-        th: "ครัวที่เสร็จสมบูรณ์",
-        pl: "Ukończonych kuchni",
+        en: "Projects Completed",
+        th: "โครงการที่เสร็จสมบูรณ์",
+        pl: "Zrealizowanych projektów",
       },
-      value: "25",
+      value: "8491",
       suffix: "+",
     },
   ],
@@ -179,9 +179,11 @@ function isInflatedStatSet(items = []) {
     parseInt(String(it?.value || "").replace(/[^\d]/g, ""), 10)
   );
   const [years, cities, kitchens] = values;
-  if (!Number.isFinite(years) || years > 1) return true;
-  if (!Number.isFinite(cities) || cities > 1) return true;
-  if (!Number.isFinite(kitchens) || kitchens > 25) return true;
+  // Previous approved set (1 / 1 / 25): replace once with the current approved numbers.
+  if (years === 1 && cities === 1 && kitchens === 25) return true;
+  if (!Number.isFinite(years) || years > 16) return true;
+  if (!Number.isFinite(cities) || cities > 78) return true;
+  if (!Number.isFinite(kitchens) || kitchens > 8491) return true;
   return false;
 }
 

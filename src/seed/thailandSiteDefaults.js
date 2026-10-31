@@ -54,9 +54,9 @@ const DEFAULT_HOME_SECTIONS = {
   },
   statistics: {
     items: [
-      { label: {"en":"Years Of Experience","th":"ปีแห่งประสบการณ์","pl":"Lat doświadczenia"}, value: "1", suffix: "+" },
-      { label: {"en":"City in Thailand","th":"เมืองในประเทศไทย","pl":"Miasto w Tajlandii"}, value: "1", suffix: "" },
-      { label: {"en":"Kitchens Completed","th":"ครัวที่เสร็จสมบูรณ์","pl":"Ukończonych kuchni"}, value: "25", suffix: "+" },
+      { label: {"en":"Years Of Experience","th":"ปีแห่งประสบการณ์","pl":"Lat doświadczenia"}, value: "16", suffix: "+" },
+      { label: {"en":"Cities in Thailand","th":"เมืองในประเทศไทย","pl":"Miast w Tajlandii"}, value: "78", suffix: "+" },
+      { label: {"en":"Projects Completed","th":"โครงการที่เสร็จสมบูรณ์","pl":"Zrealizowanych projektów"}, value: "8491", suffix: "+" },
     ],
   },
   advantages: {
