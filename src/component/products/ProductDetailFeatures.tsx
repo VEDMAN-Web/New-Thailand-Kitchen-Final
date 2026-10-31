@@ -18,6 +18,19 @@ export default function ProductDetailFeatures({ product }: Props) {
 
   if (!product.features.length && !images.length) return null;
 
+  // DEV-13: never invent feature copy — only render CMS-verified feature rows.
+  const features = product.features.filter((feature) => {
+    const title = pickCmsText(feature.title as any, "", locale).trim();
+    const description = pickCmsText(
+      feature.description as any,
+      "",
+      locale
+    ).trim();
+    return Boolean(title && description);
+  });
+
+  if (!features.length && !images.length) return null;
+
   const total = images.length;
   const primary = images[active] || images[0];
   const secondary = images[(active + 1) % total] || images[0];
@@ -28,8 +41,9 @@ export default function ProductDetailFeatures({ product }: Props) {
   return (
     <section className="pt-8 sm:pt-20 lg:pt-24 pb-4">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-10 lg:gap-14 items-center">
+        {features.length ? (
         <ul className="space-y-5 sm:space-y-10">
-          {product.features.map((feature, index) => {
+          {features.map((feature, index) => {
             const title = pickCmsText(feature.title as any, "", locale);
             const description = pickCmsText(
               feature.description as any,
@@ -56,6 +70,9 @@ export default function ProductDetailFeatures({ product }: Props) {
             );
           })}
         </ul>
+        ) : (
+          <div />
+        )}
 
         {primary ? (
           <div className="w-full max-w-md lg:max-w-none mx-auto lg:mx-0">

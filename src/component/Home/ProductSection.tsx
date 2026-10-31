@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useCms } from "../../lib/CmsHomeContext";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import { pickCmsText } from "../../lib/cmsText";
+import { DEFAULT_OG_IMAGE } from "../../lib/siteUrl";
 import type { Locale } from "../../i18n/translations";
 import type { ProductItem } from "../products/productData";
 
@@ -15,6 +16,11 @@ function toProductHref(slug: string) {
     .replace(/^\/+|\/+$/g, "")
     .toLowerCase();
   return clean ? `/products/${encodeURIComponent(clean)}` : "/products";
+}
+
+function safeProductImage(src?: string | null) {
+  const value = String(src || "").trim();
+  return value || DEFAULT_OG_IMAGE;
 }
 
 const HOME_PRODUCT_LIMIT = 3;
@@ -30,7 +36,7 @@ function toCards(list: ProductItem[], locale: Locale) {
   return pickHomeProducts(list).map((p) => ({
     key: p.slug || String(p.id),
     title: pickCmsText(p.name, "", locale),
-    image: p.image,
+    image: safeProductImage(p.image),
     href: toProductHref(p.slug),
   }));
 }
@@ -72,9 +78,9 @@ const ProductSection = ({
             : items.map((product, index) => {
             const isActive = active === index;
             const isIdle = active === null;
+            const imageSrc = safeProductImage(product.image);
             const isRemote =
-              product.image.startsWith("http") ||
-              product.image.startsWith("/uploads");
+              imageSrc.startsWith("http") || imageSrc.startsWith("/uploads");
 
             return (
               <Link
@@ -90,10 +96,10 @@ const ProductSection = ({
                       : "sm:flex-[0.8]"
                 }`}
               >
-                <div className="relative w-full h-50 sm:h-full overflow-hidden rounded-2xl">
+                <div className="relative w-full h-50 sm:h-full overflow-hidden rounded-2xl bg-[#E8E4DC]">
                   <Image
-                    src={product.image}
-                    alt={product.title}
+                    src={imageSrc}
+                    alt={product.title || "Kitchen product"}
                     fill
                     className={`object-cover transition-transform duration-700 ease-out ${
                       isActive ? "scale-105" : "scale-100"

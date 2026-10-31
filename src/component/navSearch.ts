@@ -9,9 +9,10 @@ import {
 } from "../services/cmsPublic";
 import { pickCmsText } from "../lib/cmsText";
 import { categoryPublicPath, categorySectionLabel } from "../lib/categoryRoutes";
-import { HUB_NAV_CONFIG } from "../lib/hubNavigation";
-import { KITCHENS_SECTIONS } from "../components/kitchens/kitchensConfig";
+import { HUB_NAV_CONFIG, hubFallbackTitle } from "../lib/hubNavigation";
+import { KITCHENS_SECTIONS, kitchensSectionLabel } from "../components/kitchens/kitchensConfig";
 import type { Locale } from "../i18n/translations";
+import { tx } from "../i18n/translations";
 import { productItems } from "./products/productData";
 import { blogPosts } from "./blog/blogData";
 import { galleryItems } from "./gallery/galleryData";
@@ -34,10 +35,10 @@ export type GroupedNavSearch = {
 
 const TYPE_PAGE = "Page";
 
-function staticPageItems(): NavSearchResult[] {
+function staticPageItems(locale: Locale): NavSearchResult[] {
   const hubs: NavSearchResult[] = HUB_NAV_CONFIG.map((hub) => ({
     id: `page-hub-${hub.key}`,
-    title: hub.fallbackTitle,
+    title: hubFallbackTitle(hub, locale),
     description: hub.fallbackDescription,
     href: hub.href,
     type: TYPE_PAGE,
@@ -46,7 +47,7 @@ function staticPageItems(): NavSearchResult[] {
 
   const kitchenSubs: NavSearchResult[] = KITCHENS_SECTIONS.map((section) => ({
     id: `page-kitchens-${section.key}`,
-    title: section.label,
+    title: kitchensSectionLabel(section, locale),
     description: section.description,
     href: section.href,
     type: TYPE_PAGE,
@@ -56,7 +57,7 @@ function staticPageItems(): NavSearchResult[] {
   const core: NavSearchResult[] = [
     {
       id: "page-home",
-      title: "Home",
+      title: tx(locale, "nav.home"),
       description: "Thailand Kitchens homepage — kitchens, catalogue and consultation.",
       href: "/",
       type: TYPE_PAGE,
@@ -64,7 +65,7 @@ function staticPageItems(): NavSearchResult[] {
     },
     {
       id: "page-products",
-      title: "Products",
+      title: tx(locale, "nav.products"),
       description: "Browse modular kitchen layouts, finishes, materials and best sellers.",
       href: "/products",
       type: TYPE_PAGE,
@@ -72,7 +73,7 @@ function staticPageItems(): NavSearchResult[] {
     },
     {
       id: "page-gallery",
-      title: "Gallery",
+      title: tx(locale, "nav.gallery"),
       description: "Inspiration library of tropical, modern and minimal kitchen designs.",
       href: "/gallery",
       type: TYPE_PAGE,
@@ -80,7 +81,7 @@ function staticPageItems(): NavSearchResult[] {
     },
     {
       id: "page-guides",
-      title: "Guides",
+      title: tx(locale, "nav.guides"),
       description: "Guides on craft, design and modern Thai kitchen living.",
       href: "/guides",
       type: TYPE_PAGE,
@@ -88,7 +89,7 @@ function staticPageItems(): NavSearchResult[] {
     },
     {
       id: "page-contact",
-      title: "Contact",
+      title: tx(locale, "nav.contact"),
       description: "Free design consultation — get in touch with our kitchen studio.",
       href: "/contact",
       type: TYPE_PAGE,
@@ -96,7 +97,7 @@ function staticPageItems(): NavSearchResult[] {
     },
     {
       id: "page-faq",
-      title: "FAQ",
+      title: tx(locale, "nav.faq"),
       description: "Answers about pricing, process, materials, installation and support.",
       href: "/faq",
       type: TYPE_PAGE,
@@ -104,7 +105,7 @@ function staticPageItems(): NavSearchResult[] {
     },
     {
       id: "page-catalogue",
-      title: "Free Catalogue",
+      title: tx(locale, "footer.link.freeCatalogue"),
       description: "Download our latest kitchen catalogue PDF.",
       href: "/catalogue",
       type: TYPE_PAGE,
@@ -220,7 +221,7 @@ function buildIndexFromCms(
     .map((c) => {
       const title = textOf(c.title, locale);
       if (!title || !c.slug) return null;
-      const typeLabel = categorySectionLabel(c.categoryType || "");
+      const typeLabel = categorySectionLabel(c.categoryType || "", locale);
       const desc =
         textOf(c.description, locale) ||
         textOf(c.metaDescription, locale) ||
@@ -253,7 +254,7 @@ function buildIndexFromCms(
     .filter(Boolean) as NavSearchResult[];
 
   return [
-    ...staticPageItems(),
+    ...staticPageItems(locale),
     ...categories,
     ...products,
     ...blogs,

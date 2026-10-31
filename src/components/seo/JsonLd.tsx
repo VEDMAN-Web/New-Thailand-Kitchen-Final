@@ -196,7 +196,19 @@ function generateLocalBusinessSchema(data: LocalBusinessJsonLd) {
     ...(data.image ? { image: data.image } : {}),
     ...(data.telephone ? { telephone: data.telephone } : {}),
     ...(data.areaServed
-      ? { areaServed: { '@type': 'Place', name: data.areaServed } }
+      ? {
+          areaServed: {
+            '@type': 'Place',
+            name:
+              typeof data.areaServed === 'string'
+                ? data.areaServed
+                : String(
+                    (data.areaServed as { en?: string; name?: string })?.en ||
+                      (data.areaServed as { name?: string })?.name ||
+                      ''
+                  ).trim(),
+          },
+        }
       : {}),
   };
 }

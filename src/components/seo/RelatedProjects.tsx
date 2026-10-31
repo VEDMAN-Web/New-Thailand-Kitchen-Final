@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { pickCmsText } from "../../lib/cmsText";
 import type { Locale } from "../../i18n/translations";
+import { tx } from "../../i18n/translations";
 
 export type RelatedProjectItem = {
   id: string;
@@ -13,18 +14,21 @@ export type RelatedProjectItem = {
 
 export default function RelatedProjects({
   items,
-  heading = "Related projects",
+  heading,
+  locale = "EN",
 }: {
   items: RelatedProjectItem[];
   heading?: string;
+  locale?: Locale;
 }) {
   if (!items.length) return null;
+  const title = heading ?? tx(locale, "hub.relatedProjects");
 
   return (
     <section className="w-full bg-[#F5F3EF] border-t border-[#E8E4DC]">
       <div className="max-w-7xl mx-auto px-6 py-8 sm:py-12 lg:py-16">
         <h2 className="font-sans font-extrabold text-2xl min-[425px]:text-3xl md:text-4xl lg:text-5xl text-[#1A2332] mb-5 sm:mb-8 break-words">
-          {heading}
+          {title}
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {items.map((item) => {

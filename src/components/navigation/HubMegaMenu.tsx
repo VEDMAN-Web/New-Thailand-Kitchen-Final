@@ -20,12 +20,13 @@ import type { CmsCategory } from "../../services/cmsPublic";
 import type { Locale } from "../../i18n/translations";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import {
+  hubFallbackTitle,
   hubNavActive,
   hubNavByKey,
   type HubNavConfig,
   type HubPageCms,
 } from "../../lib/hubNavigation";
-import { KITCHENS_SECTIONS } from "../kitchens/kitchensConfig";
+import { KITCHENS_SECTIONS, kitchensSectionLabel, kitchensSectionShortLabel } from "../kitchens/kitchensConfig";
 
 /** Delay before close — forgiving for diagonal mouse travel (Varsovia / Google-style). */
 const HOVER_CLOSE_MS = 220;
@@ -36,9 +37,14 @@ const MegaOpenContext = createContext<{
   setOpenKey: Dispatch<SetStateAction<string | null>>;
 }>({ openKey: null, setOpenKey: () => {} });
 
-export function HubMegaProvider({ children }: { children: ReactNode }) {
+export function HubMegaProvider({ children, onOpenChange }: { children: ReactNode; onOpenChange?: (open: boolean) => void }) {
   const [openKey, setOpenKey] = useState<string | null>(null);
   const value = useMemo(() => ({ openKey, setOpenKey }), [openKey]);
+  
+  useEffect(() => {
+    onOpenChange?.(openKey !== null);
+  }, [openKey, onOpenChange]);
+  
   return (
     <MegaOpenContext.Provider value={value}>{children}</MegaOpenContext.Provider>
   );
@@ -56,7 +62,7 @@ function useHubCopy(config: HubNavConfig, locale: Locale) {
     | undefined;
   const hub = hubPages?.[config.key];
   return {
-    title: pickCmsText(hub?.title, config.fallbackTitle, locale),
+    title: pickCmsText(hub?.title, hubFallbackTitle(config, locale), locale),
   };
 }
 
@@ -93,12 +99,8 @@ function CategoryLink({
     <Link
       href={href}
       onClick={onNavigate}
-      className="group/link relative flex items-center rounded-lg px-2.5 py-2 text-[13px] leading-snug text-[#5C6370] transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-[#F7F4EF] hover:text-[#1A2332] hover:pl-3.5"
+      className="group/link relative flex items-center rounded px-2.5 py-1.5 text-[13px] md:text-[12px] lg:text-[14px] leading-snug text-[#5C6370] transition-all duration-150 hover:bg-[#F7F4EF] hover:text-[#1A2332]"
     >
-      <span
-        className="absolute left-1.5 top-1/2 h-0 w-0.5 -translate-y-1/2 rounded-full bg-[#B38B6D] opacity-0 transition-all duration-200 group-hover/link:h-3.5 group-hover/link:opacity-100"
-        aria-hidden
-      />
       <span className="truncate">{title}</span>
     </Link>
   );
@@ -126,27 +128,21 @@ function BuiltInFurnitureNavBlock({
   );
 
   return (
-    <div className="mt-2 border-t border-[#EEE8DF] pt-2">
+    <div className="mt-2 border-t border-[#EEE8DF] pt-2.5">
       <Link
         href="/built-in-furniture"
         onClick={onNavigate}
-        className="mb-1 flex items-center justify-between gap-3 rounded-xl bg-[#F7F4EF] px-3.5 py-2.5 transition-colors duration-200 hover:bg-[#F0EBE3]"
+        className="mb-2 flex items-center justify-between gap-2 rounded-xl bg-[#F7F4EF] px-3.5 py-2.5 transition-colors duration-200 hover:bg-[#F0EBE3]"
       >
-        <span className="text-[13px] font-semibold text-[#1A2332]">
+        <span className="text-[13px] md:text-[12px] lg:text-[14px] font-semibold text-[#1A2332]">
           {title}
         </span>
-        <span className="text-[11px] font-medium text-[#9CA3AF] shrink-0">
+        <span className="text-[11px] font-medium text-[#9CA3AF] shrink-0 whitespace-nowrap">
           {exploreLabel} →
         </span>
       </Link>
       {items.length > 0 ? (
-        <div
-          className={
-            items.length > 2
-              ? "grid grid-cols-2 gap-x-1 gap-y-0.5 px-0.5"
-              : "grid grid-cols-1 gap-0.5 px-0.5"
-          }
-        >
+        <div className="grid grid-cols-3 gap-x-0.5 px-0.5">
           {items.map((item) => (
             <CategoryLink
               key={item.id}
@@ -191,51 +187,54 @@ function KitchensMegaPanel({
     return {
       section,
       items,
-      label: pickCmsText(sub?.title, section.label, locale),
+      label: pickCmsText(
+        sub?.title,
+        kitchensSectionLabel(section, locale),
+        locale
+      ),
     };
   });
 
   return (
-    <div className="p-2.5 sm:p-3">
+    <div className="p-3 md:p-3.5">
+      {/* Overview header */}
       <Link
         href="/kitchens"
         onClick={onNavigate}
-        className="mb-2.5 flex items-center justify-between gap-3 rounded-xl bg-[#F7F4EF] px-3.5 py-2.5 transition-colors duration-200 hover:bg-[#F0EBE3]"
+        className="mb-2.5 flex items-center justify-between gap-2 rounded-xl bg-[#F7F4EF] px-3.5 py-2.5 transition-colors duration-200 hover:bg-[#F0EBE3]"
       >
-        <span className="text-[13px] font-semibold text-[#1A2332]">
+        <span className="text-[13px] md:text-[12px] lg:text-[14px] font-semibold text-[#1A2332] leading-tight">
           {overviewLabel}
-          <span className="mx-1.5 font-normal text-[#C4B8A8]">·</span>
+          <span className="mx-1 font-normal text-[#C4B8A8]">·</span>
           <span className="font-medium text-[#B38B6D]">{title}</span>
         </span>
-        <span className="text-[11px] font-medium text-[#9CA3AF] tracking-wide">
+        <span className="text-[11px] font-medium text-[#9CA3AF] tracking-wide shrink-0 whitespace-nowrap">
           {exploreLabel} →
         </span>
       </Link>
 
-      <div className="grid grid-cols-3 gap-1">
+      {/* 3-column grid */}
+      <div className="grid grid-cols-3 gap-1.5">
         {groups.map(({ section, items, label }) => (
-          <div
-            key={section.key}
-            className="min-w-0 rounded-xl px-1 py-1 transition-colors duration-200 hover:bg-[#FAF8F5]/80"
-          >
+          <div key={section.key} className="min-w-0">
             <Link
               href={section.href}
               onClick={onNavigate}
-              className="mb-1 block rounded-lg px-2.5 py-2 transition-colors duration-200 hover:bg-[#F7F4EF]"
+              className="block rounded-lg px-2.5 py-2 mb-1 transition-colors duration-200 hover:bg-[#F7F4EF]"
             >
               <span
-                className="text-[9px] uppercase tracking-[0.16em] font-semibold"
+                className="text-[9px] uppercase tracking-[0.12em] font-bold block leading-none mb-1"
                 style={{ color: section.accent }}
               >
-                {section.shortLabel}
+                {kitchensSectionShortLabel(section, locale)}
               </span>
-              <span className="mt-0.5 block text-[13px] font-semibold text-[#1A2332] truncate">
+              <span className="block text-[13px] md:text-[12px] lg:text-[14px] font-semibold text-[#1A2332] truncate leading-tight">
                 {label}
               </span>
             </Link>
-            <div className="max-h-44 overflow-y-auto tk-no-scrollbar space-y-0.5 px-0.5">
+            <div className="space-y-0 px-0.5">
               {items.length === 0 ? (
-                <p className="text-[11px] text-[#C4B8A8] px-2.5 py-1.5">—</p>
+                <p className="text-[11px] text-[#C4B8A8] px-2 py-1">—</p>
               ) : (
                 items.map((item) => (
                   <CategoryLink
@@ -285,39 +284,39 @@ function FlatMegaPanel({
   );
 
   return (
-    <div className="p-2.5 sm:p-3 min-w-[15rem]">
+    <div className="p-2.5 md:p-3 min-w-[15rem] md:min-w-[16rem]">
       <Link
         href={config.href}
         onClick={onNavigate}
-        className="mb-2 flex items-center justify-between gap-3 rounded-xl bg-[#F7F4EF] px-3.5 py-2.5 transition-colors duration-200 hover:bg-[#F0EBE3]"
+        className="mb-2 flex items-center justify-between gap-2 rounded-xl bg-[#F7F4EF] px-3 py-2 transition-colors duration-200 hover:bg-[#F0EBE3]"
       >
         <span>
           <span
-            className="text-[9px] uppercase tracking-[0.16em] font-semibold block mb-0.5"
+            className="text-[9px] uppercase tracking-[0.12em] font-semibold block mb-0.5 leading-none"
             style={{ color: config.accent }}
           >
             {overviewLabel}
           </span>
-          <span className="text-[14px] font-semibold text-[#1A2332]">
+          <span className="text-[13px] md:text-[12px] lg:text-[14px] font-semibold text-[#1A2332] leading-tight">
             {title}
           </span>
         </span>
-        <span className="text-[11px] font-medium text-[#9CA3AF] shrink-0">
+        <span className="text-[10px] font-medium text-[#9CA3AF] shrink-0 whitespace-nowrap">
           {exploreLabel} →
         </span>
       </Link>
 
-      <div className="max-h-60 overflow-y-auto tk-no-scrollbar">
+      <div className="max-h-52 overflow-y-auto tk-no-scrollbar">
         {items.length === 0 ? (
-          <p className="text-[12px] text-[#9CA3AF] px-3 py-4 text-center">
+          <p className="text-[12px] text-[#9CA3AF] px-3 py-3 text-center">
             No pages yet
           </p>
         ) : (
           <div
             className={
-              items.length > 3
-                ? "grid grid-cols-2 gap-x-1 gap-y-0.5"
-                : "grid grid-cols-1 gap-0.5"
+              items.length > 4
+                ? "grid grid-cols-2 gap-x-0.5 gap-y-0"
+                : "grid grid-cols-1 gap-0"
             }
           >
             {items.map((item) => (
@@ -341,12 +340,14 @@ export function HubDesktopNavItem({
   locale,
   pathname,
   linkClassName,
+  onNavigate,
 }: {
   config: HubNavConfig;
   label: string;
   locale: Locale;
   pathname: string;
   linkClassName: string;
+  onNavigate?: () => void;
 }) {
   const { categories } = useCms();
   const { t } = useTranslation();
@@ -354,6 +355,7 @@ export function HubDesktopNavItem({
   const open = openKey === config.key;
   const copy = useHubCopy(config, locale);
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const overviewLabel = t("nav.overview");
   const exploreLabel = t("nav.explore");
@@ -381,8 +383,18 @@ export function HubDesktopNavItem({
   }, [clearCloseTimer, config.key, setOpenKey]);
 
   const handleEnter = useCallback(() => {
+    // Only open on hover for desktop (non-touch devices)
+    if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      clearCloseTimer();
+      setOpenKey(config.key);
+    }
+  }, [clearCloseTimer, config.key, setOpenKey]);
+
+  const handleClick = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     clearCloseTimer();
-    setOpenKey(config.key);
+    setOpenKey((current) => (current === config.key ? null : config.key));
   }, [clearCloseTimer, config.key, setOpenKey]);
 
   const handleLeave = useCallback(
@@ -424,8 +436,8 @@ export function HubDesktopNavItem({
 
   const panelWidthClass =
     config.layout === "grouped"
-      ? "w-[min(36rem,calc(100vw-2rem))]"
-      : "w-[min(20rem,calc(100vw-2rem))]";
+      ? "w-[min(32rem,calc(100vw-1rem))] lg:w-[min(36rem,calc(100vw-2rem))]"
+      : "w-[min(18rem,calc(100vw-1rem))] lg:w-[min(20rem,calc(100vw-2rem))]";
 
   return (
     <div
@@ -433,41 +445,80 @@ export function HubDesktopNavItem({
       className="relative shrink-0"
       onMouseEnter={handleEnter}
       onMouseLeave={handleLeave}
+      onClick={handleClick}
     >
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-haspopup="true"
-        onClick={() => {
-          clearCloseTimer();
-          setOpenKey(open ? null : config.key);
-        }}
-        className={`${linkClassName} inline-flex items-center gap-1.5 transition-colors duration-200 ${
-          open ? "text-[#1A1A1A] font-bold" : ""
-        }`}
-      >
-        {label}
-        <Chevron open={open} />
-      </button>
+      <div className={`${linkClassName} inline-flex items-center gap-1`} ref={triggerRef}>
+        <Link
+          href={config.href}
+          onClick={(e) => {
+            // On touch devices, first click opens menu, second click navigates
+            if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches && !open) {
+              e.preventDefault();
+              handleClick(e);
+            } else {
+              onNavigate?.();
+            }
+          }}
+          className={`inline-flex items-center transition-colors duration-200 ${
+            open ? "text-[#1A1A1A] font-bold" : ""
+          }`}
+        >
+          {label}
+        </Link>
+        <button
+          type="button"
+          aria-label={`Open ${label} menu`}
+          aria-expanded={open}
+          aria-haspopup="true"
+          onClick={(e) => {
+            e.stopPropagation();
+            clearCloseTimer();
+            setOpenKey(open ? null : config.key);
+          }}
+          className="inline-flex items-center"
+        >
+          <Chevron open={open} />
+        </button>
+      </div>
 
-      {/* Hover bridge + panel — always absolute so nav pill never expands */}
+      {/* Panel — fixed positioning to escape scroll container */}
       {open ? (
         <div
-          className={`absolute left-1/2 top-full z-[70] ${panelWidthClass} -translate-x-1/2 pt-3`}
+          className={`fixed z-[100] pt-2 ${panelWidthClass}`}
           style={{
-            pointerEvents: open ? "auto" : "none",
+            top: triggerRef.current
+              ? `${triggerRef.current.getBoundingClientRect().bottom}px`
+              : "100%",
+            left: triggerRef.current
+              ? `${triggerRef.current.getBoundingClientRect().left + triggerRef.current.getBoundingClientRect().width / 2}px`
+              : "50%",
+            transform: "translateX(-50%)",
+            pointerEvents: "auto",
+          }}
+          ref={(el) => {
+            if (!el) return;
+            // After paint: clamp so panel never goes off-screen left or right
+            requestAnimationFrame(() => {
+              const rect = el.getBoundingClientRect();
+              const vw = window.innerWidth;
+              const gap = 8;
+              if (rect.right > vw - gap) {
+                const shift = rect.right - (vw - gap);
+                el.style.transform = `translateX(calc(-50% - ${shift}px))`;
+              } else if (rect.left < gap) {
+                const shift = gap - rect.left;
+                el.style.transform = `translateX(calc(-50% + ${shift}px))`;
+              }
+            });
           }}
           aria-hidden={!open}
         >
           <div
-            className="origin-top overflow-hidden rounded-2xl border border-[#EDE8E0] bg-white/95 backdrop-blur-md shadow-[0_4px_6px_rgba(26,35,50,0.04),0_20px_48px_rgba(26,35,50,0.12)]"
+            className="origin-top overflow-hidden rounded-xl border border-[#EDE8E0] bg-white/98 backdrop-blur-md shadow-[0_4px_6px_rgba(26,35,50,0.04),0_16px_40px_rgba(26,35,50,0.12)]"
             style={{
-              opacity: open ? 1 : 0,
-              transform: open
-                ? "translateY(0) scale(1)"
-                : "translateY(-6px) scale(0.98)",
+              opacity: 1,
+              transform: "translateY(0) scale(1)",
               transition: `opacity 200ms ${EASE_OUT}, transform 220ms ${EASE_OUT}`,
-              willChange: "opacity, transform",
             }}
           >
             {config.layout === "grouped" ? (
@@ -527,17 +578,26 @@ export function HubMobileNavSection({
 
   return (
     <div className="shrink-0">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        className={`flex w-full items-center justify-between py-3 px-4 rounded-full text-[15px] leading-normal text-left font-medium transition ${
-          active ? "text-[#1A1A1A] font-bold bg-[#F5F3EF]" : "text-gray-500 hover:bg-gray-50"
-        }`}
-      >
-        <span className="min-w-0 truncate">{label || copy.title}</span>
-        <Chevron open={open} />
-      </button>
+      <div className="flex w-full items-center gap-1">
+        <Link
+          href={config.href}
+          onClick={onNavigate}
+          className={`flex min-w-0 flex-1 items-center py-3 px-4 rounded-full text-[15px] leading-normal text-left font-medium transition ${
+            active ? "text-[#1A1A1A] font-bold bg-[#F5F3EF]" : "text-gray-500 hover:bg-gray-50"
+          }`}
+        >
+          <span className="min-w-0 truncate">{label || copy.title}</span>
+        </Link>
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          aria-label={`Open ${label || copy.title} menu`}
+          className="shrink-0 rounded-full p-3 text-gray-500 hover:bg-gray-50"
+        >
+          <Chevron open={open} />
+        </button>
+      </div>
 
       {open ? (
         <div className="mx-2 mb-2 rounded-2xl border border-[#EEE8DF] bg-white px-2 py-2 space-y-0.5 max-h-72 overflow-y-auto">
@@ -569,9 +629,9 @@ export function HubMobileNavSection({
                           className="text-[9px] uppercase tracking-[0.14em] font-semibold block mb-0.5"
                           style={{ color: section.accent }}
                         >
-                          {section.shortLabel}
+                          {kitchensSectionShortLabel(section, locale)}
                         </span>
-                        {section.label}
+                        {kitchensSectionLabel(section, locale)}
                       </Link>
                       {sectionItems.map((item) => (
                         <CategoryLink

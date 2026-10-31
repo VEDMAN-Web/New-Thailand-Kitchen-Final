@@ -18,6 +18,8 @@ import {
 import { pickCmsText } from "../../../lib/cmsText";
 import { absoluteUrl, ogImageUrl } from "../../../lib/siteUrl";
 import { getServerLocale } from "../../../lib/serverLocale";
+import { SITE_SEO_LOCALE, seoAlternates } from "../../../lib/pageMetadata";
+import { tx } from "../../../i18n/translations";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -67,20 +69,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // discovery before their content and metadata can stream.
   const product = await fetchProductBySlug(normalized);
   if (product) {
-    const locale = await getServerLocale();
     const title =
       product.metaTitle ||
-      `${pickCmsText((product as any).title || product.name, "", locale)} | Thailand Kitchens`;
+      `${pickCmsText((product as any).title || product.name, "", SITE_SEO_LOCALE)} | Thailand Kitchens`;
     const description =
       product.metaDescription ||
-      pickCmsText((product as any).description || "", "", locale);
-    const canonical = absoluteUrl(`/products/${product.slug}`);
+      pickCmsText((product as any).description || "", "", SITE_SEO_LOCALE);
+    const canonical = product.canonicalUrl || absoluteUrl(`/products/${product.slug}`);
     const image = ogImageUrl(product.image);
 
     const metadata: Metadata = {
       title,
       description,
-      alternates: { canonical },
+      alternates: await seoAlternates(`/products/${product.slug}`),
       openGraph: {
         type: "website",
         title,
@@ -116,6 +117,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: tabTitle,
     description: tabDescription,
+    alternates: { canonical: tabUrl },
     openGraph: {
       type: "website",
       title: tabTitle,
@@ -152,11 +154,12 @@ export default async function ProductDetailPage({ params }: Props) {
       <main className="w-full">
         <Breadcrumbs
           items={[
-            { label: 'Home', href: '/' },
-            { label: 'Products', href: '/products' },
+            { label: tx(locale, "nav.home"), href: "/" },
+            { label: tx(locale, "nav.products"), href: "/products" },
           ]}
           currentPage={productTitle}
           currentHref={`/products/${product.slug}`}
+          locale={locale}
         />
         <JsonLd
           type="Product"
@@ -181,9 +184,10 @@ export default async function ProductDetailPage({ params }: Props) {
     return (
       <main className="w-full">
         <Breadcrumbs
-          items={[{ label: 'Home', href: '/' }]}
-          currentPage={`${categoryTab} Kitchens`}
+          items={[{ label: tx(locale, "nav.home"), href: "/" }]}
+          currentPage={`${categoryTab} ${tx(locale, "nav.kitchens")}`}
           currentHref={`/products/${normalized}`}
+          locale={locale}
         />
         <ProductsPageView initialItems={items} initialCategory={categoryTab} />
       </main>
@@ -203,11 +207,12 @@ export default async function ProductDetailPage({ params }: Props) {
     <main className="w-full">
       <Breadcrumbs
         items={[
-          { label: 'Home', href: '/' },
-          { label: 'Products', href: '/products' },
+          { label: tx(locale, "nav.home"), href: "/" },
+          { label: tx(locale, "nav.products"), href: "/products" },
         ]}
         currentPage={productName}
         currentHref={`/products/${fromStatic.slug}`}
+        locale={locale}
       />
       <JsonLd
         type="Product"

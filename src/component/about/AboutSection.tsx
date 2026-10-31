@@ -7,6 +7,7 @@ import { useTranslation } from "../../i18n/LanguageProvider";
 import { useCmsSection } from "../../lib/CmsHomeContext";
 import { pickCmsAsset, pickCmsText } from "../../lib/cmsText";
 import { useResolvedMediaUrl } from "../../lib/useResolvedMediaUrl";
+import { approvedCmsText } from "../../lib/pageMetadata";
 
 export default function AboutSection() {
   const { t, locale } = useTranslation();
@@ -22,10 +23,11 @@ export default function AboutSection() {
   const eyebrow = pickCmsText(story?.subtitle, t("home.about.eyebrow"), locale);
   const sectionTitle = pickCmsText(story?.title, t("home.about.title"), locale);
   const cardTitle = pickCmsText(story?.title, t("home.about.cardTitle"), locale);
-  const cardDescription = pickCmsText(
+  const cardDescription = approvedCmsText(
     story?.description,
     t("home.about.cardDescription"),
-    locale
+    locale,
+    pickCmsText
   );
   const storyImage =
     useResolvedMediaUrl(pickCmsAsset(story?.image, ""), "image") ||
@@ -51,7 +53,7 @@ export default function AboutSection() {
   }, []);
 
   return (
-      <section id="our-service" className="bg-[#F5F3EF] pb-16 lg:pb-24">
+      <section id="our-story" className="bg-[#F5F3EF] pb-16 lg:pb-24">
       <div className="max-w-7xl mx-auto px-6">
         <p className="text-[#E0905A] text-xs tracking-[0.28em] uppercase font-medium mb-3">
           {eyebrow}
@@ -92,7 +94,7 @@ export default function AboutSection() {
               {cardDescription}
             </p>
             <Link
-              href="/contact"
+              href="/#our-story"
               className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-[#1A1A1A] transition-colors duration-500 group-hover:text-[#E0905A]"
             >
               {t("home.about.cta")}

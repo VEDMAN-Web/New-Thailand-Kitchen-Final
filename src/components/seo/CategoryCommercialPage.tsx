@@ -1,3 +1,4 @@
+import { getUrlLocale } from "../../lib/urlLocale";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import CategoryLandingView from "./CategoryLandingView";
@@ -24,6 +25,7 @@ import {
 } from "../../lib/categoryRoutes";
 import { absoluteUrl, ogImageUrl, SITE_ORIGIN } from "../../lib/siteUrl";
 import { getServerLocale } from "../../lib/serverLocale";
+import { seoAlternates, SITE_SEO_LOCALE } from "../../lib/pageMetadata";
 
 function normalizeSlug(slug: string) {
   return String(slug || "")
@@ -66,12 +68,12 @@ export async function generateCategoryMetadata(
     return { title: `${fallbackLabel} Not Found` };
   }
 
-  const locale = await getServerLocale();
   const title =
     category.metaTitle ||
-    `${pickCmsText(category.title, "", locale)} | Thailand Kitchens`;
+    `${pickCmsText(category.title, "", SITE_SEO_LOCALE)} | Thailand Kitchens`;
   const description =
-    category.metaDescription || pickCmsText(category.description, "", locale);
+    category.metaDescription ||
+    pickCmsText(category.description, "", SITE_SEO_LOCALE);
 
   const path = categoryPublicPath(category);
   const canonical = category.canonicalUrl || absoluteUrl(path);
@@ -81,7 +83,8 @@ export async function generateCategoryMetadata(
     title,
     description,
     alternates: {
-      canonical,
+      ...(await seoAlternates(path)),
+      ...((await getUrlLocale()) ? {} : { canonical }),
     },
     openGraph: {
       type: "website",
@@ -139,7 +142,7 @@ export async function CategoryCommercialPage({
 
   const categoryTitle = pickCmsText(
     category.title,
-    categorySectionLabel(categoryType),
+    categorySectionLabel(categoryType, locale),
     locale
   );
   const description = pickCmsText(category.description, "", locale);
@@ -161,6 +164,7 @@ export async function CategoryCommercialPage({
   const trail = categoryBreadcrumbTrail(categoryType, {
     locationSlug: categoryType === "service" ? locSlug || undefined : undefined,
     locationTitle: locTitle || undefined,
+    locale,
   });
   const pagePath = categoryPublicPath(category);
   const pageUrl = absoluteUrl(pagePath);
@@ -171,6 +175,7 @@ export async function CategoryCommercialPage({
         items={trail}
         currentPage={categoryTitle}
         currentHref={pagePath}
+        locale={locale}
       />
       {categoryType === "service" ? (
         <JsonLd
@@ -199,7 +204,7 @@ export async function CategoryCommercialPage({
       <CategoryLandingView
         category={category}
         related={related}
-        sectionLabel={categorySectionLabel(categoryType)}
+        sectionLabel={categorySectionLabel(categoryType, locale)}
         locale={locale}
       />
     </main>

@@ -114,11 +114,20 @@ const home = await fetchHomeSections().catch(() => ({}) as Record<string, unknow
     /* CMS optional at build */
   }
 
+  // DEV-10 redirected location×service URLs must not appear in the image sitemap
+  const excludedPaths = new Set([
+    "/locations/bangkok/kitchen-renovation",
+    "/locations/bangkok/kitchen-design",
+    "/locations/phuket/kitchen-renovation",
+    "/locations/koh-samui/kitchen-design",
+  ]);
+
   try {
     const categories = await getIndexableCategories();
     for (const category of categories) {
       if (!category.slug || !category.categoryType) continue;
       const path = categoryPublicPath(category);
+      if (excludedPaths.has(path)) continue;
       const pageUrl = `${SITE_ORIGIN}${path}`;
       const title =
         typeof category.title === "string"

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import JsonLd from "./JsonLd";
 import { absoluteUrl, SITE_ORIGIN } from "../../lib/siteUrl";
+import { tx, type Locale } from "../../i18n/translations";
 
 type BreadcrumbItem = {
   label: string;
@@ -12,12 +13,14 @@ type BreadcrumbsProps = {
   currentPage: string;
   /** Canonical path or absolute URL for the current page (JSON-LD). */
   currentHref?: string;
+  locale?: Locale;
 };
 
 export default function Breadcrumbs({
   items,
   currentPage,
   currentHref,
+  locale = "EN",
 }: BreadcrumbsProps) {
   const currentUrl = currentHref
     ? currentHref.startsWith("http")
@@ -40,7 +43,7 @@ export default function Breadcrumbs({
     <>
       <JsonLd type="Breadcrumb" data={{ items: jsonLdItems }} />
 
-      <nav aria-label="Breadcrumb" className="py-4 px-4 md:px-8 lg:px-16">
+      <nav aria-label={tx(locale, "breadcrumb.aria")} className="py-4 px-4 md:px-8 lg:px-16">
         <ol className="flex flex-wrap items-center gap-2 text-sm">
           {items.map((item, index) => (
             <li key={index} className="flex items-center gap-2">

@@ -70,6 +70,7 @@ export default function FeatureCard({ item }: Props) {
               fill
               className="object-contain"
               sizes="40px"
+              aria-hidden
             />
           </div>
         ) : null}

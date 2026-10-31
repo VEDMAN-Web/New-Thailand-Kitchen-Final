@@ -26,7 +26,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/catalogue",
     "/contact",
     "/faq",
+    "/privacy",
+    "/terms",
   ];
+
+  // DEV-10 redirected location×service URLs must not appear in the sitemap
+  const excludedPaths = new Set([
+    "/locations/bangkok/kitchen-renovation",
+    "/locations/bangkok/kitchen-design",
+    "/locations/phuket/kitchen-renovation",
+    "/locations/koh-samui/kitchen-design",
+    // DEV-09 duplicates now 301 to their canonical pages
+    "/services/built-in-wardrobes",
+    "/kitchens/by-property/apartment",
+  ]);
 
   for (const path of staticPaths) {
     sitemap.push({
@@ -51,6 +64,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         category.indexable === true
       ) {
         const path = categoryPublicPath(category);
+        if (excludedPaths.has(path)) continue;
         sitemap.push({
           url: `${SITE_ORIGIN}${path}`,
           lastModified: new Date(),

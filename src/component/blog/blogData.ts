@@ -48,14 +48,15 @@ export interface BlogPost {
   locationTag?: string;
   serviceTag?: string;
   materialTag?: string;
+  metaTitle?: string;
   metaDescription?: string;
   reviewer?: string;
   published?: boolean;
 }
 
-const IMG1 = "/blog/blogImage (1).jpg";
-const IMG2 = "/blog/blogImage (2).jpg";
-const IMG3 = "/blog/blogImage (3).jpg";
+const IMG1 = "/products/Kitchen4.png";
+const IMG2 = "/products/Kitchen2.png";
+const IMG3 = "/products/Kitchen5.png";
 
 export const blogCategories: BlogCategory[] = [
   "All",

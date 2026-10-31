@@ -3,10 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "predev": "node scripts/ensure-fast-dev-cache.mjs",
+    "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "dev:perf": "node scripts/dev-perf-check.mjs",
+    "verify:images": "node scripts/verify-public-images.mjs"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.101.2",

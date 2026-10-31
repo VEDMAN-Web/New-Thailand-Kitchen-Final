@@ -3,17 +3,23 @@ import { fetchHomeSections } from "../../services/cmsPublic";
 import { pickCmsText } from "../../lib/cmsText";
 import { absoluteUrl, ogImageUrl } from "../../lib/siteUrl";
 import { getServerLocale } from "../../lib/serverLocale";
+import { seoAlternates, SITE_SEO_LOCALE } from "../../lib/pageMetadata";
 import Breadcrumbs from "./Breadcrumbs";
 import OverlayHeroBanner from "./OverlayHeroBanner";
 import HubContentBlock from "./HubContentBlock";
 import type { Locale } from "../../i18n/translations";
 import {
+  hubFallbackTitle,
   hubNavByKey,
   type HubNavKey,
   type HubPageCms,
 } from "../../lib/hubNavigation";
 import type { KitchensSectionKey } from "../kitchens/kitchensConfig";
-import { kitchensSectionByKey } from "../kitchens/kitchensConfig";
+import {
+  kitchensSectionByKey,
+  kitchensSectionLabel,
+} from "../kitchens/kitchensConfig";
+import { tx } from "../../i18n/translations";
 import {
   defaultHubSections,
   resolvePageSections,
@@ -41,6 +47,10 @@ function resolveHubData(
   const sectionMeta = kitchensSubKey
     ? kitchensSectionByKey(kitchensSubKey)
     : null;
+  const hubTitle = hubFallbackTitle(config, locale);
+  const sectionTitle = sectionMeta
+    ? kitchensSectionLabel(sectionMeta, locale)
+    : hubTitle;
 
   const cmsSections = kitchensSubKey
     ? (Array.isArray(sub?.sections) ? sub.sections : undefined)
@@ -52,23 +62,40 @@ function resolveHubData(
     defaultHubSections(hubKey, kitchensSubKey)
   );
 
+  // Sub-hubs (layouts / styles / by-property) must NOT inherit the parent
+  // kitchens hub title/meta — that mixed property-types, layouts, and styles
+  // onto /kitchens/styles.
+  const titleSource = kitchensSubKey ? sub?.title : sub?.title || root.title;
+  const descriptionSource = kitchensSubKey
+    ? sub?.description
+    : sub?.description || root.description;
+  const eyebrowSource = kitchensSubKey
+    ? sub?.eyebrow
+    : sub?.eyebrow || root.eyebrow;
+  const metaTitleSource = kitchensSubKey
+    ? sub?.metaTitle
+    : sub?.metaTitle || root.metaTitle;
+  const metaDescriptionSource = kitchensSubKey
+    ? sub?.metaDescription
+    : sub?.metaDescription || root.metaDescription;
+
   return {
     config,
     title: pickCmsText(
       sub?.title || root.title,
-      sectionMeta?.label || config.fallbackTitle,
+      sectionTitle,
       locale
     ),
     description: pickCmsText(
-      sub?.description || root.description,
+      descriptionSource,
       sectionMeta?.description || config.fallbackDescription,
       locale
     ),
     eyebrow: pickCmsText(
-      sub?.eyebrow || root.eyebrow,
+      eyebrowSource,
       kitchensSubKey
-        ? `Kitchens · ${sectionMeta?.label || ""}`
-        : config.fallbackTitle,
+        ? `${tx(locale, "nav.kitchens")} · ${sectionTitle}`
+        : hubTitle,
       locale
     ),
     heroImage: String(
@@ -80,10 +107,8 @@ function resolveHubData(
       locale
     ),
     ctaHref: String(sub?.ctaHref || root.ctaHref || "/contact").trim(),
-    metaTitle: String(sub?.metaTitle || root.metaTitle || "").trim(),
-    metaDescription: String(
-      sub?.metaDescription || root.metaDescription || ""
-    ).trim(),
+    metaTitle: pickCmsText(metaTitleSource, "", locale),
+    metaDescription: pickCmsText(metaDescriptionSource, "", locale),
     sections,
     currentHref: kitchensSubKey
       ? kitchensSectionByKey(kitchensSubKey)?.href || config.href
@@ -96,11 +121,15 @@ export async function generateHubMetadata(
   hubKey: HubNavKey,
   kitchensSubKey?: KitchensSectionKey
 ): Promise<Metadata> {
-  const locale = await getServerLocale();
   const home = await fetchHomeSections().catch(() => ({}));
   const hubPages = (home as { hubPages?: Record<string, HubPageCms> })
     ?.hubPages;
-  const data = resolveHubData(hubPages, hubKey, kitchensSubKey, locale);
+  const data = resolveHubData(
+    hubPages,
+    hubKey,
+    kitchensSubKey,
+    SITE_SEO_LOCALE
+  );
 
   const title = data.metaTitle || `${data.title} | Thailand Kitchens`;
   const description = data.metaDescription || data.description;
@@ -110,7 +139,7 @@ export async function generateHubMetadata(
   return {
     title,
     description,
-    alternates: { canonical },
+    alternates: await seoAlternates(data.currentHref),
     openGraph: {
       type: "website",
       title,
@@ -142,10 +171,10 @@ export default async function SeoHubLandingPage({
     breadcrumbTrail ||
     (kitchensSubKey
       ? [
-          { label: "Home", href: "/" },
-          { label: "Kitchens", href: "/kitchens" },
+          { label: tx(locale, "nav.home"), href: "/" },
+          { label: tx(locale, "nav.kitchens"), href: "/kitchens" },
         ]
-      : [{ label: "Home", href: "/" }]);
+      : [{ label: tx(locale, "nav.home"), href: "/" }]);
 
   return (
     <main className="w-full bg-[#F5F3EF] min-h-[50vh]">
@@ -153,6 +182,7 @@ export default async function SeoHubLandingPage({
         items={trail}
         currentPage={data.title}
         currentHref={data.currentHref}
+        locale={locale}
       />
 
       <OverlayHeroBanner
