@@ -238,16 +238,6 @@ export function defaultCategorySections(input: {
         image: imageA,
         layout: "steps",
       },
-      {
-        heading: `What’s included`,
-        body: `Dedicated project lead|Measured drawings|Factory quality control|On-site install team|Aftercare guidance`,
-        layout: "cards",
-      },
-      {
-        heading: `Ready when you are`,
-        body: `Talk to us about ${title} for your home or project — timelines, budget ranges, and next steps.`,
-        layout: "band",
-      },
     ];
   }
 
@@ -468,4 +458,15 @@ export function ensureMinSections(
   _min = 2
 ): ContentSectionBlock[] {
   return resolvePageSections(sections, fallback);
+}
+
+/** Boilerplate blocks removed site-wide (also drops copies saved in the CMS). */
+const REMOVED_SECTION_HEADING = /^\s*(what['’]?s included|ready when you are)\s*$/i;
+
+export function withoutRemovedSections<T extends { heading?: unknown }>(
+  blocks: T[]
+): T[] {
+  return blocks.filter(
+    (b) => !REMOVED_SECTION_HEADING.test(String(b?.heading || ""))
+  );
 }

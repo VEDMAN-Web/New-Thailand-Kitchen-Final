@@ -14,6 +14,7 @@ import RelatedProjects, {
 import {
   defaultCategorySections,
   resolvePageSections,
+  withoutRemovedSections,
 } from "../../lib/pageSectionDefaults";
 import { isSamuiLocation, SAMUI_KITCHENS_ORIGIN } from "../../lib/pageMetadata";
 import { fixedCategoryImage, isMediaWallSlug } from "../../lib/imageFixRegister";
@@ -57,7 +58,7 @@ export default function CategoryLandingView({
     .map((p) => p.trim())
     .filter(Boolean);
 
-  const sections = resolvePageSections(
+  const sections = withoutRemovedSections(resolvePageSections(
     Array.isArray(category.sections)
       ? (category.sections as ContentSectionBlock[])
       : undefined,
@@ -68,7 +69,7 @@ export default function CategoryLandingView({
       categoryType: category.categoryType,
       slug: category.slug,
     })
-  ).map((block) => ({
+  )).map((block) => ({
     ...block,
     image: block.image
       ? fixedCategoryImage(String(category.slug || ""), String(block.image))
