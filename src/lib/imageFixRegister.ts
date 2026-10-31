@@ -4,8 +4,6 @@
  * with owned project photography. True TV-wall photography still belongs in CMS.
  */
 
-const STOCK_HOST =
-  /pexels|unsplash|pixabay|shutterstock|istockphoto|gettyimages/i;
 const LEGACY_BLOG = /blogimage\s*\(\d+\)/i;
 const GENERIC_KITCHEN = /\/products\/Kitchen[1-5]\.png$/i;
 
@@ -59,7 +57,9 @@ export function isUntrustedStockImage(url: string): boolean {
   } catch {
     decoded = value;
   }
-  return STOCK_HOST.test(decoded) || LEGACY_BLOG.test(decoded);
+  // CMS-entered photos (Unsplash, Pexels, etc.) are always allowed.
+  // Only known-broken legacy blog file names are replaced.
+  return LEGACY_BLOG.test(decoded);
 }
 
 export function fixedGuideMedia(
@@ -71,7 +71,7 @@ export function fixedGuideMedia(
     .trim()
     .toLowerCase();
   const mapped = GUIDE_FIX[key];
-  if (mapped) return mapped;
+  if (mapped && (!currentImage || GENERIC_KITCHEN.test(currentImage) || isUntrustedStockImage(currentImage))) return mapped;
   if (isUntrustedStockImage(currentImage)) {
     return {
       image: "/products/Kitchen1.png",
