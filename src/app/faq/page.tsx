@@ -10,9 +10,9 @@ import JsonLd from "../../components/seo/JsonLd";
 import { ensureCmsString } from "../../lib/cmsText";
 import { seoAlternates } from "../../lib/pageMetadata";
 
-const FAQ_TITLE = "Most Frequent Questions | Thailand Kitchens";
+const FAQ_TITLE = "Kitchen FAQ Thailand: Common Questions Answered";
 const FAQ_DESCRIPTION =
-  "Find answers to the most common questions about custom modular kitchen design, installation timelines, pricing, materials, and after-sales support.";
+  "Find answers to frequently asked questions about Thailand Kitchens, kitchen layouts, products, and choosing the right kitchen for your home.";
 const FAQ_URL = `${SITE_ORIGIN}/faq`;
 
 export async function generateMetadata(): Promise<Metadata> {

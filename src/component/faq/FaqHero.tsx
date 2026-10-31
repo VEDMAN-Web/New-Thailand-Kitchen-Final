@@ -10,6 +10,10 @@ type FaqPageCms = {
   eyebrow?: string;
   title?: string;
   videoUrl?: string;
+  /** Optional still image: shown as the video poster / fallback behind the banner. */
+  posterUrl?: string;
+  /** Optional photo strip shown directly below the banner (up to 4 images). */
+  images?: string[];
 };
 
 export default function FaqHero() {
@@ -22,6 +26,8 @@ export default function FaqHero() {
   const videoSrc =
     useResolvedMediaUrl(pickCmsAsset(cms?.videoUrl, ""), "video") ||
     "/video/faq-autoplay.mp4";
+
+  const posterSrc = pickCmsAsset(cms?.posterUrl, "");
 
   useEffect(() => {
     const video = videoRef.current;
@@ -65,6 +71,7 @@ export default function FaqHero() {
           loop
           playsInline
           preload="auto"
+          poster={posterSrc || undefined}
           onCanPlay={() => {
             videoRef.current?.play().catch(() => {});
           }}
@@ -87,6 +94,29 @@ export default function FaqHero() {
           </h1>
         </div>
       </div>
+      <FaqPhotoStrip images={cms?.images} />
     </section>
+  );
+}
+
+function FaqPhotoStrip({ images }: { images?: string[] }) {
+  const list = (Array.isArray(images) ? images : [])
+    .map((u) => pickCmsAsset(u, ""))
+    .filter(Boolean)
+    .slice(0, 4);
+  if (!list.length) return null;
+  return (
+    <div className="mt-3 grid grid-cols-2 gap-3 sm:mt-4 sm:gap-4 md:grid-cols-4">
+      {list.map((src, i) => (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          key={`${src}-${i}`}
+          src={src}
+          alt="Thailand Kitchens kitchen design"
+          loading="lazy"
+          className="h-[140px] w-full rounded-[1rem] object-cover sm:h-[180px] md:h-[200px] sm:rounded-[1.5rem]"
+        />
+      ))}
+    </div>
   );
 }

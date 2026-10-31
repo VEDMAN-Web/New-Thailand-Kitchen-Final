@@ -9,9 +9,9 @@ import { seoAlternates } from "../../lib/pageMetadata";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const PRODUCTS_TITLE = "Kitchen Products | Thailand Kitchens";
+const PRODUCTS_TITLE = "Kitchen Products Thailand: Modern Kitchen Layouts";
 const PRODUCTS_DESCRIPTION =
-  "Browse our full collection of custom Thai kitchen products — cabinetry, layouts, finishes, and hardware crafted for every home.";
+  "Explore kitchen products in Thailand, including modern, island, L-shaped, U-shaped, straight, T-shaped, and Best Seller kitchen options for homes and villas.";
 const PRODUCTS_URL = `${SITE_ORIGIN}/products`;
 
 interface Props {
