@@ -60,7 +60,7 @@ export default function BrandSlider() {
   return (
     <section id="brands" className="py-12 overflow-hidden">
       <div className="relative">
-        <div className="flex w-max animate-marquee items-center gap-6 sm:gap-10 lg:gap-16 whitespace-nowrap">
+        <div className="flex w-max animate-marquee items-center gap-3 sm:gap-4 lg:gap-4 whitespace-nowrap">
           {renderSet("a")}
           {renderSet("b")}
           {/* Desktop-only 3rd set (>=769px): wide viewports need more than 2
