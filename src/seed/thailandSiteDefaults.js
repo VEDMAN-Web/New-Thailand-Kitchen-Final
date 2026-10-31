@@ -83,7 +83,7 @@ const DEFAULT_HOME_SECTIONS = {
   story: {
     title: {"en":"Crafted With Passion","th":"รังสรรค์ด้วยความหลงใหล","pl":"Stworzone z pasją"},
     subtitle: {"en":"Our Story","th":"เรื่องราวของเรา","pl":"Nasza historia"},
-    description: {"en":"We have completed 25+ kitchens in our first year in Thailand. Each project teaches us something new about space, about people, and about what it means to feel at home.","th":"เราทำครัวครบกว่า 25 หลังในปีแรกในประเทศไทย แต่ละโปรเจกต์สอนเราเกี่ยวกับพื้นที่ ผู้คน และความหมายของการรู้สึกเหมือนบ้าน","pl":"W pierwszym roku w Tajlandii ukończyliśmy ponad 25 kuchni. Każdy projekt uczy nas czegoś nowego o przestrzeni, ludziach i tym, co znaczy czuć się jak w domu."},
+    description: {"en":"We have completed 8491+ projects across 78+ cities in Thailand over 16+ years. Each project teaches us something new about space, about people, and about what it means to feel at home.","th":"เราส่งมอบโครงการแล้วกว่า 8491 โครงการใน 78 เมืองทั่วประเทศไทยตลอดกว่า 16 ปี แต่ละโปรเจกต์สอนเราเกี่ยวกับพื้นที่ ผู้คน และความหมายของการรู้สึกเหมือนบ้าน","pl":"Zrealizowaliśmy ponad 8491 projektów w ponad 78 miastach Tajlandii na przestrzeni ponad 16 lat. Każdy projekt uczy nas czegoś nowego o przestrzeni, ludziach i tym, co znaczy czuć się jak w domu."},
     image: "/slider/crafted-with-passion.png",
   },
   transition: {

@@ -78,9 +78,9 @@ const APPROVED_HERO_DESCRIPTION = L(
 );
 
 const APPROVED_STORY_DESCRIPTION = L(
-  "We have completed 25+ kitchens in our first year in Thailand. Each project teaches us something new about space, about people, and about what it means to feel at home.",
-  "เราทำครัวครบกว่า 25 หลังในปีแรกในประเทศไทย แต่ละโปรเจกต์สอนเราเกี่ยวกับพื้นที่ ผู้คน และความหมายของการรู้สึกเหมือนบ้าน",
-  "W pierwszym roku w Tajlandii ukończyliśmy ponad 25 kuchni. Każdy projekt uczy nas czegoś nowego o przestrzeni, ludziach i tym, co znaczy czuć się jak w domu."
+  "We have completed 8491+ projects across 78+ cities in Thailand over 16+ years. Each project teaches us something new about space, about people, and about what it means to feel at home.",
+  "เราส่งมอบโครงการแล้วกว่า 8491 โครงการใน 78 เมืองทั่วประเทศไทยตลอดกว่า 16 ปี แต่ละโปรเจกต์สอนเราเกี่ยวกับพื้นที่ ผู้คน และความหมายของการรู้สึกเหมือนบ้าน",
+  "Zrealizowaliśmy ponad 8491 projektów w ponad 78 miastach Tajlandii na przestrzeni ponad 16 lat. Każdy projekt uczy nas czegoś nowego o przestrzeni, ludziach i tym, co znaczy czuć się jak w domu."
 );
 
 const OVERCLAIM_RE =
@@ -208,7 +208,11 @@ function repairApprovedHomeFacts(sections = {}, defaults = {}) {
     changed = true;
   }
 
-  if (isOverclaimedCopy(next.story?.description)) {
+  // Previous approved story ("25+ kitchens in our first year"): replace once with the current text.
+  if (
+    isOverclaimedCopy(next.story?.description) ||
+    JSON.stringify(next.story?.description || "").includes("25+ kitchens in our first year")
+  ) {
     next.story = {
       ...(next.story || {}),
       description: structuredClone(
