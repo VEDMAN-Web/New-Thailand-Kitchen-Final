@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -112,20 +112,57 @@ export default function GalleryContent({ initialItems, initialFilters }: Props) 
   const selectedTitle = selectedItem
     ? pickCmsText(selectedItem.title, "Gallery", locale)
     : "";
+  const selectedSubtitle = selectedItem
+    ? String((selectedItem as CmsGallery).projectDesc || "")
+    : "";
 
+  const openDetail = useCallback(
+    (id: string | number) => {
+      const url = new URL(window.location.href);
+      url.searchParams.set("image", String(id));
+      router.push(`${url.pathname}?${url.searchParams.toString()}`, {
+        scroll: false,
+      });
+    },
+    [router]
+  );
+
+  const closeDetail = useCallback(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("image");
+    const qs = url.searchParams.toString();
+    router.push(qs ? `${url.pathname}?${qs}` : url.pathname, { scroll: false });
+  }, [router]);
+
+  const currentIndex = selectedItem
+    ? items.findIndex((it) => String(it.id) === String(selectedItem.id))
+    : -1;
+
+  const goRelative = useCallback(
+    (delta: number) => {
+      if (currentIndex < 0 || items.length === 0) return;
+      const next = items[(currentIndex + delta + items.length) % items.length];
+      if (next) openDetail(next.id);
+    },
+    [currentIndex, items, openDetail]
+  );
+
+  /** Lock page scroll and wire Esc / arrow keys while the viewer is open. */
   useEffect(() => {
     if (!selectedItem) return;
-    document.getElementById("gallery-detail")?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  }, [selectedItem]);
-
-  const openDetail = (id: string | number) => {
-    const url = new URL(window.location.href);
-    url.searchParams.set("image", String(id));
-    router.push(`${url.pathname}?${url.searchParams.toString()}`, { scroll: false });
-  };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") closeDetail();
+      if (event.key === "ArrowRight") goRelative(1);
+      if (event.key === "ArrowLeft") goRelative(-1);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [selectedItem, closeDetail, goRelative]);
 
   return (
     <section className="pb-16 lg:pb-24">
@@ -190,30 +227,48 @@ export default function GalleryContent({ initialItems, initialFilters }: Props) 
         </div>
 
         {selectedItem ? (
-          <section
-            id="gallery-detail"
-            aria-labelledby="gallery-detail-title"
-            className="mb-14 scroll-mt-28 animate-[gallery-detail-in_450ms_ease-out] motion-reduce:animate-none"
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="gallery-viewer-title"
+            onClick={closeDetail}
+            className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 p-3 backdrop-blur-sm animate-[gallery-detail-in_220ms_ease-out] motion-reduce:animate-none sm:p-6"
           >
-            <div className="mx-auto max-w-5xl rounded-[1.5rem] bg-white/55 px-4 py-8 sm:px-8 sm:py-10 lg:px-12">
-              <div className="flex items-center justify-between gap-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#A47B5B]">
-                  Gallery detail
-                </p>
-                <Link
-                  href={active === "All" ? "/gallery" : `/gallery?tab=${categoryToSlug(active)}`}
-                  className="text-sm font-medium text-[#6B6B6B] underline-offset-4 transition-colors hover:text-[#1A1A1A] hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#A47B5B]"
-                >
-                  Back to gallery
-                </Link>
-              </div>
-              <h2
-                id="gallery-detail-title"
-                className="mt-4 text-center text-2xl font-semibold tracking-[-0.02em] text-[#1A1A1A] sm:text-3xl lg:text-4xl"
+            <div
+              onClick={(event) => event.stopPropagation()}
+              className="relative flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-[1.25rem] bg-[#F7F4EF] shadow-2xl sm:rounded-[1.5rem]"
+            >
+              <button
+                type="button"
+                onClick={closeDetail}
+                aria-label="Close image"
+                className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-black/55 text-2xl leading-none text-white transition hover:bg-black/75 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
               >
-                {selectedTitle}
-              </h2>
-              <div className="relative mx-auto mt-7 max-w-4xl overflow-hidden rounded-[1.25rem] bg-[#EDEAE4] sm:mt-9 sm:rounded-[1.5rem]">
+                &times;
+              </button>
+
+              {items.length > 1 ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => goRelative(-1)}
+                    aria-label="Previous image"
+                    className="absolute left-2 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-2xl leading-none text-white transition hover:bg-black/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:left-3"
+                  >
+                    &#8249;
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => goRelative(1)}
+                    aria-label="Next image"
+                    className="absolute right-2 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-2xl leading-none text-white transition hover:bg-black/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:right-3"
+                  >
+                    &#8250;
+                  </button>
+                </>
+              ) : null}
+
+              <div className="flex min-h-0 flex-1 items-center justify-center bg-[#141414]">
                 {selectedItem.image ? (
                   <CmsResolvedImage
                     src={selectedItem.image}
@@ -221,21 +276,40 @@ export default function GalleryContent({ initialItems, initialFilters }: Props) 
                     width={1600}
                     height={1200}
                     priority
-                    className="h-auto w-full object-contain"
-                    sizes="(max-width: 768px) 100vw, 896px"
+                    className="max-h-[60vh] w-auto max-w-full object-contain"
+                    sizes="(max-width: 768px) 100vw, 1024px"
                   />
                 ) : null}
               </div>
-              <div className="mt-7 flex justify-center sm:mt-9">
-                <Link
-                  href="/contact"
-                  className="inline-flex min-h-12 items-center justify-center rounded-full bg-[#1A1A1A] px-8 text-sm font-semibold text-white transition duration-300 hover:-translate-y-0.5 hover:bg-black hover:shadow-[0_10px_24px_rgba(26,26,26,0.18)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#A47B5B] active:translate-y-0"
+
+              <div className="shrink-0 overflow-y-auto px-5 py-5 text-center sm:px-10 sm:py-7">
+                <h2
+                  id="gallery-viewer-title"
+                  className="text-xl font-semibold tracking-[-0.02em] text-[#1A1A1A] sm:text-2xl lg:text-3xl"
                 >
-                  Explore
-                </Link>
+                  {selectedTitle}
+                </h2>
+                {selectedSubtitle ? (
+                  <p className="mx-auto mt-2.5 max-w-2xl text-sm leading-6 text-[#5C6370] sm:text-base sm:leading-7">
+                    {selectedSubtitle}
+                  </p>
+                ) : null}
+                <div className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-3">
+                  <Link
+                    href="/contact"
+                    className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#1A1A1A] px-7 text-sm font-semibold text-white transition duration-300 hover:-translate-y-0.5 hover:bg-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#A47B5B]"
+                  >
+                    Enquire about this project
+                  </Link>
+                  {items.length > 1 ? (
+                    <span className="text-xs font-medium text-[#9CA3AF]">
+                      {currentIndex + 1} / {items.length}
+                    </span>
+                  ) : null}
+                </div>
               </div>
             </div>
-          </section>
+          </div>
         ) : null}
 
         {items.length === 0 ? (
@@ -280,6 +354,11 @@ export default function GalleryContent({ initialItems, initialFilters }: Props) 
                           sizes="(max-width: 1024px) 50vw, 33vw"
                         />
                       ) : null}
+                      <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end bg-gradient-to-t from-black/75 via-black/25 to-transparent px-4 pb-3.5 pt-12 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100">
+                        <p className="text-sm font-semibold leading-snug text-white">
+                          {title}
+                        </p>
+                      </div>
                     </div>
                   </button>
                 </article>
