@@ -25,6 +25,13 @@ type Props = {
   locale?: Locale;
 };
 
+/** Note on the Koh Samui location page pointing to the local Samui Kitchens site. */
+const SAMUI_NOTE: Record<string, string> = {
+  EN: "We design kitchens all over Koh Samui as part of our nationwide service. To visit our showroom on the island, head to",
+  PL: "Projektujemy kuchnie na całej Koh Samui w ramach naszej ogólnokrajowej usługi. Aby odwiedzić nasz showroom na wyspie, zajrzyj na stronę",
+  TH: "เราออกแบบครัวทั่วเกาะสมุยเป็นส่วนหนึ่งของบริการทั่วประเทศ หากต้องการเยี่ยมชมโชว์รูมของเราบนเกาะ เข้าไปที่",
+};
+
 export default function CategoryLandingView({
   category,
   related,
@@ -94,15 +101,14 @@ export default function CategoryLandingView({
       {isSamuiLocation(String(category.slug || ""), title) ? (
         <div className="max-w-7xl mx-auto px-5 sm:px-6 pt-8">
           <p className="text-sm sm:text-base text-[#5C6370] leading-7 max-w-3xl">
-            Thailand Kitchens covers Koh Samui as part of our national kitchen
-            design service. For local Koh Samui showroom detail, visit{" "}
+            {SAMUI_NOTE[locale] ?? SAMUI_NOTE.EN}{" "}
             <a
               href={SAMUI_KITCHENS_ORIGIN}
               className="font-semibold text-[#1A2332] underline underline-offset-4 hover:text-[#B38B6D]"
             >
               Samui Kitchens
             </a>
-            .
+            {locale === "TH" ? "" : "."}
           </p>
         </div>
       ) : null}
