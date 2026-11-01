@@ -91,8 +91,7 @@ const nextConfig: NextConfig = {
       },
       { source, destination, statusCode: 301 as const },
     ]);
-    return [
-      ...seoRedirects,
+    const legacyRedirects = [
       { source: "/blog", destination: "/guides", permanent: true },
       // DEV-17: only redirect extension-less slugs so /blog/*.jpg assets still serve
       { source: "/blog/:slug([^./]+)", destination: "/guides/:slug", permanent: true },
@@ -111,6 +110,12 @@ const nextConfig: NextConfig = {
       { source: "/locations/bangkok/kitchen-design", destination: "/locations/bangkok", permanent: true },
       { source: "/locations/phuket/kitchen-renovation", destination: "/locations/phuket", permanent: true },
       { source: "/locations/koh-samui/kitchen-design", destination: "/locations/koh-samui", permanent: true },
+    ];
+    return [
+      ...seoRedirects,
+      // Keep the language when an old /pl/… or /th/… link is redirected.
+      ...legacyRedirects.map((r) => ({ ...r, source: `/:locale(pl|th)${r.source}`, destination: `/:locale${r.destination}` })),
+      ...legacyRedirects,
     ];
   },
   async rewrites() {
