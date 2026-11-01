@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ProductItem } from "./productData";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import { pickCmsText } from "../../lib/cmsText";
+import { formatBahtRange, priceLabels, productPriceRange } from "../../lib/priceRange";
 
 interface Props {
   product: ProductItem;
@@ -14,6 +15,8 @@ export default function ProductDetailHero({ product }: Props) {
   const { t, locale } = useTranslation();
   const name = pickCmsText(product.name, "", locale);
   const [main, sideTop, sideBottom] = product.heroImages;
+  const price = productPriceRange(product.features);
+  const priceText = priceLabels(locale);
 
   function isRemote(src: string) {
     return src.startsWith("http") || src.startsWith("/uploads");
@@ -80,6 +83,22 @@ export default function ProductDetailHero({ product }: Props) {
           </div>
         </div>
       </div>
+
+      {price ? (
+        <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 rounded-2xl bg-white border border-[#E8E4DC] px-5 py-4 sm:px-6">
+          <p className="shrink-0">
+            <span className={`block text-[10px] text-[#9A9A9A] ${locale === "TH" ? "text-xs" : "tracking-[0.18em] uppercase"}`}>
+              {priceText.typicalPrice}
+            </span>
+            <span className="block text-xl sm:text-2xl font-extrabold text-[#1A1A1A]">
+              {formatBahtRange(price, locale)}
+            </span>
+          </p>
+          <p className="text-xs sm:text-sm text-[#6B6B6B] leading-6 sm:border-l sm:border-[#E8E4DC] sm:pl-4">
+            {priceText.priceIncludes}
+          </p>
+        </div>
+      ) : null}
     </section>
   );
 }

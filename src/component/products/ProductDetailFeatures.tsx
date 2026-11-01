@@ -5,6 +5,7 @@ import { useState } from "react";
 import { ProductItem } from "./productData";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import { pickCmsText } from "../../lib/cmsText";
+import { isPriceFeature } from "../../lib/priceRange";
 
 interface Props {
   product: ProductItem;
@@ -20,6 +21,7 @@ export default function ProductDetailFeatures({ product }: Props) {
 
   // DEV-13: never invent feature copy — only render CMS-verified feature rows.
   const features = product.features.filter((feature) => {
+    if (isPriceFeature(feature)) return false;
     const title = pickCmsText(feature.title as any, "", locale).trim();
     const description = pickCmsText(
       feature.description as any,

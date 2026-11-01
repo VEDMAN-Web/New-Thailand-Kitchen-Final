@@ -1,7 +1,7 @@
 "use client";
 
 import { Download } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import type { CmsCatalogue } from "../../services/cmsPublic";
 import { pickCmsText } from "../../lib/cmsText";
@@ -25,8 +25,11 @@ type LeadForm = {
 
 export default function CataloguePageClient({
   initialCatalogues,
+  priceGuide,
 }: {
   initialCatalogues: CmsCatalogue[];
+  /** Server-rendered price guide shown under the catalogues. */
+  priceGuide?: ReactNode;
 }) {
   const { t, locale } = useTranslation();
   const cms = useCmsSection<CatalogueCms>("catalogue");
@@ -237,6 +240,10 @@ export default function CataloguePageClient({
             )}
           </div>
         </section>
+
+        {priceGuide ? (
+          <div className="max-w-7xl mx-auto px-5 sm:px-6 pb-16 lg:pb-24">{priceGuide}</div>
+        ) : null}
       </div>
 
       {/* Lead Gate Modal */}

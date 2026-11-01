@@ -4,6 +4,7 @@ type ProductJsonLd = {
   image: string;
   brand?: string;
   sku?: string;
+  offers?: Record<string, unknown>;
 };
 
 type ArticleJsonLd = {
@@ -89,6 +90,7 @@ function generateProductSchema(data: ProductJsonLd) {
       name: data.brand || 'Thailand Kitchen',
     },
     ...(data.sku ? { sku: data.sku } : {}),
+    ...(data.offers ? { offers: data.offers } : {}),
   };
 }
 

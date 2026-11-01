@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { localizedStatic } from "../../lib/seoLocale";
-import { fetchMergedCatalogues } from "../../services/cmsPublic";
+import { fetchMergedCatalogues, fetchMergedCategories } from "../../services/cmsPublic";
+import PriceGuide from "../../components/seo/PriceGuide";
+import { getServerLocale } from "../../lib/serverLocale";
 import CataloguePageClient from "./CataloguePageClient";
 import { SITE_ORIGIN } from "../../lib/siteUrl";
 import { seoAlternates } from "../../lib/pageMetadata";
@@ -29,6 +31,21 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function CataloguePage() {
-  const catalogues = await fetchMergedCatalogues().catch(() => []);
-  return <CataloguePageClient initialCatalogues={catalogues} />;
+  const [catalogues, categories, locale] = await Promise.all([
+    fetchMergedCatalogues().catch(() => []),
+    fetchMergedCategories().catch(() => []),
+    getServerLocale(),
+  ]);
+  return (
+    <CataloguePageClient
+      initialCatalogues={catalogues}
+      priceGuide={
+        <PriceGuide
+          categories={categories}
+          types={["layout", "style", "property-type", "built-in-furniture"]}
+          locale={locale}
+        />
+      }
+    />
+  );
 }
