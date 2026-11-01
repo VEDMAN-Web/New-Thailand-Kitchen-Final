@@ -1,3 +1,5 @@
+import { clipDescription } from "../../../lib/seoLocale";
+import { getUrlLocale } from "../../../lib/urlLocale";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import ProductDetailView from "../../../component/products/ProductDetailView";
@@ -69,12 +71,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // discovery before their content and metadata can stream.
   const product = await fetchProductBySlug(normalized);
   if (product) {
-    const title =
-      product.metaTitle ||
-      `${pickCmsText((product as any).title || product.name, "", SITE_SEO_LOCALE)} | Thailand Kitchens`;
-    const description =
-      product.metaDescription ||
-      pickCmsText((product as any).description || "", "", SITE_SEO_LOCALE);
+    const urlLocale = await getUrlLocale();
+    const title = urlLocale
+      ? `${pickCmsText((product as any).title || product.name, "", urlLocale)} | Thailand Kitchens`
+      : product.metaTitle ||
+        `${pickCmsText((product as any).title || product.name, "", SITE_SEO_LOCALE)} | Thailand Kitchens`;
+    const description = urlLocale
+      ? clipDescription(pickCmsText((product as any).description || "", "", urlLocale))
+      : product.metaDescription ||
+        pickCmsText((product as any).description || "", "", SITE_SEO_LOCALE);
     const canonical = product.canonicalUrl || absoluteUrl(`/products/${product.slug}`);
     const image = ogImageUrl(product.image);
 

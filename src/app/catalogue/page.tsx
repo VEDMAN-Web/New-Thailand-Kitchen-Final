@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { localizedStatic } from "../../lib/seoLocale";
 import { fetchMergedCatalogues } from "../../services/cmsPublic";
 import CataloguePageClient from "./CataloguePageClient";
 import { SITE_ORIGIN } from "../../lib/siteUrl";
@@ -13,14 +14,15 @@ const CATALOGUE_DESCRIPTION =
 const CATALOGUE_URL = `${SITE_ORIGIN}/catalogue`;
 
 export async function generateMetadata(): Promise<Metadata> {
+  const seo = await localizedStatic("/catalogue", CATALOGUE_TITLE, CATALOGUE_DESCRIPTION);
   return {
-  title: CATALOGUE_TITLE,
-  description: CATALOGUE_DESCRIPTION,
+  title: seo.title,
+  description: seo.description,
   alternates: await seoAlternates("/catalogue"),
   openGraph: {
     type: "website",
-    title: CATALOGUE_TITLE,
-    description: CATALOGUE_DESCRIPTION,
+    title: seo.title,
+    description: seo.description,
     url: CATALOGUE_URL,
   },
   };

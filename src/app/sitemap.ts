@@ -114,5 +114,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("[SITEMAP] Error fetching published blogs:", error);
   }
 
-  return sitemap;
+  // Advertise the Polish and Thai versions of every page alongside the English one.
+  const localized = (url: string, prefix: string) => {
+    const path = url.slice(SITE_ORIGIN.length) || "";
+    return `${SITE_ORIGIN}${prefix}${path}`;
+  };
+  return sitemap.flatMap((entry) => {
+    const languages = {
+      en: entry.url,
+      pl: localized(entry.url, "/pl"),
+      th: localized(entry.url, "/th"),
+    };
+    return [
+      { ...entry, alternates: { languages } },
+      { ...entry, url: languages.pl, alternates: { languages } },
+      { ...entry, url: languages.th, alternates: { languages } },
+    ];
+  });
 }

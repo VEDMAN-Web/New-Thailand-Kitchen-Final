@@ -1,4 +1,5 @@
 import { getUrlLocale } from "../../lib/urlLocale";
+import { clipDescription, translatedSeo } from "../../lib/seoLocale";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import CategoryLandingView from "./CategoryLandingView";
@@ -68,12 +69,20 @@ export async function generateCategoryMetadata(
     return { title: `${fallbackLabel} Not Found` };
   }
 
-  const title =
-    category.metaTitle ||
-    `${pickCmsText(category.title, "", SITE_SEO_LOCALE)} | Thailand Kitchens`;
-  const description =
-    category.metaDescription ||
-    pickCmsText(category.description, "", SITE_SEO_LOCALE);
+  const urlLocale = await getUrlLocale();
+  const mapped = translatedSeo(categoryPublicPath(category), urlLocale);
+  const title = mapped
+    ? mapped.title
+    : urlLocale
+    ? `${pickCmsText(category.title, "", urlLocale)} | Thailand Kitchens`
+    : category.metaTitle ||
+      `${pickCmsText(category.title, "", SITE_SEO_LOCALE)} | Thailand Kitchens`;
+  const description = mapped
+    ? mapped.description
+    : urlLocale
+    ? clipDescription(pickCmsText(category.description, "", urlLocale))
+    : category.metaDescription ||
+      pickCmsText(category.description, "", SITE_SEO_LOCALE);
 
   const path = categoryPublicPath(category);
   const canonical = category.canonicalUrl || absoluteUrl(path);

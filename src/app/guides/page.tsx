@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { localizedStatic } from "../../lib/seoLocale";
 import BlogPageView from "../../component/blog/BlogPageView";
 import { blogPosts } from "../../component/blog/blogData";
 import { fetchMergedBlogs } from "../../services/cmsPublic";
@@ -14,14 +15,15 @@ const GUIDES_DESCRIPTION =
 const GUIDES_URL = `${SITE_ORIGIN}/guides`;
 
 export async function generateMetadata(): Promise<Metadata> {
+  const seo = await localizedStatic("/guides", GUIDES_TITLE, GUIDES_DESCRIPTION);
   return {
-  title: GUIDES_TITLE,
-  description: GUIDES_DESCRIPTION,
+  title: seo.title,
+  description: seo.description,
   alternates: await seoAlternates("/guides"),
   openGraph: {
     type: "website",
-    title: GUIDES_TITLE,
-    description: GUIDES_DESCRIPTION,
+    title: seo.title,
+    description: seo.description,
     url: GUIDES_URL,
   },
   };

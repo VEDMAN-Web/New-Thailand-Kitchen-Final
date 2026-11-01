@@ -36,8 +36,6 @@ function localeRewrite(request: NextRequest) {
   const response = NextResponse.rewrite(url, {
     request: { headers: requestHeaders },
   });
-  // Not indexable until PL/TH translations exist (TODO DEV-02).
-  response.headers.set("X-Robots-Tag", "noindex, follow");
   return response;
 }
 

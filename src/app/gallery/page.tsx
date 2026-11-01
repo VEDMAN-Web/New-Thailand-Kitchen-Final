@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { localizedStatic } from "../../lib/seoLocale";
 import { Suspense } from "react";
 import GalleryPageView from "../../component/gallery/GalleryPageView";
 import { fetchMergedGallery, fetchHomeSections } from "../../services/cmsPublic";
@@ -15,14 +16,15 @@ const GALLERY_DESCRIPTION =
 const GALLERY_URL = `${SITE_ORIGIN}/gallery`;
 
 export async function generateMetadata(): Promise<Metadata> {
+  const seo = await localizedStatic("/gallery", GALLERY_TITLE, GALLERY_DESCRIPTION);
   return {
-  title: GALLERY_TITLE,
-  description: GALLERY_DESCRIPTION,
+  title: seo.title,
+  description: seo.description,
   alternates: await seoAlternates("/gallery"),
   openGraph: {
     type: "website",
-    title: GALLERY_TITLE,
-    description: GALLERY_DESCRIPTION,
+    title: seo.title,
+    description: seo.description,
     url: GALLERY_URL,
   },
   };

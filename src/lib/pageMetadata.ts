@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { localizedStatic } from "./seoLocale";
 import { absoluteUrl, ogImageUrl } from "./siteUrl";
 import { getUrlLocale, localePath } from "./urlLocale";
 
@@ -54,10 +55,7 @@ type PageSeoInput = {
 };
 
 /**
- * Self-referencing canonical with en + x-default hreflang. /pl and /th routes
- * exist (DEV-02) but are noindex and NOT advertised in hreflang or the sitemap
- * until PL/TH metadata and localized internal links exist.
- * TODO(DEV-02): add pl/th alternates once translations ship.
+ * Self-referencing canonical with en, pl, th and x-default hreflang.
  */
 export async function seoAlternates(path: string) {
   const urlLocale = await getUrlLocale();
@@ -66,6 +64,8 @@ export async function seoAlternates(path: string) {
     canonical: urlLocale ? absoluteUrl(localePath(path, urlLocale)) : en,
     languages: {
       en,
+      pl: absoluteUrl(localePath(path, "PL")),
+      th: absoluteUrl(localePath(path, "TH")),
       "x-default": en,
     },
   };
@@ -81,6 +81,9 @@ export async function pageSeo({
 }: PageSeoInput): Promise<Metadata> {
   const canonical = absoluteUrl(path);
   const ogImage = ogImageUrl(image);
+  ({ title, description } = await localizedStatic(path, title, description));
+  if (ogTitle && title !== ogTitle) ogTitle = title;
+  if (ogDescription && description !== ogDescription) ogDescription = description;
 
   return {
     title,
