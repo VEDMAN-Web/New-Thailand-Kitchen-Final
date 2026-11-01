@@ -208,7 +208,7 @@ export default function CataloguePageClient({
                       <div className="relative w-full aspect-[4/5]">
                         <CmsResolvedImage
                           src={coverImg}
-                          alt=""
+                          alt={`${cardCategory} ${cardTitle}`.trim()}
                           fill
                           className="object-cover"
                           sizes="(max-width: 768px) 100vw, 320px"
