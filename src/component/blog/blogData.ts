@@ -132,7 +132,7 @@ export const blogPosts: BlogPost[] = [
     slug: "the-marble-masterclass",
     title: "The Marble Masterclass: Selecting the Perfect Slab",
     excerpt:
-      "Choosing marble is equal parts aesthetics and practicality. Learn how to select a slab that suits cooking style, light, and long-term care.",
+      "Choosing marble is equal parts beauty and practicality. Here's how to pick a slab that suits the way you cook, your light and its long-term care.",
     category: "Material Guides",
     filter: "Materials",
     date: "APR 10, 2024",
