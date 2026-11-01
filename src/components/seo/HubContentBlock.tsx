@@ -87,6 +87,14 @@ export default function HubContentBlock({
   const image = String(block.image || "").trim();
   const layout = String(block.layout || "image-left").trim();
   const sectionLabel = pickCmsText(block.label, "", locale); // Get label from CMS
+  // Price sections ("Prices" label in the CMS) are set justified.
+  const labelEn =
+    block.label && typeof block.label === "object"
+      ? String((block.label as { en?: unknown }).en || "")
+      : String(block.label || "");
+  const justify = /^prices$/i.test(labelEn.trim())
+    ? " text-justify hyphens-auto [text-align-last:left]"
+    : "";
   const items = splitItems(body);
 
   if (!heading && !body && !image) return null;
@@ -439,7 +447,7 @@ export default function HubContentBlock({
           </h2>
         ) : null}
         {body ? (
-          <div className="text-[#5C6370] text-sm sm:text-base leading-7 sm:leading-8 whitespace-pre-line">
+          <div className={`text-[#5C6370] text-sm sm:text-base leading-7 sm:leading-8 whitespace-pre-line${justify}`}>
             {body}
           </div>
         ) : null}
