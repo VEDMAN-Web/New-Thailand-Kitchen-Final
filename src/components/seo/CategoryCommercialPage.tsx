@@ -13,6 +13,7 @@ import {
   getCategoryBySlug,
   getLocationServiceCategory,
   getRelatedGalleryProjects,
+  relatedProjectHref,
   type CategoryTypeFilter,
   type CmsCategory,
 } from "../../services/cmsPublic";
@@ -165,7 +166,7 @@ export async function CategoryCommercialPage({
     image: g.image,
     title: projectTitleFromCms(g, locale),
     description: g.projectDesc || undefined,
-    href: "/gallery",
+    href: relatedProjectHref(g, categoryType),
   }));
 
   const locSlug = locationSlug || parentSlugOf(category);

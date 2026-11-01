@@ -843,12 +843,41 @@ export async function getRelatedGalleryProjects(
     return fields.some((f) => needles.some((n) => tagMatches(f, n)));
   });
 
-  const withImages = matched.filter((g) => g.image);
-  if (withImages.length) return withImages.slice(0, limit);
+  // Tagged projects first, then other gallery projects to fill the row, never the same
+  // photo twice (several gallery entries share an image).
+  const seen = new Set<string>();
+  const picked: CmsGallery[] = [];
+  for (const g of [...matched, ...all]) {
+    // Same photo can be saved with different suffixes ("=w1600", "=w1600#.jpg", "?w=…").
+    const key = String(g.image || "")
+      .split(/[?#]/)[0]
+      .replace(/=w\d+.*$/, "");
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    picked.push(g);
+    if (picked.length >= limit) break;
+  }
+  return picked;
+}
 
-  // No tag match (common for service and built-in-furniture pages): fall back to
-  // the newest gallery photos rather than hiding the section entirely.
-  return all.filter((g) => g.image).slice(0, limit);
+/** First tag in a space- or comma-separated tag field ("islands l-shape" → "islands"). */
+function firstTag(value: string | undefined): string {
+  return String(value || "").split(/[\s,]+/).filter(Boolean)[0] || "";
+}
+
+/**
+ * Internal link for a related project: a category page of a different kind from the
+ * page it is shown on (a style page links to the project's layout, a layout page to its style…).
+ */
+export function relatedProjectHref(g: CmsGallery, currentType: string): string {
+  const options: [string, string][] = [
+    ["layout", firstTag(g.layoutTag) ? `/kitchens/layouts/${firstTag(g.layoutTag)}` : ""],
+    ["style", firstTag(g.styleTag) ? `/kitchens/styles/${firstTag(g.styleTag)}` : ""],
+    ["property-type", firstTag(g.propertyType) ? `/kitchens/by-property/${firstTag(g.propertyType)}` : ""],
+    ["material", firstTag(g.materialTag) ? `/materials/${firstTag(g.materialTag)}` : ""],
+  ];
+  const other = options.find(([type, href]) => href && type !== currentType);
+  return other ? other[1] : "/gallery";
 }
 
 export async function fetchLegalPage(type: "privacy" | "terms") {
