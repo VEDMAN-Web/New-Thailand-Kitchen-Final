@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { localizedStatic } from "../../lib/seoLocale";
 import ContactPage from "../../component/contact/ContactPage";
 import { SITE_ORIGIN } from "../../lib/siteUrl";
 import { seoAlternates } from "../../lib/pageMetadata";
@@ -9,14 +10,15 @@ const CONTACT_DESCRIPTION =
 const CONTACT_URL = `${SITE_ORIGIN}/contact`;
 
 export async function generateMetadata(): Promise<Metadata> {
+  const seo = await localizedStatic("/contact", CONTACT_TITLE, CONTACT_DESCRIPTION);
   return {
-  title: CONTACT_TITLE,
-  description: CONTACT_DESCRIPTION,
+  title: seo.title,
+  description: seo.description,
   alternates: await seoAlternates("/contact"),
   openGraph: {
     type: "website",
-    title: CONTACT_TITLE,
-    description: CONTACT_DESCRIPTION,
+    title: seo.title,
+    description: seo.description,
     url: CONTACT_URL,
   },
   };

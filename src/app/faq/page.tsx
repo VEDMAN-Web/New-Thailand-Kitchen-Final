@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { localizedStatic } from "../../lib/seoLocale";
 import FaqPage from "../../component/faq/FaqPage";
 import { fetchMergedFaqs } from "../../services/cmsPublic";
 import { SITE_ORIGIN } from "../../lib/siteUrl";
@@ -16,14 +17,15 @@ const FAQ_DESCRIPTION =
 const FAQ_URL = `${SITE_ORIGIN}/faq`;
 
 export async function generateMetadata(): Promise<Metadata> {
+  const seo = await localizedStatic("/faq", FAQ_TITLE, FAQ_DESCRIPTION);
   return {
-  title: FAQ_TITLE,
-  description: FAQ_DESCRIPTION,
+  title: seo.title,
+  description: seo.description,
   alternates: await seoAlternates("/faq"),
   openGraph: {
     type: "website",
-    title: FAQ_TITLE,
-    description: FAQ_DESCRIPTION,
+    title: seo.title,
+    description: seo.description,
     url: FAQ_URL,
   },
   };

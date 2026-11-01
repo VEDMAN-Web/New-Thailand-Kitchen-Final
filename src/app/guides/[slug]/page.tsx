@@ -11,6 +11,8 @@ import { pickBlogCoverImage } from "../../../lib/cmsMedia";
 import { getServerLocale } from "../../../lib/serverLocale";
 import { tx } from "../../../i18n/translations";
 import { SITE_SEO_LOCALE, seoAlternates } from "../../../lib/pageMetadata";
+import { getUrlLocale } from "../../../lib/urlLocale";
+import { clipDescription } from "../../../lib/seoLocale";
 import { fixedGuideMedia } from "../../../lib/imageFixRegister";
 
 interface Props {
@@ -36,16 +38,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: "Guide Not Found" };
   }
 
-  const title = pickCmsText(
+  const urlLocale = await getUrlLocale();
+  const tr = urlLocale ? post.translations?.[urlLocale === "TH" ? "th" : "pl"] : undefined;
+  const enTitle = pickCmsText(
     (post as { metaTitle?: unknown }).metaTitle,
     `${pickCmsText(post.title, "", SITE_SEO_LOCALE)} | Thailand Kitchen Guides`,
     SITE_SEO_LOCALE
   );
-  const description = pickCmsText(
+  const enDescription = pickCmsText(
     (post as { metaDescription?: unknown }).metaDescription,
     pickCmsText(post.excerpt, "", SITE_SEO_LOCALE),
     SITE_SEO_LOCALE
   );
+  const title = tr?.title ? `${tr.title} | Thailand Kitchens` : enTitle;
+  const description = tr?.excerpt ? clipDescription(tr.excerpt) : enDescription;
 
   const canonical = absoluteUrl(`/guides/${post.slug}`);
   const image = ogImageUrl(

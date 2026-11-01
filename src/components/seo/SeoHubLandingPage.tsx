@@ -4,6 +4,8 @@ import { pickCmsText } from "../../lib/cmsText";
 import { absoluteUrl, ogImageUrl } from "../../lib/siteUrl";
 import { getServerLocale } from "../../lib/serverLocale";
 import { seoAlternates, SITE_SEO_LOCALE } from "../../lib/pageMetadata";
+import { getUrlLocale } from "../../lib/urlLocale";
+import { clipDescription, translatedSeo } from "../../lib/seoLocale";
 import Breadcrumbs from "./Breadcrumbs";
 import OverlayHeroBanner from "./OverlayHeroBanner";
 import HubContentBlock from "./HubContentBlock";
@@ -125,15 +127,25 @@ export async function generateHubMetadata(
   const home = await fetchHomeSections().catch(() => ({}));
   const hubPages = (home as { hubPages?: Record<string, HubPageCms> })
     ?.hubPages;
+  const urlLocale = await getUrlLocale();
   const data = resolveHubData(
     hubPages,
     hubKey,
     kitchensSubKey,
-    SITE_SEO_LOCALE
+    urlLocale ?? SITE_SEO_LOCALE
   );
 
-  const title = data.metaTitle || `${data.title} | Thailand Kitchens`;
-  const description = data.metaDescription || data.description;
+  const mapped = translatedSeo(data.currentHref, urlLocale);
+  const title = mapped
+    ? mapped.title
+    : urlLocale
+    ? `${data.title} | Thailand Kitchens`
+    : data.metaTitle || `${data.title} | Thailand Kitchens`;
+  const description = mapped
+    ? mapped.description
+    : urlLocale
+    ? clipDescription(data.description)
+    : data.metaDescription || data.description;
   const canonical = absoluteUrl(data.currentHref);
   const image = ogImageUrl(data.heroImage);
 

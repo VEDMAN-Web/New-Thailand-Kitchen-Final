@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { localizedStatic } from "../../lib/seoLocale";
 import { Suspense } from "react";
 import ProductsPageView from "../../component/products/ProductsPageView";
 import { fetchHomeSections, fetchMergedProducts } from "../../services/cmsPublic";
@@ -29,6 +30,7 @@ function parsePageParam(
 }
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const seo = await localizedStatic("/products", PRODUCTS_TITLE, PRODUCTS_DESCRIPTION);
   const params = await searchParams;
   const page = parsePageParam(params);
   // Page 1 canonical is /products (no query string).
@@ -37,16 +39,16 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     page <= 1 ? PRODUCTS_URL : `${PRODUCTS_URL}?page=${page}`;
 
   return {
-    title: PRODUCTS_TITLE,
-    description: PRODUCTS_DESCRIPTION,
+    title: seo.title,
+    description: seo.description,
     alternates:
       page <= 1
         ? await seoAlternates("/products")
         : { canonical },
     openGraph: {
       type: "website",
-      title: PRODUCTS_TITLE,
-      description: PRODUCTS_DESCRIPTION,
+      title: seo.title,
+      description: seo.description,
       url: canonical,
     },
   };

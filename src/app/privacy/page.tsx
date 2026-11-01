@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { localizedStatic } from "../../lib/seoLocale";
 import LegalPageView from "../../component/legal/LegalPageView";
 import { privacyPageContent } from "../../component/legal/legalData";
 import { SITE_ORIGIN } from "../../lib/siteUrl";
@@ -9,14 +10,15 @@ const PRIVACY_DESCRIPTION = privacyPageContent.subtitle;
 const PRIVACY_URL = `${SITE_ORIGIN}/privacy`;
 
 export async function generateMetadata(): Promise<Metadata> {
+  const seo = await localizedStatic("/privacy", PRIVACY_TITLE, PRIVACY_DESCRIPTION);
   return {
-  title: PRIVACY_TITLE,
-  description: PRIVACY_DESCRIPTION,
+  title: seo.title,
+  description: seo.description,
   alternates: await seoAlternates("/privacy"),
   openGraph: {
     type: "website",
-    title: PRIVACY_TITLE,
-    description: PRIVACY_DESCRIPTION,
+    title: seo.title,
+    description: seo.description,
     url: PRIVACY_URL,
   },
   };
