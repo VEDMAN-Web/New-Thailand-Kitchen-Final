@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { fetchHomeSections } from "../../services/cmsPublic";
+import { fetchHomeSections, fetchMergedCategories } from "../../services/cmsPublic";
+import PriceGuide from "./PriceGuide";
 import { pickCmsText } from "../../lib/cmsText";
 import { absoluteUrl, ogImageUrl } from "../../lib/siteUrl";
 import { getServerLocale } from "../../lib/serverLocale";
@@ -169,6 +170,20 @@ export async function generateHubMetadata(
   };
 }
 
+/** Which category types get a price guide on each hub. */
+function priceGuideTypes(hubKey: HubNavKey, kitchensSubKey?: KitchensSectionKey): string[] {
+  if (hubKey === "kitchens") {
+    if (kitchensSubKey === "layouts") return ["layout"];
+    if (kitchensSubKey === "styles") return ["style"];
+    if (kitchensSubKey === "byProperty") return ["property-type"];
+    return ["layout", "style", "property-type"];
+  }
+  if (hubKey === "builtInFurniture") return ["built-in-furniture"];
+  if (hubKey === "materials") return ["material"];
+  if (hubKey === "locations") return ["location"];
+  return [];
+}
+
 export default async function SeoHubLandingPage({
   hubKey,
   kitchensSubKey,
@@ -179,6 +194,10 @@ export default async function SeoHubLandingPage({
   const hubPages = (home as { hubPages?: Record<string, HubPageCms> })
     ?.hubPages;
   const data = resolveHubData(hubPages, hubKey, kitchensSubKey, locale);
+  const guideTypes = priceGuideTypes(hubKey, kitchensSubKey);
+  const guideCategories = guideTypes.length
+    ? await fetchMergedCategories().catch(() => [])
+    : [];
 
   const trail =
     breadcrumbTrail ||
@@ -218,6 +237,12 @@ export default async function SeoHubLandingPage({
               locale={locale}
             />
           ))}
+        </div>
+      ) : null}
+
+      {guideCategories.length ? (
+        <div className="max-w-7xl mx-auto px-5 sm:px-6 pb-10 sm:pb-16 lg:pb-20">
+          <PriceGuide categories={guideCategories} types={guideTypes} locale={locale} />
         </div>
       ) : null}
     </main>

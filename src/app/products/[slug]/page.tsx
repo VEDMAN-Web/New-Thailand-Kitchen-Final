@@ -22,6 +22,7 @@ import { absoluteUrl, ogImageUrl } from "../../../lib/siteUrl";
 import { getServerLocale } from "../../../lib/serverLocale";
 import { SITE_SEO_LOCALE, seoAlternates } from "../../../lib/pageMetadata";
 import { tx } from "../../../i18n/translations";
+import { productPriceRange } from "../../../lib/priceRange";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -173,6 +174,16 @@ export default async function ProductDetailPage({ params }: Props) {
             description: productDesc,
             image: product.image || '',
             brand: 'Thailand Kitchens',
+            ...(productPriceRange(product.features)
+              ? {
+                  offers: {
+                    '@type': 'AggregateOffer',
+                    priceCurrency: 'THB',
+                    lowPrice: productPriceRange(product.features)!.low,
+                    highPrice: productPriceRange(product.features)!.high,
+                  },
+                }
+              : {}),
           }}
         />
         <ProductDetailView product={product} />

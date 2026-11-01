@@ -6,6 +6,7 @@ import { ProductItem } from "./productData";
 import { useTranslation } from "../../i18n/LanguageProvider";
 import { pickCmsText } from "../../lib/cmsText";
 import { DEFAULT_OG_IMAGE } from "../../lib/siteUrl";
+import { formatBahtFrom, productPriceRange } from "../../lib/priceRange";
 
 interface Props {
   product: ProductItem;
@@ -25,6 +26,7 @@ export default function ProductCard({ product }: Props) {
   const layout = pickCmsText(product.layout, product.layout, locale);
   const finish = pickCmsText(product.finish, "", locale);
   const material = pickCmsText(product.material, "", locale);
+  const price = productPriceRange(product.features);
   const imageSrc = String(product.image || "").trim() || DEFAULT_OG_IMAGE;
   const isRemote =
     imageSrc.startsWith("http") || imageSrc.startsWith("/uploads");
@@ -50,6 +52,11 @@ export default function ProductCard({ product }: Props) {
           <div className="flex-1">
             <h3 className="text-lg sm:text-xl font-extrabold text-[#1A1A1A] line-clamp-2">{name}</h3>
             <p className="mt-1 text-xs sm:text-sm text-[#8A8A8A] line-clamp-1">{layout}</p>
+            {price ? (
+              <p className="mt-2 text-sm sm:text-base font-bold text-[#B38B6D]">
+                {formatBahtFrom(price, locale)}
+              </p>
+            ) : null}
 
             <div className="mt-3 sm:mt-5 grid grid-cols-2 gap-3 sm:gap-4">
               <div>
